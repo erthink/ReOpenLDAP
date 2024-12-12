@@ -50,8 +50,7 @@ int main(int argc, char **argv) {
       break;
     case 't': /* traverse with first, next */
       printf("***\n");
-      for (n = tavl_end(tree, TAVL_DIR_LEFT); n != NULL;
-           n = tavl_next(n, TAVL_DIR_RIGHT))
+      for (n = tavl_end(tree, TAVL_DIR_LEFT); n != NULL; n = tavl_next(n, TAVL_DIR_RIGHT))
         printf("%s\n", (char *)n->avl_data);
       printf("***\n");
       break;

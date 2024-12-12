@@ -82,15 +82,15 @@ static unsigned get_flags(const char *backend, const char *spec) {
   return flags;
 }
 
-#define APPEND(s /* String or Strings */, data, count, isString)               \
-  do {                                                                         \
-    size_t slen = (s)->len, salloc = (s)->alloc, sz = sizeof *(s)->val;        \
-    if (salloc <= slen + (count)) {                                            \
-      (s)->alloc = salloc += salloc + ((count) | 7) + 1;                       \
-      (s)->val = xrealloc((s)->val, sz * salloc);                              \
-    }                                                                          \
-    memcpy((s)->val + slen, data, sz * ((count) + !!(isString)));              \
-    (s)->len = slen + (count);                                                 \
+#define APPEND(s /* String or Strings */, data, count, isString)                                                       \
+  do {                                                                                                                 \
+    size_t slen = (s)->len, salloc = (s)->alloc, sz = sizeof *(s)->val;                                                \
+    if (salloc <= slen + (count)) {                                                                                    \
+      (s)->alloc = salloc += salloc + ((count) | 7) + 1;                                                               \
+      (s)->val = xrealloc((s)->val, sz * salloc);                                                                      \
+    }                                                                                                                  \
+    memcpy((s)->val + slen, data, sz * ((count) + !!(isString)));                                                      \
+    (s)->len = slen + (count);                                                                                         \
   } while (0)
 
 static void *xrealloc(void *ptr, size_t len) {
@@ -101,9 +101,7 @@ static void *xrealloc(void *ptr, size_t len) {
   return ptr;
 }
 
-static int cmp(const void *s, const void *t) {
-  return strcmp(((const String *)s)->val, ((const String *)t)->val);
-}
+static int cmp(const void *s, const void *t) { return strcmp(((const String *)s)->val, ((const String *)t)->val); }
 
 static void sort_strings(Strings *ss, size_t offset) {
   qsort(ss->val + offset, ss->len - offset, sizeof(*ss->val), cmp);

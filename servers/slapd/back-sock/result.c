@@ -55,8 +55,7 @@ int sock_read_and_send_results(Operation *op, SlapReply *rs, FILE *fp) {
       if (errno == EINTR)
         continue;
 
-      Debug(LDAP_DEBUG_ANY, "sock: fgets failed: %s (%d)\n",
-            AC_STRERROR_R(errno, ebuf, sizeof ebuf), errno);
+      Debug(LDAP_DEBUG_ANY, "sock: fgets failed: %s (%d)\n", AC_STRERROR_R(errno, ebuf, sizeof ebuf), errno);
       break;
     }
 
@@ -73,8 +72,7 @@ int sock_read_and_send_results(Operation *op, SlapReply *rs, FILE *fp) {
     }
 
     if (strncasecmp(line, "CONTINUE", 8) == 0) {
-      struct sockinfo *si __maybe_unused =
-          (struct sockinfo *)op->o_bd->be_private;
+      struct sockinfo *si __maybe_unused = (struct sockinfo *)op->o_bd->be_private;
       /* Only valid when operating as an overlay! */
       assert(si->si_ops != 0);
       rs->sr_err = SLAP_CB_CONTINUE;
@@ -110,8 +108,7 @@ int sock_read_and_send_results(Operation *op, SlapReply *rs, FILE *fp) {
       bp = buf;
     }
   }
-  (void)str2result(buf, &rs->sr_err, (char **)&rs->sr_matched,
-                   (char **)&rs->sr_text);
+  (void)str2result(buf, &rs->sr_err, (char **)&rs->sr_matched, (char **)&rs->sr_text);
 
   /* otherwise, front end will send this result */
   if (rs->sr_err != 0 || op->o_tag != LDAP_REQ_BIND) {
@@ -140,8 +137,7 @@ void sock_print_conn(FILE *fp, Connection *conn, struct sockinfo *si) {
     fprintf(fp, "binddn: %s\n", conn->c_dn.bv_len ? conn->c_dn.bv_val : "");
   }
   if (si->si_extensions & SOCK_EXT_PEERNAME) {
-    fprintf(fp, "peername: %s\n",
-            conn->c_peer_name.bv_len ? conn->c_peer_name.bv_val : "");
+    fprintf(fp, "peername: %s\n", conn->c_peer_name.bv_len ? conn->c_peer_name.bv_val : "");
   }
   if (si->si_extensions & SOCK_EXT_SSF) {
     fprintf(fp, "ssf: %d\n", conn->c_ssf);

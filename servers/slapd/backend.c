@@ -45,8 +45,7 @@ static int backend_init_controls(BackendInfo *bi) {
     for (i = 0; bi->bi_controls[i]; i++) {
       int cid;
 
-      if (slap_find_control_id(bi->bi_controls[i], &cid) ==
-          LDAP_CONTROL_NOT_FOUND) {
+      if (slap_find_control_id(bi->bi_controls[i], &cid) == LDAP_CONTROL_NOT_FOUND) {
         if (!(slapMode & SLAP_TOOL_MODE)) {
           LDAP_BUG();
         }
@@ -77,8 +76,7 @@ int backend_init(void) {
     rc = bi->bi_init(bi);
 
     if (rc != 0) {
-      Debug(LDAP_DEBUG_ANY, "backend_init: initialized for type \"%s\"\n",
-            bi->bi_type);
+      Debug(LDAP_DEBUG_ANY, "backend_init: initialized for type \"%s\"\n", bi->bi_type);
       /* destroy those we've already inited */
       for (nBackendInfo--; nBackendInfo >= 0; nBackendInfo--) {
         if (slap_binfo[nBackendInfo].bi_destroy) {
@@ -118,9 +116,7 @@ int backend_add(BackendInfo *aBackendInfo) {
 
   rc = aBackendInfo->bi_init(aBackendInfo);
   if (rc != 0) {
-    Debug(LDAP_DEBUG_ANY,
-          "backend_add:  initialization for type \"%s\" failed\n",
-          aBackendInfo->bi_type);
+    Debug(LDAP_DEBUG_ANY, "backend_add:  initialization for type \"%s\" failed\n", aBackendInfo->bi_type);
     return rc;
   }
 
@@ -167,8 +163,7 @@ int backend_startup_one(Backend *be, ConfigReply *cr) {
 
   assert(be != NULL);
 
-  be->be_pending_csn_list =
-      (struct be_pcl *)ch_calloc(1, sizeof(struct be_pcl));
+  be->be_pending_csn_list = (struct be_pcl *)ch_calloc(1, sizeof(struct be_pcl));
 
   LDAP_TAILQ_INIT(be->be_pending_csn_list);
 
@@ -225,8 +220,7 @@ int backend_startup(Backend *be) {
 
   if (!(nBackendDB > 0)) {
     /* no databases */
-    Debug(LDAP_DEBUG_ANY, "backend_startup: %d databases to startup.\n",
-          nBackendDB);
+    Debug(LDAP_DEBUG_ANY, "backend_startup: %d databases to startup.\n", nBackendDB);
     return 1;
   }
 
@@ -250,8 +244,7 @@ int backend_startup(Backend *be) {
   if (frontendDB->bd_info->bi_db_open) {
     rc = frontendDB->bd_info->bi_db_open(frontendDB, &cr);
     if (rc != 0) {
-      Debug(LDAP_DEBUG_ANY,
-            "backend_startup: bi_db_open(frontend) failed! (%d)\n", rc);
+      Debug(LDAP_DEBUG_ANY, "backend_startup: bi_db_open(frontend) failed! (%d)\n", rc);
       return rc;
     }
   }
@@ -268,8 +261,7 @@ int backend_startup(Backend *be) {
     if (bi->bi_open) {
       rc = bi->bi_open(bi);
       if (rc != 0) {
-        Debug(LDAP_DEBUG_ANY, "backend_startup: bi_open %d (%s) failed!\n", i,
-              bi->bi_type);
+        Debug(LDAP_DEBUG_ANY, "backend_startup: bi_open %d (%s) failed!\n", i, bi->bi_type);
         return rc;
       }
     }
@@ -350,8 +342,7 @@ int backend_shutdown(Backend *be) {
     }
 
     if (rc != 0) {
-      Debug(LDAP_DEBUG_ANY, "backend_close: bi_db_close %s failed!\n",
-            be->be_type);
+      Debug(LDAP_DEBUG_ANY, "backend_close: bi_db_close %s failed!\n", be->be_type);
     }
   }
 
@@ -371,8 +362,7 @@ int backend_shutdown(Backend *be) {
   if (frontendDB->bd_info->bi_db_close) {
     rc = frontendDB->bd_info->bi_db_close(frontendDB, NULL);
     if (rc != 0) {
-      Debug(LDAP_DEBUG_ANY,
-            "backend_startup: bi_db_close(frontend) failed! (%d)\n", rc);
+      Debug(LDAP_DEBUG_ANY, "backend_startup: bi_db_close(frontend) failed! (%d)\n", rc);
     }
   }
 
@@ -529,8 +519,7 @@ void backend_db_move(BackendDB *be, int idx) {
   backend_db_insert(be, idx);
 }
 
-BackendDB *backend_db_init(const char *type, BackendDB *b0, int idx,
-                           ConfigReply *cr) {
+BackendDB *backend_db_init(const char *type, BackendDB *b0, int idx, ConfigReply *cr) {
   BackendInfo *bi = backend_info(type);
   BackendDB *be = b0;
   int rc = 0;
@@ -686,17 +675,14 @@ int be_isroot_dn(Backend *be, struct berval *ndn) {
   return dn_match(&be->be_rootndn, ndn);
 }
 
-int be_slurp_update(Operation *op) {
-  return (SLAP_SLURP_SHADOW(op->o_bd) && be_isupdate_dn(op->o_bd, &op->o_ndn));
-}
+int be_slurp_update(Operation *op) { return (SLAP_SLURP_SHADOW(op->o_bd) && be_isupdate_dn(op->o_bd, &op->o_ndn)); }
 
 int be_shadow_update(Operation *op) {
   /* This assumes that all internal ops (connid <= -1000) on a syncrepl
    * database are syncrepl operations.
    */
-  return (
-      (SLAP_SYNC_SHADOW(op->o_bd) && SLAPD_SYNC_IS_SYNCCONN(op->o_connid)) ||
-      (SLAP_SHADOW(op->o_bd) && be_isupdate_dn(op->o_bd, &op->o_ndn)));
+  return ((SLAP_SYNC_SHADOW(op->o_bd) && SLAPD_SYNC_IS_SYNCCONN(op->o_connid)) ||
+          (SLAP_SHADOW(op->o_bd) && be_isupdate_dn(op->o_bd, &op->o_ndn)));
 }
 
 int be_isupdate_dn(Backend *be, struct berval *ndn) {
@@ -711,9 +697,7 @@ struct berval *be_root_dn(Backend *be) { return &be->be_rootdn; }
 
 int be_isroot(Operation *op) { return be_isroot_dn(op->o_bd, &op->o_ndn); }
 
-int be_isroot_pw(Operation *op) {
-  return be_rootdn_bind(op, NULL) == LDAP_SUCCESS;
-}
+int be_isroot_pw(Operation *op) { return be_rootdn_bind(op, NULL) == LDAP_SUCCESS; }
 
 /*
  * checks if binding as rootdn
@@ -756,16 +740,14 @@ int be_rootdn_bind(Operation *op, SlapReply *rs) {
   }
 
 #ifdef SLAPD_SPASSWD
-  ldap_pvt_thread_pool_setkey(op->o_threadctx, (void *)slap_sasl_bind,
-                              op->o_conn->c_sasl_authctx, 0, &old_authctx,
+  ldap_pvt_thread_pool_setkey(op->o_threadctx, (void *)slap_sasl_bind, op->o_conn->c_sasl_authctx, 0, &old_authctx,
                               NULL);
 #endif
 
   rc = lutil_passwd(&op->o_bd->be_rootpw, &op->orb_cred, NULL, NULL);
 
 #ifdef SLAPD_SPASSWD
-  ldap_pvt_thread_pool_setkey(op->o_threadctx, (void *)slap_sasl_bind,
-                              old_authctx, 0, NULL, NULL);
+  ldap_pvt_thread_pool_setkey(op->o_threadctx, (void *)slap_sasl_bind, old_authctx, 0, NULL, NULL);
 #endif
 
   rc = (rc == 0 ? LDAP_SUCCESS : LDAP_INVALID_CREDENTIALS);
@@ -773,8 +755,7 @@ int be_rootdn_bind(Operation *op, SlapReply *rs) {
   send_result:;
     rs->sr_err = rc;
 
-    Debug(LDAP_DEBUG_TRACE, "%s: rootdn=\"%s\" bind%s\n", op->o_log_prefix,
-          op->o_bd->be_rootdn.bv_val,
+    Debug(LDAP_DEBUG_TRACE, "%s: rootdn=\"%s\" bind%s\n", op->o_log_prefix, op->o_bd->be_rootdn.bv_val,
           rc == LDAP_SUCCESS ? " succeeded" : " failed");
 
     if (rc == LDAP_SUCCESS) {
@@ -790,12 +771,10 @@ int be_rootdn_bind(Operation *op, SlapReply *rs) {
 }
 
 /* Inlined in proto-slap.h, sans assertions, when !(USE_RS_ASSERT) */
-int(slap_bi_op)(BackendInfo *bi, slap_operation_t which, Operation *op,
-                SlapReply *rs) {
+int(slap_bi_op)(BackendInfo *bi, slap_operation_t which, Operation *op, SlapReply *rs) {
   int rc;
 #ifndef slap_bi_op
-  void (*rsCheck)(const SlapReply *rs) =
-      which < op_aux_operational ? rs_assert_ready : rs_assert_ok;
+  void (*rsCheck)(const SlapReply *rs) = which < op_aux_operational ? rs_assert_ready : rs_assert_ok;
 #else
 #define rsCheck(rs) ((void)0)
 #endif
@@ -835,8 +814,7 @@ int(slap_bi_op)(BackendInfo *bi, slap_operation_t which, Operation *op,
     }
 
     /* TODO: Just what is the relation between rc and rs->sr_err? */
-    if (rc != err && (rc != LDAP_SUCCESS || (err != LDAP_COMPARE_TRUE &&
-                                             err != LDAP_COMPARE_FALSE))) {
+    if (rc != err && (rc != LDAP_SUCCESS || (err != LDAP_COMPARE_TRUE && err != LDAP_COMPARE_FALSE))) {
       rs->sr_err = rc;
       rsCheck(rs);
       rs->sr_err = err;
@@ -948,9 +926,7 @@ int backend_check_controls(Operation *op, SlapReply *rs) {
 
       default:
         /* unreachable */
-        Debug(LDAP_DEBUG_ANY,
-              "backend_check_controls: unable to check control: %s\n",
-              (*ctrls)->ldctl_oid);
+        Debug(LDAP_DEBUG_ANY, "backend_check_controls: unable to check control: %s\n", (*ctrls)->ldctl_oid);
         LDAP_BUG();
 
         rs->sr_text = "unable to check control";
@@ -972,8 +948,7 @@ done:;
   return rs->sr_err;
 }
 
-int backend_check_restrictions(Operation *op, SlapReply *rs,
-                               struct berval *opdata) {
+int backend_check_restrictions(Operation *op, SlapReply *rs, struct berval *opdata) {
   slap_mask_t restrictops;
   slap_mask_t
     requires;
@@ -1095,23 +1070,20 @@ int backend_check_restrictions(Operation *op, SlapReply *rs,
 
     rs->sr_err = LDAP_CONFIDENTIALITY_REQUIRED;
     if (op->o_transport_ssf < ssf->sss_transport) {
-      rs->sr_text = op->o_transport_ssf
-                        ? "stronger transport confidentiality required"
-                        : "transport confidentiality required";
+      rs->sr_text =
+          op->o_transport_ssf ? "stronger transport confidentiality required" : "transport confidentiality required";
       return rs->sr_err;
     }
 
     if (op->o_tls_ssf < ssf->sss_tls) {
-      rs->sr_text = op->o_tls_ssf ? "stronger TLS confidentiality required"
-                                  : "TLS confidentiality required";
+      rs->sr_text = op->o_tls_ssf ? "stronger TLS confidentiality required" : "TLS confidentiality required";
       return rs->sr_err;
     }
 
     if (op->o_tag == LDAP_REQ_BIND && opdata == NULL) {
       /* simple bind specific check */
       if (op->o_ssf < ssf->sss_simple_bind) {
-        rs->sr_text = op->o_ssf ? "stronger confidentiality required"
-                                : "confidentiality required";
+        rs->sr_text = op->o_ssf ? "stronger confidentiality required" : "confidentiality required";
         return rs->sr_err;
       }
     }
@@ -1120,49 +1092,42 @@ int backend_check_restrictions(Operation *op, SlapReply *rs,
       /* these checks don't apply to SASL bind */
 
       if (op->o_sasl_ssf < ssf->sss_sasl) {
-        rs->sr_text = op->o_sasl_ssf ? "stronger SASL confidentiality required"
-                                     : "SASL confidentiality required";
+        rs->sr_text = op->o_sasl_ssf ? "stronger SASL confidentiality required" : "SASL confidentiality required";
         return rs->sr_err;
       }
 
       if (op->o_ssf < ssf->sss_ssf) {
-        rs->sr_text = op->o_ssf ? "stronger confidentiality required"
-                                : "confidentiality required";
+        rs->sr_text = op->o_ssf ? "stronger confidentiality required" : "confidentiality required";
         return rs->sr_err;
       }
     }
 
     if (updateop) {
       if (op->o_transport_ssf < ssf->sss_update_transport) {
-        rs->sr_text =
-            op->o_transport_ssf
-                ? "stronger transport confidentiality required for update"
-                : "transport confidentiality required for update";
+        rs->sr_text = op->o_transport_ssf ? "stronger transport confidentiality required for update"
+                                          : "transport confidentiality required for update";
         return rs->sr_err;
       }
 
       if (op->o_tls_ssf < ssf->sss_update_tls) {
-        rs->sr_text = op->o_tls_ssf
-                          ? "stronger TLS confidentiality required for update"
-                          : "TLS confidentiality required for update";
+        rs->sr_text = op->o_tls_ssf ? "stronger TLS confidentiality required for update"
+                                    : "TLS confidentiality required for update";
         return rs->sr_err;
       }
 
       if (op->o_sasl_ssf < ssf->sss_update_sasl) {
-        rs->sr_text = op->o_sasl_ssf
-                          ? "stronger SASL confidentiality required for update"
-                          : "SASL confidentiality required for update";
+        rs->sr_text = op->o_sasl_ssf ? "stronger SASL confidentiality required for update"
+                                     : "SASL confidentiality required for update";
         return rs->sr_err;
       }
 
       if (op->o_ssf < ssf->sss_update_ssf) {
-        rs->sr_text = op->o_ssf ? "stronger confidentiality required for update"
-                                : "confidentiality required for update";
+        rs->sr_text =
+            op->o_ssf ? "stronger confidentiality required for update" : "confidentiality required for update";
         return rs->sr_err;
       }
 
-      if (!(global_allows & SLAP_ALLOW_UPDATE_ANON) &&
-          BER_BVISEMPTY(&op->o_ndn)) {
+      if (!(global_allows & SLAP_ALLOW_UPDATE_ANON) && BER_BVISEMPTY(&op->o_ndn)) {
         rs->sr_text = "modifications require authentication";
         rs->sr_err = LDAP_STRONG_AUTH_REQUIRED;
         return rs->sr_err;
@@ -1170,8 +1135,7 @@ int backend_check_restrictions(Operation *op, SlapReply *rs,
 
 #ifdef SLAP_X_LISTENER_MOD
       if (op->o_conn->c_listener &&
-          !(op->o_conn->c_listener->sl_perms &
-            (!BER_BVISEMPTY(&op->o_ndn) ? (S_IWUSR | S_IWOTH) : S_IWOTH))) {
+          !(op->o_conn->c_listener->sl_perms & (!BER_BVISEMPTY(&op->o_ndn) ? (S_IWUSR | S_IWOTH) : S_IWOTH))) {
         /* no "w" mode means readonly */
         rs->sr_text = "modifications not allowed on this listener";
         rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
@@ -1192,8 +1156,7 @@ int backend_check_restrictions(Operation *op, SlapReply *rs,
 
     if (requires & SLAP_REQUIRE_STRONG) {
       /* should check mechanism */
-      if ((op->o_transport_ssf < ssf->sss_transport &&
-           op->o_authtype == LDAP_AUTH_SIMPLE) ||
+      if ((op->o_transport_ssf < ssf->sss_transport && op->o_authtype == LDAP_AUTH_SIMPLE) ||
           BER_BVISEMPTY(&op->o_dn)) {
         rs->sr_text = "strong(er) authentication required";
         rs->sr_err = LDAP_STRONG_AUTH_REQUIRED;
@@ -1242,8 +1205,7 @@ int backend_check_restrictions(Operation *op, SlapReply *rs,
 
 #ifdef SLAP_X_LISTENER_MOD
     if (!starttls && BER_BVISEMPTY(&op->o_dn)) {
-      if (op->o_conn->c_listener &&
-          !(op->o_conn->c_listener->sl_perms & S_IXOTH)) {
+      if (op->o_conn->c_listener && !(op->o_conn->c_listener->sl_perms & S_IXOTH)) {
         /* no "x" mode means bind required */
         rs->sr_text = "bind required on this listener";
         rs->sr_err = LDAP_STRONG_AUTH_REQUIRED;
@@ -1253,8 +1215,7 @@ int backend_check_restrictions(Operation *op, SlapReply *rs,
 
     if (!starttls && !updateop) {
       if (op->o_conn->c_listener &&
-          !(op->o_conn->c_listener->sl_perms &
-            (!BER_BVISEMPTY(&op->o_dn) ? (S_IRUSR | S_IROTH) : S_IROTH))) {
+          !(op->o_conn->c_listener->sl_perms & (!BER_BVISEMPTY(&op->o_dn) ? (S_IRUSR | S_IROTH) : S_IROTH))) {
         /* no "r" mode means no read */
         rs->sr_text = "read not allowed on this listener";
         rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
@@ -1295,8 +1256,7 @@ int backend_check_referrals(Operation *op, SlapReply *rs) {
   return rs->sr_err;
 }
 
-int be_entry_get_rw(Operation *op, struct berval *ndn, ObjectClass *oc,
-                    AttributeDescription *at, int rw, Entry **e) {
+int be_entry_get_rw(Operation *op, struct berval *ndn, ObjectClass *oc, AttributeDescription *at, int rw, Entry **e) {
   *e = NULL;
 
   if (op->o_bd == NULL) {
@@ -1310,8 +1270,7 @@ int be_entry_get_rw(Operation *op, struct berval *ndn, ObjectClass *oc,
   return LDAP_UNWILLING_TO_PERFORM;
 }
 
-int fe_acl_group(Operation *op, Entry *target, struct berval *gr_ndn,
-                 struct berval *op_ndn, ObjectClass *group_oc,
+int fe_acl_group(Operation *op, Entry *target, struct berval *gr_ndn, struct berval *op_ndn, ObjectClass *group_oc,
                  AttributeDescription *group_at) {
   Entry *e;
   void *o_priv = op->o_private, *e_priv = NULL;
@@ -1333,8 +1292,7 @@ int fe_acl_group(Operation *op, Entry *target, struct berval *gr_ndn,
     op->o_bd = select_backend(gr_ndn, 0);
 
   for (g = op->o_groups; g; g = g->ga_next) {
-    if (g->ga_be != op->o_bd || g->ga_oc != group_oc || g->ga_at != group_at ||
-        g->ga_len != gr_ndn->bv_len) {
+    if (g->ga_be != op->o_bd || g->ga_oc != group_oc || g->ga_at != group_at || g->ga_len != gr_ndn->bv_len) {
       continue;
     }
     if (strcmp(g->ga_ndn, gr_ndn->bv_val) == 0) {
@@ -1364,8 +1322,7 @@ int fe_acl_group(Operation *op, Entry *target, struct berval *gr_ndn,
       /* If the attribute is a subtype of labeledURI,
        * treat this as a dynamic group ala groupOfURLs
        */
-      if (is_at_subtype(group_at->ad_type,
-                        slap_schema.si_ad_labeledURI->ad_type)) {
+      if (is_at_subtype(group_at->ad_type, slap_schema.si_ad_labeledURI->ad_type)) {
         int i;
         LDAPURLDesc *ludp;
         struct berval bv, nbase;
@@ -1387,14 +1344,12 @@ int fe_acl_group(Operation *op, Entry *target, struct berval *gr_ndn,
           BER_BVZERO(&nbase);
 
           /* host, attrs and extensions parts must be empty */
-          if ((ludp->lud_host && *ludp->lud_host) || ludp->lud_attrs ||
-              ludp->lud_exts) {
+          if ((ludp->lud_host && *ludp->lud_host) || ludp->lud_attrs || ludp->lud_exts) {
             goto loopit;
           }
 
           ber_str2bv(ludp->lud_dn, 0, 0, &bv);
-          if (dnNormalize(0, NULL, NULL, &bv, &nbase, op->o_tmpmemctx) !=
-              LDAP_SUCCESS) {
+          if (dnNormalize(0, NULL, NULL, &bv, &nbase, op->o_tmpmemctx) != LDAP_SUCCESS) {
             goto loopit;
           }
 
@@ -1474,10 +1429,8 @@ int fe_acl_group(Operation *op, Entry *target, struct berval *gr_ndn,
         op->o_bd = b2;
 
       } else {
-        rc = attr_valfind(a,
-                          SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH |
-                              SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH,
-                          op_ndn, NULL, op->o_tmpmemctx);
+        rc = attr_valfind(a, SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH | SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH, op_ndn,
+                          NULL, op->o_tmpmemctx);
         if (rc == LDAP_NO_SUCH_ATTRIBUTE) {
           rc = LDAP_COMPARE_FALSE;
         }
@@ -1498,8 +1451,7 @@ int fe_acl_group(Operation *op, Entry *target, struct berval *gr_ndn,
   }
 
   if (op->o_tag != LDAP_REQ_BIND && !op->o_do_not_cache) {
-    g = op->o_tmpalloc(sizeof(GroupAssertion) + gr_ndn->bv_len,
-                       op->o_tmpmemctx);
+    g = op->o_tmpalloc(sizeof(GroupAssertion) + gr_ndn->bv_len, op->o_tmpmemctx);
     g->ga_be = op->o_bd;
     g->ga_oc = group_oc;
     g->ga_at = group_at;
@@ -1515,8 +1467,7 @@ done:
   return rc;
 }
 
-int backend_group(Operation *op, Entry *target, struct berval *gr_ndn,
-                  struct berval *op_ndn, ObjectClass *group_oc,
+int backend_group(Operation *op, Entry *target, struct berval *gr_ndn, struct berval *op_ndn, ObjectClass *group_oc,
                   AttributeDescription *group_at) {
   int rc;
   BackendDB *be_orig;
@@ -1539,8 +1490,7 @@ int backend_group(Operation *op, Entry *target, struct berval *gr_ndn,
   return rc;
 }
 
-int fe_acl_attribute(Operation *op, Entry *target, struct berval *edn,
-                     AttributeDescription *entry_at, BerVarray *vals,
+int fe_acl_attribute(Operation *op, Entry *target, struct berval *edn, AttributeDescription *entry_at, BerVarray *vals,
                      slap_access_t access) {
   Entry *e = NULL;
   void *o_priv = op->o_private, *e_priv = NULL;
@@ -1572,13 +1522,11 @@ int fe_acl_attribute(Operation *op, Entry *target, struct berval *edn,
   }
 
   if (e) {
-    if (entry_at == slap_schema.si_ad_entry ||
-        entry_at == slap_schema.si_ad_children) {
+    if (entry_at == slap_schema.si_ad_entry || entry_at == slap_schema.si_ad_children) {
       assert(vals == NULL);
 
       rc = LDAP_SUCCESS;
-      if (op->o_conn && access > ACL_NONE &&
-          access_allowed(op, e, entry_at, NULL, access, &acl_state) == 0) {
+      if (op->o_conn && access > ACL_NONE && access_allowed(op, e, entry_at, NULL, access, &acl_state) == 0) {
         rc = LDAP_INSUFFICIENT_ACCESS;
       }
       goto freeit;
@@ -1614,8 +1562,7 @@ int fe_acl_attribute(Operation *op, Entry *target, struct berval *edn,
     if (a) {
       BerVarray v;
 
-      if (op->o_conn && access > ACL_NONE &&
-          access_allowed(op, e, entry_at, NULL, access, &acl_state) == 0) {
+      if (op->o_conn && access > ACL_NONE && access_allowed(op, e, entry_at, NULL, access, &acl_state) == 0) {
         rc = LDAP_INSUFFICIENT_ACCESS;
         goto freeit;
       }
@@ -1624,8 +1571,7 @@ int fe_acl_attribute(Operation *op, Entry *target, struct berval *edn,
       v = op->o_tmpalloc(sizeof(struct berval) * (i + 1), op->o_tmpmemctx);
       for (i = 0, j = 0; !BER_BVISNULL(&a->a_vals[i]); i++) {
         if (op->o_conn && access > ACL_NONE &&
-            access_allowed(op, e, entry_at, &a->a_nvals[i], access,
-                           &acl_state) == 0) {
+            access_allowed(op, e, entry_at, &a->a_nvals[i], access, &acl_state) == 0) {
           continue;
         }
         ber_dupbv_x(&v[j], &a->a_nvals[i], op->o_tmpmemctx);
@@ -1659,8 +1605,7 @@ int fe_acl_attribute(Operation *op, Entry *target, struct berval *edn,
   return rc;
 }
 
-int backend_attribute(Operation *op, Entry *target, struct berval *edn,
-                      AttributeDescription *entry_at, BerVarray *vals,
+int backend_attribute(Operation *op, Entry *target, struct berval *edn, AttributeDescription *entry_at, BerVarray *vals,
                       slap_access_t access) {
   int rc;
   BackendDB *be_orig;
@@ -1679,9 +1624,8 @@ int backend_attribute(Operation *op, Entry *target, struct berval *edn,
   return rc;
 }
 
-int backend_access(Operation *op, Entry *target, struct berval *edn,
-                   AttributeDescription *entry_at, struct berval *nval,
-                   slap_access_t access, slap_mask_t *mask) {
+int backend_access(Operation *op, Entry *target, struct berval *edn, AttributeDescription *entry_at,
+                   struct berval *nval, slap_access_t access, slap_mask_t *mask) {
   Entry *e = NULL;
   void *o_priv, *e_priv = NULL;
   int rc = LDAP_INSUFFICIENT_ACCESS;
@@ -1718,8 +1662,7 @@ int backend_access(Operation *op, Entry *target, struct berval *edn,
       entry_at = slap_schema.si_ad_entry;
     }
 
-    if (entry_at == slap_schema.si_ad_entry ||
-        entry_at == slap_schema.si_ad_children) {
+    if (entry_at == slap_schema.si_ad_entry || entry_at == slap_schema.si_ad_children) {
       if (access_allowed_mask(op, e, entry_at, NULL, access, NULL, mask) == 0) {
         rc = LDAP_INSUFFICIENT_ACCESS;
 
@@ -1758,8 +1701,7 @@ int backend_access(Operation *op, Entry *target, struct berval *edn,
       }
 
       if (a) {
-        if (access_allowed_mask(op, e, entry_at, nval, access, NULL, mask) ==
-            0) {
+        if (access_allowed_mask(op, e, entry_at, nval, access, NULL, mask) == 0) {
           rc = LDAP_INSUFFICIENT_ACCESS;
           goto freeit;
         }
@@ -1801,16 +1743,14 @@ int fe_aux_operational(Operation *op, SlapReply *rs) {
    * add them to the attribute list
    */
   if (!(rs->sr_flags & REP_NO_ENTRYDN) &&
-      (SLAP_OPATTRS(rs->sr_attr_flags) ||
-       (rs->sr_attrs && ad_inlist(slap_schema.si_ad_entryDN, rs->sr_attrs)))) {
+      (SLAP_OPATTRS(rs->sr_attr_flags) || (rs->sr_attrs && ad_inlist(slap_schema.si_ad_entryDN, rs->sr_attrs)))) {
     *ap = slap_operational_entryDN(rs->sr_entry);
     ap = &(*ap)->a_next;
   }
 
   if (!(rs->sr_flags & REP_NO_SUBSCHEMA) &&
       (SLAP_OPATTRS(rs->sr_attr_flags) ||
-       (rs->sr_attrs &&
-        ad_inlist(slap_schema.si_ad_subschemaSubentry, rs->sr_attrs)))) {
+       (rs->sr_attrs && ad_inlist(slap_schema.si_ad_subschemaSubentry, rs->sr_attrs)))) {
     *ap = slap_operational_subschemaSubentry(op->o_bd);
     ap = &(*ap)->a_next;
   }
@@ -1822,8 +1762,7 @@ int fe_aux_operational(Operation *op, SlapReply *rs) {
   if (!op->o_bd || !SLAP_DBHIDDEN(op->o_bd))
     op->o_bd = select_backend(&op->o_req_ndn, 0);
 
-  if (op->o_bd != NULL && !be_match(op->o_bd, frontendDB) &&
-      (SLAP_OPATTRS(rs->sr_attr_flags) || rs->sr_attrs) &&
+  if (op->o_bd != NULL && !be_match(op->o_bd, frontendDB) && (SLAP_OPATTRS(rs->sr_attr_flags) || rs->sr_attrs) &&
       op->o_bd->be_operational != NULL) {
     rc = op->o_bd->be_operational(op, rs);
   }

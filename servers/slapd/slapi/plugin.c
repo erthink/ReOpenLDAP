@@ -32,8 +32,7 @@
  */
 #include <ltdl.h>
 
-static int slapi_int_load_plugin(Slapi_PBlock *, const char *, const char *,
-                                 int, SLAPI_FUNC *, lt_dlhandle *);
+static int slapi_int_load_plugin(Slapi_PBlock *, const char *, const char *, int, SLAPI_FUNC *, lt_dlhandle *);
 
 /* pointer to link list of extended objects */
 static ExtendedOp *pGExtendedOps = NULL;
@@ -99,13 +98,9 @@ static Slapi_PBlock *plugin_pblock_new(int type, int argc, char *argv[]) {
     goto done;
   }
 
-  if (slapi_pblock_get(pPlugin, SLAPI_PLUGIN_DESCRIPTION,
-                       (void **)&pPluginDesc) == 0 &&
-      pPluginDesc != NULL) {
-    slapi_log_error(SLAPI_LOG_TRACE, "plugin_pblock_new",
-                    "Registered plugin %s %s [%s] (%s)\n", pPluginDesc->spd_id,
-                    pPluginDesc->spd_version, pPluginDesc->spd_vendor,
-                    pPluginDesc->spd_description);
+  if (slapi_pblock_get(pPlugin, SLAPI_PLUGIN_DESCRIPTION, (void **)&pPluginDesc) == 0 && pPluginDesc != NULL) {
+    slapi_log_error(SLAPI_LOG_TRACE, "plugin_pblock_new", "Registered plugin %s %s [%s] (%s)\n", pPluginDesc->spd_id,
+                    pPluginDesc->spd_version, pPluginDesc->spd_vendor, pPluginDesc->spd_description);
   }
 
 done:
@@ -213,8 +208,7 @@ int slapi_int_get_plugins(Backend *be, int functype, SLAPI_FUNC **ppFuncPtrs) {
    * Now, build the function pointer array of backend-specific
    * plugins followed by global plugins.
    */
-  *ppFuncPtrs = pTmpFuncPtr =
-      (SLAPI_FUNC *)ch_malloc((numPB + 1) * sizeof(SLAPI_FUNC));
+  *ppFuncPtrs = pTmpFuncPtr = (SLAPI_FUNC *)ch_malloc((numPB + 1) * sizeof(SLAPI_FUNC));
   if (ppFuncPtrs == NULL) {
     rc = LDAP_NO_MEMORY;
     goto done;
@@ -283,8 +277,7 @@ ExtendedOp *createExtendedOp() {
  *
  * Messages:           None
  *********************************************************************/
-void slapi_int_unregister_extop(Backend *pBE, ExtendedOp **opList,
-                                Slapi_PBlock *pPB) {
+void slapi_int_unregister_extop(Backend *pBE, ExtendedOp **opList, Slapi_PBlock *pPB) {
   ExtendedOp *pTmpExtOp, *backExtOp;
   char **pTmpOIDs;
   int i;
@@ -344,8 +337,7 @@ void slapi_int_unregister_extop(Backend *pBE, ExtendedOp **opList,
  *
  * Messages:           None
  *********************************************************************/
-int slapi_int_register_extop(Backend *pBE, ExtendedOp **opList,
-                             Slapi_PBlock *pPB) {
+int slapi_int_register_extop(Backend *pBE, ExtendedOp **opList, Slapi_PBlock *pPB) {
   ExtendedOp *pTmpExtOp = NULL;
   SLAPI_FUNC tmpFunc;
   char **pTmpOIDs;
@@ -361,8 +353,7 @@ int slapi_int_register_extop(Backend *pBE, ExtendedOp **opList,
     pTmpExtOp = *opList;
 
   } else { /* Find the end of the list */
-    for (pTmpExtOp = *opList; pTmpExtOp->ext_next != NULL;
-         pTmpExtOp = pTmpExtOp->ext_next)
+    for (pTmpExtOp = *opList; pTmpExtOp->ext_next != NULL; pTmpExtOp = pTmpExtOp->ext_next)
       ; /* EMPTY */
     pTmpExtOp->ext_next = createExtendedOp();
     if (pTmpExtOp->ext_next == NULL) {
@@ -494,10 +485,8 @@ struct berval *slapi_int_get_supported_extop(int index) {
  * Messages:           None
  *********************************************************************/
 
-static int slapi_int_load_plugin(Slapi_PBlock *pPlugin, const char *path,
-                                 const char *initfunc, int doInit,
-                                 SLAPI_FUNC *pInitFunc,
-                                 lt_dlhandle *pLdHandle) {
+static int slapi_int_load_plugin(Slapi_PBlock *pPlugin, const char *path, const char *initfunc, int doInit,
+                                 SLAPI_FUNC *pInitFunc, lt_dlhandle *pLdHandle) {
   int rc = LDAP_SUCCESS;
   SLAPI_FUNC fpInitFunc = NULL;
 
@@ -516,8 +505,7 @@ static int slapi_int_load_plugin(Slapi_PBlock *pPlugin, const char *path,
 
   fpInitFunc = (SLAPI_FUNC)lt_dlsym(*pLdHandle, initfunc);
   if (fpInitFunc == NULL) {
-    fprintf(stderr, "failed to find symbol %s in plugin %s: %s\n", initfunc,
-            path, lt_dlerror());
+    fprintf(stderr, "failed to find symbol %s in plugin %s: %s\n", initfunc, path, lt_dlerror());
     lt_dlclose(*pLdHandle);
     return LDAP_LOCAL_ERROR;
   }
@@ -575,8 +563,7 @@ int slapi_int_call_plugins(Backend *be, int funcType, Slapi_PBlock *pPB) {
   return rc;
 }
 
-int slapi_int_read_config(Backend *be, const char *fname, int lineno, int argc,
-                          char **argv) {
+int slapi_int_read_config(Backend *be, const char *fname, int lineno, int argc, char **argv) {
   int iType = -1;
   int numPluginArgc = 0;
 
@@ -610,15 +597,14 @@ int slapi_int_read_config(Backend *be, const char *fname, int lineno, int argc,
   } else if (strcasecmp(argv[1], "object") == 0) {
     iType = SLAPI_PLUGIN_OBJECT;
   } else {
-    fprintf(stderr, "%s: line %d: invalid plugin type \"%s\".\n", fname, lineno,
-            argv[1]);
+    fprintf(stderr, "%s: line %d: invalid plugin type \"%s\".\n", fname, lineno, argv[1]);
     return 1;
   }
 
   numPluginArgc = argc - 4;
 
-  if (iType == SLAPI_PLUGIN_PREOPERATION || iType == SLAPI_PLUGIN_EXTENDEDOP ||
-      iType == SLAPI_PLUGIN_POSTOPERATION || iType == SLAPI_PLUGIN_OBJECT) {
+  if (iType == SLAPI_PLUGIN_PREOPERATION || iType == SLAPI_PLUGIN_EXTENDEDOP || iType == SLAPI_PLUGIN_POSTOPERATION ||
+      iType == SLAPI_PLUGIN_OBJECT) {
     int rc;
     Slapi_PBlock *pPlugin;
 
@@ -658,8 +644,7 @@ void slapi_int_plugin_unparse(Backend *be, BerVarray *out) {
   idx.bv_val = ibuf;
   i = 0;
 
-  for (pp = SLAPI_BACKEND_PBLOCK(be); pp != NULL;
-       slapi_pblock_get(pp, SLAPI_IBM_PBLOCK, &pp)) {
+  for (pp = SLAPI_BACKEND_PBLOCK(be); pp != NULL; slapi_pblock_get(pp, SLAPI_IBM_PBLOCK, &pp)) {
     slapi_pblock_get(pp, SLAPI_X_CONFIG_ARGV, &argv);
     if (argv == NULL) /* could be dynamic plugin */
       continue;

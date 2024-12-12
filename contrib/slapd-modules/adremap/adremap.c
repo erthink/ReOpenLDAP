@@ -62,37 +62,33 @@ static ConfigDriver adremap_cf_case;
 static ConfigDriver adremap_cf_dnv;
 
 /* configuration attribute and objectclass */
-static ConfigTable adremapcfg[] = {
-    {"adremap-downcase", "attrs", 2, 0, 0, ARG_MAGIC | ADREMAP_CASE,
-     adremap_cf_case,
-     "( OLcfgCtAt:6.1 "
-     "NAME 'olcADremapDowncase' "
-     "DESC 'List of attributes to casefold to lower case' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString )",
-     NULL, NULL},
-    {"adremap-dnmap",
-     "dnattr targetattr newattr remoteOC localOC targetOC baseDN", 8, 8, 0,
-     ARG_MAGIC | ADREMAP_DNV, adremap_cf_dnv,
-     "( OLcfgCtAt:6.2 "
-     "NAME 'olcADremapDNmap' "
-     "DESC 'DN attr to map, attr from target to use, attr to generate, "
-     "objectclass of remote"
-     " group, objectclass mapped group, objectclass of target entry, base DN "
-     "of target entry' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString )",
-     NULL, NULL},
-    {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
+static ConfigTable adremapcfg[] = {{"adremap-downcase", "attrs", 2, 0, 0, ARG_MAGIC | ADREMAP_CASE, adremap_cf_case,
+                                    "( OLcfgCtAt:6.1 "
+                                    "NAME 'olcADremapDowncase' "
+                                    "DESC 'List of attributes to casefold to lower case' "
+                                    "EQUALITY caseIgnoreMatch "
+                                    "SYNTAX OMsDirectoryString )",
+                                    NULL, NULL},
+                                   {"adremap-dnmap", "dnattr targetattr newattr remoteOC localOC targetOC baseDN", 8, 8,
+                                    0, ARG_MAGIC | ADREMAP_DNV, adremap_cf_dnv,
+                                    "( OLcfgCtAt:6.2 "
+                                    "NAME 'olcADremapDNmap' "
+                                    "DESC 'DN attr to map, attr from target to use, attr to generate, "
+                                    "objectclass of remote"
+                                    " group, objectclass mapped group, objectclass of target entry, base DN "
+                                    "of target entry' "
+                                    "EQUALITY caseIgnoreMatch "
+                                    "SYNTAX OMsDirectoryString )",
+                                    NULL, NULL},
+                                   {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
 
-static ConfigOCs adremapocs[] = {
-    {"( OLcfgCtOc:6.1 "
-     "NAME 'olcADremapConfig' "
-     "DESC 'AD remap configuration' "
-     "SUP olcOverlayConfig "
-     "MAY ( olcADremapDowncase $ olcADremapDNmap ) )",
-     Cft_Overlay, adremapcfg, NULL, NULL},
-    {NULL, 0, NULL}};
+static ConfigOCs adremapocs[] = {{"( OLcfgCtOc:6.1 "
+                                  "NAME 'olcADremapConfig' "
+                                  "DESC 'AD remap configuration' "
+                                  "SUP olcOverlayConfig "
+                                  "MAY ( olcADremapDowncase $ olcADremapDNmap ) )",
+                                  Cft_Overlay, adremapcfg, NULL, NULL},
+                                 {NULL, 0, NULL}};
 
 static int adremap_cf_case(ConfigArgs *c) {
   slap_overinst *on = (slap_overinst *)c->bi;
@@ -154,12 +150,9 @@ static int adremap_cf_dnv(ConfigArgs *c) {
     for (ad = ai->ai_dnv; ad; ad = ad->ad_next) {
       char *ptr;
       struct berval bv;
-      bv.bv_len = ad->ad_dnattr->ad_cname.bv_len +
-                  ad->ad_deref->ad_cname.bv_len +
-                  ad->ad_newattr->ad_cname.bv_len + 2;
-      bv.bv_len += ad->ad_group->soc_cname.bv_len +
-                   ad->ad_mapgrp->soc_cname.bv_len +
-                   ad->ad_refgrp->soc_cname.bv_len + 3;
+      bv.bv_len = ad->ad_dnattr->ad_cname.bv_len + ad->ad_deref->ad_cname.bv_len + ad->ad_newattr->ad_cname.bv_len + 2;
+      bv.bv_len +=
+          ad->ad_group->soc_cname.bv_len + ad->ad_mapgrp->soc_cname.bv_len + ad->ad_refgrp->soc_cname.bv_len + 3;
       bv.bv_len += ad->ad_refbase.bv_len + 3;
       bv.bv_val = ch_malloc(bv.bv_len + 1);
       ptr = lutil_strcopy(bv.bv_val, ad->ad_dnattr->ad_cname.bv_val);
@@ -206,11 +199,9 @@ static int adremap_cf_dnv(ConfigArgs *c) {
     rc = slap_str2ad(c->argv[1], &av.ad_dnattr, &text);
     if (rc)
       break;
-    if (av.ad_dnattr->ad_type->sat_syntax !=
-        slap_schema.si_syn_distinguishedName) {
+    if (av.ad_dnattr->ad_type->sat_syntax != slap_schema.si_syn_distinguishedName) {
       rc = 1;
-      snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> not a DN-valued attribute",
-               c->argv[0]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> not a DN-valued attribute", c->argv[0]);
       Debug(LDAP_DEBUG_ANY, "%s: %s(%s)\n", c->log, c->cr_msg, c->argv[1]);
       break;
     }
@@ -335,8 +326,7 @@ static int adremap_search_resp(Operation *op, SlapReply *rs) {
         struct berval dv;
         dv = ad->ad_deref->ad_cname;
         /* If the RDN uses the deref attr, just use it directly */
-        if (a->a_nvals[i].bv_val[dv.bv_len] == '=' &&
-            !memcmp(a->a_nvals[i].bv_val, dv.bv_val, dv.bv_len)) {
+        if (a->a_nvals[i].bv_val[dv.bv_len] == '=' && !memcmp(a->a_nvals[i].bv_val, dv.bv_val, dv.bv_len)) {
           struct berval bv, nv;
           char *ptr;
           bv = a->a_vals[i];
@@ -401,16 +391,14 @@ static adremap_dnv *adremap_filter(Operation *op, adremap_info *ai) {
     fextra = 2;
     f = f->f_and;
   }
-  if (f->f_choice == LDAP_FILTER_EQUALITY &&
-      f->f_av_desc == slap_schema.si_ad_objectClass) {
+  if (f->f_choice == LDAP_FILTER_EQUALITY && f->f_av_desc == slap_schema.si_ad_objectClass) {
     struct berval bv = f->f_av_value;
 
     for (ad = ai->ai_dnv; ad; ad = ad->ad_next) {
       if (!ber_bvstrcasecmp(&bv, &ad->ad_mapgrp->soc_cname)) {
         /* Now check to see if next element is (<newattr>=foo) */
         Filter *fnew;
-        if (fn && fn->f_choice == LDAP_FILTER_EQUALITY &&
-            fn->f_av_desc == ad->ad_newattr) {
+        if (fn && fn->f_choice == LDAP_FILTER_EQUALITY && fn->f_av_desc == ad->ad_newattr) {
           Filter fr[3];
           AttributeAssertion aa[2] = {{0}};
           Operation op2;
@@ -479,17 +467,14 @@ static adremap_dnv *adremap_filter(Operation *op, adremap_info *ai) {
           f->f_and = op->o_tmpalloc(sizeof(Filter), op->o_tmpmemctx);
           f = f->f_and;
           f->f_choice = LDAP_FILTER_EQUALITY;
-          f->f_ava =
-              op->o_tmpcalloc(1, sizeof(AttributeAssertion), op->o_tmpmemctx);
+          f->f_ava = op->o_tmpcalloc(1, sizeof(AttributeAssertion), op->o_tmpmemctx);
           f->f_av_desc = slap_schema.si_ad_objectClass;
-          ber_dupbv_x(&f->f_av_value, &ad->ad_group->soc_cname,
-                      op->o_tmpmemctx);
+          ber_dupbv_x(&f->f_av_value, &ad->ad_group->soc_cname, op->o_tmpmemctx);
 
           f->f_next = op->o_tmpalloc(sizeof(Filter), op->o_tmpmemctx);
           f = f->f_next;
           f->f_choice = LDAP_FILTER_EQUALITY;
-          f->f_ava =
-              op->o_tmpcalloc(1, sizeof(AttributeAssertion), op->o_tmpmemctx);
+          f->f_ava = op->o_tmpcalloc(1, sizeof(AttributeAssertion), op->o_tmpmemctx);
           f->f_av_desc = ad->ad_dnattr;
           f->f_av_value = dn;
 
@@ -503,11 +488,9 @@ static adremap_dnv *adremap_filter(Operation *op, adremap_info *ai) {
 
           f = op->o_tmpalloc(sizeof(Filter), op->o_tmpmemctx);
           f->f_choice = LDAP_FILTER_EQUALITY;
-          f->f_ava =
-              op->o_tmpcalloc(1, sizeof(AttributeAssertion), op->o_tmpmemctx);
+          f->f_ava = op->o_tmpcalloc(1, sizeof(AttributeAssertion), op->o_tmpmemctx);
           f->f_av_desc = slap_schema.si_ad_objectClass;
-          ber_dupbv_x(&f->f_av_value, &ad->ad_group->soc_cname,
-                      op->o_tmpmemctx);
+          ber_dupbv_x(&f->f_av_value, &ad->ad_group->soc_cname, op->o_tmpmemctx);
 
           /* If there was a wrapping (&), attach it. */
           if (fextra) {
@@ -556,8 +539,7 @@ static int adremap_search(Operation *op, SlapReply *rs) {
     /* check for filter match, fallthru if none */
     ad = adremap_filter(op, ai);
 
-  cb = op->o_tmpcalloc(1, sizeof(slap_callback) + sizeof(adremap_ctx),
-                       op->o_tmpmemctx);
+  cb = op->o_tmpcalloc(1, sizeof(slap_callback) + sizeof(adremap_ctx), op->o_tmpmemctx);
   cb->sc_response = adremap_search_resp;
   cb->sc_private = cb + 1;
   cb->sc_next = op->o_callback;
@@ -628,6 +610,4 @@ static int adremap_initialize() {
   return overlay_register(&adremap);
 }
 
-SLAP_MODULE_ENTRY(adremap, modinit)(int argc, char *argv[]) {
-  return adremap_initialize();
-}
+SLAP_MODULE_ENTRY(adremap, modinit)(int argc, char *argv[]) { return adremap_initialize(); }

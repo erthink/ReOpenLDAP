@@ -57,22 +57,19 @@
 #include "../back-ldap/back-ldap.h"
 #include "back-asyncmeta.h"
 
-int asyncmeta_dn_massage(a_dncookie *dc, struct berval *dn,
-                         struct berval *res) {
+int asyncmeta_dn_massage(a_dncookie *dc, struct berval *dn, struct berval *res) {
   int rc = 0;
   static char *dmy = "";
 
-  switch (rewrite_session(dc->target->mt_rwmap.rwm_rw, dc->ctx,
-                          (dn->bv_val ? dn->bv_val : dmy), dc->conn,
-                          &res->bv_val)) {
+  switch (
+      rewrite_session(dc->target->mt_rwmap.rwm_rw, dc->ctx, (dn->bv_val ? dn->bv_val : dmy), dc->conn, &res->bv_val)) {
   case REWRITE_REGEXEC_OK:
     if (res->bv_val != NULL) {
       res->bv_len = strlen(res->bv_val);
     } else {
       *res = *dn;
     }
-    Debug(LDAP_DEBUG_ARGS, "[rw] %s: \"%s\" -> \"%s\"\n", dc->ctx,
-          BER_BVISNULL(dn) ? "" : dn->bv_val,
+    Debug(LDAP_DEBUG_ARGS, "[rw] %s: \"%s\" -> \"%s\"\n", dc->ctx, BER_BVISNULL(dn) ? "" : dn->bv_val,
           BER_BVISNULL(res) ? "" : res->bv_val);
     rc = LDAP_SUCCESS;
     break;

@@ -88,8 +88,7 @@ static void apply(FILE *fin, const char *rewriteContext, const char *arg) {
       break;
     }
 
-    fprintf(stdout, "%s -> %s [%d:%s]\n", string, (result ? result : "(null)"),
-            rc, errmsg);
+    fprintf(stdout, "%s -> %s [%d:%s]\n", string, (result ? result : "(null)"), rc, errmsg);
     if (result == NULL) {
       break;
     }
@@ -137,17 +136,16 @@ int main(int argc, char *argv[]) {
       break;
 
     case 'h':
-      fprintf(stderr,
-              "usage: rewrite [options] string\n"
-              "\n"
-              "\t\t-f file\t\tconfiguration file\n"
-              "\t\t-r rule[s]\tlist of comma-separated rules\n"
-              "\n"
-              "\tsyntax:\n"
-              "\t\trewriteEngine\t{on|off}\n"
-              "\t\trewriteContext\tcontextName [alias aliasedContextName]\n"
-              "\t\trewriteRule\tpattern subst [flags]\n"
-              "\n");
+      fprintf(stderr, "usage: rewrite [options] string\n"
+                      "\n"
+                      "\t\t-f file\t\tconfiguration file\n"
+                      "\t\t-r rule[s]\tlist of comma-separated rules\n"
+                      "\n"
+                      "\tsyntax:\n"
+                      "\t\trewriteEngine\t{on|off}\n"
+                      "\t\trewriteContext\tcontextName [alias aliasedContextName]\n"
+                      "\t\trewriteRule\tpattern subst [flags]\n"
+                      "\n");
       exit(EXIT_SUCCESS);
 
     case 'r':

@@ -30,9 +30,9 @@
 #define SLAPD_METAPHONE
 #endif
 
-#define iswordbreak(x)                                                         \
-  (!isascii(x) || isspace((unsigned char)(x)) ||                               \
-   ispunct((unsigned char)(x)) || isdigit((unsigned char)(x)) || (x) == '\0')
+#define iswordbreak(x)                                                                                                 \
+  (!isascii(x) || isspace((unsigned char)(x)) || ispunct((unsigned char)(x)) || isdigit((unsigned char)(x)) ||         \
+   (x) == '\0')
 
 #if 0
 static char *
@@ -210,8 +210,7 @@ char *phonetic(char *Word) {
    * and converting to upper case
    */
 
-  for (n = ntrans + 4, n_end = ntrans + 35; !iswordbreak(*Word) && n < n_end;
-       Word++) {
+  for (n = ntrans + 4, n_end = ntrans + 35; !iswordbreak(*Word) && n < n_end; Word++) {
     if (isalpha((unsigned char)*Word))
       *n++ = TOUPPER((unsigned char)*Word);
   }
@@ -268,8 +267,7 @@ char *phonetic(char *Word) {
    */
 
   KSflag = 0; /* state flag for KS translation */
-  for (metaph_end = Metaph + MAXPHONEMELEN, n_start = n;
-       n <= n_end && Metaph < metaph_end; n++) {
+  for (metaph_end = Metaph + MAXPHONEMELEN, n_start = n; n <= n_end && Metaph < metaph_end; n++) {
     if (KSflag) {
       KSflag = 0;
       *Metaph++ = 'S';
@@ -303,10 +301,7 @@ char *phonetic(char *Word) {
             else if (frontv(*(n + 1)))
               *Metaph++ = 'S';
             else if (*(n + 1) == 'H')
-              *Metaph++ =
-                  ((n == n_start && !vowel(*(n + 2))) || *(n - 1) == 'S')
-                      ? (char)'K'
-                      : (char)'X';
+              *Metaph++ = ((n == n_start && !vowel(*(n + 2))) || *(n - 1) == 'S') ? (char)'K' : (char)'X';
             else
               *Metaph++ = 'K';
           }
@@ -316,8 +311,7 @@ char *phonetic(char *Word) {
           /*
            * J if in DGE or DGI or DGY else T
            */
-          *Metaph++ =
-              (*(n + 1) == 'G' && frontv(*(n + 2))) ? (char)'J' : (char)'T';
+          *Metaph++ = (*(n + 1) == 'G' && frontv(*(n + 2))) ? (char)'J' : (char)'T';
           break;
         case 'G':
 
@@ -329,11 +323,9 @@ char *phonetic(char *Word) {
            * not GG else K
            */
           if ((*(n + 1) != 'J' || vowel(*(n + 2))) &&
-              (*(n + 1) != 'N' ||
-               ((n + 1) < n_end && (*(n + 2) != 'E' || *(n + 3) != 'D'))) &&
+              (*(n + 1) != 'N' || ((n + 1) < n_end && (*(n + 2) != 'E' || *(n + 3) != 'D'))) &&
               (*(n - 1) != 'D' || !frontv(*(n + 1))))
-            *Metaph++ =
-                (frontv(*(n + 1)) && *(n + 2) != 'G') ? (char)'G' : (char)'K';
+            *Metaph++ = (frontv(*(n + 1)) && *(n + 2) != 'G') ? (char)'G' : (char)'K';
           else if (*(n + 1) == 'H' && !noghf(*(n - 3)) && *(n - 4) != 'H')
             *Metaph++ = 'F';
           break;
@@ -374,10 +366,7 @@ char *phonetic(char *Word) {
            * X in -SH-, -SIO- or -SIA- else S
            */
           *Metaph++ =
-              (*(n + 1) == 'H' ||
-               (*(n + 1) == 'I' && (*(n + 2) == 'O' || *(n + 2) == 'A')))
-                  ? (char)'X'
-                  : (char)'S';
+              (*(n + 1) == 'H' || (*(n + 1) == 'I' && (*(n + 2) == 'O' || *(n + 2) == 'A'))) ? (char)'X' : (char)'S';
           break;
         case 'T':
 

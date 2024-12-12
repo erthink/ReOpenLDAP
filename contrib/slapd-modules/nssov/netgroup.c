@@ -33,9 +33,8 @@
 static struct berval netgroup_filter = BER_BVC("(objectClass=nisNetgroup)");
 
 /* the attributes to request with searches */
-static struct berval netgroup_keys[] = {
-    BER_BVC("cn"), BER_BVC("nisNetgroupTriple"), BER_BVC("memberNisNetgroup"),
-    BER_BVNULL};
+static struct berval netgroup_keys[] = {BER_BVC("cn"), BER_BVC("nisNetgroupTriple"), BER_BVC("memberNisNetgroup"),
+                                        BER_BVNULL};
 
 NSSOV_INIT(netgroup)
 
@@ -65,12 +64,11 @@ static int write_string_stripspace_len(TFILE *fp, const char *str, int len) {
   return 0;
 }
 
-#define WRITE_STRING_STRIPSPACE_LEN(fp, str, len)                              \
-  if (write_string_stripspace_len(fp, str, len))                               \
+#define WRITE_STRING_STRIPSPACE_LEN(fp, str, len)                                                                      \
+  if (write_string_stripspace_len(fp, str, len))                                                                       \
     return -1;
 
-#define WRITE_STRING_STRIPSPACE(fp, str)                                       \
-  WRITE_STRING_STRIPSPACE_LEN(fp, str, strlen(str))
+#define WRITE_STRING_STRIPSPACE(fp, str) WRITE_STRING_STRIPSPACE_LEN(fp, str, strlen(str))
 
 static int write_netgroup_triple(TFILE *fp, const char *triple) {
   int32_t tmpint32;
@@ -91,8 +89,7 @@ static int write_netgroup_triple(TFILE *fp, const char *triple) {
   for (; (triple[i] != '\0') && (triple[i] != ','); i++)
     /* nothing else to do */;
   if (triple[i] != ',') {
-    Debug(LDAP_DEBUG_ANY,
-          "write_netgroup_triple(): missing ',' (entry skipped)\n");
+    Debug(LDAP_DEBUG_ANY, "write_netgroup_triple(): missing ',' (entry skipped)\n");
     return 0;
   }
   hoste = i;
@@ -102,8 +99,7 @@ static int write_netgroup_triple(TFILE *fp, const char *triple) {
   for (; (triple[i] != '\0') && (triple[i] != ','); i++)
     /* nothing else to do */;
   if (triple[i] != ',') {
-    Debug(LDAP_DEBUG_ANY,
-          "write_netgroup_triple(): missing ',' (entry skipped)\n");
+    Debug(LDAP_DEBUG_ANY, "write_netgroup_triple(): missing ',' (entry skipped)\n");
     return 0;
   }
   usere = i;
@@ -113,8 +109,7 @@ static int write_netgroup_triple(TFILE *fp, const char *triple) {
   for (; (triple[i] != '\0') && (triple[i] != ')'); i++)
     /* nothing else to do */;
   if (triple[i] != ')') {
-    Debug(LDAP_DEBUG_ANY,
-          "write_netgroup_triple(): missing ')' (entry skipped)\n");
+    Debug(LDAP_DEBUG_ANY, "write_netgroup_triple(): missing ')' (entry skipped)\n");
     return 0;
   }
   domaine = i;
@@ -161,8 +156,7 @@ static int write_netgroup(nssov_netgroup_cbp *cbp, Entry *entry) {
       /* write triple indicator */
       WRITE_INT32(cbp->fp, NSLCD_NETGROUP_TYPE_NETGROUP);
       /* write netgroup name */
-      if (write_string_stripspace_len(cbp->fp, a->a_vals[i].bv_val,
-                                      a->a_vals[i].bv_len))
+      if (write_string_stripspace_len(cbp->fp, a->a_vals[i].bv_val, a->a_vals[i].bv_len))
         return -1;
     }
   }
@@ -172,11 +166,7 @@ static int write_netgroup(nssov_netgroup_cbp *cbp, Entry *entry) {
 
 NSSOV_CB(netgroup)
 
-NSSOV_HANDLE(netgroup, byname, char fbuf[1024];
-             struct berval filter = {sizeof(fbuf)}; filter.bv_val = fbuf;
-             READ_STRING(fp, cbp.buf);, cbp.name.bv_len = tmpint32;
-             cbp.name.bv_val = cbp.buf;
-             Debug(LDAP_DEBUG_TRACE, "nssov_netgroup_byname(%s)\n",
-                   cbp.name.bv_val);
-             , NSLCD_ACTION_NETGROUP_BYNAME,
-             nssov_filter_byname(cbp.mi, 0, &cbp.name, &filter))
+NSSOV_HANDLE(netgroup, byname, char fbuf[1024]; struct berval filter = {sizeof(fbuf)}; filter.bv_val = fbuf;
+             READ_STRING(fp, cbp.buf);, cbp.name.bv_len = tmpint32; cbp.name.bv_val = cbp.buf;
+             Debug(LDAP_DEBUG_TRACE, "nssov_netgroup_byname(%s)\n", cbp.name.bv_val);
+             , NSLCD_ACTION_NETGROUP_BYNAME, nssov_filter_byname(cbp.mi, 0, &cbp.name, &filter))

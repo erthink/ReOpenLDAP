@@ -214,8 +214,7 @@ void *tavl_delete(TAvlnode **root, void *data, AVL_CMP fcmp) {
   /* If this node has two children, swap so we are deleting a node with
    * at most one child.
    */
-  if (p->avl_bits[0] == AVL_CHILD && p->avl_bits[1] == AVL_CHILD &&
-      p->avl_link[0] && p->avl_link[1]) {
+  if (p->avl_bits[0] == AVL_CHILD && p->avl_bits[1] == AVL_CHILD && p->avl_link[0] && p->avl_link[1]) {
 
     /* find the immediate predecessor <q> */
     q = p->avl_link[0];
@@ -285,8 +284,7 @@ void *tavl_delete(TAvlnode **root, void *data, AVL_CMP fcmp) {
 
   /* Update child thread */
   if (q) {
-    for (; q->avl_bits[nside] == AVL_CHILD && q->avl_link[nside];
-         q = q->avl_link[nside])
+    for (; q->avl_bits[nside] == AVL_CHILD && q->avl_link[nside]; q = q->avl_link[nside])
       ;
     q->avl_link[nside] = r;
   }

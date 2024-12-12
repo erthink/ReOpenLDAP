@@ -17,8 +17,7 @@
 
 /* Need dynacl... */
 #if !SLAP_DYNACL
-#error                                                                         \
-    "Run-time loadable ACL support (--enable-dynacl) is required for acl-posixgroup plugin!"
+#error "Run-time loadable ACL support (--enable-dynacl) is required for acl-posixgroup plugin!"
 #endif
 
 #include <ac/string.h>
@@ -37,8 +36,7 @@ static AttributeDescription *pg_uidNumber;
 
 static int pg_dynacl_destroy(void *priv);
 
-static int pg_dynacl_parse(const char *fname, int lineno, const char *opts,
-                           slap_style_t style, const char *pattern,
+static int pg_dynacl_parse(const char *fname, int lineno, const char *opts, slap_style_t style, const char *pattern,
                            void **privp) {
   pg_t *pg;
   int rc;
@@ -158,10 +156,8 @@ static int pg_dynacl_unparse(void *priv, struct berval *bv) {
   return 0;
 }
 
-static int pg_dynacl_mask(void *priv, Operation *op, Entry *target,
-                          AttributeDescription *desc, struct berval *val,
-                          int nmatch, regmatch_t *matches, slap_access_t *grant,
-                          slap_access_t *deny) {
+static int pg_dynacl_mask(void *priv, Operation *op, Entry *target, AttributeDescription *desc, struct berval *val,
+                          int nmatch, regmatch_t *matches, slap_access_t *grant, slap_access_t *deny) {
   pg_t *pg = (pg_t *)priv;
   Entry *group = NULL, *user = NULL;
   int rc;
@@ -181,8 +177,7 @@ static int pg_dynacl_mask(void *priv, Operation *op, Entry *target,
       op->o_bd = be;
       return 0;
     }
-    rc = be_entry_get_rw(op, &op->o_ndn, pg_posixAccount, pg_uidNumber, 0,
-                         &user);
+    rc = be_entry_get_rw(op, &op->o_ndn, pg_posixAccount, pg_uidNumber, 0, &user);
   }
 
   if (rc != LDAP_SUCCESS || user == NULL) {
@@ -202,13 +197,11 @@ static int pg_dynacl_mask(void *priv, Operation *op, Entry *target,
     bv.bv_len = sizeof(buf) - 1;
     bv.bv_val = buf;
 
-    if (acl_string_expand(&bv, &pg->pg_pat, &target->e_nname, NULL,
-                          &amatches)) {
+    if (acl_string_expand(&bv, &pg->pg_pat, &target->e_nname, NULL, &amatches)) {
       goto cleanup;
     }
 
-    if (dnNormalize(0, NULL, NULL, &bv, &group_ndn, op->o_tmpmemctx) !=
-        LDAP_SUCCESS) {
+    if (dnNormalize(0, NULL, NULL, &bv, &group_ndn, op->o_tmpmemctx) != LDAP_SUCCESS) {
       /* did not expand to a valid dn */
       goto cleanup;
     }
@@ -226,8 +219,7 @@ static int pg_dynacl_mask(void *priv, Operation *op, Entry *target,
     if (op->o_bd == NULL) {
       goto cleanup;
     }
-    rc =
-        be_entry_get_rw(op, &group_ndn, pg_posixGroup, pg_memberUid, 0, &group);
+    rc = be_entry_get_rw(op, &group_ndn, pg_posixGroup, pg_memberUid, 0, &group);
   }
 
   if (group_ndn.bv_val != pg->pg_pat.bv_val) {
@@ -248,10 +240,8 @@ static int pg_dynacl_mask(void *priv, Operation *op, Entry *target,
 
       } else {
         rc = value_find_ex(pg_memberUid,
-                           SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH |
-                               SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH,
-                           a_member->a_nvals, &a_uid->a_nvals[0],
-                           op->o_tmpmemctx);
+                           SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH | SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH,
+                           a_member->a_nvals, &a_uid->a_nvals[0], op->o_tmpmemctx);
       }
     }
 
@@ -292,10 +282,7 @@ static int pg_dynacl_destroy(void *priv) {
   return 0;
 }
 
-static struct slap_dynacl_t pg_dynacl = {"posixGroup", pg_dynacl_parse,
-                                         pg_dynacl_unparse, pg_dynacl_mask,
+static struct slap_dynacl_t pg_dynacl = {"posixGroup", pg_dynacl_parse, pg_dynacl_unparse, pg_dynacl_mask,
                                          pg_dynacl_destroy};
 
-SLAP_MODULE_ENTRY(posixgroup, modinit)(int argc, char *argv[]) {
-  return slap_dynacl_register(&pg_dynacl);
-}
+SLAP_MODULE_ENTRY(posixgroup, modinit)(int argc, char *argv[]) { return slap_dynacl_register(&pg_dynacl); }

@@ -27,21 +27,21 @@
 #ifdef LDAP_SLAPI
 
 /* some parameters require a valid connection and operation */
-#define PBLOCK_LOCK_CONN(_pb)                                                  \
-  do {                                                                         \
-    ldap_pvt_thread_mutex_lock(&(_pb)->pb_conn->c_mutex);                      \
+#define PBLOCK_LOCK_CONN(_pb)                                                                                          \
+  do {                                                                                                                 \
+    ldap_pvt_thread_mutex_lock(&(_pb)->pb_conn->c_mutex);                                                              \
   } while (0)
 
-#define PBLOCK_UNLOCK_CONN(_pb)                                                \
-  do {                                                                         \
-    ldap_pvt_thread_mutex_unlock(&(_pb)->pb_conn->c_mutex);                    \
+#define PBLOCK_UNLOCK_CONN(_pb)                                                                                        \
+  do {                                                                                                                 \
+    ldap_pvt_thread_mutex_unlock(&(_pb)->pb_conn->c_mutex);                                                            \
   } while (0)
 
 /* some parameters are only settable for internal operations */
-#define PBLOCK_VALIDATE_IS_INTOP(_pb)                                          \
-  do {                                                                         \
-    if ((_pb)->pb_intop == 0)                                                  \
-      break;                                                                   \
+#define PBLOCK_VALIDATE_IS_INTOP(_pb)                                                                                  \
+  do {                                                                                                                 \
+    if ((_pb)->pb_intop == 0)                                                                                          \
+      break;                                                                                                           \
   } while (0)
 
 static slapi_pblock_class_t pblock_get_param_class(int param) {
@@ -306,13 +306,9 @@ static slapi_pblock_class_t pblock_get_param_class(int param) {
   return PBLOCK_CLASS_INVALID;
 }
 
-static void pblock_lock(Slapi_PBlock *pb) {
-  ldap_pvt_thread_mutex_lock(&pb->pb_mutex);
-}
+static void pblock_lock(Slapi_PBlock *pb) { ldap_pvt_thread_mutex_lock(&pb->pb_mutex); }
 
-static void pblock_unlock(Slapi_PBlock *pb) {
-  ldap_pvt_thread_mutex_unlock(&pb->pb_mutex);
-}
+static void pblock_unlock(Slapi_PBlock *pb) { ldap_pvt_thread_mutex_unlock(&pb->pb_mutex); }
 
 static int pblock_get_default(Slapi_PBlock *pb, int param, void **value) {
   int i;
@@ -485,9 +481,8 @@ static int pblock_get(Slapi_PBlock *pb, int param, void **value) {
     if (pb->pb_op->o_tag == LDAP_REQ_ADD) {
       struct berval tmpval = BER_BVNULL;
 
-      rc = mods_structural_class(
-          pb->pb_op->ora_modlist, &tmpval, &pb->pb_rs->sr_text, pb->pb_textbuf,
-          sizeof(pb->pb_textbuf), pb->pb_op->o_tmpmemctx);
+      rc = mods_structural_class(pb->pb_op->ora_modlist, &tmpval, &pb->pb_rs->sr_text, pb->pb_textbuf,
+                                 sizeof(pb->pb_textbuf), pb->pb_op->o_tmpmemctx);
       *((char **)value) = tmpval.bv_val;
     } else {
       rc = PBLOCK_ERROR;
@@ -818,16 +813,14 @@ static int pblock_add_control(Slapi_PBlock *pb, LDAPControl *control) {
     i = 0;
   }
 
-  controls = (LDAPControl **)slapi_ch_realloc((char *)controls,
-                                              (i + 2) * sizeof(LDAPControl *));
+  controls = (LDAPControl **)slapi_ch_realloc((char *)controls, (i + 2) * sizeof(LDAPControl *));
   controls[i++] = slapi_dup_control(control);
   controls[i] = NULL;
 
   return pblock_set_default(pb, SLAPI_RESCONTROLS, (void *)controls);
 }
 
-static int pblock_set_dn(void *value, struct berval *dn, struct berval *ndn,
-                         void *memctx) {
+static int pblock_set_dn(void *value, struct berval *dn, struct berval *ndn, void *memctx) {
   struct berval bv;
 
   if (!BER_BVISNULL(dn)) {
@@ -903,8 +896,7 @@ static int pblock_set(Slapi_PBlock *pb, int param, void *value) {
     break;
   case SLAPI_REQUESTOR_DN:
     PBLOCK_ASSERT_OP(pb, 0);
-    rc = pblock_set_dn(value, &pb->pb_op->o_dn, &pb->pb_op->o_ndn,
-                       pb->pb_op->o_tmpmemctx);
+    rc = pblock_set_dn(value, &pb->pb_op->o_dn, &pb->pb_op->o_ndn, pb->pb_op->o_tmpmemctx);
     break;
   case SLAPI_MANAGEDSAIT:
     PBLOCK_ASSERT_OP(pb, 0);
@@ -935,8 +927,7 @@ static int pblock_set(Slapi_PBlock *pb, int param, void *value) {
     break;
   case SLAPI_TARGET_DN:
     PBLOCK_ASSERT_OP(pb, 0);
-    rc = pblock_set_dn(value, &pb->pb_op->o_req_dn, &pb->pb_op->o_req_ndn,
-                       pb->pb_op->o_tmpmemctx);
+    rc = pblock_set_dn(value, &pb->pb_op->o_req_dn, &pb->pb_op->o_req_ndn, pb->pb_op->o_tmpmemctx);
     break;
   case SLAPI_CONN_ID:
     PBLOCK_ASSERT_CONN(pb);
@@ -1002,8 +993,7 @@ static int pblock_set(Slapi_PBlock *pb, int param, void *value) {
     PBLOCK_ASSERT_OP(pb, 0);
     PBLOCK_VALIDATE_IS_INTOP(pb);
     if (pb->pb_op->o_tag == LDAP_REQ_MODRDN) {
-      rc = pblock_set_dn(value, &pb->pb_op->orr_newrdn, &pb->pb_op->orr_nnewrdn,
-                         pb->pb_op->o_tmpmemctx);
+      rc = pblock_set_dn(value, &pb->pb_op->orr_newrdn, &pb->pb_op->orr_nnewrdn, pb->pb_op->o_tmpmemctx);
       if (rc == LDAP_SUCCESS)
         rc = rdn_validate(&pb->pb_op->orr_nnewrdn);
     } else {
@@ -1027,17 +1017,15 @@ static int pblock_set(Slapi_PBlock *pb, int param, void *value) {
         }
       } else {
         if (pb->pb_op->orr_newSup == NULL) {
-          pb->pb_op->orr_newSup = (struct berval *)pb->pb_op->o_tmpalloc(
-              sizeof(struct berval), pb->pb_op->o_tmpmemctx);
+          pb->pb_op->orr_newSup = (struct berval *)pb->pb_op->o_tmpalloc(sizeof(struct berval), pb->pb_op->o_tmpmemctx);
           BER_BVZERO(pb->pb_op->orr_newSup);
         }
         if (pb->pb_op->orr_nnewSup == NULL) {
-          pb->pb_op->orr_nnewSup = (struct berval *)pb->pb_op->o_tmpalloc(
-              sizeof(struct berval), pb->pb_op->o_tmpmemctx);
+          pb->pb_op->orr_nnewSup =
+              (struct berval *)pb->pb_op->o_tmpalloc(sizeof(struct berval), pb->pb_op->o_tmpmemctx);
           BER_BVZERO(pb->pb_op->orr_nnewSup);
         }
-        rc = pblock_set_dn(value, pb->pb_op->orr_newSup, pb->pb_op->orr_nnewSup,
-                           pb->pb_op->o_tmpmemctx);
+        rc = pblock_set_dn(value, pb->pb_op->orr_newSup, pb->pb_op->orr_nnewSup, pb->pb_op->o_tmpmemctx);
       }
     } else {
       rc = PBLOCK_ERROR;
@@ -1135,16 +1123,14 @@ static int pblock_set(Slapi_PBlock *pb, int param, void *value) {
         ;
     }
     if (i) {
-      an = (AttributeName *)pb->pb_op->o_tmpcalloc(i + 1, sizeof(AttributeName),
-                                                   pb->pb_op->o_tmpmemctx);
+      an = (AttributeName *)pb->pb_op->o_tmpcalloc(i + 1, sizeof(AttributeName), pb->pb_op->o_tmpmemctx);
       for (i = 0; attrs[i] != NULL; i++) {
         an[j].an_desc = NULL;
         an[j].an_oc = NULL;
         an[j].an_flags = 0;
         an[j].an_name.bv_val = attrs[i];
         an[j].an_name.bv_len = strlen(attrs[i]);
-        if (slap_bv2ad(&an[j].an_name, &an[j].an_desc, &pb->pb_rs->sr_text) ==
-            LDAP_SUCCESS) {
+        if (slap_bv2ad(&an[j].an_name, &an[j].an_desc, &pb->pb_rs->sr_text) == LDAP_SUCCESS) {
           j++;
         }
       }
@@ -1355,19 +1341,13 @@ void slapi_pblock_destroy(Slapi_PBlock *pb) {
   }
 }
 
-int slapi_pblock_get(Slapi_PBlock *pb, int arg, void *value) {
-  return pblock_get(pb, arg, (void **)value);
-}
+int slapi_pblock_get(Slapi_PBlock *pb, int arg, void *value) { return pblock_get(pb, arg, (void **)value); }
 
-int slapi_pblock_set(Slapi_PBlock *pb, int arg, void *value) {
-  return pblock_set(pb, arg, value);
-}
+int slapi_pblock_set(Slapi_PBlock *pb, int arg, void *value) { return pblock_set(pb, arg, value); }
 
 void slapi_pblock_clear(Slapi_PBlock *pb) { pblock_clear(pb); }
 
-int slapi_pblock_delete_param(Slapi_PBlock *p, int param) {
-  return pblock_delete_param(p, param);
-}
+int slapi_pblock_delete_param(Slapi_PBlock *p, int param) { return pblock_delete_param(p, param); }
 
 /*
  * OpenLDAP extension

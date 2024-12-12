@@ -60,8 +60,7 @@ int bdb_db_findsize(struct bdb_info *bdb, struct berval *name) {
     if (!rc) {
       if (name->bv_len == bp->bdp_name.bv_len)
         return bp->bdp_size;
-      if (name->bv_len < bp->bdp_name.bv_len &&
-          bp->bdp_name.bv_val[name->bv_len] == '.')
+      if (name->bv_len < bp->bdp_name.bv_len && bp->bdp_name.bv_val[name->bv_len] == '.')
         return bp->bdp_size;
     }
   }
@@ -106,8 +105,7 @@ int bdb_db_cache(Backend *be, struct berval *name, DB **dbout) {
 
   rc = db_create(&db->bdi_db, bdb->bi_dbenv, 0);
   if (rc != 0) {
-    Debug(LDAP_DEBUG_ANY, "bdb_db_cache: db_create(%s) failed: %s (%d)\n",
-          bdb->bi_dbenv_home, db_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "bdb_db_cache: db_create(%s) failed: %s (%d)\n", bdb->bi_dbenv_home, db_strerror(rc), rc);
     ldap_pvt_thread_mutex_unlock(&bdb->bi_database_mutex);
     ch_free(db);
     return rc;
@@ -116,9 +114,8 @@ int bdb_db_cache(Backend *be, struct berval *name, DB **dbout) {
   if (!BER_BVISNULL(&bdb->bi_db_crypt_key)) {
     rc = db->bdi_db->set_flags(db->bdi_db, DB_ENCRYPT);
     if (rc) {
-      Debug(LDAP_DEBUG_ANY,
-            "bdb_db_cache: db set_flags(DB_ENCRYPT)(%s) failed: %s (%d)\n",
-            bdb->bi_dbenv_home, db_strerror(rc), rc);
+      Debug(LDAP_DEBUG_ANY, "bdb_db_cache: db set_flags(DB_ENCRYPT)(%s) failed: %s (%d)\n", bdb->bi_dbenv_home,
+            db_strerror(rc), rc);
       ldap_pvt_thread_mutex_unlock(&bdb->bi_database_mutex);
       db->bdi_db->close(db->bdi_db, 0);
       ch_free(db);
@@ -129,9 +126,8 @@ int bdb_db_cache(Backend *be, struct berval *name, DB **dbout) {
   if (bdb->bi_flags & BDB_CHKSUM) {
     rc = db->bdi_db->set_flags(db->bdi_db, DB_CHKSUM);
     if (rc) {
-      Debug(LDAP_DEBUG_ANY,
-            "bdb_db_cache: db set_flags(DB_CHKSUM)(%s) failed: %s (%d)\n",
-            bdb->bi_dbenv_home, db_strerror(rc), rc);
+      Debug(LDAP_DEBUG_ANY, "bdb_db_cache: db set_flags(DB_CHKSUM)(%s) failed: %s (%d)\n", bdb->bi_dbenv_home,
+            db_strerror(rc), rc);
       ldap_pvt_thread_mutex_unlock(&bdb->bi_database_mutex);
       db->bdi_db->close(db->bdi_db, 0);
       ch_free(db);
@@ -159,18 +155,15 @@ int bdb_db_cache(Backend *be, struct berval *name, DB **dbout) {
     flags |= DB_AUTO_COMMIT;
 #endif
   /* Cannot Truncate when Transactions are in use */
-  if ((slapMode & (SLAP_TOOL_QUICK | SLAP_TRUNCATE_MODE)) ==
-      (SLAP_TOOL_QUICK | SLAP_TRUNCATE_MODE))
+  if ((slapMode & (SLAP_TOOL_QUICK | SLAP_TRUNCATE_MODE)) == (SLAP_TOOL_QUICK | SLAP_TRUNCATE_MODE))
     flags |= DB_TRUNCATE;
 
-  rc = DB_OPEN(db->bdi_db, file, NULL /* name */, BDB_INDEXTYPE,
-               bdb->bi_db_opflags | flags, bdb->bi_dbenv_mode);
+  rc = DB_OPEN(db->bdi_db, file, NULL /* name */, BDB_INDEXTYPE, bdb->bi_db_opflags | flags, bdb->bi_dbenv_mode);
 
   ch_free(file);
 
   if (rc != 0) {
-    Debug(LDAP_DEBUG_ANY, "bdb_db_cache: db_open(%s) failed: %s (%d)\n",
-          name->bv_val, db_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "bdb_db_cache: db_open(%s) failed: %s (%d)\n", name->bv_val, db_strerror(rc), rc);
     ldap_pvt_thread_mutex_unlock(&bdb->bi_database_mutex);
     db->bdi_db->close(db->bdi_db, 0);
     ch_free(db);

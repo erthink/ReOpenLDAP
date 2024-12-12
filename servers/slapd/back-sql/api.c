@@ -30,8 +30,7 @@
 
 static backsql_api *backsqlapi;
 
-int backsql_api_config(backsql_info *bi, const char *name, int argc,
-                       char *argv[]) {
+int backsql_api_config(backsql_info *bi, const char *name, int argc, char *argv[]) {
   backsql_api *ba;
 
   assert(bi != NULL);

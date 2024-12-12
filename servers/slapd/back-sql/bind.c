@@ -62,8 +62,8 @@ int backsql_bind(Operation *op, SlapReply *rs) {
   anlist[1].an_name.bv_val = NULL;
 
   bsi.bsi_e = &e;
-  rc = backsql_init_search(&bsi, &op->o_req_ndn, LDAP_SCOPE_BASE, (time_t)(-1),
-                           NULL, dbh, op, rs, anlist, BACKSQL_ISF_GET_ENTRY);
+  rc = backsql_init_search(&bsi, &op->o_req_ndn, LDAP_SCOPE_BASE, (time_t)(-1), NULL, dbh, op, rs, anlist,
+                           BACKSQL_ISF_GET_ENTRY);
   if (rc != LDAP_SUCCESS) {
     Debug(LDAP_DEBUG_TRACE, "backsql_bind(): "
                             "could not retrieve bindDN ID - no such entry\n");

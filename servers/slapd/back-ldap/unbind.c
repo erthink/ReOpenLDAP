@@ -34,8 +34,7 @@ int ldap_back_conn_destroy(Backend *be, Connection *conn) {
   ldapinfo_t *li = (ldapinfo_t *)be->be_private;
   ldapconn_t *lc = NULL, lc_curr;
 
-  Debug(LDAP_DEBUG_TRACE, "=>ldap_back_conn_destroy: fetching conn %ld\n",
-        conn->c_connid);
+  Debug(LDAP_DEBUG_TRACE, "=>ldap_back_conn_destroy: fetching conn %ld\n", conn->c_connid);
 
   lc_curr.lc_conn = conn;
 
@@ -43,8 +42,7 @@ int ldap_back_conn_destroy(Backend *be, Connection *conn) {
 #if LDAP_BACK_PRINT_CONNTREE > 0
   ldap_back_print_conntree(li, ">>> ldap_back_conn_destroy");
 #endif /* LDAP_BACK_PRINT_CONNTREE */
-  while ((lc = avl_delete(&li->li_conninfo.lai_tree, (caddr_t)&lc_curr,
-                          ldap_back_conn_cmp)) != NULL) {
+  while ((lc = avl_delete(&li->li_conninfo.lai_tree, (caddr_t)&lc_curr, ldap_back_conn_cmp)) != NULL) {
     assert(!LDAP_BACK_PCONN_ISPRIV(lc));
     Debug(LDAP_DEBUG_TRACE,
           "=>ldap_back_conn_destroy: destroying conn %lu "

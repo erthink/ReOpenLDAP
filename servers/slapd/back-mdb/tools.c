@@ -106,7 +106,7 @@ int mdb_tool_entry_open(BackendDB *be, int mode) {
   else
     mdb_writes_per_commit = 1;
 
-#ifdef MDB_TOOL_IDL_CACHING /* threaded indexing has no performance advantage  \
+#ifdef MDB_TOOL_IDL_CACHING /* threaded indexing has no performance advantage                                          \
                              */
   /* Set up for threaded slapindex */
   if ((slapMode & (SLAP_TOOL_QUICK | SLAP_TOOL_READONLY)) == SLAP_TOOL_QUICK) {
@@ -120,10 +120,8 @@ int mdb_tool_entry_open(BackendDB *be, int mode) {
         mdb_tool_threads = slap_tool_thread_max - 1;
         if (mdb_tool_threads > 1) {
           mdb_tool_index_rec = ch_calloc(mdb->mi_nattrs, sizeof(IndexRec));
-          mdb_tool_axinfo = ch_calloc(mdb_tool_threads, sizeof(AttrIxInfo *) +
-                                                            sizeof(AttrIxInfo));
-          mdb_tool_axinfo[0] =
-              (AttrIxInfo *)(mdb_tool_axinfo + mdb_tool_threads);
+          mdb_tool_axinfo = ch_calloc(mdb_tool_threads, sizeof(AttrIxInfo *) + sizeof(AttrIxInfo));
+          mdb_tool_axinfo[0] = (AttrIxInfo *)(mdb_tool_axinfo + mdb_tool_threads);
           for (i = 1; i < mdb_tool_threads; i++)
             mdb_tool_axinfo[i] = mdb_tool_axinfo[i - 1] + 1;
           mdb_tool_index_tcount = mdb_tool_threads - 1;
@@ -131,8 +129,7 @@ int mdb_tool_entry_open(BackendDB *be, int mode) {
           for (i = 1; i < mdb_tool_threads; i++) {
             int *ptr = ch_malloc(sizeof(int));
             *ptr = i;
-            ldap_pvt_thread_pool_submit(&connection_pool, mdb_tool_index_task,
-                                        ptr);
+            ldap_pvt_thread_pool_submit(&connection_pool, mdb_tool_index_task, ptr);
           }
           mdb_tool_info = mdb;
         }
@@ -200,8 +197,7 @@ int mdb_tool_entry_close(BackendDB *be) {
 
     /* There might still be some threads starting */
     while (mdb_tool_index_tcount > 0) {
-      ldap_pvt_thread_cond_wait(&mdb_tool_index_cond_main,
-                                &mdb_tool_index_mutex);
+      ldap_pvt_thread_cond_wait(&mdb_tool_index_cond_main, &mdb_tool_index_mutex);
     }
 
     mdb_tool_index_tcount = mdb_tool_threads - 1;
@@ -209,8 +205,7 @@ int mdb_tool_entry_close(BackendDB *be) {
 
     /* Make sure all threads are stopped */
     while (mdb_tool_index_tcount > 0) {
-      ldap_pvt_thread_cond_wait(&mdb_tool_index_cond_main,
-                                &mdb_tool_index_mutex);
+      ldap_pvt_thread_cond_wait(&mdb_tool_index_cond_main, &mdb_tool_index_mutex);
     }
     ldap_pvt_thread_mutex_unlock(&mdb_tool_index_mutex);
 
@@ -286,8 +281,7 @@ int mdb_tool_entry_close(BackendDB *be) {
   return 0;
 }
 
-ID mdb_tool_entry_first_x(BackendDB *be, struct berval *base, int scope,
-                          Filter *f) {
+ID mdb_tool_entry_first_x(BackendDB *be, struct berval *base, int scope, Filter *f) {
   tool_base = base;
   tool_scope = scope;
   tool_filter = f;
@@ -350,8 +344,7 @@ next:;
 
     assert(tool_next_entry != NULL);
 
-    if (tool_filter &&
-        test_filter(NULL, tool_next_entry, tool_filter) != LDAP_COMPARE_TRUE) {
+    if (tool_filter && test_filter(NULL, tool_next_entry, tool_filter) != LDAP_COMPARE_TRUE) {
       mdb_entry_release(&op, tool_next_entry, 0);
       tool_next_entry = NULL;
       goto next;
@@ -374,9 +367,7 @@ ID mdb_tool_dn2id_get(Backend *be, struct berval *dn) {
   mdb = (struct mdb_info *)be->be_private;
 
   if (!mdb_tool_txn) {
-    rc = mdbx_txn_begin(mdb->mi_dbenv, NULL,
-                        (slapMode & SLAP_TOOL_READONLY) != 0 ? MDBX_RDONLY : 0,
-                        &mdb_tool_txn);
+    rc = mdbx_txn_begin(mdb->mi_dbenv, NULL, (slapMode & SLAP_TOOL_READONLY) != 0 ? MDBX_RDONLY : 0, &mdb_tool_txn);
     if (rc)
       return NOID;
   }
@@ -467,9 +458,7 @@ Entry *mdb_tool_entry_get(BackendDB *be, ID id) {
 
   if (!mdb_tool_txn) {
     struct mdb_info *mdb = (struct mdb_info *)be->be_private;
-    rc = mdbx_txn_begin(mdb->mi_dbenv, NULL,
-                        (slapMode & SLAP_TOOL_READONLY) ? MDBX_RDONLY : 0,
-                        &mdb_tool_txn);
+    rc = mdbx_txn_begin(mdb->mi_dbenv, NULL, (slapMode & SLAP_TOOL_READONLY) ? MDBX_RDONLY : 0, &mdb_tool_txn);
     if (rc)
       return NULL;
   }
@@ -485,8 +474,7 @@ Entry *mdb_tool_entry_get(BackendDB *be, ID id) {
   return e;
 }
 
-static int mdb_tool_next_id(Operation *op, MDBX_txn *tid, Entry *e,
-                            struct berval *text, int hole) {
+static int mdb_tool_next_id(Operation *op, MDBX_txn *tid, Entry *e, struct berval *text, int hole) {
   struct berval dn = e->e_name;
   struct berval ndn = e->e_nname;
   struct berval pdn, npdn, nmatched;
@@ -526,15 +514,13 @@ static int mdb_tool_next_id(Operation *op, MDBX_txn *tid, Entry *e,
     }
     rc = mdb_next_id(op->o_bd, idcursor, &e->e_id);
     if (rc) {
-      snprintf(text->bv_val, text->bv_len, "next_id failed: %s (%d)",
-               mdbx_strerror(rc), rc);
+      snprintf(text->bv_val, text->bv_len, "next_id failed: %s (%d)", mdbx_strerror(rc), rc);
       Debug(LDAP_DEBUG_ANY, "=> mdb_tool_next_id: %s\n", text->bv_val);
       return rc;
     }
     rc = mdb_dn2id_add(op, mcp, mcd, pid, 1, 1, e);
     if (rc) {
-      snprintf(text->bv_val, text->bv_len, "dn2id_add failed: %s (%d)",
-               mdbx_strerror(rc), rc);
+      snprintf(text->bv_val, text->bv_len, "dn2id_add failed: %s (%d)", mdbx_strerror(rc), rc);
       Debug(LDAP_DEBUG_ANY, "=> mdb_tool_next_id: %s\n", text->bv_val);
     } else if (hole) {
       MDBX_val key, data;
@@ -557,8 +543,7 @@ static int mdb_tool_next_id(Operation *op, MDBX_txn *tid, Entry *e,
       if (rc == MDBX_KEYEXIST)
         rc = 0;
       if (rc) {
-        snprintf(text->bv_val, text->bv_len,
-                 "dummy id2entry add failed: %s (%d)", mdbx_strerror(rc), rc);
+        snprintf(text->bv_val, text->bv_len, "dummy id2entry add failed: %s (%d)", mdbx_strerror(rc), rc);
         Debug(LDAP_DEBUG_ANY, "=> mdb_tool_next_id: %s\n", text->bv_val);
       }
     }
@@ -599,8 +584,7 @@ static int mdb_tool_index_add(Operation *op, MDBX_txn *txn, Entry *e) {
       ir[i].ir_attrs = NULL;
 
     for (a = e->e_attrs; a != NULL; a = a->a_next) {
-      rc =
-          mdb_index_recset(mdb, a, a->a_desc->ad_type, &a->a_desc->ad_tags, ir);
+      rc = mdb_index_recset(mdb, a, a->a_desc->ad_type, &a->a_desc->ad_tags, ir);
       if (rc)
         return rc;
     }
@@ -616,8 +600,7 @@ static int mdb_tool_index_add(Operation *op, MDBX_txn *txn, Entry *e) {
     ldap_pvt_thread_mutex_lock(&mdb_tool_index_mutex);
     /* Wait for all threads to be ready */
     while (mdb_tool_index_tcount) {
-      ldap_pvt_thread_cond_wait(&mdb_tool_index_cond_main,
-                                &mdb_tool_index_mutex);
+      ldap_pvt_thread_cond_wait(&mdb_tool_index_cond_main, &mdb_tool_index_mutex);
     }
 
     for (i = 1; i < mdb_tool_threads; i++)
@@ -637,8 +620,7 @@ static int mdb_tool_index_finish() {
   ldap_pvt_thread_mutex_lock(&mdb_tool_index_mutex);
   for (i = 1; i < mdb_tool_threads; i++) {
     if (mdb_tool_index_rec[i].ir_i == LDAP_BUSY) {
-      ldap_pvt_thread_cond_wait(&mdb_tool_index_cond_main,
-                                &mdb_tool_index_mutex);
+      ldap_pvt_thread_cond_wait(&mdb_tool_index_cond_main, &mdb_tool_index_mutex);
       i--;
       continue;
     }
@@ -664,27 +646,21 @@ ID mdb_tool_entry_put(BackendDB *be, Entry *e, struct berval *text) {
   assert(text->bv_val != NULL);
   assert(text->bv_val[0] == '\0'); /* overconservative? */
 
-  Debug(LDAP_DEBUG_TRACE,
-        "=> " LDAP_XSTRING(mdb_tool_entry_put) "( %ld, \"%s\" )\n",
-        (long)e->e_id, e->e_dn);
+  Debug(LDAP_DEBUG_TRACE, "=> " LDAP_XSTRING(mdb_tool_entry_put) "( %ld, \"%s\" )\n", (long)e->e_id, e->e_dn);
 
   mdb = (struct mdb_info *)be->be_private;
 
   if (!mdb_tool_txn) {
     rc = mdbx_txn_begin(mdb->mi_dbenv, NULL, 0, &mdb_tool_txn);
     if (rc != 0) {
-      snprintf(text->bv_val, text->bv_len, "txn_begin failed: %s (%d)",
-               mdbx_strerror(rc), rc);
-      Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_put) ": %s\n",
-            text->bv_val);
+      snprintf(text->bv_val, text->bv_len, "txn_begin failed: %s (%d)", mdbx_strerror(rc), rc);
+      Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_put) ": %s\n", text->bv_val);
       return NOID;
     }
     rc = mdbx_cursor_open(mdb_tool_txn, mdb->mi_id2entry, &idcursor);
     if (rc != 0) {
-      snprintf(text->bv_val, text->bv_len, "cursor_open failed: %s (%d)",
-               mdbx_strerror(rc), rc);
-      Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_put) ": %s\n",
-            text->bv_val);
+      snprintf(text->bv_val, text->bv_len, "cursor_open failed: %s (%d)", mdbx_strerror(rc), rc);
+      Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_put) ": %s\n", text->bv_val);
       return NOID;
     }
     if (!mdb_read_nextid(mdb)) {
@@ -693,18 +669,14 @@ ID mdb_tool_entry_put(BackendDB *be, Entry *e, struct berval *text) {
     }
     rc = mdbx_cursor_open(mdb_tool_txn, mdb->mi_dn2id, &mcp);
     if (rc != 0) {
-      snprintf(text->bv_val, text->bv_len, "cursor_open failed: %s (%d)",
-               mdbx_strerror(rc), rc);
-      Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_put) ": %s\n",
-            text->bv_val);
+      snprintf(text->bv_val, text->bv_len, "cursor_open failed: %s (%d)", mdbx_strerror(rc), rc);
+      Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_put) ": %s\n", text->bv_val);
       return NOID;
     }
     rc = mdbx_cursor_open(mdb_tool_txn, mdb->mi_dn2id, &mcd);
     if (rc != 0) {
-      snprintf(text->bv_val, text->bv_len, "cursor_open failed: %s (%d)",
-               mdbx_strerror(rc), rc);
-      Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_put) ": %s\n",
-            text->bv_val);
+      snprintf(text->bv_val, text->bv_len, "cursor_open failed: %s (%d)", mdbx_strerror(rc), rc);
+      Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_put) ": %s\n", text->bv_val);
       return NOID;
     }
   }
@@ -726,8 +698,7 @@ ID mdb_tool_entry_put(BackendDB *be, Entry *e, struct berval *text) {
   rc = mdb_tool_index_add(&op, mdb_tool_txn, e);
   if (rc != 0) {
     snprintf(text->bv_val, text->bv_len, "index_entry_add failed: err=%d", rc);
-    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_put) ": %s\n",
-          text->bv_val);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_put) ": %s\n", text->bv_val);
     goto done;
   }
 
@@ -735,8 +706,7 @@ ID mdb_tool_entry_put(BackendDB *be, Entry *e, struct berval *text) {
   rc = mdb_id2entry_add(&op, mdb_tool_txn, idcursor, e);
   if (rc != 0) {
     snprintf(text->bv_val, text->bv_len, "id2entry_add failed: err=%d", rc);
-    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_put) ": %s\n",
-          text->bv_val);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_put) ": %s\n", text->bv_val);
     goto done;
   }
 
@@ -752,10 +722,8 @@ done:
       mdb_writes = 0;
       if (rc != 0) {
         mdb->mi_numads = 0;
-        snprintf(text->bv_val, text->bv_len, "txn_commit failed: %s (%d)",
-                 mdbx_strerror(rc), rc);
-        Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_put) ": %s\n",
-              text->bv_val);
+        snprintf(text->bv_val, text->bv_len, "txn_commit failed: %s (%d)", mdbx_strerror(rc), rc);
+        Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_put) ": %s\n", text->bv_val);
         e->e_id = NOID;
       }
     }
@@ -765,8 +733,7 @@ done:
     mdb_writes = 0;
     snprintf(text->bv_val, text->bv_len, "txn_aborted! %s (%d)",
              rc == LDAP_OTHER ? "Internal error" : mdbx_strerror(rc), rc);
-    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_put) ": %s\n",
-          text->bv_val);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_put) ": %s\n", text->bv_val);
     e->e_id = NOID;
   }
 
@@ -782,8 +749,7 @@ int mdb_tool_entry_reindex(BackendDB *be, ID id, AttributeDescription **adv) {
   Operation op = {0};
   Opheader ohdr = {0};
 
-  Debug(LDAP_DEBUG_ARGS, "=> " LDAP_XSTRING(mdb_tool_entry_reindex) "( %ld )\n",
-        (long)id);
+  Debug(LDAP_DEBUG_ARGS, "=> " LDAP_XSTRING(mdb_tool_entry_reindex) "( %ld )\n", (long)id);
   assert(tool_base == NULL);
   assert(tool_filter == NULL);
 
@@ -833,9 +799,7 @@ int mdb_tool_entry_reindex(BackendDB *be, ID id, AttributeDescription **adv) {
           }
         }
         if (j == mi->mi_nattrs) {
-          Debug(LDAP_DEBUG_ANY,
-                LDAP_XSTRING(
-                    mdb_tool_entry_reindex) ": no index configured for %s\n",
+          Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_tool_entry_reindex) ": no index configured for %s\n",
                 adv[i]->ad_cname.bv_val);
           return -1;
         }
@@ -847,9 +811,7 @@ int mdb_tool_entry_reindex(BackendDB *be, ID id, AttributeDescription **adv) {
   e = mdb_tool_entry_get(be, id);
 
   if (e == NULL) {
-    Debug(LDAP_DEBUG_ANY,
-          LDAP_XSTRING(mdb_tool_entry_reindex) ": could not locate id=%ld\n",
-          (long)id);
+    Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_tool_entry_reindex) ": could not locate id=%ld\n", (long)id);
     return -1;
   }
 
@@ -857,9 +819,8 @@ int mdb_tool_entry_reindex(BackendDB *be, ID id, AttributeDescription **adv) {
   rc = mdbx_txn_begin(mi->mi_dbenv, NULL, 0, &txi);
   if (rc != 0) {
     Debug(LDAP_DEBUG_ANY,
-          "=> " LDAP_XSTRING(
-              mdb_tool_entry_reindex) ": "
-                                      "txn_begin failed: %s (%d)\n",
+          "=> " LDAP_XSTRING(mdb_tool_entry_reindex) ": "
+                                                     "txn_begin failed: %s (%d)\n",
           mdbx_strerror(rc), rc);
     goto done;
   }
@@ -872,8 +833,7 @@ int mdb_tool_entry_reindex(BackendDB *be, ID id, AttributeDescription **adv) {
         Debug(LDAP_DEBUG_ANY,
               LDAP_XSTRING(mdb_tool_entry_reindex) ": (Truncate) mdbx_drop(%s) "
                                                    "failed: %s (%d)\n",
-              mi->mi_attrs[i]->ai_desc->ad_type->sat_cname.bv_val,
-              mdbx_strerror(rc), rc);
+              mi->mi_attrs[i]->ai_desc->ad_type->sat_cname.bv_val, mdbx_strerror(rc), rc);
         goto done;
       }
     }
@@ -885,8 +845,7 @@ int mdb_tool_entry_reindex(BackendDB *be, ID id, AttributeDescription **adv) {
    * Use truncate mode to empty/reset index databases
    */
 
-  Debug(LDAP_DEBUG_TRACE,
-        "=> " LDAP_XSTRING(mdb_tool_entry_reindex) "( %ld )\n", (long)id);
+  Debug(LDAP_DEBUG_TRACE, "=> " LDAP_XSTRING(mdb_tool_entry_reindex) "( %ld )\n", (long)id);
 
   op.o_hdr = &ohdr;
   op.o_bd = be;
@@ -904,9 +863,7 @@ done:
       rc = mdb_tool_txn_commit(be, txi);
       mdb_writes = 0;
       if (rc != 0) {
-        Debug(LDAP_DEBUG_ANY,
-              "=> " LDAP_XSTRING(
-                  mdb_tool_entry_reindex) ": txn_commit failed: %s (%d)\n",
+        Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_reindex) ": txn_commit failed: %s (%d)\n",
               mdbx_strerror(rc), rc);
         e->e_id = NOID;
       }
@@ -931,9 +888,7 @@ done:
   } else {
     mdb_writes = 0;
     mdb_tool_txn_abort(be, txi);
-    Debug(LDAP_DEBUG_ANY,
-          "=> " LDAP_XSTRING(mdb_tool_entry_reindex) ": txn_aborted! err=%d\n",
-          rc);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_reindex) ": txn_aborted! err=%d\n", rc);
     e->e_id = NOID;
   }
   mdb_entry_release(&op, e, 0);
@@ -956,18 +911,14 @@ ID mdb_tool_entry_modify(BackendDB *be, Entry *e, struct berval *text) {
 
   assert(e->e_id != NOID);
 
-  Debug(LDAP_DEBUG_TRACE,
-        "=> " LDAP_XSTRING(mdb_tool_entry_modify) "( %ld, \"%s\" )\n",
-        (long)e->e_id, e->e_dn);
+  Debug(LDAP_DEBUG_TRACE, "=> " LDAP_XSTRING(mdb_tool_entry_modify) "( %ld, \"%s\" )\n", (long)e->e_id, e->e_dn);
 
   mdb = (struct mdb_info *)be->be_private;
   if (!mdb_tool_txn) {
     rc = mdbx_txn_begin(mdb->mi_dbenv, NULL, 0, &mdb_tool_txn);
     if (rc != 0) {
-      snprintf(text->bv_val, text->bv_len, "txn_begin failed: %s (%d)",
-               mdbx_strerror(rc), rc);
-      Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_modify) ": %s\n",
-            text->bv_val);
+      snprintf(text->bv_val, text->bv_len, "txn_begin failed: %s (%d)", mdbx_strerror(rc), rc);
+      Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_modify) ": %s\n", text->bv_val);
       return NOID;
     }
   }
@@ -981,8 +932,7 @@ ID mdb_tool_entry_modify(BackendDB *be, Entry *e, struct berval *text) {
   rc = mdb_id2entry_update(&op, mdb_tool_txn, NULL, e);
   if (rc != 0) {
     snprintf(text->bv_val, text->bv_len, "id2entry_update failed: err=%d", rc);
-    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_modify) ": %s\n",
-          text->bv_val);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_modify) ": %s\n", text->bv_val);
     goto done;
   }
 
@@ -991,8 +941,7 @@ done:
     rc = mdb_tool_txn_commit(be, mdb_tool_txn);
     if (rc != 0) {
       mdb->mi_numads = 0;
-      snprintf(text->bv_val, text->bv_len, "txn_commit failed: %s (%d)",
-               mdbx_strerror(rc), rc);
+      snprintf(text->bv_val, text->bv_len, "txn_commit failed: %s (%d)", mdbx_strerror(rc), rc);
       Debug(LDAP_DEBUG_ANY,
             "=> " LDAP_XSTRING(mdb_tool_entry_modify) ": "
                                                       "%s\n",
@@ -1002,18 +951,15 @@ done:
 
   } else {
     mdb_tool_txn_abort(be, mdb_tool_txn);
-    snprintf(text->bv_val, text->bv_len, "txn_aborted! %s (%d)",
-             mdbx_strerror(rc), rc);
-    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_modify) ": %s\n",
-          text->bv_val);
+    snprintf(text->bv_val, text->bv_len, "txn_aborted! %s (%d)", mdbx_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_modify) ": %s\n", text->bv_val);
     e->e_id = NOID;
   }
 
   return e->e_id;
 }
 
-int mdb_tool_entry_delete(BackendDB *be, struct berval *ndn,
-                          struct berval *text) {
+int mdb_tool_entry_delete(BackendDB *be, struct berval *ndn, struct berval *text) {
   int rc;
   struct mdb_info *mdb;
   Operation op = {0};
@@ -1030,8 +976,7 @@ int mdb_tool_entry_delete(BackendDB *be, struct berval *ndn,
   assert(ndn != NULL);
   assert(ndn->bv_val != NULL);
 
-  Debug(LDAP_DEBUG_TRACE, "=> " LDAP_XSTRING(mdb_tool_entry_delete) "( %s )\n",
-        ndn->bv_val);
+  Debug(LDAP_DEBUG_TRACE, "=> " LDAP_XSTRING(mdb_tool_entry_delete) "( %s )\n", ndn->bv_val);
 
   mdb = (struct mdb_info *)be->be_private;
 
@@ -1043,20 +988,16 @@ int mdb_tool_entry_delete(BackendDB *be, struct berval *ndn,
   if (!mdb_tool_txn) {
     rc = mdbx_txn_begin(mdb->mi_dbenv, NULL, 0, &mdb_tool_txn);
     if (rc != 0) {
-      snprintf(text->bv_val, text->bv_len, "txn_begin failed: %s (%d)",
-               mdbx_strerror(rc), rc);
-      Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_delete) ": %s\n",
-            text->bv_val);
+      snprintf(text->bv_val, text->bv_len, "txn_begin failed: %s (%d)", mdbx_strerror(rc), rc);
+      Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_delete) ": %s\n", text->bv_val);
       return LDAP_OTHER;
     }
   }
 
   rc = mdbx_cursor_open(mdb_tool_txn, mdb->mi_dn2id, &cursor);
   if (rc != 0) {
-    snprintf(text->bv_val, text->bv_len, "cursor_open failed: %s (%d)",
-             mdbx_strerror(rc), rc);
-    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_delete) ": %s\n",
-          text->bv_val);
+    snprintf(text->bv_val, text->bv_len, "cursor_open failed: %s (%d)", mdbx_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_delete) ": %s\n", text->bv_val);
     return LDAP_OTHER;
   }
 
@@ -1067,10 +1008,8 @@ int mdb_tool_entry_delete(BackendDB *be, struct berval *ndn,
 
   rc = mdb_dn2entry(&op, mdb_tool_txn, cursor, ndn, &e, NULL, 0);
   if (rc != 0) {
-    snprintf(text->bv_val, text->bv_len, "dn2entry failed: %s (%d)",
-             mdbx_strerror(rc), rc);
-    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_delete) ": %s\n",
-          text->bv_val);
+    snprintf(text->bv_val, text->bv_len, "dn2entry failed: %s (%d)", mdbx_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_delete) ": %s\n", text->bv_val);
     goto done;
   }
 
@@ -1084,13 +1023,11 @@ int mdb_tool_entry_delete(BackendDB *be, struct berval *ndn,
                " subordinate objects must be deleted first");
       break;
     default:
-      snprintf(text->bv_val, text->bv_len, "has_children failed: %s (%d)",
-               mdbx_strerror(rc), rc);
+      snprintf(text->bv_val, text->bv_len, "has_children failed: %s (%d)", mdbx_strerror(rc), rc);
       break;
     }
     rc = -1;
-    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_delete) ": %s\n",
-          text->bv_val);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_delete) ": %s\n", text->bv_val);
     goto done;
   }
 
@@ -1098,8 +1035,7 @@ int mdb_tool_entry_delete(BackendDB *be, struct berval *ndn,
   rc = mdb_dn2id_delete(&op, cursor, e->e_id, 1);
   if (rc != 0) {
     snprintf(text->bv_val, text->bv_len, "dn2id_delete failed: err=%d", rc);
-    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_delete) ": %s\n",
-          text->bv_val);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_delete) ": %s\n", text->bv_val);
     goto done;
   }
 
@@ -1107,8 +1043,7 @@ int mdb_tool_entry_delete(BackendDB *be, struct berval *ndn,
   rc = mdb_index_entry_del(&op, mdb_tool_txn, e);
   if (rc != 0) {
     snprintf(text->bv_val, text->bv_len, "entry_delete failed: err=%d", rc);
-    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_delete) ": %s\n",
-          text->bv_val);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_delete) ": %s\n", text->bv_val);
     goto done;
   }
 
@@ -1116,8 +1051,7 @@ int mdb_tool_entry_delete(BackendDB *be, struct berval *ndn,
   rc = mdb_id2entry_delete(be, mdb_tool_txn, e);
   if (rc != 0) {
     snprintf(text->bv_val, text->bv_len, "id2entry_update failed: err=%d", rc);
-    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_delete) ": %s\n",
-          text->bv_val);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_delete) ": %s\n", text->bv_val);
     goto done;
   }
 
@@ -1130,8 +1064,7 @@ done:
   if (rc == 0) {
     rc = mdbx_txn_commit(mdb_tool_txn);
     if (rc != 0) {
-      snprintf(text->bv_val, text->bv_len, "txn_commit failed: %s (%d)",
-               mdbx_strerror(rc), rc);
+      snprintf(text->bv_val, text->bv_len, "txn_commit failed: %s (%d)", mdbx_strerror(rc), rc);
       Debug(LDAP_DEBUG_ANY,
             "=> " LDAP_XSTRING(mdb_tool_entry_delete) ": "
                                                       "%s\n",
@@ -1140,10 +1073,8 @@ done:
 
   } else {
     mdbx_txn_abort(mdb_tool_txn);
-    snprintf(text->bv_val, text->bv_len, "txn_aborted! %s (%d)",
-             mdbx_strerror(rc), rc);
-    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_delete) ": %s\n",
-          text->bv_val);
+    snprintf(text->bv_val, text->bv_len, "txn_aborted! %s (%d)", mdbx_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_delete) ": %s\n", text->bv_val);
   }
   mdb_tool_txn = NULL;
   cursor = NULL;
@@ -1183,8 +1114,7 @@ static void *mdb_tool_index_task(void *ctx, void *ptr) {
     }
     ldap_pvt_thread_mutex_unlock(&mdb_tool_index_mutex);
     mdb_tool_index_rec[base].ir_i =
-        mdb_index_recrun(&op, mdb_tool_ix_txn, mdb_tool_info,
-                         mdb_tool_index_rec, mdb_tool_ix_id, base);
+        mdb_index_recrun(&op, mdb_tool_ix_txn, mdb_tool_info, mdb_tool_index_rec, mdb_tool_ix_id, base);
   }
 
   return NULL;
@@ -1199,8 +1129,7 @@ static int mdb_tool_idl_cmp(const void *v1, const void *v2) {
   return memcmp(c1->kstr.bv_val, c2->kstr.bv_val, c1->kstr.bv_len);
 }
 
-static int mdb_tool_idl_flush_one(MDBX_cursor *mc, AttrIxInfo *ai,
-                                  mdb_tool_idl_cache *ic) {
+static int mdb_tool_idl_flush_one(MDBX_cursor *mc, AttrIxInfo *ai, mdb_tool_idl_cache *ic) {
   mdb_tool_idl_cache_entry *ice;
   MDBX_val key, data[2];
   int i, rc;
@@ -1315,8 +1244,7 @@ static int mdb_tool_idl_flush(BackendDB *be, MDBX_txn *txn) {
   for (i = 0; i < mdb->mi_nattrs; i++) {
     if (!mdb->mi_attrs[i]->ai_root)
       continue;
-    rc = mdb_tool_idl_flush_db(txn, mdb->mi_attrs[i],
-                               mdb_tool_axinfo[i % mdb_tool_threads]);
+    rc = mdb_tool_idl_flush_db(txn, mdb->mi_attrs[i], mdb_tool_axinfo[i % mdb_tool_threads]);
     tavl_free(mdb->mi_attrs[i]->ai_root, NULL);
     mdb->mi_attrs[i]->ai_root = NULL;
     if (rc)
@@ -1325,8 +1253,7 @@ static int mdb_tool_idl_flush(BackendDB *be, MDBX_txn *txn) {
   return rc;
 }
 
-int mdb_tool_idl_add(BackendDB *be, MDBX_cursor *mc, struct berval *keys,
-                     ID id) {
+int mdb_tool_idl_add(BackendDB *be, MDBX_cursor *mc, struct berval *keys, ID id) {
   MDBX_dbi dbi;
   mdb_tool_idl_cache *ic, itmp;
   mdb_tool_idl_cache_entry *ice;
@@ -1454,24 +1381,20 @@ static int mdb_dn2id_upgrade(BackendDB *be) {
   lutil_meter_t meter;
 
   if (!(mi->mi_flags & MDB_NEED_UPGRADE)) {
-    Debug(LDAP_DEBUG_ANY, "database %s: No upgrade needed.\n",
-          be->be_suffix[0].bv_val);
+    Debug(LDAP_DEBUG_ANY, "database %s: No upgrade needed.\n", be->be_suffix[0].bv_val);
     return 0;
   }
 
   {
     MDBX_stat st;
 
-    mdbx_dbi_stat(mdbx_cursor_txn(cursor), mi->mi_dbis[MDB_ID2ENTRY], &st,
-                  sizeof(st));
+    mdbx_dbi_stat(mdbx_cursor_txn(cursor), mi->mi_dbis[MDB_ID2ENTRY], &st, sizeof(st));
     if (!st.ms_entries) {
       /* Empty DB, nothing to upgrade? */
       return 0;
     }
     if (isatty(2))
-      enable_meter =
-          !lutil_meter_open(&meter, &lutil_meter_text_display,
-                            &lutil_meter_linear_estimator, st.ms_entries);
+      enable_meter = !lutil_meter_open(&meter, &lutil_meter_text_display, &lutil_meter_linear_estimator, st.ms_entries);
   }
 
   num = ch_malloc(STACKSIZ * (sizeof(ID) + sizeof(rec)));
@@ -1479,15 +1402,12 @@ static int mdb_dn2id_upgrade(BackendDB *be) {
 
   rc = mdbx_txn_begin(mi->mi_dbenv, NULL, 0, &mt);
   if (rc) {
-    Debug(LDAP_DEBUG_ANY, "mdb_dn2id_upgrade: mdbx_txn_begin failed, %s (%d)\n",
-          mdbx_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "mdb_dn2id_upgrade: mdbx_txn_begin failed, %s (%d)\n", mdbx_strerror(rc), rc);
     goto leave;
   }
   rc = mdbx_cursor_open(mt, mi->mi_dbis[MDB_DN2ID], &mc);
   if (rc) {
-    Debug(LDAP_DEBUG_ANY,
-          "mdb_dn2id_upgrade: mdbx_cursor_open failed, %s (%d)\n",
-          mdbx_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "mdb_dn2id_upgrade: mdbx_cursor_open failed, %s (%d)\n", mdbx_strerror(rc), rc);
     goto leave;
   }
 
@@ -1502,18 +1422,14 @@ static int mdb_dn2id_upgrade(BackendDB *be) {
     stack[depth].id = id;
     rc = mdbx_cursor_get(mc, &key, &data, MDBX_SET);
     if (rc) {
-      Debug(LDAP_DEBUG_ANY,
-            "mdb_dn2id_upgrade: mdbx_cursor_get failed, %s (%d)\n",
-            mdbx_strerror(rc), rc);
+      Debug(LDAP_DEBUG_ANY, "mdb_dn2id_upgrade: mdbx_cursor_get failed, %s (%d)\n", mdbx_strerror(rc), rc);
       goto leave;
     }
     num[depth] = 1;
 
     rc = mdbx_cursor_count(mc, &dkids);
     if (rc) {
-      Debug(LDAP_DEBUG_ANY,
-            "mdb_dn2id_upgrade: mdbx_cursor_count failed, %s (%d)\n",
-            mdbx_strerror(rc), rc);
+      Debug(LDAP_DEBUG_ANY, "mdb_dn2id_upgrade: mdbx_cursor_count failed, %s (%d)\n", mdbx_strerror(rc), rc);
       goto leave;
     }
     if (dkids > 1) {
@@ -1539,9 +1455,7 @@ static int mdb_dn2id_upgrade(BackendDB *be) {
     data.iov_len = stack[depth].len;
     rc = mdbx_cursor_get(mc, &key, &data, MDBX_GET_BOTH);
     if (rc) {
-      Debug(LDAP_DEBUG_ANY,
-            "mdb_dn2id_upgrade: mdbx_cursor_get(BOTH) failed, %s (%d)\n",
-            mdbx_strerror(rc), rc);
+      Debug(LDAP_DEBUG_ANY, "mdb_dn2id_upgrade: mdbx_cursor_get(BOTH) failed, %s (%d)\n", mdbx_strerror(rc), rc);
       goto leave;
     }
     data.iov_base = stack[depth].rdn;
@@ -1550,16 +1464,12 @@ static int mdb_dn2id_upgrade(BackendDB *be) {
     data.iov_len += sizeof(ID);
     rc = mdbx_cursor_del(mc, 0);
     if (rc) {
-      Debug(LDAP_DEBUG_ANY,
-            "mdb_dn2id_upgrade: mdbx_cursor_del failed, %s (%d)\n",
-            mdbx_strerror(rc), rc);
+      Debug(LDAP_DEBUG_ANY, "mdb_dn2id_upgrade: mdbx_cursor_del failed, %s (%d)\n", mdbx_strerror(rc), rc);
       goto leave;
     }
     rc = mdbx_cursor_put(mc, &key, &data, 0);
     if (rc) {
-      Debug(LDAP_DEBUG_ANY,
-            "mdb_dn2id_upgrade: mdbx_cursor_put failed, %s (%d)\n",
-            mdbx_strerror(rc), rc);
+      Debug(LDAP_DEBUG_ANY, "mdb_dn2id_upgrade: mdbx_cursor_put failed, %s (%d)\n", mdbx_strerror(rc), rc);
       goto leave;
     }
     count++;
@@ -1581,30 +1491,22 @@ static int mdb_dn2id_upgrade(BackendDB *be) {
       rc = mdb_tool_txn_commit(be, mt);
       mt = NULL;
       if (rc) {
-        Debug(LDAP_DEBUG_ANY,
-              "mdb_dn2id_upgrade: mdbx_txn_commit failed, %s (%d)\n",
-              mdbx_strerror(rc), rc);
+        Debug(LDAP_DEBUG_ANY, "mdb_dn2id_upgrade: mdbx_txn_commit failed, %s (%d)\n", mdbx_strerror(rc), rc);
         goto leave;
       }
       rc = mdbx_txn_begin(mi->mi_dbenv, NULL, 0, &mt);
       if (rc) {
-        Debug(LDAP_DEBUG_ANY,
-              "mdb_dn2id_upgrade: mdbx_txn_begin(2) failed, %s (%d)\n",
-              mdbx_strerror(rc), rc);
+        Debug(LDAP_DEBUG_ANY, "mdb_dn2id_upgrade: mdbx_txn_begin(2) failed, %s (%d)\n", mdbx_strerror(rc), rc);
         goto leave;
       }
       rc = mdbx_cursor_open(mt, mi->mi_dbis[MDB_DN2ID], &mc);
       if (rc) {
-        Debug(LDAP_DEBUG_ANY,
-              "mdb_dn2id_upgrade: mdbx_cursor_open(2) failed, %s (%d)\n",
-              mdbx_strerror(rc), rc);
+        Debug(LDAP_DEBUG_ANY, "mdb_dn2id_upgrade: mdbx_cursor_open(2) failed, %s (%d)\n", mdbx_strerror(rc), rc);
         goto leave;
       }
       rc = mdbx_cursor_get(mc, &key, &data, MDBX_GET_BOTH);
       if (rc) {
-        Debug(LDAP_DEBUG_ANY,
-              "mdb_dn2id_upgrade: mdbx_cursor_get(2) failed, %s (%d)\n",
-              mdbx_strerror(rc), rc);
+        Debug(LDAP_DEBUG_ANY, "mdb_dn2id_upgrade: mdbx_cursor_get(2) failed, %s (%d)\n", mdbx_strerror(rc), rc);
         goto leave;
       }
       writes = 0;
@@ -1628,9 +1530,7 @@ leave:
   if (mt) {
     int err = mdb_tool_txn_commit(be, mt);
     if (err) {
-      Debug(LDAP_DEBUG_ANY,
-            "mdb_dn2id_upgrade: mdbx_txn_commit(2) failed, %s (%d)\n",
-            mdbx_strerror(err), err);
+      Debug(LDAP_DEBUG_ANY, "mdb_dn2id_upgrade: mdbx_txn_commit(2) failed, %s (%d)\n", mdbx_strerror(err), err);
       if (!rc)
         rc = err;
     }

@@ -64,8 +64,7 @@ int slapdn(int argc, char **argv) {
     }
 
     if (rc != LDAP_SUCCESS) {
-      fprintf(stderr, "DN: <%s> check failed %d (%s)\n", dn.bv_val, rc,
-              ldap_err2string(rc));
+      fprintf(stderr, "DN: <%s> check failed %d (%s)\n", dn.bv_val, rc, ldap_err2string(rc));
       if (!continuemode) {
         rc = -1;
         break;

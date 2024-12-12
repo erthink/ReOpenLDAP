@@ -305,17 +305,14 @@ int ldap_x_wcs_to_utf8s(char *utf8str, const wchar_t *wcstr, size_t count) {
 
 #ifdef ANDROID
 int wctomb(char *s, wchar_t wc) { return wcrtomb(s, wc, NULL); }
-int mbtowc(wchar_t *pwc, const char *s, size_t n) {
-  return mbrtowc(pwc, s, n, NULL);
-}
+int mbtowc(wchar_t *pwc, const char *s, size_t n) { return mbrtowc(pwc, s, n, NULL); }
 #endif
 
 /*-----------------------------------------------------------------------------
    Convert a UTF-8 character to a MultiByte character.
    Return the size of the converted character in bytes.
 */
-int ldap_x_utf8_to_mb(char *mbchar, const char *utf8char,
-                      int (*f_wctomb)(char *mbchar, wchar_t wchar)) {
+int ldap_x_utf8_to_mb(char *mbchar, const char *utf8char, int (*f_wctomb)(char *mbchar, wchar_t wchar)) {
   wchar_t wchar;
   int n;
   char tmp[6]; /* Large enough for biggest multibyte char */
@@ -343,8 +340,7 @@ int ldap_x_utf8_to_mb(char *mbchar, const char *utf8char,
    Return the size of the converted string in bytes, excl null terminator.
 */
 int ldap_x_utf8s_to_mbs(char *mbstr, const char *utf8str, size_t count,
-                        size_t (*f_wcstombs)(char *mbstr, const wchar_t *wcstr,
-                                             size_t count)) {
+                        size_t (*f_wcstombs)(char *mbstr, const wchar_t *wcstr, size_t count)) {
   wchar_t *wcs;
   size_t wcsize;
   int n;
@@ -384,8 +380,7 @@ int ldap_x_utf8s_to_mbs(char *mbstr, const char *utf8str, size_t count,
    Returns the number of bytes written to the output character.
 */
 int ldap_x_mb_to_utf8(char *utf8char, const char *mbchar, size_t mbsize,
-                      int (*f_mbtowc)(wchar_t *wchar, const char *mbchar,
-                                      size_t count)) {
+                      int (*f_mbtowc)(wchar_t *wchar, const char *mbchar, size_t count)) {
   wchar_t wchar;
   int n;
 
@@ -419,8 +414,7 @@ int ldap_x_mb_to_utf8(char *utf8char, const char *mbchar, size_t mbsize,
    Return the size of the converted string in bytes, excl null terminator.
 */
 int ldap_x_mbs_to_utf8s(char *utf8str, const char *mbstr, size_t count,
-                        size_t (*f_mbstowcs)(wchar_t *wcstr, const char *mbstr,
-                                             size_t count)) {
+                        size_t (*f_mbstowcs)(wchar_t *wcstr, const char *mbstr, size_t count)) {
   wchar_t *wcs;
   int n;
   size_t wcsize;

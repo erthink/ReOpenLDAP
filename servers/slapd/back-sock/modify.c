@@ -86,10 +86,8 @@ int sock_back_modify(Operation *op, SlapReply *rs) {
 
     if (mod->sm_values != NULL) {
       for (i = 0; mod->sm_values[i].bv_val != NULL; i++) {
-        char *text =
-            ldif_put_wrap(LDIF_PUT_VALUE, mod->sm_desc->ad_cname.bv_val,
-                          mod->sm_values[i].bv_val, mod->sm_values[i].bv_len,
-                          LDIF_LINE_WIDTH_MAX);
+        char *text = ldif_put_wrap(LDIF_PUT_VALUE, mod->sm_desc->ad_cname.bv_val, mod->sm_values[i].bv_val,
+                                   mod->sm_values[i].bv_len, LDIF_LINE_WIDTH_MAX);
         if (text) {
           fprintf(fp, "%s", text);
           ber_memfree(text);

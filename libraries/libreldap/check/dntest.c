@@ -62,8 +62,7 @@ int main(int argc, char *argv[]) {
   argv += optind;
 
   if (argc < 2) {
-    fprintf(stderr,
-            "usage: dntest <dn> [flags-in[,...]] [flags-out[,...]]\n\n");
+    fprintf(stderr, "usage: dntest <dn> [flags-in[,...]] [flags-out[,...]]\n\n");
     fprintf(stderr, "\tflags-in:   V3,V2,DCE,<flags>\n");
     fprintf(stderr, "\tflags-out:  V3,V2,UFN,DCE,AD,<flags>\n\n");
     fprintf(stderr, "\t<flags>: PRETTY,PEDANTIC,NOSPACES,NOONESPACE\n\n");
@@ -246,12 +245,10 @@ int main(int argc, char *argv[]) {
     dn2 = NULL;
     rc = ldap_str2dn(str, &dn2, flags[f2]);
     str2 = NULL;
-    if (rc == LDAP_SUCCESS &&
-        ldap_dn2str(dn2, &str2, flags[f2]) == LDAP_SUCCESS) {
+    if (rc == LDAP_SUCCESS && ldap_dn2str(dn2, &str2, flags[f2]) == LDAP_SUCCESS) {
       int iRDN;
 
-      fprintf(stdout, "\n\"%s\"\n\t == \"%s\" ? %s\n", str, str2,
-              strcmp(str, str2) == 0 ? "yes" : "no");
+      fprintf(stdout, "\n\"%s\"\n\t == \"%s\" ? %s\n", str, str2, strcmp(str, str2) == 0 ? "yes" : "no");
 
       if (dn != NULL && dn2 == NULL) {
         fprintf(stdout, "dn mismatch\n");
@@ -266,24 +263,18 @@ int main(int argc, char *argv[]) {
             LDAPAVA *a2 = r2[iAVA];
 
             if (a->la_attr.bv_len != a2->la_attr.bv_len) {
-              fprintf(stdout, "ava(%d), rdn(%d) attr len mismatch (%ld->%ld)\n",
-                      iAVA + 1, iRDN + 1, a->la_attr.bv_len,
+              fprintf(stdout, "ava(%d), rdn(%d) attr len mismatch (%ld->%ld)\n", iAVA + 1, iRDN + 1, a->la_attr.bv_len,
                       a2->la_attr.bv_len);
-            } else if (memcmp(a->la_attr.bv_val, a2->la_attr.bv_val,
-                              a->la_attr.bv_len)) {
-              fprintf(stdout, "ava(%d), rdn(%d) attr mismatch\n", iAVA + 1,
-                      iRDN + 1);
+            } else if (memcmp(a->la_attr.bv_val, a2->la_attr.bv_val, a->la_attr.bv_len)) {
+              fprintf(stdout, "ava(%d), rdn(%d) attr mismatch\n", iAVA + 1, iRDN + 1);
             } else if (a->la_flags != a2->la_flags) {
-              fprintf(stdout, "ava(%d), rdn(%d) flag mismatch (%x->%x)\n",
-                      iAVA + 1, iRDN + 1, a->la_flags, a2->la_flags);
+              fprintf(stdout, "ava(%d), rdn(%d) flag mismatch (%x->%x)\n", iAVA + 1, iRDN + 1, a->la_flags,
+                      a2->la_flags);
             } else if (a->la_value.bv_len != a2->la_value.bv_len) {
-              fprintf(
-                  stdout, "ava(%d), rdn(%d) value len mismatch (%ld->%ld)\n",
-                  iAVA + 1, iRDN + 1, a->la_value.bv_len, a2->la_value.bv_len);
-            } else if (memcmp(a->la_value.bv_val, a2->la_value.bv_val,
-                              a->la_value.bv_len)) {
-              fprintf(stdout, "ava(%d), rdn(%d) value mismatch\n", iAVA + 1,
-                      iRDN + 1);
+              fprintf(stdout, "ava(%d), rdn(%d) value len mismatch (%ld->%ld)\n", iAVA + 1, iRDN + 1,
+                      a->la_value.bv_len, a2->la_value.bv_len);
+            } else if (memcmp(a->la_value.bv_val, a2->la_value.bv_val, a->la_value.bv_len)) {
+              fprintf(stdout, "ava(%d), rdn(%d) value mismatch\n", iAVA + 1, iRDN + 1);
             }
           }
         }

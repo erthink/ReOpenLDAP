@@ -30,8 +30,7 @@
 
 static ObjectClass *oc_olmBDBDatabase;
 
-static AttributeDescription *ad_olmBDBEntryCache, *ad_olmBDBDNCache,
-    *ad_olmBDBIDLCache, *ad_olmDbDirectory;
+static AttributeDescription *ad_olmBDBEntryCache, *ad_olmBDBDNCache, *ad_olmBDBIDLCache, *ad_olmDbDirectory;
 
 #ifdef BDB_MONITOR_IDX
 static int bdb_monitor_idx_entry_add(struct bdb_info *bdb, Entry *e);
@@ -130,8 +129,7 @@ static struct {
 
     {NULL}};
 
-static int bdb_monitor_update(Operation *op, SlapReply *rs, Entry *e,
-                              void *priv) {
+static int bdb_monitor_update(Operation *op, SlapReply *rs, Entry *e, void *priv) {
   struct bdb_info *bdb = (struct bdb_info *)priv;
   Attribute *a;
 
@@ -333,10 +331,8 @@ int bdb_monitor_db_open(BackendDB *be) {
     static int warning = 0;
 
     if (warning++ == 0) {
-      Debug(LDAP_DEBUG_ANY,
-            LDAP_XSTRING(
-                bdb_monitor_db_open) ": monitoring disabled; "
-                                     "configure monitor database to enable\n");
+      Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(bdb_monitor_db_open) ": monitoring disabled; "
+                                                              "configure monitor database to enable\n");
     }
 
     return 0;
@@ -431,8 +427,7 @@ int bdb_monitor_db_open(BackendDB *be) {
   /* make sure the database is registered; then add monitor attributes */
   rc = mbe->register_database(be, &bdb->bi_monitor.bdm_ndn);
   if (rc == 0) {
-    rc = mbe->register_entry_attrs(&bdb->bi_monitor.bdm_ndn, a, cb, NULL, 0,
-                                   NULL);
+    rc = mbe->register_entry_attrs(&bdb->bi_monitor.bdm_ndn, a, cb, NULL, 0, NULL);
   }
 
 cleanup:;
@@ -472,9 +467,8 @@ int bdb_monitor_db_close(BackendDB *be) {
 
     if (mi && mi->bi_extra) {
       mbe = mi->bi_extra;
-      mbe->unregister_entry_callback(
-          &bdb->bi_monitor.bdm_ndn,
-          (monitor_callback_t *)bdb->bi_monitor.bdm_cb, NULL, 0, NULL);
+      mbe->unregister_entry_callback(&bdb->bi_monitor.bdm_ndn, (monitor_callback_t *)bdb->bi_monitor.bdm_cb, NULL, 0,
+                                     NULL);
     }
 
     memset(&bdb->bi_monitor, 0, sizeof(bdb->bi_monitor));
@@ -518,8 +512,7 @@ static int bdb_monitor_bitmask2key(slap_mask_t bitmask) {
   return key;
 }
 
-static struct berval idxbv[] = {BER_BVC("present="), BER_BVC("equality="),
-                                BER_BVC("approx="), BER_BVC("substr="),
+static struct berval idxbv[] = {BER_BVC("present="), BER_BVC("equality="), BER_BVC("approx="), BER_BVC("substr="),
                                 BER_BVNULL};
 
 static ber_len_t bdb_monitor_idx2len(monitor_idx_t *idx) {
@@ -549,8 +542,7 @@ static int monitor_idx_dup(void *p1, void *p2) {
   return SLAP_PTRCMP(idx1->idx_ad, idx2->idx_ad) == 0 ? -1 : 0;
 }
 
-int bdb_monitor_idx_add(struct bdb_info *bdb, AttributeDescription *desc,
-                        slap_mask_t type) {
+int bdb_monitor_idx_add(struct bdb_info *bdb, AttributeDescription *desc, slap_mask_t type) {
   monitor_idx_t idx_dummy = {0}, *idx;
   int rc = 0, key;
 
@@ -563,15 +555,13 @@ int bdb_monitor_idx_add(struct bdb_info *bdb, AttributeDescription *desc,
 
   ldap_pvt_thread_mutex_lock(&bdb->bi_idx_mutex);
 
-  idx = (monitor_idx_t *)avl_find(bdb->bi_idx, (caddr_t)&idx_dummy,
-                                  monitor_idx_cmp);
+  idx = (monitor_idx_t *)avl_find(bdb->bi_idx, (caddr_t)&idx_dummy, monitor_idx_cmp);
   if (idx == NULL) {
     idx = (monitor_idx_t *)ch_calloc(sizeof(monitor_idx_t), 1);
     idx->idx_ad = desc;
     idx->idx_count[key] = 1;
 
-    switch (avl_insert(&bdb->bi_idx, (caddr_t)idx, monitor_idx_cmp,
-                       monitor_idx_dup)) {
+    switch (avl_insert(&bdb->bi_idx, (caddr_t)idx, monitor_idx_cmp, monitor_idx_dup)) {
     case 0:
       break;
 
@@ -607,8 +597,7 @@ static int bdb_monitor_idx_apply(void *v_idx, void *v_valp) {
       continue;
     }
 
-    count_len[i] =
-        snprintf(count_buf[i], sizeof(count_buf[i]), "%lu", idx->idx_count[i]);
+    count_len[i] = snprintf(count_buf[i], sizeof(count_buf[i]), "%lu", idx->idx_count[i]);
     bv.bv_len += count_len[i];
     num++;
   }

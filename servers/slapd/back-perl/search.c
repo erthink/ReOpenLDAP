@@ -43,8 +43,7 @@ int perl_back_search(Operation *op, SlapReply *rs) {
     XPUSHs(sv_2mortal(newSViv(op->ors_deref)));
     XPUSHs(sv_2mortal(newSViv(op->ors_slimit)));
     XPUSHs(sv_2mortal(newSViv(op->ors_tlimit)));
-    XPUSHs(sv_2mortal(
-        newSVpv(op->ors_filterstr.bv_val, op->ors_filterstr.bv_len)));
+    XPUSHs(sv_2mortal(newSVpv(op->ors_filterstr.bv_val, op->ors_filterstr.bv_len)));
     XPUSHs(sv_2mortal(newSViv(op->ors_attrsonly)));
 
     for (an = op->ors_attrs; an && an->an_name.bv_val; an++) {
@@ -73,8 +72,7 @@ int perl_back_search(Operation *op, SlapReply *rs) {
           int send_entry;
 
           if (perl_back->pb_filter_search_results)
-            send_entry =
-                (test_filter(op, e, op->ors_filter) == LDAP_COMPARE_TRUE);
+            send_entry = (test_filter(op, e, op->ors_filter) == LDAP_COMPARE_TRUE);
           else
             send_entry = 1;
 
@@ -87,8 +85,7 @@ int perl_back_search(Operation *op, SlapReply *rs) {
             rs->sr_flags = 0;
             rs->sr_attrs = NULL;
             rs->sr_entry = NULL;
-            if (rs->sr_err == LDAP_SIZELIMIT_EXCEEDED ||
-                rs->sr_err == LDAP_BUSY) {
+            if (rs->sr_err == LDAP_SIZELIMIT_EXCEEDED || rs->sr_err == LDAP_BUSY) {
               goto done;
             }
           }

@@ -35,8 +35,7 @@ wt_ctx *wt_ctx_init(struct wt_info *wi) {
 
   rc = wi->wi_conn->open_session(wi->wi_conn, NULL, NULL, &wc->session);
   if (rc) {
-    Debug(LDAP_DEBUG_ANY, "wt_ctx_init: open_session error %s(%d)\n",
-          wiredtiger_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "wt_ctx_init: open_session error %s(%d)\n", wiredtiger_strerror(rc), rc);
     return NULL;
   }
 
@@ -45,11 +44,9 @@ wt_ctx *wt_ctx_init(struct wt_info *wi) {
     return wc;
   }
 
-  rc = wi->wi_cache->open_session(wi->wi_cache, NULL, NULL,
-                                  &wc->idlcache_session);
+  rc = wi->wi_cache->open_session(wi->wi_cache, NULL, NULL, &wc->idlcache_session);
   if (rc) {
-    Debug(LDAP_DEBUG_ANY, "wt_ctx_init: cannnot open idlcache session %s(%d)\n",
-          wiredtiger_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "wt_ctx_init: cannnot open idlcache session %s(%d)\n", wiredtiger_strerror(rc), rc);
     return NULL;
   }
 
@@ -88,8 +85,7 @@ wt_ctx *wt_ctx_get(Operation *op, struct wt_info *wi) {
       Debug(LDAP_DEBUG_ANY, "wt_ctx_get: wt_ctx_init failed\n");
       return NULL;
     }
-    rc = ldap_pvt_thread_pool_setkey(op->o_threadctx, wi, wc, wt_ctx_free, NULL,
-                                     NULL);
+    rc = ldap_pvt_thread_pool_setkey(op->o_threadctx, wi, wc, wt_ctx_free, NULL, NULL);
     if (rc) {
       Debug(LDAP_DEBUG_ANY, "wt_ctx: setkey error(%d)\n", rc);
       return NULL;

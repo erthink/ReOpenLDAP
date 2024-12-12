@@ -41,8 +41,7 @@ int ucstrncmp(const ldap_unicode_t *u1, const ldap_unicode_t *u2, ber_len_t n) {
   return 0;
 }
 
-int ucstrncasecmp(const ldap_unicode_t *u1, const ldap_unicode_t *u2,
-                  ber_len_t n) {
+int ucstrncasecmp(const ldap_unicode_t *u1, const ldap_unicode_t *u2, ber_len_t n) {
   for (; 0 < n; ++u1, ++u2, --n) {
     ldap_unicode_t uu1 = uctolower(*u1);
     ldap_unicode_t uu2 = uctolower(*u2);
@@ -57,8 +56,7 @@ int ucstrncasecmp(const ldap_unicode_t *u1, const ldap_unicode_t *u2,
   return 0;
 }
 
-ldap_unicode_t *ucstrnchr(const ldap_unicode_t *u, ber_len_t n,
-                          ldap_unicode_t c) {
+ldap_unicode_t *ucstrnchr(const ldap_unicode_t *u, ber_len_t n, ldap_unicode_t c) {
   for (; 0 < n; ++u, --n) {
     if (*u == c) {
       return (ldap_unicode_t *)u;
@@ -68,8 +66,7 @@ ldap_unicode_t *ucstrnchr(const ldap_unicode_t *u, ber_len_t n,
   return NULL;
 }
 
-ldap_unicode_t *ucstrncasechr(const ldap_unicode_t *u, ber_len_t n,
-                              ldap_unicode_t c) {
+ldap_unicode_t *ucstrncasechr(const ldap_unicode_t *u, ber_len_t n, ldap_unicode_t c) {
   c = uctolower(c);
   for (; 0 < n; ++u, --n) {
     if (uctolower(*u) == c) {
@@ -86,8 +83,7 @@ void ucstr2upper(ldap_unicode_t *u, ber_len_t n) {
   }
 }
 
-struct berval *UTF8bvnormalize(struct berval *bv, struct berval *newbv,
-                               unsigned flags, void *ctx) {
+struct berval *UTF8bvnormalize(struct berval *bv, struct berval *newbv, unsigned flags, void *ctx) {
   int i, j, len, clen, outpos, ucsoutlen, outsize;
   int didnewbv = 0;
   char *out, *outtmp, *s;
@@ -287,8 +283,7 @@ struct berval *UTF8bvnormalize(struct berval *bv, struct berval *newbv,
 
 /* compare UTF8-strings, optionally ignore casing */
 /* slow, should be optimized */
-int UTF8bvnormcmp(struct berval *bv1, struct berval *bv2, unsigned flags,
-                  void *ctx) {
+int UTF8bvnormcmp(struct berval *bv1, struct berval *bv2, unsigned flags, void *ctx) {
   int i, l1, l2, len, ulen, res = 0;
   char *s1, *s2, *done;
   uint32_t *ucs, *ucsout1, *ucsout2;
@@ -332,8 +327,7 @@ int UTF8bvnormcmp(struct berval *bv1, struct berval *bv2, unsigned flags,
         if (!LDAP_UTF8_ISASCII(s1) || !LDAP_UTF8_ISASCII(s2)) {
           break;
         }
-      } else if (((len < l1) && !LDAP_UTF8_ISASCII(s1)) ||
-                 ((len < l2) && !LDAP_UTF8_ISASCII(s2))) {
+      } else if (((len < l1) && !LDAP_UTF8_ISASCII(s1)) || ((len < l2) && !LDAP_UTF8_ISASCII(s2))) {
         break;
       }
       return res;
@@ -346,8 +340,7 @@ int UTF8bvnormcmp(struct berval *bv1, struct berval *bv2, unsigned flags,
   i = s1 - done + len;
   /* passed through loop at least once? */
   if (i > 0) {
-    if (!res && (s1 == done) && ((len == l1) || LDAP_UTF8_ISASCII(s1)) &&
-        ((len == l2) || LDAP_UTF8_ISASCII(s2))) {
+    if (!res && (s1 == done) && ((len == l1) || LDAP_UTF8_ISASCII(s1)) && ((len == l2) || LDAP_UTF8_ISASCII(s2))) {
       /* all ascii and equal up to len */
       return l1 - l2;
     }
@@ -415,8 +408,7 @@ int UTF8bvnormcmp(struct berval *bv1, struct berval *bv2, unsigned flags,
     free(ucs);
   }
 
-  res = casefold ? ucstrncasecmp(ucsout1, ucsout2, l1 < l2 ? l1 : l2)
-                 : ucstrncmp(ucsout1, ucsout2, l1 < l2 ? l1 : l2);
+  res = casefold ? ucstrncasecmp(ucsout1, ucsout2, l1 < l2 ? l1 : l2) : ucstrncmp(ucsout1, ucsout2, l1 < l2 ? l1 : l2);
   free(ucsout1);
   free(ucsout2);
 

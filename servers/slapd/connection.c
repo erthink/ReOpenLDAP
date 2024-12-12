@@ -149,8 +149,7 @@ int connections_destroy(void) {
       ldap_pvt_thread_cond_destroy(&connections[i].c_write1_cv);
 #ifdef LDAP_SLAPI
       if (slapi_plugins_used) {
-        slapi_int_free_object_extensions(SLAPI_X_EXT_CONNECTION,
-                                         &connections[i]);
+        slapi_int_free_object_extensions(SLAPI_X_EXT_CONNECTION, &connections[i]);
       }
 #endif
     }
@@ -189,9 +188,7 @@ int connections_shutdown(int gentle_shutdown_only) {
       if (connections[i].c_struct_state == SLAP_C_USED) {
         /* give persistent clients a chance to cleanup */
         if (connections[i].c_conn_state == SLAP_C_CLIENT) {
-          ldap_pvt_thread_pool_submit(&connection_pool,
-                                      connections[i].c_clientfunc,
-                                      connections[i].c_clientarg);
+          ldap_pvt_thread_pool_submit(&connection_pool, connections[i].c_clientfunc, connections[i].c_clientarg);
         } else {
           /* c_mutex is locked */
           ldap_pvt_thread_mutex_unlock(&connections_mutex);
@@ -222,19 +219,16 @@ int connections_timeout_idle(slap_time_t now) {
   slap_time_t old = slapd_get_writetime();
 #endif /* SLAPD_WRITE_TIMEOUT */
 
-  for (c = connection_first(&connindex); c != NULL;
-       c = connection_next(c, &connindex)) {
+  for (c = connection_first(&connindex); c != NULL; c = connection_next(c, &connindex)) {
     /* Don't timeout a slow-running request or a persistent
      * outbound connection.
      */
-    if ((c->c_n_ops_executing && !c->c_writewaiter) ||
-        c->c_conn_state == SLAP_C_CLIENT) {
+    if ((c->c_n_ops_executing && !c->c_writewaiter) || c->c_conn_state == SLAP_C_CLIENT) {
       continue;
     }
 
     if (global_idletimeout && now.ns > c->c_activitytime.ns &&
-        now.ns - c->c_activitytime.ns >
-            ldap_from_seconds(global_idletimeout).ns) {
+        now.ns - c->c_activitytime.ns > ldap_from_seconds(global_idletimeout).ns) {
       /* close it */
       connection_closing(c, "idletimeout");
       connection_close(c);
@@ -244,9 +238,7 @@ int connections_timeout_idle(slap_time_t now) {
 #ifdef SLAPD_WRITE_TIMEOUT
     if (c->c_writewaiter && global_writetimeout) {
       writers = 1;
-      if (now.ns > c->c_activitytime.ns &&
-          now.ns - c->c_activitytime.ns >
-              ldap_from_seconds(global_writetimeout).ns) {
+      if (now.ns > c->c_activitytime.ns && now.ns - c->c_activitytime.ns > ldap_from_seconds(global_writetimeout).ns) {
         /* close it */
         connection_closing(c, "writetimeout");
         connection_close(c);
@@ -271,13 +263,11 @@ void connections_drop() {
   Connection *c;
   ber_socket_t connindex;
 
-  for (c = connection_first(&connindex); c != NULL;
-       c = connection_next(c, &connindex)) {
+  for (c = connection_first(&connindex); c != NULL; c = connection_next(c, &connindex)) {
     /* Don't close a slow-running request or a persistent
      * outbound connection.
      */
-    if ((c->c_n_ops_executing && !c->c_writewaiter) ||
-        c->c_conn_state == SLAP_C_CLIENT) {
+    if ((c->c_n_ops_executing && !c->c_writewaiter) || c->c_conn_state == SLAP_C_CLIENT) {
       continue;
     }
     connection_closing(c, "dropping");
@@ -316,8 +306,7 @@ static Connection *connection_get(ber_socket_t s) {
       return NULL;
     }
 
-    Debug(LDAP_DEBUG_TRACE, "connection_get(%d): got connid=%lu\n", s,
-          c->c_connid);
+    Debug(LDAP_DEBUG_TRACE, "connection_get(%d): got connid=%lu\n", s, c->c_connid);
 
     c->c_n_get++;
 
@@ -337,9 +326,7 @@ static Connection *connection_get(ber_socket_t s) {
   return c;
 }
 
-static void connection_return(Connection *c) {
-  ldap_pvt_thread_mutex_unlock(&c->c_mutex);
-}
+static void connection_return(Connection *c) { ldap_pvt_thread_mutex_unlock(&c->c_mutex); }
 
 int connections_socket_trouble(ber_socket_t s) {
   int rc = -1;
@@ -352,10 +339,9 @@ int connections_socket_trouble(ber_socket_t s) {
   return rc;
 }
 
-Connection *connection_init(
-    const ber_socket_t s, Listener *listener, const char *dnsname,
-    const char *peername, int flags, slap_ssf_t ssf,
-    struct berval *authid LDAP_PF_LOCAL_SENDMSG_ARG(struct berval *peerbv)) {
+Connection *connection_init(const ber_socket_t s, Listener *listener, const char *dnsname, const char *peername,
+                            int flags, slap_ssf_t ssf,
+                            struct berval *authid LDAP_PF_LOCAL_SENDMSG_ARG(struct berval *peerbv)) {
   unsigned long id;
   Connection *c;
   int doinit = 0;
@@ -372,8 +358,7 @@ Connection *connection_init(
 #endif
 
   if (s == AC_SOCKET_INVALID) {
-    Debug(LDAP_DEBUG_ANY, "connection_init: init of socket %ld invalid.\n",
-          (long)s);
+    Debug(LDAP_DEBUG_ANY, "connection_init: init of socket %ld invalid.\n", (long)s);
     return NULL;
   }
 
@@ -511,23 +496,18 @@ Connection *connection_init(
   if (flags & CONN_IS_UDP) {
     c->c_is_udp = 1;
 #ifdef LDAP_DEBUG
-    ber_sockbuf_add_io(c->c_sb, &ber_sockbuf_io_debug,
-                       LBER_SBIOD_LEVEL_PROVIDER, (void *)"udp_");
+    ber_sockbuf_add_io(c->c_sb, &ber_sockbuf_io_debug, LBER_SBIOD_LEVEL_PROVIDER, (void *)"udp_");
 #endif
-    ber_sockbuf_add_io(c->c_sb, &ber_sockbuf_io_udp, LBER_SBIOD_LEVEL_PROVIDER,
-                       (void *)&sfd);
-    ber_sockbuf_add_io(c->c_sb, &ber_sockbuf_io_readahead,
-                       LBER_SBIOD_LEVEL_PROVIDER, NULL);
+    ber_sockbuf_add_io(c->c_sb, &ber_sockbuf_io_udp, LBER_SBIOD_LEVEL_PROVIDER, (void *)&sfd);
+    ber_sockbuf_add_io(c->c_sb, &ber_sockbuf_io_readahead, LBER_SBIOD_LEVEL_PROVIDER, NULL);
   } else
 #endif /* LDAP_CONNECTIONLESS */
 #ifdef LDAP_PF_LOCAL
       if (flags & CONN_IS_IPC) {
 #ifdef LDAP_DEBUG
-    ber_sockbuf_add_io(c->c_sb, &ber_sockbuf_io_debug,
-                       LBER_SBIOD_LEVEL_PROVIDER, (void *)"ipc_");
+    ber_sockbuf_add_io(c->c_sb, &ber_sockbuf_io_debug, LBER_SBIOD_LEVEL_PROVIDER, (void *)"ipc_");
 #endif
-    ber_sockbuf_add_io(c->c_sb, &ber_sockbuf_io_fd, LBER_SBIOD_LEVEL_PROVIDER,
-                       (void *)&sfd);
+    ber_sockbuf_add_io(c->c_sb, &ber_sockbuf_io_fd, LBER_SBIOD_LEVEL_PROVIDER, (void *)&sfd);
 #ifdef LDAP_PF_LOCAL_SENDMSG
     if (!BER_BVISEMPTY(peerbv))
       ber_sockbuf_ctrl(c->c_sb, LBER_SB_OPT_UNGET_BUF, peerbv);
@@ -536,21 +516,17 @@ Connection *connection_init(
 #endif /* LDAP_PF_LOCAL */
   {
 #ifdef LDAP_DEBUG
-    ber_sockbuf_add_io(c->c_sb, &ber_sockbuf_io_debug,
-                       LBER_SBIOD_LEVEL_PROVIDER, (void *)"tcp_");
+    ber_sockbuf_add_io(c->c_sb, &ber_sockbuf_io_debug, LBER_SBIOD_LEVEL_PROVIDER, (void *)"tcp_");
 #endif
-    ber_sockbuf_add_io(c->c_sb, &ber_sockbuf_io_tcp, LBER_SBIOD_LEVEL_PROVIDER,
-                       (void *)&sfd);
+    ber_sockbuf_add_io(c->c_sb, &ber_sockbuf_io_tcp, LBER_SBIOD_LEVEL_PROVIDER, (void *)&sfd);
   }
 
 #ifdef LDAP_DEBUG
   ber_sockbuf_add_io(c->c_sb, &ber_sockbuf_io_debug, INT_MAX, (void *)"ldap_");
 #endif
 
-  if (ber_sockbuf_ctrl(c->c_sb, LBER_SB_OPT_SET_NONBLOCK, c /* non-NULL */) <
-      0) {
-    Debug(LDAP_DEBUG_ANY, "connection_init(%d, %s): set nonblocking failed\n",
-          s, c->c_peer_name.bv_val);
+  if (ber_sockbuf_ctrl(c->c_sb, LBER_SB_OPT_SET_NONBLOCK, c /* non-NULL */) < 0) {
+    Debug(LDAP_DEBUG_ANY, "connection_init(%d, %s): set nonblocking failed\n", s, c->c_peer_name.bv_val);
   }
 
   ldap_pvt_thread_mutex_lock(&conn_nextid_mutex);
@@ -585,8 +561,8 @@ Connection *connection_init(
   ldap_pvt_thread_mutex_unlock(&c->c_mutex);
 
   if (!(flags & CONN_IS_UDP))
-    Statslog(LDAP_DEBUG_STATS, "conn=%ld fd=%ld ACCEPT from %s (%s)\n", id,
-             (long)s, peername, listener->sl_name.bv_val);
+    Statslog(LDAP_DEBUG_STATS, "conn=%ld fd=%ld ACCEPT from %s (%s)\n", id, (long)s, peername,
+             listener->sl_name.bv_val);
 
   return c;
 }
@@ -717,8 +693,7 @@ static void connection_destroy(Connection *c) {
     if (close_reason == NULL) {
       Statslog(LDAP_DEBUG_CONNS, "conn=%lu fd=%ld closed\n", connid, (long)sd);
     } else {
-      Statslog(LDAP_DEBUG_CONNS, "conn=%lu fd=%ld closed (%s)\n", connid,
-               (long)sd, close_reason);
+      Statslog(LDAP_DEBUG_CONNS, "conn=%lu fd=%ld closed (%s)\n", connid, (long)sd, close_reason);
     }
   }
 }
@@ -728,8 +703,7 @@ int connection_valid(Connection *c) {
 
   assert(c != NULL);
 
-  return c->c_struct_state == SLAP_C_USED && c->c_conn_state >= SLAP_C_ACTIVE &&
-         c->c_conn_state <= SLAP_C_CLIENT;
+  return c->c_struct_state == SLAP_C_USED && c->c_conn_state >= SLAP_C_ACTIVE && c->c_conn_state <= SLAP_C_CLIENT;
 }
 
 static void connection_abandon(Connection *c) {
@@ -823,9 +797,7 @@ void connection_closing(Connection *c, const char *why) {
   /* c_mutex must be locked by caller */
 
   if (c->c_conn_state != SLAP_C_CLOSING) {
-    Debug(LDAP_DEBUG_CONNS,
-          "connection_closing: readying conn=%lu sd=%d for close(%s)\n",
-          c->c_connid, c->c_sd, why);
+    Debug(LDAP_DEBUG_CONNS, "connection_closing: readying conn=%lu sd=%d for close(%s)\n", c->c_connid, c->c_sd, why);
     /* update state to closing */
     c->c_conn_state = SLAP_C_CLOSING;
     c->c_close_reason = why;
@@ -858,20 +830,16 @@ static void connection_close(Connection *c) {
   /* NOTE: c_mutex should be locked by caller */
   connection_wake_writers(c);
 
-  if (!LDAP_STAILQ_EMPTY(&c->c_ops) || !LDAP_STAILQ_EMPTY(&c->c_pending_ops) ||
-      c->c_writing) {
+  if (!LDAP_STAILQ_EMPTY(&c->c_ops) || !LDAP_STAILQ_EMPTY(&c->c_pending_ops) || c->c_writing) {
     Debug(LDAP_DEBUG_CONNS,
           "connection_close: deferring conn=%lu sd=%d (c_ops %s, c_pending_ops "
           "%s, writers %d, writing %d)\n",
-          c->c_connid, c->c_sd,
-          LDAP_STAILQ_EMPTY(&c->c_ops) ? "empty" : "still",
-          LDAP_STAILQ_EMPTY(&c->c_pending_ops) ? "empty" : "still",
-          c->c_writers, c->c_writing);
+          c->c_connid, c->c_sd, LDAP_STAILQ_EMPTY(&c->c_ops) ? "empty" : "still",
+          LDAP_STAILQ_EMPTY(&c->c_pending_ops) ? "empty" : "still", c->c_writers, c->c_writing);
     return;
   }
 
-  Debug(LDAP_DEBUG_CONNS, "connection_close: conn=%lu sd=%d\n", c->c_connid,
-        c->c_sd);
+  Debug(LDAP_DEBUG_CONNS, "connection_close: conn=%lu sd=%d\n", c->c_connid, c->c_sd);
 
   connection_destroy(c);
 }
@@ -980,37 +948,36 @@ void connection_done(Connection *c) {
 
 #ifdef SLAPD_MONITOR
 /* FIXME: returns 0 in case of failure */
-#define INCR_OP_INITIATED(index)                                               \
-  do {                                                                         \
-    ldap_pvt_thread_mutex_lock(&op->o_counters->sc_mutex);                     \
-    ldap_pvt_mp_add_ulong(op->o_counters->sc_ops_initiated_[(index)], 1);      \
-    ldap_pvt_thread_mutex_unlock(&op->o_counters->sc_mutex);                   \
+#define INCR_OP_INITIATED(index)                                                                                       \
+  do {                                                                                                                 \
+    ldap_pvt_thread_mutex_lock(&op->o_counters->sc_mutex);                                                             \
+    ldap_pvt_mp_add_ulong(op->o_counters->sc_ops_initiated_[(index)], 1);                                              \
+    ldap_pvt_thread_mutex_unlock(&op->o_counters->sc_mutex);                                                           \
   } while (0)
-#define INCR_OP_COMPLETED(index)                                               \
-  do {                                                                         \
-    ldap_pvt_thread_mutex_lock(&op->o_counters->sc_mutex);                     \
-    ldap_pvt_mp_add_ulong(op->o_counters->sc_ops_completed, 1);                \
-    ldap_pvt_mp_add_ulong(op->o_counters->sc_ops_completed_[(index)], 1);      \
-    ldap_pvt_thread_mutex_unlock(&op->o_counters->sc_mutex);                   \
+#define INCR_OP_COMPLETED(index)                                                                                       \
+  do {                                                                                                                 \
+    ldap_pvt_thread_mutex_lock(&op->o_counters->sc_mutex);                                                             \
+    ldap_pvt_mp_add_ulong(op->o_counters->sc_ops_completed, 1);                                                        \
+    ldap_pvt_mp_add_ulong(op->o_counters->sc_ops_completed_[(index)], 1);                                              \
+    ldap_pvt_thread_mutex_unlock(&op->o_counters->sc_mutex);                                                           \
   } while (0)
 #else /* !SLAPD_MONITOR */
-#define INCR_OP_INITIATED(index)                                               \
-  do {                                                                         \
+#define INCR_OP_INITIATED(index)                                                                                       \
+  do {                                                                                                                 \
   } while (0)
-#define INCR_OP_COMPLETED(index)                                               \
-  do {                                                                         \
-    ldap_pvt_thread_mutex_lock(&op->o_counters->sc_mutex);                     \
-    ldap_pvt_mp_add_ulong(op->o_counters->sc_ops_completed, 1);                \
-    ldap_pvt_thread_mutex_unlock(&op->o_counters->sc_mutex);                   \
+#define INCR_OP_COMPLETED(index)                                                                                       \
+  do {                                                                                                                 \
+    ldap_pvt_thread_mutex_lock(&op->o_counters->sc_mutex);                                                             \
+    ldap_pvt_mp_add_ulong(op->o_counters->sc_ops_completed, 1);                                                        \
+    ldap_pvt_thread_mutex_unlock(&op->o_counters->sc_mutex);                                                           \
   } while (0)
 #endif /* !SLAPD_MONITOR */
 
 /*
  * NOTE: keep in sync with enum in slapd.h
  */
-static BI_op_func *opfun[] = {do_bind,    do_unbind,   do_search, do_compare,
-                              do_modify,  do_modrdn,   do_add,    do_delete,
-                              do_abandon, do_extended, NULL};
+static BI_op_func *opfun[] = {do_bind, do_unbind, do_search,  do_compare,  do_modify, do_modrdn,
+                              do_add,  do_delete, do_abandon, do_extended, NULL};
 
 /* Counters are per-thread, not per-connection.
  */
@@ -1018,8 +985,7 @@ static void conn_counter_destroy(void *key, void *data) {
   slap_counters_t **prev, *sc;
 
   ldap_pvt_thread_mutex_lock(&slap_counters.sc_mutex);
-  for (prev = &slap_counters.sc_next, sc = slap_counters.sc_next; sc;
-       prev = &sc->sc_next, sc = sc->sc_next) {
+  for (prev = &slap_counters.sc_next, sc = slap_counters.sc_next; sc; prev = &sc->sc_next, sc = sc->sc_next) {
     if (sc == data) {
       int i;
 
@@ -1033,10 +999,8 @@ static void conn_counter_destroy(void *key, void *data) {
       ldap_pvt_mp_add(slap_counters.sc_ops_completed, sc->sc_ops_completed);
 #ifdef SLAPD_MONITOR
       for (i = 0; i < SLAP_OP_LAST; i++) {
-        ldap_pvt_mp_add(slap_counters.sc_ops_initiated_[i],
-                        sc->sc_ops_initiated_[i]);
-        ldap_pvt_mp_add(slap_counters.sc_ops_initiated_[i],
-                        sc->sc_ops_completed_[i]);
+        ldap_pvt_mp_add(slap_counters.sc_ops_initiated_[i], sc->sc_ops_initiated_[i]);
+        ldap_pvt_mp_add(slap_counters.sc_ops_initiated_[i], sc->sc_ops_completed_[i]);
       }
 #endif /* SLAPD_MONITOR */
       slap_counters_destroy(sc);
@@ -1051,13 +1015,11 @@ static void conn_counter_init(Operation *op, void *ctx) {
   slap_counters_t *sc;
   void *vsc = NULL;
 
-  if (ldap_pvt_thread_pool_getkey(ctx, (void *)conn_counter_init, &vsc, NULL) ||
-      !vsc) {
+  if (ldap_pvt_thread_pool_getkey(ctx, (void *)conn_counter_init, &vsc, NULL) || !vsc) {
     vsc = ch_malloc(sizeof(slap_counters_t));
     sc = vsc;
     slap_counters_init(sc);
-    ldap_pvt_thread_pool_setkey(ctx, (void *)conn_counter_init, vsc,
-                                conn_counter_destroy, NULL, NULL);
+    ldap_pvt_thread_pool_setkey(ctx, (void *)conn_counter_init, vsc, conn_counter_destroy, NULL, NULL);
 
     ldap_pvt_thread_mutex_lock(&slap_counters.sc_mutex);
     sc->sc_next = slap_counters.sc_next;
@@ -1135,8 +1097,7 @@ static void *connection_operation(void *ctx, void *arg_v) {
     goto operations_error;
   }
 
-  if (slap_tsan__read_char(&conn->c_sasl_bind_in_progress) &&
-      tag != LDAP_REQ_BIND) {
+  if (slap_tsan__read_char(&conn->c_sasl_bind_in_progress) && tag != LDAP_REQ_BIND) {
     Debug(LDAP_DEBUG_ANY,
           "connection_operation: "
           "error: SASL bind in progress (tag=%ld).\n",
@@ -1148,8 +1109,7 @@ static void *connection_operation(void *ctx, void *arg_v) {
 
 #ifdef LDAP_X_TXN
   if ((conn->c_txn == CONN_TXN_SPECIFY) &&
-      ((tag == LDAP_REQ_ADD) || (tag == LDAP_REQ_DELETE) ||
-       (tag == LDAP_REQ_MODIFY) || (tag == LDAP_REQ_MODRDN))) {
+      ((tag == LDAP_REQ_ADD) || (tag == LDAP_REQ_DELETE) || (tag == LDAP_REQ_MODIFY) || (tag == LDAP_REQ_MODRDN))) {
     /* Disable SLAB allocator for all update operations
             issued inside of a transaction */
     op->o_tmpmemctx = NULL;
@@ -1213,8 +1173,7 @@ operations_error:
   cancel = slap_get_op_cancel(op);
   if (cancel != SLAP_CANCEL_NONE && cancel != SLAP_CANCEL_DONE) {
     if (cancel == SLAP_CANCEL_REQ) {
-      slap_set_op_cancel(op, (rc == SLAPD_ABANDON) ? SLAP_CANCEL_ACK
-                                                   : LDAP_TOO_LATE);
+      slap_set_op_cancel(op, (rc == SLAPD_ABANDON) ? SLAP_CANCEL_ACK : LDAP_TOO_LATE);
     }
 
     do {
@@ -1224,11 +1183,9 @@ operations_error:
       ldap_pvt_thread_mutex_unlock(&conn->c_mutex);
       do {
         ldap_pvt_thread_yield();
-      } while ((cancel = slap_get_op_cancel(op)) != SLAP_CANCEL_NONE &&
-               cancel != SLAP_CANCEL_DONE);
+      } while ((cancel = slap_get_op_cancel(op)) != SLAP_CANCEL_NONE && cancel != SLAP_CANCEL_DONE);
       ldap_pvt_thread_mutex_lock(&conn->c_mutex);
-    } while ((cancel = slap_get_op_cancel(op)) != SLAP_CANCEL_NONE &&
-             cancel != SLAP_CANCEL_DONE);
+    } while ((cancel = slap_get_op_cancel(op)) != SLAP_CANCEL_NONE && cancel != SLAP_CANCEL_DONE);
   }
 
   ber_set_option(op->o_ber, LBER_OPT_BER_MEMCTX, &memctx_null);
@@ -1249,8 +1206,7 @@ operations_error:
   case LBER_ERROR:
   case LDAP_REQ_UNBIND:
     /* c_mutex is locked */
-    connection_closing(conn,
-                       tag == LDAP_REQ_UNBIND ? NULL : "operations error");
+    connection_closing(conn, tag == LDAP_REQ_UNBIND ? NULL : "operations error");
     break;
   }
 
@@ -1267,12 +1223,10 @@ operations_error:
 
 static const Listener dummy_list = {BER_BVC(""), BER_BVC("")};
 
-Connection *connection_client_setup(const ber_socket_t s,
-                                    ldap_pvt_thread_start_t *func, void *arg) {
+Connection *connection_client_setup(const ber_socket_t s, ldap_pvt_thread_start_t *func, void *arg) {
   Connection *c;
 
-  c = connection_init(s, (Listener *)&dummy_list, "", "", CONN_IS_CLIENT, 0,
-                      NULL LDAP_PF_LOCAL_SENDMSG_ARG(NULL));
+  c = connection_init(s, (Listener *)&dummy_list, "", "", CONN_IS_CLIENT, 0, NULL LDAP_PF_LOCAL_SENDMSG_ARG(NULL));
   if (c) {
     c->c_clientfunc = func;
     c->c_clientarg = arg;
@@ -1356,12 +1310,10 @@ int connection_read_activate(ber_socket_t s) {
   if (rc)
     return rc;
 
-  rc = ldap_pvt_thread_pool_submit(&connection_pool, connection_read_thread,
-                                   (void *)(long)s);
+  rc = ldap_pvt_thread_pool_submit(&connection_pool, connection_read_thread, (void *)(long)s);
 
   if (rc != 0) {
-    Debug(LDAP_DEBUG_ANY, "connection_read_activate(%d): submit failed (%d)\n",
-          s, rc);
+    Debug(LDAP_DEBUG_ANY, "connection_read_activate(%d): submit failed (%d)\n", s, rc);
   }
 
   return rc;
@@ -1385,9 +1337,7 @@ static int connection_read(ber_socket_t s, conn_readinfo *cri) {
   c->c_n_read++;
 
   if (c->c_conn_state == SLAP_C_CLOSING) {
-    Debug(LDAP_DEBUG_CONNS,
-          "connection_read(%d): closing, ignoring input for id=%lu\n", s,
-          c->c_connid);
+    Debug(LDAP_DEBUG_CONNS, "connection_read(%d): closing, ignoring input for id=%lu\n", s, c->c_connid);
     connection_return(c);
     return 0;
   }
@@ -1400,8 +1350,7 @@ static int connection_read(ber_socket_t s, conn_readinfo *cri) {
     return 0;
   }
 
-  Debug(LDAP_DEBUG_TRACE, "connection_read(%d): checking for input on id=%lu\n",
-        s, c->c_connid);
+  Debug(LDAP_DEBUG_TRACE, "connection_read(%d): checking for input on id=%lu\n", s, c->c_connid);
 
 #ifdef WITH_TLS
   if (c->c_is_tls && c->c_needs_tls_accept) {
@@ -1442,10 +1391,8 @@ static int connection_read(ber_socket_t s, conn_readinfo *cri) {
               s, rc, c->c_connid);
       }
       sprintf(msgbuf, "tls_ssf=%u ssf=%u", c->c_tls_ssf, c->c_ssf);
-      Statslog(LDAP_DEBUG_STATS,
-               "conn=%lu fd=%d TLS established %s tls_proto=%s tls_cipher=%s\n",
-               c->c_connid, (int)s, msgbuf, ldap_pvt_tls_get_version(ssl),
-               ldap_pvt_tls_get_cipher(ssl));
+      Statslog(LDAP_DEBUG_STATS, "conn=%lu fd=%d TLS established %s tls_proto=%s tls_cipher=%s\n", c->c_connid, (int)s,
+               msgbuf, ldap_pvt_tls_get_version(ssl), ldap_pvt_tls_get_cipher(ssl));
       slap_sasl_external(c, c->c_tls_ssf, &authid);
       if (authid.bv_val)
         free(authid.bv_val);
@@ -1455,8 +1402,7 @@ static int connection_read(ber_socket_t s, conn_readinfo *cri) {
         if (ldap_pvt_tls_get_unique(ssl, &cbv, 1))
           slap_sasl_cbinding(c, &cbv);
       }
-    } else if (rc == 1 && ber_sockbuf_ctrl(c->c_sb, LBER_SB_OPT_NEEDS_WRITE,
-                                           NULL)) { /* need to retry */
+    } else if (rc == 1 && ber_sockbuf_ctrl(c->c_sb, LBER_SB_OPT_NEEDS_WRITE, NULL)) { /* need to retry */
       slapd_set_write(s, 1);
       connection_return(c);
       return 0;
@@ -1514,9 +1460,7 @@ static int connection_read(ber_socket_t s, conn_readinfo *cri) {
 #endif
 
   if (rc < 0) {
-    Debug(LDAP_DEBUG_CONNS,
-          "connection_read(%d): input error=%d id=%lu, closing.\n", s, rc,
-          c->c_connid);
+    Debug(LDAP_DEBUG_CONNS, "connection_read(%d): input error=%d id=%lu, closing.\n", s, rc, c->c_connid);
 
     /* c_mutex is locked */
     connection_closing(c, conn_lost_str);
@@ -1549,8 +1493,7 @@ static int connection_input(Connection *conn, conn_readinfo *cri) {
   char *defer = NULL;
   void *ctx;
 
-  if (conn->c_currentber == NULL &&
-      (conn->c_currentber = ber_alloc_t(0)) == NULL) {
+  if (conn->c_currentber == NULL && (conn->c_currentber = ber_alloc_t(0)) == NULL) {
     Debug(LDAP_DEBUG_ANY, "ber_alloc failed\n");
     return -1;
   }
@@ -1576,40 +1519,32 @@ static int connection_input(Connection *conn, conn_readinfo *cri) {
     if (peeraddr.sa_addr.sa_family == AF_INET6) {
       if (IN6_IS_ADDR_V4MAPPED(&peeraddr.sa_in6_addr.sin6_addr)) {
 #if defined(HAVE_GETADDRINFO) && defined(HAVE_INET_NTOP)
-        peeraddr_string = inet_ntop(
-            AF_INET,
-            ((struct in_addr *)&peeraddr.sa_in6_addr.sin6_addr.s6_addr[12]),
-            addr, sizeof(addr));
+        peeraddr_string =
+            inet_ntop(AF_INET, ((struct in_addr *)&peeraddr.sa_in6_addr.sin6_addr.s6_addr[12]), addr, sizeof(addr));
 #else  /* ! HAVE_GETADDRINFO || ! HAVE_INET_NTOP */
-        peeraddr_string = inet_ntoa(
-            *((struct in_addr *)&peeraddr.sa_in6_addr.sin6_addr.s6_addr[12]));
+        peeraddr_string = inet_ntoa(*((struct in_addr *)&peeraddr.sa_in6_addr.sin6_addr.s6_addr[12]));
 #endif /* ! HAVE_GETADDRINFO || ! HAVE_INET_NTOP */
         if (!peeraddr_string)
           peeraddr_string = SLAP_STRING_UNKNOWN;
-        sprintf(peername, "IP=%s:%d", peeraddr_string,
-                (unsigned)ntohs(peeraddr.sa_in6_addr.sin6_port));
+        sprintf(peername, "IP=%s:%d", peeraddr_string, (unsigned)ntohs(peeraddr.sa_in6_addr.sin6_port));
       } else {
-        peeraddr_string = inet_ntop(AF_INET6, &peeraddr.sa_in6_addr.sin6_addr,
-                                    addr, sizeof addr);
+        peeraddr_string = inet_ntop(AF_INET6, &peeraddr.sa_in6_addr.sin6_addr, addr, sizeof addr);
         if (!peeraddr_string)
           peeraddr_string = SLAP_STRING_UNKNOWN;
-        sprintf(peername, "IP=[%s]:%d", peeraddr_string,
-                (unsigned)ntohs(peeraddr.sa_in6_addr.sin6_port));
+        sprintf(peername, "IP=[%s]:%d", peeraddr_string, (unsigned)ntohs(peeraddr.sa_in6_addr.sin6_port));
       }
     } else
 #endif
 #if defined(HAVE_GETADDRINFO) && defined(HAVE_INET_NTOP)
     {
-      peeraddr_string =
-          inet_ntop(AF_INET, &peeraddr.sa_in_addr.sin_addr, addr, sizeof(addr));
+      peeraddr_string = inet_ntop(AF_INET, &peeraddr.sa_in_addr.sin_addr, addr, sizeof(addr));
 #else  /* ! HAVE_GETADDRINFO || ! HAVE_INET_NTOP */
     peeraddr_string = inet_ntoa(peeraddr.sa_in_addr.sin_addr);
 #endif /* ! HAVE_GETADDRINFO || ! HAVE_INET_NTOP */
-      sprintf(peername, "IP=%s:%d", peeraddr_string,
-              (unsigned)ntohs(peeraddr.sa_in_addr.sin_port));
+      sprintf(peername, "IP=%s:%d", peeraddr_string, (unsigned)ntohs(peeraddr.sa_in_addr.sin_port));
     }
-    Statslog(LDAP_DEBUG_STATS, "conn=%lu UDP request from %s (%s) accepted.\n",
-             conn->c_connid, peername, conn->c_sock_name.bv_val);
+    Statslog(LDAP_DEBUG_STATS, "conn=%lu UDP request from %s (%s) accepted.\n", conn->c_connid, peername,
+             conn->c_sock_name.bv_val);
   }
 #endif
 
@@ -1619,8 +1554,7 @@ static int connection_input(Connection *conn, conn_readinfo *cri) {
 
     if (err != EWOULDBLOCK && err != EAGAIN) {
       /* log, close and send error */
-      Debug(LDAP_DEBUG_TRACE, "ber_get_next on fd %d failed errno=%d (%s)\n",
-            conn->c_sd, err, sock_errstr(err));
+      Debug(LDAP_DEBUG_TRACE, "ber_get_next on fd %d failed errno=%d (%s)\n", conn->c_sd, err, sock_errstr(err));
       ber_free(conn->c_currentber, 1);
       conn->c_currentber = NULL;
 
@@ -1689,8 +1623,7 @@ static int connection_input(Connection *conn, conn_readinfo *cri) {
     if (op->o_res_ber == NULL)
       return 1;
 
-    rc =
-        ber_write(op->o_res_ber, (char *)&peeraddr, sizeof(struct sockaddr), 0);
+    rc = ber_write(op->o_res_ber, (char *)&peeraddr, sizeof(struct sockaddr), 0);
 
     if (rc != sizeof(struct sockaddr)) {
       Debug(LDAP_DEBUG_ANY, "ber_write failed\n");
@@ -1745,12 +1678,9 @@ static int connection_input(Connection *conn, conn_readinfo *cri) {
   }
 
   if (defer) {
-    int max =
-        conn->c_dn.bv_len ? slap_conn_max_pending_auth : slap_conn_max_pending;
+    int max = conn->c_dn.bv_len ? slap_conn_max_pending_auth : slap_conn_max_pending;
 
-    Debug(LDAP_DEBUG_ANY,
-          "connection_input: conn=%lu deferring operation: %s\n",
-          conn->c_connid, defer);
+    Debug(LDAP_DEBUG_ANY, "connection_input: conn=%lu deferring operation: %s\n", conn->c_connid, defer);
     LDAP_ASSERT(op->o_conn == conn);
     conn->c_n_ops_pending++;
     LDAP_STAILQ_INSERT_TAIL(&conn->c_pending_ops, op, o_next);
@@ -1772,8 +1702,7 @@ static int connection_input(Connection *conn, conn_readinfo *cri) {
     } else {
       if (!cri->nullop) {
         cri->nullop = 1;
-        rc = ldap_pvt_thread_pool_submit(&connection_pool, connection_operation,
-                                         (void *)cri->op);
+        rc = ldap_pvt_thread_pool_submit(&connection_pool, connection_operation, (void *)cri->op);
       }
       connection_op_activate(op);
     }
@@ -1834,12 +1763,10 @@ static int connection_resched(Connection *conn) {
 
 static void connection_init_log_prefix(Operation *op) {
   if (op->o_connid == (unsigned long)(-1)) {
-    snprintf(op->o_log_prefix, sizeof(op->o_log_prefix), "conn=-1 op=%lu",
-             op->o_opid);
+    snprintf(op->o_log_prefix, sizeof(op->o_log_prefix), "conn=-1 op=%lu", op->o_opid);
 
   } else {
-    snprintf(op->o_log_prefix, sizeof(op->o_log_prefix), "conn=%lu op=%lu",
-             op->o_connid, op->o_opid);
+    snprintf(op->o_log_prefix, sizeof(op->o_log_prefix), "conn=%lu op=%lu", op->o_connid, op->o_opid);
   }
 }
 
@@ -1854,8 +1781,7 @@ static int connection_bind_cleanup_cb(Operation *op, SlapReply *rs) {
 
 static int connection_bind_cb(Operation *op, SlapReply *rs) {
   ldap_pvt_thread_mutex_lock(&op->o_conn->c_mutex);
-  op->o_conn->c_sasl_bind_in_progress =
-      (rs->sr_err == LDAP_SASL_BIND_IN_PROGRESS);
+  op->o_conn->c_sasl_bind_in_progress = (rs->sr_err == LDAP_SASL_BIND_IN_PROGRESS);
 
   /* Moved here from bind.c due to ITS#4158 */
   op->o_conn->c_sasl_bindop = NULL;
@@ -1882,17 +1808,12 @@ static int connection_bind_cb(Operation *op, SlapReply *rs) {
       }
 
       /* log authorization identity */
-      Statslog(
-          LDAP_DEBUG_STATS, "%s BIND dn=\"%s\" mech=%s sasl_ssf=%d ssf=%d\n",
-          op->o_log_prefix,
-          BER_BVISNULL(&op->o_conn->c_dn) ? "<empty>" : op->o_conn->c_dn.bv_val,
-          op->o_conn->c_authmech.bv_val, op->orb_ssf, op->o_conn->c_ssf);
+      Statslog(LDAP_DEBUG_STATS, "%s BIND dn=\"%s\" mech=%s sasl_ssf=%d ssf=%d\n", op->o_log_prefix,
+               BER_BVISNULL(&op->o_conn->c_dn) ? "<empty>" : op->o_conn->c_dn.bv_val, op->o_conn->c_authmech.bv_val,
+               op->orb_ssf, op->o_conn->c_ssf);
 
-      Debug(LDAP_DEBUG_TRACE, "do_bind: SASL/%s bind: dn=\"%s\" sasl_ssf=%d\n",
-            op->o_conn->c_authmech.bv_val,
-            BER_BVISNULL(&op->o_conn->c_dn) ? "<empty>"
-                                            : op->o_conn->c_dn.bv_val,
-            op->orb_ssf);
+      Debug(LDAP_DEBUG_TRACE, "do_bind: SASL/%s bind: dn=\"%s\" sasl_ssf=%d\n", op->o_conn->c_authmech.bv_val,
+            BER_BVISNULL(&op->o_conn->c_dn) ? "<empty>" : op->o_conn->c_dn.bv_val, op->orb_ssf);
 
     } else if (rs->sr_err != LDAP_SASL_BIND_IN_PROGRESS) {
       if (!BER_BVISNULL(&op->o_conn->c_sasl_bind_mech)) {
@@ -1936,12 +1857,10 @@ static void connection_op_queue(Operation *op) {
   ber_dupbv(&op->o_authmech, &op->o_conn->c_authmech);
 
   if (!op->o_protocol) {
-    op->o_protocol =
-        op->o_conn->c_protocol ? op->o_conn->c_protocol : LDAP_VERSION3;
+    op->o_protocol = op->o_conn->c_protocol ? op->o_conn->c_protocol : LDAP_VERSION3;
   }
 
-  if (op->o_conn->c_conn_state == SLAP_C_INACTIVE &&
-      op->o_protocol > LDAP_VERSION2) {
+  if (op->o_conn->c_conn_state == SLAP_C_INACTIVE && op->o_protocol > LDAP_VERSION2) {
     op->o_conn->c_conn_state = SLAP_C_ACTIVE;
   }
 
@@ -1956,13 +1875,10 @@ static int connection_op_activate(Operation *op) {
 
   connection_op_queue(op);
 
-  rc = ldap_pvt_thread_pool_submit(&connection_pool, connection_operation,
-                                   (void *)op);
+  rc = ldap_pvt_thread_pool_submit(&connection_pool, connection_operation, (void *)op);
 
   if (rc != 0) {
-    Debug(LDAP_DEBUG_ANY,
-          "connection_op_activate: submit failed (%d) for conn=%lu\n", rc,
-          op->o_connid);
+    Debug(LDAP_DEBUG_ANY, "connection_op_activate: submit failed (%d) for conn=%lu\n", rc, op->o_connid);
     /* should move op to pending list */
   }
 
@@ -1994,8 +1910,7 @@ int connection_write(ber_socket_t s) {
 
   c->c_n_write++;
 
-  Debug(LDAP_DEBUG_TRACE, "connection_write(%d): waking output for id=%lu\n", s,
-        c->c_connid);
+  Debug(LDAP_DEBUG_TRACE, "connection_write(%d): waking output for id=%lu\n", s, c->c_connid);
 
   wantwrite = ber_sockbuf_ctrl(c->c_sb, LBER_SB_OPT_NEEDS_WRITE, NULL);
   if (ber_sockbuf_ctrl(c->c_sb, LBER_SB_OPT_NEEDS_READ, NULL)) {
@@ -2064,11 +1979,9 @@ void connection_fake_init(Connection *conn, OperationBuffer *opbuf, void *ctx) {
   connection_fake_init2(conn, opbuf, ctx, 1);
 }
 
-void operation_fake_init(Connection *conn, Operation *op, void *ctx,
-                         int newmem) {
+void operation_fake_init(Connection *conn, Operation *op, void *ctx, int newmem) {
   /* set memory context */
-  op->o_tmpmemctx =
-      slap_sl_mem_create(SLAP_SLAB_SIZE, SLAP_SLAB_STACK, ctx, newmem);
+  op->o_tmpmemctx = slap_sl_mem_create(SLAP_SLAB_SIZE, SLAP_SLAB_STACK, ctx, newmem);
   op->o_tmpmfuncs = &slap_sl_mfuncs;
   op->o_threadctx = ctx;
   op->o_tid = ldap_pvt_thread_pool_tid(ctx);
@@ -2079,8 +1992,7 @@ void operation_fake_init(Connection *conn, Operation *op, void *ctx,
   connection_init_log_prefix(op);
 }
 
-void connection_fake_init2(Connection *conn, OperationBuffer *opbuf, void *ctx,
-                           int newmem) {
+void connection_fake_init2(Connection *conn, OperationBuffer *opbuf, void *ctx, int newmem) {
   Operation *op = (Operation *)opbuf;
 
   conn->c_connid = -1;
@@ -2106,15 +2018,13 @@ void connection_fake_init2(Connection *conn, OperationBuffer *opbuf, void *ctx,
     void *ebx = NULL;
 
     /* Use thread keys to make sure these eventually get cleaned up */
-    if (ldap_pvt_thread_pool_getkey(ctx, (void *)connection_fake_init, &ebx,
-                                    NULL)) {
+    if (ldap_pvt_thread_pool_getkey(ctx, (void *)connection_fake_init, &ebx, NULL)) {
       eb = ch_malloc(sizeof(*eb));
       slapi_int_create_object_extensions(SLAPI_X_EXT_CONNECTION, conn);
       slapi_int_create_object_extensions(SLAPI_X_EXT_OPERATION, op);
       eb->eb_conn = conn->c_extensions;
       eb->eb_op = op->o_hdr->oh_extensions;
-      ldap_pvt_thread_pool_setkey(ctx, (void *)connection_fake_init, eb,
-                                  connection_fake_destroy, NULL, NULL);
+      ldap_pvt_thread_pool_setkey(ctx, (void *)connection_fake_init, eb, connection_fake_destroy, NULL, NULL);
     } else {
       eb = ebx;
       conn->c_extensions = eb->eb_conn;

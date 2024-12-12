@@ -33,9 +33,7 @@
 /* include socket.h to get sys/types.h and/or winsock2.h */
 #include <ac/socket.h>
 
-#if RELDAP_TLS == RELDAP_TLS_OPENSSL ||                                        \
-    (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL &&                              \
-     RELDAP_TLS != RELDAP_TLS_GNUTLS)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
 #include <openssl/sha.h>
 #include <openssl/hmac.h>
 
@@ -61,22 +59,21 @@ static void HMAC_CTX_free(HMAC_CTX *ctx) {
 }
 #endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
 
-#define HMAC_setup(ctx, key, len, hash)                                        \
-  do {                                                                         \
-    ctx = HMAC_CTX_new();                                                      \
-    HMAC_Init_ex(ctx, key, len, hash, 0);                                      \
+#define HMAC_setup(ctx, key, len, hash)                                                                                \
+  do {                                                                                                                 \
+    ctx = HMAC_CTX_new();                                                                                              \
+    HMAC_Init_ex(ctx, key, len, hash, 0);                                                                              \
   } while (0)
 
 #define HMAC_crunch(ctx, buf, len) HMAC_Update(ctx, buf, len)
 
-#define HMAC_finish(ctx, dig, dlen)                                            \
-  do {                                                                         \
-    HMAC_Final(ctx, dig, &dlen);                                               \
-    HMAC_CTX_free(ctx);                                                        \
+#define HMAC_finish(ctx, dig, dlen)                                                                                    \
+  do {                                                                                                                 \
+    HMAC_Final(ctx, dig, &dlen);                                                                                       \
+    HMAC_CTX_free(ctx);                                                                                                \
   } while (0)
 
-#elif RELDAP_TLS == RELDAP_TLS_GNUTLS ||                                       \
-    RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 #include <nettle/hmac.h>
 
 #define TOTP_SHA512_DIGEST_LENGTH SHA512_DIGEST_SIZE
@@ -85,12 +82,12 @@ static void HMAC_CTX_free(HMAC_CTX *ctx) {
 #define TOTP_SHA512 &nettle_sha512
 #define TOTP_HMAC_CTX struct hmac_sha512_ctx
 
-#define HMAC_setup(ctx, key, len, hash)                                        \
-  const struct nettle_hash *h = hash;                                          \
+#define HMAC_setup(ctx, key, len, hash)                                                                                \
+  const struct nettle_hash *h = hash;                                                                                  \
   hmac_set_key(&ctx.outer, &ctx.inner, &ctx.state, h, len, key)
 #define HMAC_crunch(ctx, buf, len) hmac_update(&ctx.state, h, len, buf)
-#define HMAC_finish(ctx, dig, dlen)                                            \
-  hmac_digest(&ctx.outer, &ctx.inner, &ctx.state, h, h->digest_size, dig);     \
+#define HMAC_finish(ctx, dig, dlen)                                                                                    \
+  hmac_digest(&ctx.outer, &ctx.inner, &ctx.state, h, h->digest_size, dig);                                             \
   dlen = h->digest_size
 
 #else
@@ -114,24 +111,22 @@ static AttributeDescription *ad_authTimestamp;
 static struct schema_info {
   char *def;
   AttributeDescription **ad;
-} totp_OpSchema[] = {
-    {"( 1.3.6.1.4.1.453.16.2.188 "
-     "NAME 'authTimestamp' "
-     "DESC 'last successful authentication using any method/mech' "
-     "EQUALITY generalizedTimeMatch "
-     "ORDERING generalizedTimeOrderingMatch "
-     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 "
-     "SINGLE-VALUE NO-USER-MODIFICATION USAGE dsaOperation )",
-     &ad_authTimestamp},
-    {NULL, NULL}};
+} totp_OpSchema[] = {{"( 1.3.6.1.4.1.453.16.2.188 "
+                      "NAME 'authTimestamp' "
+                      "DESC 'last successful authentication using any method/mech' "
+                      "EQUALITY generalizedTimeMatch "
+                      "ORDERING generalizedTimeOrderingMatch "
+                      "SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 "
+                      "SINGLE-VALUE NO-USER-MODIFICATION USAGE dsaOperation )",
+                      &ad_authTimestamp},
+                     {NULL, NULL}};
 
 /* RFC3548 base32 encoding/decoding */
 
 static const char Base32[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 static const char Pad32 = '=';
 
-static int totp_b32_ntop(u_char const *src, size_t srclength, char *target,
-                         size_t targsize) {
+static int totp_b32_ntop(u_char const *src, size_t srclength, char *target, size_t targsize) {
   size_t datalength = 0;
   u_char input0;
   u_int input1; /* assumed to be at least 32 bits */
@@ -357,11 +352,9 @@ static void do_hmac(const void *hash, myval *key, myval *data, myval *out) {
   out->mv_len = digestLen;
 }
 
-static const int DIGITS_POWER[] = {1,      10,      100,      1000,     10000,
-                                   100000, 1000000, 10000000, 100000000};
+static const int DIGITS_POWER[] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
 
-static void generate(myval *key, uint64_t tval, int digits, myval *out,
-                     const void *mech) {
+static void generate(myval *key, uint64_t tval, int digits, myval *out, const void *mech) {
   unsigned char digest[TOTP_SHA512_DIGEST_LENGTH];
   myval digval;
   myval data;
@@ -385,8 +378,8 @@ static void generate(myval *key, uint64_t tval, int digits, myval *out,
   do_hmac(mech, key, &data, &digval);
 
   offset = digest[digval.mv_len - 1] & 0xf;
-  res = ((digest[offset] & 0x7f) << 24) | ((digest[offset + 1] & 0xff) << 16) |
-        ((digest[offset + 2] & 0xff) << 8) | (digest[offset + 3] & 0xff);
+  res = ((digest[offset] & 0x7f) << 24) | ((digest[offset + 1] & 0xff) << 16) | ((digest[offset + 2] & 0xff) << 8) |
+        (digest[offset + 3] & 0xff);
 
   otp = res % DIGITS_POWER[digits];
   out->mv_len = snprintf(out->mv_val, out->mv_len, "%0*d", digits, otp);
@@ -398,8 +391,7 @@ static int totp_bind_response(Operation *op, SlapReply *rs);
 #define TIME_STEP 30
 #define DIGITS 6
 
-static int chk_totp(const struct berval *passwd, const struct berval *cred,
-                    const void *mech, const char **text) {
+static int chk_totp(const struct berval *passwd, const struct berval *cred, const void *mech, const char **text) {
   void *ctx, *op_tmp;
   Operation *op;
   Entry *e;
@@ -411,8 +403,7 @@ static int chk_totp(const struct berval *passwd, const struct berval *cred,
 
   /* Find our thread context, find our Operation */
   ctx = ldap_pvt_thread_pool_context();
-  if (ldap_pvt_thread_pool_getkey(ctx, totp_op_cleanup, &op_tmp, NULL) ||
-      !op_tmp)
+  if (ldap_pvt_thread_pool_getkey(ctx, totp_op_cleanup, &op_tmp, NULL) || !op_tmp)
     return LUTIL_PASSWD_ERR;
   op = op_tmp;
 
@@ -425,8 +416,7 @@ static int chk_totp(const struct berval *passwd, const struct berval *cred,
   if (a) {
     struct lutil_tm tm;
     struct lutil_timet tt;
-    if (lutil_parsetime(a->a_vals[0].bv_val, &tm) == 0 &&
-        lutil_tm2time(&tm, &tt) == 0) {
+    if (lutil_parsetime(a->a_vals[0].bv_val, &tm) == 0 && lutil_tm2time(&tm, &tt) == 0) {
       long told = tt.tt_sec / TIME_STEP;
       if (told >= t)
         rc = LUTIL_PASSWD_ERR;
@@ -470,38 +460,35 @@ static int chk_totp(const struct berval *passwd, const struct berval *cred,
     goto out;
   }
 
-  rc = memcmp(out.mv_val, cred->bv_val, out.mv_len) ? LUTIL_PASSWD_ERR
-                                                    : LUTIL_PASSWD_OK;
+  rc = memcmp(out.mv_val, cred->bv_val, out.mv_len) ? LUTIL_PASSWD_ERR : LUTIL_PASSWD_OK;
 
 out:
   ber_memfree(key.mv_val);
   return rc;
 }
 
-static int chk_totp1(const struct berval *scheme, const struct berval *passwd,
-                     const struct berval *cred, const char **text) {
+static int chk_totp1(const struct berval *scheme, const struct berval *passwd, const struct berval *cred,
+                     const char **text) {
   return chk_totp(passwd, cred, TOTP_SHA1, text);
 }
 
-static int chk_totp256(const struct berval *scheme, const struct berval *passwd,
-                       const struct berval *cred, const char **text) {
+static int chk_totp256(const struct berval *scheme, const struct berval *passwd, const struct berval *cred,
+                       const char **text) {
   return chk_totp(passwd, cred, TOTP_SHA256, text);
 }
 
-static int chk_totp512(const struct berval *scheme, const struct berval *passwd,
-                       const struct berval *cred, const char **text) {
+static int chk_totp512(const struct berval *scheme, const struct berval *passwd, const struct berval *cred,
+                       const char **text) {
   return chk_totp(passwd, cred, TOTP_SHA512, text);
 }
 
-static int passwd_string32(const struct berval *scheme,
-                           const struct berval *passwd, struct berval *hash) {
+static int passwd_string32(const struct berval *scheme, const struct berval *passwd, struct berval *hash) {
   int b32len = (passwd->bv_len + 4) / 5 * 8;
   int rc;
   hash->bv_len = scheme->bv_len + b32len;
   hash->bv_val = ber_memalloc(hash->bv_len + 1);
   memcpy(hash->bv_val, scheme->bv_val, scheme->bv_len);
-  rc = totp_b32_ntop((unsigned char *)passwd->bv_val, passwd->bv_len,
-                     hash->bv_val + scheme->bv_len, b32len + 1);
+  rc = totp_b32_ntop((unsigned char *)passwd->bv_val, passwd->bv_len, hash->bv_val + scheme->bv_len, b32len + 1);
   if (rc < 0) {
     ber_memfree(hash->bv_val);
     hash->bv_val = NULL;
@@ -510,8 +497,8 @@ static int passwd_string32(const struct berval *scheme,
   return LUTIL_PASSWD_OK;
 }
 
-static int hash_totp1(const struct berval *scheme, const struct berval *passwd,
-                      struct berval *hash, const char **text) {
+static int hash_totp1(const struct berval *scheme, const struct berval *passwd, struct berval *hash,
+                      const char **text) {
 #if 0
 	if (passwd->bv_len != SHA_DIGEST_LENGTH) {
 		*text = "invalid key length";
@@ -521,8 +508,7 @@ static int hash_totp1(const struct berval *scheme, const struct berval *passwd,
   return passwd_string32(scheme, passwd, hash);
 }
 
-static int hash_totp256(const struct berval *scheme,
-                        const struct berval *passwd, struct berval *hash,
+static int hash_totp256(const struct berval *scheme, const struct berval *passwd, struct berval *hash,
                         const char **text) {
 #if 0
 	if (passwd->bv_len != SHA256_DIGEST_LENGTH) {
@@ -533,8 +519,7 @@ static int hash_totp256(const struct berval *scheme,
   return passwd_string32(scheme, passwd, hash);
 }
 
-static int hash_totp512(const struct berval *scheme,
-                        const struct berval *passwd, struct berval *hash,
+static int hash_totp512(const struct berval *scheme, const struct berval *passwd, struct berval *hash,
                         const char **text) {
 #if 0
 	if (passwd->bv_len != SHA512_DIGEST_LENGTH) {
@@ -549,8 +534,7 @@ static int totp_op_cleanup(Operation *op, SlapReply *rs) {
   slap_callback *cb;
 
   /* clear out the current key */
-  ldap_pvt_thread_pool_setkey(op->o_threadctx, totp_op_cleanup, NULL, 0, NULL,
-                              NULL);
+  ldap_pvt_thread_pool_setkey(op->o_threadctx, totp_op_cleanup, NULL, 0, NULL, NULL);
 
   /* free the callback */
   cb = op->o_callback;
@@ -608,8 +592,7 @@ static int totp_bind_response(Operation *op, SlapReply *rs) {
     mod = m;
 
     /* get authTimestamp attribute, if it exists */
-    if ((a = attr_find(e->e_attrs, ad_authTimestamp)) != NULL &&
-        op->o_callback->sc_private) {
+    if ((a = attr_find(e->e_attrs, ad_authTimestamp)) != NULL && op->o_callback->sc_private) {
       struct berval *bv = op->o_callback->sc_private;
       m = ch_calloc(sizeof(Modifications), 1);
       m->sml_op = LDAP_MOD_DELETE;
@@ -671,8 +654,7 @@ static int totp_op_bind(Operation *op, SlapReply *rs) {
    */
   if (op->oq_bind.rb_method == LDAP_AUTH_SIMPLE) {
     slap_callback *cb;
-    ldap_pvt_thread_pool_setkey(op->o_threadctx, totp_op_cleanup, op, 0, NULL,
-                                NULL);
+    ldap_pvt_thread_pool_setkey(op->o_threadctx, totp_op_cleanup, op, 0, NULL, NULL);
     cb = op->o_tmpcalloc(1, sizeof(slap_callback), op->o_tmpmemctx);
     cb->sc_response = totp_bind_response;
     cb->sc_cleanup = totp_op_cleanup;
@@ -691,9 +673,7 @@ static int totp_db_open(BackendDB *be, ConfigReply *cr) {
     if (rc) {
       rc = register_at(totp_OpSchema[0].def, totp_OpSchema[0].ad, 0);
       if (rc) {
-        snprintf(cr->msg, sizeof(cr->msg),
-                 "unable to find or register authTimestamp attribute: %s (%d)",
-                 text, rc);
+        snprintf(cr->msg, sizeof(cr->msg), "unable to find or register authTimestamp attribute: %s (%d)", text, rc);
         Debug(LDAP_DEBUG_ANY, "totp: %s.\n", cr->msg);
       }
       ad_authTimestamp->ad_type->sat_flags |= SLAP_AT_MANAGEABLE;
@@ -714,17 +694,13 @@ int totp_initialize(void) {
 
   rc = lutil_passwd_add((struct berval *)&scheme_totp1, chk_totp1, hash_totp1);
   if (!rc)
-    rc = lutil_passwd_add((struct berval *)&scheme_totp256, chk_totp256,
-                          hash_totp256);
+    rc = lutil_passwd_add((struct berval *)&scheme_totp256, chk_totp256, hash_totp256);
   if (!rc)
-    rc = lutil_passwd_add((struct berval *)&scheme_totp512, chk_totp512,
-                          hash_totp512);
+    rc = lutil_passwd_add((struct berval *)&scheme_totp512, chk_totp512, hash_totp512);
   if (rc)
     return rc;
 
   return overlay_register(&totp);
 }
 
-SLAP_MODULE_ENTRY(pw_totp, modinit)(int argc, char *argv[]) {
-  return totp_initialize();
-}
+SLAP_MODULE_ENTRY(pw_totp, modinit)(int argc, char *argv[]) { return totp_initialize(); }

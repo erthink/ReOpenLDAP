@@ -36,30 +36,22 @@
 
 #define BACKSQL_STR_GROW 256
 
-const char backsql_def_oc_query[] =
-    "SELECT id,name,keytbl,keycol,create_proc,delete_proc,expect_return "
-    "FROM ldap_oc_mappings";
-const char backsql_def_needs_select_oc_query[] =
-    "SELECT id,name,keytbl,keycol,create_proc,create_keyval,delete_proc,"
-    "expect_return FROM ldap_oc_mappings";
-const char backsql_def_at_query[] =
-    "SELECT name,sel_expr,from_tbls,join_where,add_proc,delete_proc,"
-    "param_order,expect_return,sel_expr_u FROM ldap_attr_mappings "
-    "WHERE oc_map_id=?";
+const char backsql_def_oc_query[] = "SELECT id,name,keytbl,keycol,create_proc,delete_proc,expect_return "
+                                    "FROM ldap_oc_mappings";
+const char backsql_def_needs_select_oc_query[] = "SELECT id,name,keytbl,keycol,create_proc,create_keyval,delete_proc,"
+                                                 "expect_return FROM ldap_oc_mappings";
+const char backsql_def_at_query[] = "SELECT name,sel_expr,from_tbls,join_where,add_proc,delete_proc,"
+                                    "param_order,expect_return,sel_expr_u FROM ldap_attr_mappings "
+                                    "WHERE oc_map_id=?";
 const char backsql_def_delentry_stmt[] = "DELETE FROM ldap_entries WHERE id=?";
-const char backsql_def_renentry_stmt[] =
-    "UPDATE ldap_entries SET dn=?,parent=?,keyval=? WHERE id=?";
-const char backsql_def_insentry_stmt[] =
-    "INSERT INTO ldap_entries (dn,oc_map_id,parent,keyval) "
-    "VALUES (?,?,?,?)";
-const char backsql_def_delobjclasses_stmt[] =
-    "DELETE FROM ldap_entry_objclasses "
-    "WHERE entry_id=?";
+const char backsql_def_renentry_stmt[] = "UPDATE ldap_entries SET dn=?,parent=?,keyval=? WHERE id=?";
+const char backsql_def_insentry_stmt[] = "INSERT INTO ldap_entries (dn,oc_map_id,parent,keyval) "
+                                         "VALUES (?,?,?,?)";
+const char backsql_def_delobjclasses_stmt[] = "DELETE FROM ldap_entry_objclasses "
+                                              "WHERE entry_id=?";
 const char backsql_def_subtree_cond[] = "ldap_entries.dn LIKE CONCAT('%',?)";
-const char backsql_def_upper_subtree_cond[] =
-    "(ldap_entries.dn) LIKE CONCAT('%',?)";
-const char backsql_id_query[] =
-    "SELECT id,keyval,oc_map_id,dn FROM ldap_entries WHERE ";
+const char backsql_def_upper_subtree_cond[] = "(ldap_entries.dn) LIKE CONCAT('%',?)";
+const char backsql_id_query[] = "SELECT id,keyval,oc_map_id,dn FROM ldap_entries WHERE ";
 /* better ?||? or cast(?||? as varchar) */
 const char backsql_def_concat_func[] = "CONCAT(?,?)";
 
@@ -72,8 +64,7 @@ struct berbuf *backsql_strcat_x(struct berbuf *dest, void *memctx, ...) {
   char *cstr;
 
   assert(dest != NULL);
-  assert(dest->bb_val.bv_val == NULL ||
-         dest->bb_val.bv_len == strlen(dest->bb_val.bv_val));
+  assert(dest->bb_val.bv_val == NULL || dest->bb_val.bv_len == strlen(dest->bb_val.bv_val));
 
 #ifdef BACKSQL_TRACE
   Debug(LDAP_DEBUG_TRACE, "==>backsql_strcat()\n");
@@ -81,8 +72,7 @@ struct berbuf *backsql_strcat_x(struct berbuf *dest, void *memctx, ...) {
 
   va_start(strs, memctx);
   if (dest->bb_val.bv_val == NULL || dest->bb_len == 0) {
-    dest->bb_val.bv_val =
-        (char *)ber_memalloc_x(BACKSQL_STR_GROW * sizeof(char), memctx);
+    dest->bb_val.bv_val = (char *)ber_memalloc_x(BACKSQL_STR_GROW * sizeof(char), memctx);
     dest->bb_val.bv_len = 0;
     dest->bb_len = BACKSQL_STR_GROW;
   }
@@ -101,8 +91,7 @@ struct berbuf *backsql_strcat_x(struct berbuf *dest, void *memctx, ...) {
             dest->bb_len, cdlen + 1, cslen);
 #endif /* BACKSQL_TRACE */
 
-      tmp_dest = (char *)ber_memrealloc_x(
-          dest->bb_val.bv_val, dest->bb_len + grow * sizeof(char), memctx);
+      tmp_dest = (char *)ber_memrealloc_x(dest->bb_val.bv_val, dest->bb_len + grow * sizeof(char), memctx);
       if (tmp_dest == NULL) {
         Debug(LDAP_DEBUG_ANY, "backsql_strcat(): "
                               "could not reallocate string buffer.\n");
@@ -125,8 +114,7 @@ struct berbuf *backsql_strcat_x(struct berbuf *dest, void *memctx, ...) {
   va_end(strs);
 
 #ifdef BACKSQL_TRACE
-  Debug(LDAP_DEBUG_TRACE, "<==backsql_strcat() (dest=\"%s\")\n",
-        dest->bb_val.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "<==backsql_strcat() (dest=\"%s\")\n", dest->bb_val.bv_val);
 #endif /* BACKSQL_TRACE */
 
   dest->bb_val.bv_len = cdlen;
@@ -134,16 +122,14 @@ struct berbuf *backsql_strcat_x(struct berbuf *dest, void *memctx, ...) {
   return dest;
 }
 
-struct berbuf *backsql_strfcat_x(struct berbuf *dest, void *memctx,
-                                 const char *fmt, ...) {
+struct berbuf *backsql_strfcat_x(struct berbuf *dest, void *memctx, const char *fmt, ...) {
   va_list strs;
   ber_len_t cdlen;
 
   assert(dest != NULL);
   assert(fmt != NULL);
   assert(dest->bb_len == 0 || dest->bb_len > dest->bb_val.bv_len);
-  assert(dest->bb_val.bv_val == NULL ||
-         dest->bb_val.bv_len == strlen(dest->bb_val.bv_val));
+  assert(dest->bb_val.bv_val == NULL || dest->bb_val.bv_len == strlen(dest->bb_val.bv_val));
 
 #ifdef BACKSQL_TRACE
   Debug(LDAP_DEBUG_TRACE, "==>backsql_strfcat()\n");
@@ -151,8 +137,7 @@ struct berbuf *backsql_strfcat_x(struct berbuf *dest, void *memctx,
 
   va_start(strs, fmt);
   if (dest->bb_val.bv_val == NULL || dest->bb_len == 0) {
-    dest->bb_val.bv_val =
-        (char *)ber_memalloc_x(BACKSQL_STR_GROW * sizeof(char), memctx);
+    dest->bb_val.bv_val = (char *)ber_memalloc_x(BACKSQL_STR_GROW * sizeof(char), memctx);
     dest->bb_val.bv_len = 0;
     dest->bb_len = BACKSQL_STR_GROW;
   }
@@ -210,8 +195,7 @@ struct berbuf *backsql_strfcat_x(struct berbuf *dest, void *memctx,
             dest->bb_len, cdlen + 1, cslen);
 #endif /* BACKSQL_TRACE */
 
-      tmp_dest = (char *)ber_memrealloc_x(
-          dest->bb_val.bv_val, (dest->bb_len) + grow * sizeof(char), memctx);
+      tmp_dest = (char *)ber_memrealloc_x(dest->bb_val.bv_val, (dest->bb_len) + grow * sizeof(char), memctx);
       if (tmp_dest == NULL) {
         Debug(LDAP_DEBUG_ANY, "backsql_strfcat(): "
                               "could not reallocate string buffer.\n");
@@ -238,8 +222,7 @@ struct berbuf *backsql_strfcat_x(struct berbuf *dest, void *memctx,
   va_end(strs);
 
 #ifdef BACKSQL_TRACE
-  Debug(LDAP_DEBUG_TRACE, "<==backsql_strfcat() (dest=\"%s\")\n",
-        dest->bb_val.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "<==backsql_strfcat() (dest=\"%s\")\n", dest->bb_val.bv_val);
 #endif /* BACKSQL_TRACE */
 
   dest->bb_val.bv_len = cdlen;
@@ -247,13 +230,11 @@ struct berbuf *backsql_strfcat_x(struct berbuf *dest, void *memctx,
   return dest;
 }
 
-int backsql_entry_addattr(Entry *e, AttributeDescription *ad,
-                          struct berval *val, void *memctx) {
+int backsql_entry_addattr(Entry *e, AttributeDescription *ad, struct berval *val, void *memctx) {
   int rc;
 
 #ifdef BACKSQL_TRACE
-  Debug(LDAP_DEBUG_TRACE, "backsql_entry_addattr(\"%s\"): %s=%s\n",
-        e->e_name.bv_val, ad->ad_cname.bv_val, val->bv_val);
+  Debug(LDAP_DEBUG_TRACE, "backsql_entry_addattr(\"%s\"): %s=%s\n", e->e_name.bv_val, ad->ad_cname.bv_val, val->bv_val);
 #endif /* BACKSQL_TRACE */
 
   rc = attr_merge_normalize_one(e, ad, val, memctx);
@@ -267,8 +248,7 @@ int backsql_entry_addattr(Entry *e, AttributeDescription *ad,
   }
 
 #ifdef BACKSQL_TRACE
-  Debug(LDAP_DEBUG_TRACE, "<==backsql_entry_addattr(\"%s\")\n",
-        e->e_name.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "<==backsql_entry_addattr(\"%s\")\n", e->e_name.bv_val);
 #endif /* BACKSQL_TRACE */
 
   return LDAP_SUCCESS;
@@ -290,17 +270,17 @@ static char *backsql_get_table_spec(backsql_info *bi, char **p) {
     *(*p)++ = '\0';
   }
 
-#define BACKSQL_NEXT_WORD                                                      \
-  {                                                                            \
-    while (*s && isspace((unsigned char)*s))                                   \
-      s++;                                                                     \
-    if (!*s)                                                                   \
-      return res.bb_val.bv_val;                                                \
-    q = s;                                                                     \
-    while (*q && !isspace((unsigned char)*q))                                  \
-      q++;                                                                     \
-    if (*q)                                                                    \
-      *q++ = '\0';                                                             \
+#define BACKSQL_NEXT_WORD                                                                                              \
+  {                                                                                                                    \
+    while (*s && isspace((unsigned char)*s))                                                                           \
+      s++;                                                                                                             \
+    if (!*s)                                                                                                           \
+      return res.bb_val.bv_val;                                                                                        \
+    q = s;                                                                                                             \
+    while (*q && !isspace((unsigned char)*q))                                                                          \
+      q++;                                                                                                             \
+    if (*q)                                                                                                            \
+      *q++ = '\0';                                                                                                     \
   }
 
   BACKSQL_NEXT_WORD;
@@ -315,14 +295,13 @@ static char *backsql_get_table_spec(backsql_info *bi, char **p) {
   }
 
   /* oracle doesn't understand "AS" :( and other RDBMSes don't need it */
-  backsql_strfcat_x(&res, NULL, "lbbsb", STRLENOF(" "), " ", &bi->sql_aliasing,
-                    &bi->sql_aliasing_quote, s, &bi->sql_aliasing_quote);
+  backsql_strfcat_x(&res, NULL, "lbbsb", STRLENOF(" "), " ", &bi->sql_aliasing, &bi->sql_aliasing_quote, s,
+                    &bi->sql_aliasing_quote);
 
   return res.bb_val.bv_val;
 }
 
-int backsql_merge_from_clause(backsql_info *bi, struct berbuf *dest_from,
-                              struct berval *src_from) {
+int backsql_merge_from_clause(backsql_info *bi, struct berbuf *dest_from, struct berval *src_from) {
   char *s, *p, *srcc, *pos, e;
   struct berbuf res = BB_NULL;
 
@@ -382,8 +361,7 @@ int backsql_merge_from_clause(backsql_info *bi, struct berbuf *dest_from,
  * (a negative value means parse as many as possible)
  */
 
-int backsql_split_pattern(const char *_pattern, BerVarray *split_pattern,
-                          int expected) {
+int backsql_split_pattern(const char *_pattern, BerVarray *split_pattern, int expected) {
   char *pattern, *start, *end;
   struct berval bv;
   int rc = 0;
@@ -441,8 +419,7 @@ done:;
   return rc;
 }
 
-int backsql_prepare_pattern(BerVarray split_pattern, BerVarray values,
-                            struct berval *res) {
+int backsql_prepare_pattern(BerVarray split_pattern, BerVarray values, struct berval *res) {
   int i;
   struct berbuf bb = BB_NULL;
 
@@ -469,8 +446,7 @@ int backsql_prepare_pattern(BerVarray split_pattern, BerVarray values,
   return 0;
 }
 
-int backsql_entryUUID(backsql_info *bi, backsql_entryID *id,
-                      struct berval *entryUUID, void *memctx) {
+int backsql_entryUUID(backsql_info *bi, backsql_entryID *id, struct berval *entryUUID, void *memctx) {
   char uuidbuf[LDAP_LUTIL_UUIDSTR_BUFSIZE];
   struct berval uuid;
 #ifdef BACKSQL_ARBITRARY_KEY
@@ -485,8 +461,7 @@ int backsql_entryUUID(backsql_info *bi, backsql_entryID *id,
   assert(entryUUID != NULL);
 
 #ifdef BACKSQL_ARBITRARY_KEY
-  snprintf(uuidbuf, sizeof(uuidbuf), "%08x-0000-0000-0000-000000000000",
-           (id->eid_oc_id & 0xFFFFFFFF));
+  snprintf(uuidbuf, sizeof(uuidbuf), "%08x-0000-0000-0000-000000000000", (id->eid_oc_id & 0xFFFFFFFF));
   lmax = id->eid_keyval.bv_len < 12 ? id->eid_keyval.bv_len : 12;
   for (l = 0, i = 9; l < lmax; l++, i += 2) {
     switch (i) {
@@ -503,10 +478,8 @@ int backsql_entryUUID(backsql_info *bi, backsql_entryID *id,
   }
 #else  /* ! BACKSQL_ARBITRARY_KEY */
   /* note: works only with 32 bit architectures... */
-  snprintf(uuidbuf, sizeof(uuidbuf), "%08x-%04x-%04x-0000-000000000000",
-           ((unsigned)id->eid_oc_id & 0xFFFFFFFF),
-           (((unsigned)id->eid_keyval & 0xFFFF0000) >> 020 /* 16 */),
-           ((unsigned)id->eid_keyval & 0xFFFF));
+  snprintf(uuidbuf, sizeof(uuidbuf), "%08x-%04x-%04x-0000-000000000000", ((unsigned)id->eid_oc_id & 0xFFFFFFFF),
+           (((unsigned)id->eid_keyval & 0xFFFF0000) >> 020 /* 16 */), ((unsigned)id->eid_keyval & 0xFFFF));
 #endif /* ! BACKSQL_ARBITRARY_KEY */
 
   uuid.bv_val = uuidbuf;
@@ -528,15 +501,13 @@ int backsql_entryUUID_decode(struct berval *entryUUID, unsigned long *oc_id,
 	fprintf( stderr, "==> backsql_entryUUID_decode()\n" );
 #endif
 
-  *oc_id = (entryUUID->bv_val[0] << 030 /* 24 */) +
-           (entryUUID->bv_val[1] << 020 /* 16 */) +
+  *oc_id = (entryUUID->bv_val[0] << 030 /* 24 */) + (entryUUID->bv_val[1] << 020 /* 16 */) +
            (entryUUID->bv_val[2] << 010 /* 8 */) + entryUUID->bv_val[3];
 
 #ifdef BACKSQL_ARBITRARY_KEY
   /* FIXME */
 #else  /* ! BACKSQL_ARBITRARY_KEY */
-  *keyval = (entryUUID->bv_val[4] << 030 /* 24 */) +
-            (entryUUID->bv_val[5] << 020 /* 16 */) +
+  *keyval = (entryUUID->bv_val[4] << 030 /* 24 */) + (entryUUID->bv_val[5] << 020 /* 16 */) +
             (entryUUID->bv_val[6] << 010 /* 8 */) + entryUUID->bv_val[7];
 #endif /* ! BACKSQL_ARBITRARY_KEY */
 

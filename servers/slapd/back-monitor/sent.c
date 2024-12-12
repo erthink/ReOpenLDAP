@@ -79,8 +79,7 @@ int monitor_subsys_sent_init(BackendDB *be, monitor_subsys_t *ms) {
     struct berval nrdn, bv;
     Entry *e;
 
-    e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &monitor_sent[i].rdn,
-                           mi->mi_oc_monitorCounterObject, NULL, NULL);
+    e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &monitor_sent[i].rdn, mi->mi_oc_monitorCounterObject, NULL, NULL);
 
     if (e == NULL) {
       Debug(LDAP_DEBUG_ANY,

@@ -104,8 +104,8 @@ int meta_back_db_init(Backend *be, ConfigReply *cr) {
   }
 
   /* set default flags */
-  mi->mi_flags = META_BACK_F_DEFER_ROOTDN_BIND | META_BACK_F_PROXYAUTHZ_ALWAYS |
-                 META_BACK_F_PROXYAUTHZ_ANON | META_BACK_F_PROXYAUTHZ_NOANON;
+  mi->mi_flags = META_BACK_F_DEFER_ROOTDN_BIND | META_BACK_F_PROXYAUTHZ_ALWAYS | META_BACK_F_PROXYAUTHZ_ANON |
+                 META_BACK_F_PROXYAUTHZ_NOANON;
 
   /*
    * At present the default is no default target;
@@ -139,8 +139,7 @@ int meta_back_db_init(Backend *be, ConfigReply *cr) {
   return 0;
 }
 
-int meta_target_finish(metainfo_t *mi, metatarget_t *mt, const char *log,
-                       char *msg, size_t msize) {
+int meta_target_finish(metainfo_t *mi, metatarget_t *mt, const char *log, char *msg, size_t msize) {
   slap_bindconf sb = {BER_BVNULL};
   struct berval mapped;
   int rc;
@@ -151,30 +150,25 @@ int meta_target_finish(metainfo_t *mi, metatarget_t *mt, const char *log,
   BER_BVSTR(&sb.sb_binddn, "");
 
   if (META_BACK_TGT_T_F_DISCOVER(mt)) {
-    rc = slap_discover_feature(
-        &sb, slap_schema.si_ad_supportedFeatures->ad_cname.bv_val,
-        LDAP_FEATURE_ABSOLUTE_FILTERS);
+    rc =
+        slap_discover_feature(&sb, slap_schema.si_ad_supportedFeatures->ad_cname.bv_val, LDAP_FEATURE_ABSOLUTE_FILTERS);
     if (rc == LDAP_COMPARE_TRUE) {
       mt->mt_flags |= LDAP_BACK_F_T_F;
     }
   }
 
   if (META_BACK_TGT_CANCEL_DISCOVER(mt)) {
-    rc = slap_discover_feature(
-        &sb, slap_schema.si_ad_supportedExtension->ad_cname.bv_val,
-        LDAP_EXOP_CANCEL);
+    rc = slap_discover_feature(&sb, slap_schema.si_ad_supportedExtension->ad_cname.bv_val, LDAP_EXOP_CANCEL);
     if (rc == LDAP_COMPARE_TRUE) {
       mt->mt_flags |= LDAP_BACK_F_CANCEL_EXOP;
     }
   }
 
-  if (!(mt->mt_idassert_flags & LDAP_BACK_AUTH_OVERRIDE) ||
-      mt->mt_idassert_authz != NULL) {
+  if (!(mt->mt_idassert_flags & LDAP_BACK_AUTH_OVERRIDE) || mt->mt_idassert_authz != NULL) {
     mi->mi_flags &= ~META_BACK_F_PROXYAUTHZ_ALWAYS;
   }
 
-  if ((mt->mt_idassert_flags & LDAP_BACK_AUTH_AUTHZ_ALL) &&
-      !(mt->mt_idassert_flags & LDAP_BACK_AUTH_PRESCRIPTIVE)) {
+  if ((mt->mt_idassert_flags & LDAP_BACK_AUTH_AUTHZ_ALL) && !(mt->mt_idassert_flags & LDAP_BACK_AUTH_PRESCRIPTIVE)) {
     snprintf(msg, msize,
              "%s: inconsistent idassert configuration "
              "(likely authz=\"*\" used with \"non-prescriptive\" flag)",
@@ -192,16 +186,13 @@ int meta_target_finish(metainfo_t *mi, metatarget_t *mt, const char *log,
   }
 
   BER_BVZERO(&mapped);
-  ldap_back_map(&mt->mt_rwmap.rwm_at, &slap_schema.si_ad_entryDN->ad_cname,
-                &mapped, BACKLDAP_REMAP);
+  ldap_back_map(&mt->mt_rwmap.rwm_at, &slap_schema.si_ad_entryDN->ad_cname, &mapped, BACKLDAP_REMAP);
   if (BER_BVISNULL(&mapped) || mapped.bv_val[0] == '\0') {
     mt->mt_rep_flags |= REP_NO_ENTRYDN;
   }
 
   BER_BVZERO(&mapped);
-  ldap_back_map(&mt->mt_rwmap.rwm_at,
-                &slap_schema.si_ad_subschemaSubentry->ad_cname, &mapped,
-                BACKLDAP_REMAP);
+  ldap_back_map(&mt->mt_rwmap.rwm_at, &slap_schema.si_ad_subschemaSubentry->ad_cname, &mapped, BACKLDAP_REMAP);
   if (BER_BVISNULL(&mapped) || mapped.bv_val[0] == '\0') {
     mt->mt_rep_flags |= REP_NO_SUBSCHEMA;
   }

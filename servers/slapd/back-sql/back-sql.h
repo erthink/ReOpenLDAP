@@ -234,8 +234,7 @@ typedef struct {
 /*
  * type used for keys
  */
-#if defined(HAVE_LONG_LONG) && defined(SQL_C_UBIGINT) &&                       \
-    (defined(HAVE_STRTOULL) || defined(HAVE_STRTOUQ))
+#if defined(HAVE_LONG_LONG) && defined(SQL_C_UBIGINT) && (defined(HAVE_STRTOULL) || defined(HAVE_STRTOUQ))
 typedef unsigned long long backsql_key_t;
 #define BACKSQL_C_NUMID SQL_C_UBIGINT
 #define BACKSQL_IDNUMFMT "%llu"
@@ -364,9 +363,8 @@ typedef struct backsql_at_map_rec {
   struct backsql_at_map_rec *bam_next;
 } backsql_at_map_rec;
 
-#define BACKSQL_AT_MAP_REC_INIT                                                \
-  {NULL, NULL, BER_BVC(""), BER_BVC(""), BER_BVNULL, BER_BVNULL,               \
-   NULL, NULL, NULL,        0,           0,          NULL}
+#define BACKSQL_AT_MAP_REC_INIT                                                                                        \
+  {NULL, NULL, BER_BVC(""), BER_BVC(""), BER_BVNULL, BER_BVNULL, NULL, NULL, NULL, 0, 0, NULL}
 
 /* define to uppercase filters only if the matching rule requires it
  * (currently broken) */
@@ -421,8 +419,7 @@ typedef struct backsql_entryID {
 } backsql_entryID;
 
 #ifdef BACKSQL_ARBITRARY_KEY
-#define BACKSQL_ENTRYID_INIT                                                   \
-  {BER_BVNULL, BER_BVNULL, 0, NULL, BER_BVNULL, BER_BVNULL, NULL}
+#define BACKSQL_ENTRYID_INIT {BER_BVNULL, BER_BVNULL, 0, NULL, BER_BVNULL, BER_BVNULL, NULL}
 #else /* ! BACKSQL_ARBITRARY_KEY */
 #define BACKSQL_ENTRYID_INIT {0, 0, 0, NULL, BER_BVNULL, BER_BVNULL, NULL}
 #endif /* BACKSQL_ARBITRARY_KEY */
@@ -433,11 +430,9 @@ typedef struct backsql_entryID {
 #define BACKSQL_ISF_GET_OC (0x4U | BACKSQL_ISF_GET_ID)
 #define BACKSQL_ISF_MATCHED 0x8U
 #define BACKSQL_IS_GET_ID(f) (((f) & BACKSQL_ISF_GET_ID) == BACKSQL_ISF_GET_ID)
-#define BACKSQL_IS_GET_ENTRY(f)                                                \
-  (((f) & BACKSQL_ISF_GET_ENTRY) == BACKSQL_ISF_GET_ENTRY)
+#define BACKSQL_IS_GET_ENTRY(f) (((f) & BACKSQL_ISF_GET_ENTRY) == BACKSQL_ISF_GET_ENTRY)
 #define BACKSQL_IS_GET_OC(f) (((f) & BACKSQL_ISF_GET_OC) == BACKSQL_ISF_GET_OC)
-#define BACKSQL_IS_MATCHED(f)                                                  \
-  (((f) & BACKSQL_ISF_MATCHED) == BACKSQL_ISF_MATCHED)
+#define BACKSQL_IS_MATCHED(f) (((f) & BACKSQL_ISF_MATCHED) == BACKSQL_ISF_MATCHED)
 typedef struct backsql_srch_info {
   Operation *bsi_op;
   SlapReply *bsi_rs;
@@ -538,8 +533,7 @@ typedef struct backsql_info {
 #define BSQLF_USE_SUBTREE_SHORTCUT 0x0100
 #define BSQLF_FETCH_ALL_USERATTRS 0x0200
 #define BSQLF_FETCH_ALL_OPATTRS 0x0400
-#define BSQLF_FETCH_ALL_ATTRS                                                  \
-  (BSQLF_FETCH_ALL_USERATTRS | BSQLF_FETCH_ALL_OPATTRS)
+#define BSQLF_FETCH_ALL_ATTRS (BSQLF_FETCH_ALL_USERATTRS | BSQLF_FETCH_ALL_OPATTRS)
 #define BSQLF_CHECK_SCHEMA 0x0800
 #define BSQLF_AUTOCOMMIT_ON 0x1000
 
@@ -547,19 +541,15 @@ typedef struct backsql_info {
 
 #define BACKSQL_SCHEMA_LOADED(si) BACKSQL_ISF(si, BSQLF_SCHEMA_LOADED)
 #define BACKSQL_UPPER_NEEDS_CAST(si) BACKSQL_ISF(si, BSQLF_UPPER_NEEDS_CAST)
-#define BACKSQL_CREATE_NEEDS_SELECT(si)                                        \
-  BACKSQL_ISF(si, BSQLF_CREATE_NEEDS_SELECT)
+#define BACKSQL_CREATE_NEEDS_SELECT(si) BACKSQL_ISF(si, BSQLF_CREATE_NEEDS_SELECT)
 #define BACKSQL_FAIL_IF_NO_MAPPING(si) BACKSQL_ISF(si, BSQLF_FAIL_IF_NO_MAPPING)
 #define BACKSQL_HAS_LDAPINFO_DN_RU(si) BACKSQL_ISF(si, BSQLF_HAS_LDAPINFO_DN_RU)
-#define BACKSQL_DONTCHECK_LDAPINFO_DN_RU(si)                                   \
-  BACKSQL_ISF(si, BSQLF_DONTCHECK_LDAPINFO_DN_RU)
+#define BACKSQL_DONTCHECK_LDAPINFO_DN_RU(si) BACKSQL_ISF(si, BSQLF_DONTCHECK_LDAPINFO_DN_RU)
 #define BACKSQL_USE_REVERSE_DN(si) BACKSQL_ISF(si, BSQLF_USE_REVERSE_DN)
 #define BACKSQL_CANUPPERCASE(si) (!BER_BVISNULL(&(si)->sql_upper_func))
 #define BACKSQL_ALLOW_ORPHANS(si) BACKSQL_ISF(si, BSQLF_ALLOW_ORPHANS)
-#define BACKSQL_USE_SUBTREE_SHORTCUT(si)                                       \
-  BACKSQL_ISF(si, BSQLF_USE_SUBTREE_SHORTCUT)
-#define BACKSQL_FETCH_ALL_USERATTRS(si)                                        \
-  BACKSQL_ISF(si, BSQLF_FETCH_ALL_USERATTRS)
+#define BACKSQL_USE_SUBTREE_SHORTCUT(si) BACKSQL_ISF(si, BSQLF_USE_SUBTREE_SHORTCUT)
+#define BACKSQL_FETCH_ALL_USERATTRS(si) BACKSQL_ISF(si, BSQLF_FETCH_ALL_USERATTRS)
 #define BACKSQL_FETCH_ALL_OPATTRS(si) BACKSQL_ISF(si, BSQLF_FETCH_ALL_OPATTRS)
 #define BACKSQL_FETCH_ALL_ATTRS(si) BACKSQL_ISF(si, BSQLF_FETCH_ALL_ATTRS)
 #define BACKSQL_CHECK_SCHEMA(si) BACKSQL_ISF(si, BSQLF_CHECK_SCHEMA)
@@ -590,22 +580,18 @@ typedef struct backsql_info {
   backsql_api *sql_api;
 } backsql_info;
 
-#define BACKSQL_SUCCESS(rc)                                                    \
-  ((rc) == SQL_SUCCESS || (rc) == SQL_SUCCESS_WITH_INFO)
+#define BACKSQL_SUCCESS(rc) ((rc) == SQL_SUCCESS || (rc) == SQL_SUCCESS_WITH_INFO)
 
 #define BACKSQL_AVL_STOP 0
 #define BACKSQL_AVL_CONTINUE 1
 
 /* see ldap.h for the meaning of the macros and of the values */
-#define BACKSQL_LEGAL_ERROR(rc)                                                \
-  (LDAP_RANGE((rc), 0x00, 0x0e) || LDAP_ATTR_ERROR((rc)) ||                    \
-   LDAP_NAME_ERROR((rc)) || LDAP_SECURITY_ERROR((rc)) ||                       \
+#define BACKSQL_LEGAL_ERROR(rc)                                                                                        \
+  (LDAP_RANGE((rc), 0x00, 0x0e) || LDAP_ATTR_ERROR((rc)) || LDAP_NAME_ERROR((rc)) || LDAP_SECURITY_ERROR((rc)) ||      \
    LDAP_SERVICE_ERROR((rc)) || LDAP_UPDATE_ERROR((rc)))
-#define BACKSQL_SANITIZE_ERROR(rc)                                             \
-  (BACKSQL_LEGAL_ERROR((rc)) ? (rc) : LDAP_OTHER)
+#define BACKSQL_SANITIZE_ERROR(rc) (BACKSQL_LEGAL_ERROR((rc)) ? (rc) : LDAP_OTHER)
 
-#define BACKSQL_IS_BINARY(ct)                                                  \
-  ((ct) == SQL_BINARY || (ct) == SQL_VARBINARY || (ct) == SQL_LONGVARBINARY)
+#define BACKSQL_IS_BINARY(ct) ((ct) == SQL_BINARY || (ct) == SQL_VARBINARY || (ct) == SQL_LONGVARBINARY)
 
 #ifdef BACKSQL_ARBITRARY_KEY
 #define BACKSQL_IDFMT "%s"

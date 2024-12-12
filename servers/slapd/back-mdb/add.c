@@ -41,8 +41,7 @@ int mdb_add(Operation *op, SlapReply *rs) {
   LDAPControl *ctrls[SLAP_MAX_RESPONSE_CONTROLS];
   int num_ctrls = 0;
 
-  Debug(LDAP_DEBUG_ARGS, "==> " LDAP_XSTRING(mdb_add) ": %s\n",
-        op->ora_e->e_name.bv_val);
+  Debug(LDAP_DEBUG_ARGS, "==> " LDAP_XSTRING(mdb_add) ": %s\n", op->ora_e->e_name.bv_val);
 
 #ifdef LDAP_X_TXN
   if (op->o_txnSpec && txn_preop(op, rs))
@@ -52,8 +51,7 @@ int mdb_add(Operation *op, SlapReply *rs) {
   ctrls[num_ctrls] = 0;
 
   /* check entry's schema */
-  rs->sr_err = entry_schema_check(op, op->ora_e, NULL, get_relax(op), 1, NULL,
-                                  &rs->sr_text, textbuf, textlen);
+  rs->sr_err = entry_schema_check(op, op->ora_e, NULL, get_relax(op), 1, NULL, &rs->sr_text, textbuf, textlen);
   if (rs->sr_err != LDAP_SUCCESS) {
     Debug(LDAP_DEBUG_TRACE,
           LDAP_XSTRING(mdb_add) ": entry failed schema check: "
@@ -66,9 +64,8 @@ int mdb_add(Operation *op, SlapReply *rs) {
   rs->sr_err = mdb_opinfo_get(op, mdb, 0, &moi);
   rs->sr_text = NULL;
   if (rs->sr_err != 0) {
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(mdb_add) ": txn_begin failed: %s (%d)\n",
-          mdbx_strerror(rs->sr_err), rs->sr_err);
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_add) ": txn_begin failed: %s (%d)\n", mdbx_strerror(rs->sr_err),
+          rs->sr_err);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "internal error";
     goto return_results;
@@ -89,8 +86,7 @@ int mdb_add(Operation *op, SlapReply *rs) {
     goto return_results;
   }
 
-  if (get_assert(op) &&
-      (test_filter(op, op->ora_e, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
+  if (get_assert(op) && (test_filter(op, op->ora_e, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
     rs->sr_err = LDAP_ASSERTION_FAILED;
     goto return_results;
   }
@@ -108,8 +104,7 @@ int mdb_add(Operation *op, SlapReply *rs) {
 
   rs->sr_err = mdbx_cursor_open(txn, mdb->mi_dn2id, &mcd);
   if (rs->sr_err != 0) {
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(mdb_add) ": mdbx_cursor_open failed (%d)\n", rs->sr_err);
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_add) ": mdbx_cursor_open failed (%d)\n", rs->sr_err);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "internal error";
     goto return_results;
@@ -141,8 +136,7 @@ int mdb_add(Operation *op, SlapReply *rs) {
     rs->sr_matched = ber_strdup_x(p->e_name.bv_val, op->o_tmpmemctx);
     if (p != (Entry *)&slap_entry_root && is_entry_referral(p)) {
       BerVarray ref = get_entry_referrals(op, p);
-      rs->sr_ref =
-          referral_rewrite(ref, &p->e_name, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
+      rs->sr_ref = referral_rewrite(ref, &p->e_name, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
       ber_bvarray_free(ref);
     } else {
       rs->sr_ref = NULL;
@@ -165,8 +159,7 @@ int mdb_add(Operation *op, SlapReply *rs) {
       mdb_entry_return(op, p);
     p = NULL;
 
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(mdb_add) ": no write access to parent\n");
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_add) ": no write access to parent\n");
     rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
     rs->sr_text = "no write access to parent";
     goto return_results;
@@ -197,8 +190,7 @@ int mdb_add(Operation *op, SlapReply *rs) {
       BerVarray ref = get_entry_referrals(op, p);
       /* parent is a referral, don't allow add */
       rs->sr_matched = ber_strdup_x(p->e_name.bv_val, op->o_tmpmemctx);
-      rs->sr_ref =
-          referral_rewrite(ref, &p->e_name, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
+      rs->sr_ref = referral_rewrite(ref, &p->e_name, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
       ber_bvarray_free(ref);
       mdb_entry_return(op, p);
       p = NULL;
@@ -246,8 +238,7 @@ int mdb_add(Operation *op, SlapReply *rs) {
   rs->sr_err = access_allowed(op, op->ora_e, entry, NULL, ACL_WADD, NULL);
 
   if (!rs->sr_err) {
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(mdb_add) ": no write access to entry\n");
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_add) ": no write access to entry\n");
     rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
     rs->sr_text = "no write access to entry";
     goto return_results;
@@ -257,8 +248,7 @@ int mdb_add(Operation *op, SlapReply *rs) {
    * Check ACL for attribute write access
    */
   if (!acl_check_modlist(op, oe, op->ora_modlist)) {
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(mdb_add) ": no write access to attribute\n");
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_add) ": no write access to attribute\n");
     rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
     rs->sr_text = "no write access to attribute";
     goto return_results;
@@ -266,8 +256,7 @@ int mdb_add(Operation *op, SlapReply *rs) {
 
   rs->sr_err = mdbx_cursor_open(txn, mdb->mi_id2entry, &mc);
   if (rs->sr_err != 0) {
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(mdb_add) ": mdbx_cursor_open failed (%d)\n", rs->sr_err);
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_add) ": mdbx_cursor_open failed (%d)\n", rs->sr_err);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "internal error";
     goto return_results;
@@ -275,8 +264,7 @@ int mdb_add(Operation *op, SlapReply *rs) {
 
   rs->sr_err = mdb_next_id(op->o_bd, mc, &eid);
   if (rs->sr_err != 0) {
-    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_add) ": next_id failed (%d)\n",
-          rs->sr_err);
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_add) ": next_id failed (%d)\n", rs->sr_err);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "internal error";
     goto return_results;
@@ -288,9 +276,8 @@ int mdb_add(Operation *op, SlapReply *rs) {
   mdbx_cursor_close(mcd);
   mcd = NULL;
   if (rs->sr_err != 0) {
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(mdb_add) ": dn2id_add failed: %s (%d)\n",
-          mdbx_strerror(rs->sr_err), rs->sr_err);
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_add) ": dn2id_add failed: %s (%d)\n", mdbx_strerror(rs->sr_err),
+          rs->sr_err);
 
     switch (rs->sr_err) {
     case MDBX_KEYEXIST:
@@ -330,8 +317,7 @@ int mdb_add(Operation *op, SlapReply *rs) {
       postread_ctrl = &ctrls[num_ctrls++];
       ctrls[num_ctrls] = NULL;
     }
-    if (slap_read_controls(op, rs, op->ora_e, &slap_post_read_bv,
-                           postread_ctrl)) {
+    if (slap_read_controls(op, rs, op->ora_e, &slap_post_read_bv, postread_ctrl)) {
       Debug(LDAP_DEBUG_TRACE, "<=- " LDAP_XSTRING(mdb_add) ": post-read "
                                                            "failed!\n");
       if (op->o_postread & SLAP_CONTROL_CRITICAL) {
@@ -369,16 +355,15 @@ int mdb_add(Operation *op, SlapReply *rs) {
       assert(numads > -1);
       mdb->mi_numads = numads;
       rs->sr_text = "txn_commit failed";
-      Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_add) ": %s : %s (%d)\n",
-            rs->sr_text, mdbx_strerror(rs->sr_err), rs->sr_err);
+      Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_add) ": %s : %s (%d)\n", rs->sr_text, mdbx_strerror(rs->sr_err),
+            rs->sr_err);
       rs->sr_err = LDAP_OTHER;
       goto return_results;
     }
   }
 
-  Debug(LDAP_DEBUG_TRACE,
-        LDAP_XSTRING(mdb_add) ": added%s id=%08lx dn=\"%s\"\n",
-        op->o_noop ? " (no-op)" : "", op->ora_e->e_id, op->ora_e->e_dn);
+  Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_add) ": added%s id=%08lx dn=\"%s\"\n", op->o_noop ? " (no-op)" : "",
+        op->ora_e->e_id, op->ora_e->e_dn);
 
   rs->sr_text = NULL;
   if (num_ctrls)

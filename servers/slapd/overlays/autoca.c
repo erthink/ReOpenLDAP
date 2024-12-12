@@ -118,8 +118,7 @@ typedef struct autoca_info {
 /* Rewrite an LDAP DN in DER form
  * Input must be valid DN, therefore no error checking is done here.
  */
-static int autoca_dnbv2der(Operation *op, struct berval *bv,
-                           struct berval *der) {
+static int autoca_dnbv2der(Operation *op, struct berval *bv, struct berval *der) {
   BerElementBuffer berbuf;
   BerElement *ber = (BerElement *)&berbuf;
   LDAPDN dn;
@@ -217,14 +216,13 @@ static myext CAexts[] = {{"subjectKeyIdentifier", "hash"},
                          {"nsComment", "OpenLDAP automatic certificate"},
                          {NULL}};
 
-static myext usrExts[] = {
-    {"subjectKeyIdentifier", "hash"},
-    {"authorityKeyIdentifier", "keyid:always,issuer"},
-    {"basicConstraints", "CA:false"},
-    {"keyUsage", "digitalSignature,nonRepudiation,keyEncipherment"},
-    {"extendedKeyUsage", "clientAuth,emailProtection,codeSigning"},
-    {"nsComment", "OpenLDAP automatic certificate"},
-    {NULL}};
+static myext usrExts[] = {{"subjectKeyIdentifier", "hash"},
+                          {"authorityKeyIdentifier", "keyid:always,issuer"},
+                          {"basicConstraints", "CA:false"},
+                          {"keyUsage", "digitalSignature,nonRepudiation,keyEncipherment"},
+                          {"extendedKeyUsage", "clientAuth,emailProtection,codeSigning"},
+                          {"nsComment", "OpenLDAP automatic certificate"},
+                          {NULL}};
 
 static myext srvExts[] = {{"subjectKeyIdentifier", "hash"},
                           {"authorityKeyIdentifier", "keyid:always,issuer"},
@@ -283,8 +281,7 @@ static int autoca_gencert(Operation *op, genargs *args) {
     if ((p8inf = EVP_PKEY2PKCS8(evpk)) == NULL)
       goto fail2;
     args->derpkey.bv_len = i2d_PKCS8_PRIV_KEY_INFO(p8inf, NULL);
-    args->derpkey.bv_val =
-        op->o_tmpalloc(args->derpkey.bv_len, op->o_tmpmemctx);
+    args->derpkey.bv_val = op->o_tmpalloc(args->derpkey.bv_len, op->o_tmpmemctx);
     pp = (uint8_t *)args->derpkey.bv_val;
     i2d_PKCS8_PRIV_KEY_INFO(p8inf, &pp);
     PKCS8_PRIV_KEY_INFO_free(p8inf);
@@ -317,11 +314,9 @@ static int autoca_gencert(Operation *op, genargs *args) {
     args->issuer_pkey = evpk;
   }
   if (!X509_set_version(subj_cert, 2) || /* set version to V3 */
-      !X509_set_issuer_name(subj_cert, issuer_name) ||
-      !X509_set_subject_name(subj_cert, subj_name) ||
+      !X509_set_issuer_name(subj_cert, issuer_name) || !X509_set_subject_name(subj_cert, subj_name) ||
       !X509_gmtime_adj(X509_get_notBefore(subj_cert), 0) ||
-      !X509_time_adj_ex(X509_get_notAfter(subj_cert), args->days, 0, NULL) ||
-      !X509_set_pubkey(subj_cert, evpk)) {
+      !X509_time_adj_ex(X509_get_notAfter(subj_cert), args->days, 0, NULL) || !X509_set_pubkey(subj_cert, evpk)) {
     goto fail3;
   }
   X509_NAME_free(subj_name);
@@ -335,8 +330,7 @@ static int autoca_gencert(Operation *op, genargs *args) {
 
     X509V3_set_ctx(&ctx, args->issuer_cert, subj_cert, NULL, NULL, 0);
     for (i = 0; args->cert_exts[i].name; i++) {
-      ext = X509V3_EXT_nconf(NULL, &ctx, args->cert_exts[i].name,
-                             args->cert_exts[i].value);
+      ext = X509V3_EXT_nconf(NULL, &ctx, args->cert_exts[i].name, args->cert_exts[i].value);
       if (ext == NULL)
         goto fail3;
       rc = X509_add_ext(subj_cert, ext, -1);
@@ -346,8 +340,7 @@ static int autoca_gencert(Operation *op, genargs *args) {
     }
     if (args->more_exts) {
       for (i = 0; args->more_exts[i].name; i++) {
-        ext = X509V3_EXT_nconf(NULL, &ctx, args->more_exts[i].name,
-                               args->more_exts[i].value);
+        ext = X509V3_EXT_nconf(NULL, &ctx, args->more_exts[i].name, args->more_exts[i].value);
         if (ext == NULL)
           goto fail3;
         rc = X509_add_ext(subj_cert, ext, -1);
@@ -490,8 +483,7 @@ static int autoca_setca(struct berval *cacert) {
   return ldap_pvt_thread_pool_submit(&connection_pool, autoca_setca_task, bv);
 }
 
-static int autoca_setlocal(Operation *op, struct berval *cert,
-                           struct berval *pkey) {
+static int autoca_setlocal(Operation *op, struct berval *cert, struct berval *pkey) {
   Modifications mod[2];
   struct berval bvs[4];
   slap_callback cb = {0};
@@ -671,8 +663,7 @@ static int autoca_cf(ConfigArgs *c) {
         break;
       }
       if (!dnIsSuffix(&c->value_ndn, c->be->be_nsuffix)) {
-        snprintf(c->cr_msg, sizeof(c->cr_msg),
-                 "DN is not a subordinate of backend");
+        snprintf(c->cr_msg, sizeof(c->cr_msg), "DN is not a subordinate of backend");
         Debug(LDAP_DEBUG_CONFIG, "autoca_config: %s\n", c->cr_msg);
         rc = ARG_BAD_CONF;
         break;
@@ -689,50 +680,43 @@ static int autoca_cf(ConfigArgs *c) {
 }
 
 static ConfigTable autoca_cfg[] = {
-    {"userClass", "objectclass", 2, 2, 0, ARG_STRING | ARG_MAGIC | ACA_USRCLASS,
-     autoca_cf,
+    {"userClass", "objectclass", 2, 2, 0, ARG_STRING | ARG_MAGIC | ACA_USRCLASS, autoca_cf,
      "( OLcfgOvAt:22.1 NAME 'olcACAuserClass' "
      "DESC 'ObjectClass of user entries' "
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
-    {"serverClass", "objectclass", 2, 2, 0,
-     ARG_STRING | ARG_MAGIC | ACA_SRVCLASS, autoca_cf,
+    {"serverClass", "objectclass", 2, 2, 0, ARG_STRING | ARG_MAGIC | ACA_SRVCLASS, autoca_cf,
      "( OLcfgOvAt:22.2 NAME 'olcACAserverClass' "
      "DESC 'ObjectClass of server entries' "
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
-    {"userKeybits", "integer", 2, 2, 0, ARG_INT | ARG_MAGIC | ACA_USRKEYBITS,
-     autoca_cf,
+    {"userKeybits", "integer", 2, 2, 0, ARG_INT | ARG_MAGIC | ACA_USRKEYBITS, autoca_cf,
      "( OLcfgOvAt:22.3 NAME 'olcACAuserKeybits' "
      "DESC 'Size of PrivateKey for user entries' "
      "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-    {"serverKeybits", "integer", 2, 2, 0, ARG_INT | ARG_MAGIC | ACA_SRVKEYBITS,
-     autoca_cf,
+    {"serverKeybits", "integer", 2, 2, 0, ARG_INT | ARG_MAGIC | ACA_SRVKEYBITS, autoca_cf,
      "( OLcfgOvAt:22.4 NAME 'olcACAserverKeybits' "
      "DESC 'Size of PrivateKey for server entries' "
      "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-    {"caKeybits", "integer", 2, 2, 0, ARG_INT | ARG_MAGIC | ACA_CAKEYBITS,
-     autoca_cf,
+    {"caKeybits", "integer", 2, 2, 0, ARG_INT | ARG_MAGIC | ACA_CAKEYBITS, autoca_cf,
      "( OLcfgOvAt:22.5 NAME 'olcACAKeybits' "
      "DESC 'Size of PrivateKey for CA certificate' "
      "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-    {"userDays", "integer", 2, 2, 0, ARG_INT | ARG_MAGIC | ACA_USRDAYS,
-     autoca_cf,
+    {"userDays", "integer", 2, 2, 0, ARG_INT | ARG_MAGIC | ACA_USRDAYS, autoca_cf,
      "( OLcfgOvAt:22.6 NAME 'olcACAuserDays' "
      "DESC 'Lifetime of user certificates in days' "
      "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-    {"serverDays", "integer", 2, 2, 0, ARG_INT | ARG_MAGIC | ACA_SRVDAYS,
-     autoca_cf,
+    {"serverDays", "integer", 2, 2, 0, ARG_INT | ARG_MAGIC | ACA_SRVDAYS, autoca_cf,
      "( OLcfgOvAt:22.7 NAME 'olcACAserverDays' "
      "DESC 'Lifetime of server certificates in days' "
      "EQUALITY integerMatch "
@@ -752,17 +736,16 @@ static ConfigTable autoca_cfg[] = {
      NULL, NULL},
     {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
 
-static ConfigOCs autoca_ocs[] = {
-    {"( OLcfgOvOc:22.1 "
-     "NAME 'olcACAConfig' "
-     "DESC 'AutoCA configuration' "
-     "SUP olcOverlayConfig "
-     "MAY ( olcACAuserClass $ olcACAserverClass $ "
-     "olcACAuserKeybits $ olcACAserverKeybits $ olcACAKeyBits $ "
-     "olcACAuserDays $ olcACAserverDays $ olcACADays $ "
-     "olcACAlocalDN ) )",
-     Cft_Overlay, autoca_cfg},
-    {NULL, 0, NULL}};
+static ConfigOCs autoca_ocs[] = {{"( OLcfgOvOc:22.1 "
+                                  "NAME 'olcACAConfig' "
+                                  "DESC 'AutoCA configuration' "
+                                  "SUP olcOverlayConfig "
+                                  "MAY ( olcACAuserClass $ olcACAserverClass $ "
+                                  "olcACAuserKeybits $ olcACAserverKeybits $ olcACAKeyBits $ "
+                                  "olcACAuserDays $ olcACAserverDays $ olcACADays $ "
+                                  "olcACAlocalDN ) )",
+                                  Cft_Overlay, autoca_cfg},
+                                 {NULL, 0, NULL}};
 
 static int autoca_op_response(Operation *op, SlapReply *rs) {
   slap_overinst *on = op->o_callback->sc_private;
@@ -777,11 +760,9 @@ static int autoca_op_response(Operation *op, SlapReply *rs) {
   if (!be_isroot(op) && !dn_match(&rs->sr_entry->e_nname, &op->o_ndn))
     return SLAP_CB_CONTINUE;
 
-  isusr =
-      is_entry_objectclass(rs->sr_entry, ai->ai_usrclass, SLAP_OCF_CHECK_SUP);
+  isusr = is_entry_objectclass(rs->sr_entry, ai->ai_usrclass, SLAP_OCF_CHECK_SUP);
   if (!isusr) {
-    if (!is_entry_objectclass(rs->sr_entry, ai->ai_srvclass,
-                              SLAP_OCF_CHECK_SUP))
+    if (!is_entry_objectclass(rs->sr_entry, ai->ai_srvclass, SLAP_OCF_CHECK_SUP))
       return SLAP_CB_CONTINUE;
   }
   a = attr_find(rs->sr_entry->e_attrs, ad_usrPkey);
@@ -804,8 +785,7 @@ static int autoca_op_response(Operation *op, SlapReply *rs) {
       if (a) {
         extras[0].name = "subjectAltName";
         extras[1].name = NULL;
-        extras[0].value = op->o_tmpalloc(sizeof("email:") + a->a_vals[0].bv_len,
-                                         op->o_tmpmemctx);
+        extras[0].value = op->o_tmpalloc(sizeof("email:") + a->a_vals[0].bv_len, op->o_tmpmemctx);
         sprintf(extras[0].value, "email:%s", a->a_vals[0].bv_val);
         args.more_exts = extras;
       }
@@ -816,8 +796,7 @@ static int autoca_op_response(Operation *op, SlapReply *rs) {
       if (ad_ipaddr && (a = attr_find(rs->sr_entry->e_attrs, ad_ipaddr))) {
         extras[0].name = "subjectAltName";
         extras[1].name = NULL;
-        extras[0].value = op->o_tmpalloc(sizeof("IP:") + a->a_vals[0].bv_len,
-                                         op->o_tmpmemctx);
+        extras[0].value = op->o_tmpalloc(sizeof("IP:") + a->a_vals[0].bv_len, op->o_tmpmemctx);
         sprintf(extras[0].value, "IP:%s", a->a_vals[0].bv_val);
         args.more_exts = extras;
       }
@@ -861,12 +840,10 @@ static int autoca_op_response(Operation *op, SlapReply *rs) {
 
 static int autoca_op_search(Operation *op, SlapReply *rs) {
   /* we only act on a search that returns just our cert/key attrs */
-  if (op->ors_attrs && op->ors_attrs[0].an_desc == ad_usrCert &&
-      op->ors_attrs[1].an_desc == ad_usrPkey &&
+  if (op->ors_attrs && op->ors_attrs[0].an_desc == ad_usrCert && op->ors_attrs[1].an_desc == ad_usrPkey &&
       op->ors_attrs[2].an_name.bv_val == NULL) {
     slap_overinst *on = (slap_overinst *)op->o_bd->bd_info;
-    slap_callback *sc =
-        op->o_tmpcalloc(1, sizeof(slap_callback), op->o_tmpmemctx);
+    slap_callback *sc = op->o_tmpcalloc(1, sizeof(slap_callback), op->o_tmpmemctx);
     sc->sc_response = autoca_op_response;
     sc->sc_private = on;
     sc->sc_next = op->o_callback;

@@ -117,8 +117,7 @@ char *ldap_next_attribute(LDAP *ld, LDAPMessage *entry, BerElement *ber) {
  * not dup'd into malloc'd memory.
  */
 /* ARGSUSED */
-int ldap_get_attribute_ber(LDAP *ld, LDAPMessage *entry, BerElement *ber,
-                           BerValue *attr, BerVarray *vals) {
+int ldap_get_attribute_ber(LDAP *ld, LDAPMessage *entry, BerElement *ber, BerValue *attr, BerVarray *vals) {
   ber_tag_t tag;
   int rc = LDAP_SUCCESS;
 

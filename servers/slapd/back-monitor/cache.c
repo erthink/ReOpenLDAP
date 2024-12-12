@@ -81,8 +81,7 @@ int monitor_cache_add(monitor_info_t *mi, Entry *e) {
   mc->mc_ndn = e->e_nname;
   mc->mc_e = e;
   ldap_pvt_thread_mutex_lock(&mi->mi_cache_mutex);
-  rc = avl_insert(&mi->mi_cache, (caddr_t)mc, monitor_cache_cmp,
-                  monitor_cache_dup);
+  rc = avl_insert(&mi->mi_cache, (caddr_t)mc, monitor_cache_cmp, monitor_cache_dup);
   ldap_pvt_thread_mutex_unlock(&mi->mi_cache_mutex);
 
   return rc;
@@ -132,8 +131,7 @@ int monitor_cache_get(monitor_info_t *mi, struct berval *ndn, Entry **ep) {
   tmp_mc.mc_ndn = *ndn;
 retry:;
   ldap_pvt_thread_mutex_lock(&mi->mi_cache_mutex);
-  mc = (monitor_cache_t *)avl_find(mi->mi_cache, (caddr_t)&tmp_mc,
-                                   monitor_cache_cmp);
+  mc = (monitor_cache_t *)avl_find(mi->mi_cache, (caddr_t)&tmp_mc, monitor_cache_cmp);
 
   if (mc != NULL) {
     /* entry is returned with mutex locked */
@@ -170,8 +168,7 @@ retry:;
   ldap_pvt_thread_mutex_lock(&mi->mi_cache_mutex);
 
   tmp_mc.mc_ndn = *ndn;
-  mc = (monitor_cache_t *)avl_find(mi->mi_cache, (caddr_t)&tmp_mc,
-                                   monitor_cache_cmp);
+  mc = (monitor_cache_t *)avl_find(mi->mi_cache, (caddr_t)&tmp_mc, monitor_cache_cmp);
 
   if (mc != NULL) {
     monitor_cache_t *pmc;
@@ -182,11 +179,9 @@ retry:;
     }
 
     tmp_mc.mc_ndn = pndn;
-    pmc = (monitor_cache_t *)avl_find(mi->mi_cache, (caddr_t)&tmp_mc,
-                                      monitor_cache_cmp);
+    pmc = (monitor_cache_t *)avl_find(mi->mi_cache, (caddr_t)&tmp_mc, monitor_cache_cmp);
     if (pmc != NULL) {
-      monitor_entry_t *mp = (monitor_entry_t *)mc->mc_e->e_private,
-                      *pmp = (monitor_entry_t *)pmc->mc_e->e_private;
+      monitor_entry_t *mp = (monitor_entry_t *)mc->mc_e->e_private, *pmp = (monitor_entry_t *)pmc->mc_e->e_private;
       Entry **entryp;
 
       if (monitor_cache_trylock(pmc->mc_e)) {
@@ -255,8 +250,7 @@ retry:;
  * descendants an attempt to generate the required entry is
  * performed and, if successful, the entry is returned
  */
-int monitor_cache_dn2entry(Operation *op, SlapReply *rs, struct berval *ndn,
-                           Entry **ep, Entry **matched) {
+int monitor_cache_dn2entry(Operation *op, SlapReply *rs, struct berval *ndn, Entry **ep, Entry **matched) {
   monitor_info_t *mi = (monitor_info_t *)op->o_bd->be_private;
   int rc;
   struct berval p_ndn = BER_BVNULL;

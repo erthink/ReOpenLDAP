@@ -139,8 +139,7 @@ void slap_init_user(char *user, char *group) {
     }
 #ifdef HAVE_SETEGID
     if (setegid(gid) != 0) {
-      Debug(LDAP_DEBUG_ANY, "Could not set effective group id to %d\n",
-            (int)gid);
+      Debug(LDAP_DEBUG_ANY, "Could not set effective group id to %d\n", (int)gid);
 
       exit(EXIT_FAILURE);
     }
@@ -155,8 +154,7 @@ void slap_init_user(char *user, char *group) {
     }
 #ifdef HAVE_SETEUID
     if (seteuid(uid) != 0) {
-      Debug(LDAP_DEBUG_ANY, "Could not set effective user id to %d\n",
-            (int)uid);
+      Debug(LDAP_DEBUG_ANY, "Could not set effective user id to %d\n", (int)uid);
 
       exit(EXIT_FAILURE);
     }

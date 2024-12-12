@@ -257,8 +257,7 @@ void ldap_free_sort_keylist(LDAPSortKey **keyList) {
 
    ---------------------------------------------------------------------------*/
 
-int ldap_create_sort_control_value(LDAP *ld, LDAPSortKey **keyList,
-                                   struct berval *value) {
+int ldap_create_sort_control_value(LDAP *ld, LDAPSortKey **keyList, struct berval *value) {
   int i;
   BerElement *ber = NULL;
   ber_tag_t tag;
@@ -295,8 +294,7 @@ int ldap_create_sort_control_value(LDAP *ld, LDAPSortKey **keyList,
     }
 
     if (keyList[i]->orderingRule != NULL) {
-      tag = ber_printf(ber, "ts", LDAP_MATCHRULE_IDENTIFIER,
-                       keyList[i]->orderingRule);
+      tag = ber_printf(ber, "ts", LDAP_MATCHRULE_IDENTIFIER, keyList[i]->orderingRule);
 
       if (tag == LBER_ERROR) {
         goto error_return;
@@ -304,8 +302,7 @@ int ldap_create_sort_control_value(LDAP *ld, LDAPSortKey **keyList,
     }
 
     if (keyList[i]->reverseOrder) {
-      tag = ber_printf(ber, "tb", LDAP_REVERSEORDER_IDENTIFIER,
-                       keyList[i]->reverseOrder);
+      tag = ber_printf(ber, "tb", LDAP_REVERSEORDER_IDENTIFIER, keyList[i]->reverseOrder);
 
       if (tag == LBER_ERROR) {
         goto error_return;
@@ -371,8 +368,7 @@ int ldap_create_sort_control_value(LDAP *ld, LDAPSortKey **keyList,
 
    ---------------------------------------------------------------------------*/
 
-int ldap_create_sort_control(LDAP *ld, LDAPSortKey **keyList, int isCritical,
-                             LDAPControl **ctrlp) {
+int ldap_create_sort_control(LDAP *ld, LDAPSortKey **keyList, int isCritical, LDAPControl **ctrlp) {
   struct berval value;
 
   assert(ld != NULL);
@@ -389,8 +385,7 @@ int ldap_create_sort_control(LDAP *ld, LDAPSortKey **keyList, int isCritical,
 
   ld->ld_errno = ldap_create_sort_control_value(ld, keyList, &value);
   if (ld->ld_errno == LDAP_SUCCESS) {
-    ld->ld_errno = ldap_control_create(LDAP_CONTROL_SORTREQUEST, isCritical,
-                                       &value, 0, ctrlp);
+    ld->ld_errno = ldap_control_create(LDAP_CONTROL_SORTREQUEST, isCritical, &value, 0, ctrlp);
     if (ld->ld_errno != LDAP_SUCCESS) {
       LDAP_FREE(value.bv_val);
     }
@@ -451,8 +446,7 @@ int ldap_create_sort_control(LDAP *ld, LDAPSortKey **keyList, int isCritical,
           attributeType [0] AttributeDescription OPTIONAL }
    ---------------------------------------------------------------------------*/
 
-int ldap_parse_sortresponse_control(LDAP *ld, LDAPControl *ctrl,
-                                    ber_int_t *returnCode, char **attribute) {
+int ldap_parse_sortresponse_control(LDAP *ld, LDAPControl *ctrl, ber_int_t *returnCode, char **attribute) {
   BerElement *ber;
   ber_tag_t tag, berTag;
   ber_len_t berLen;

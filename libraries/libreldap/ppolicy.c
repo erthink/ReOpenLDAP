@@ -60,8 +60,7 @@ int ldap_create_passwordpolicy_control(LDAP *ld, LDAPControl **ctrlp) {
   assert(LDAP_VALID(ld));
   assert(ctrlp != NULL);
 
-  ld->ld_errno = ldap_control_create(LDAP_CONTROL_PASSWORDPOLICYREQUEST, 0,
-                                     NULL, 0, ctrlp);
+  ld->ld_errno = ldap_control_create(LDAP_CONTROL_PASSWORDPOLICYREQUEST, 0, NULL, 0, ctrlp);
 
   return ld->ld_errno;
 }
@@ -110,8 +109,7 @@ PP_noError.
 
 ---*/
 
-int ldap_parse_passwordpolicy_control(LDAP *ld, LDAPControl *ctrl,
-                                      ber_int_t *expirep, ber_int_t *gracep,
+int ldap_parse_passwordpolicy_control(LDAP *ld, LDAPControl *ctrl, ber_int_t *expirep, ber_int_t *gracep,
                                       LDAPPasswordPolicyError *errorp) {
   BerElement *ber;
   int exp = -1, grace = -1;
@@ -141,8 +139,7 @@ int ldap_parse_passwordpolicy_control(LDAP *ld, LDAPControl *ctrl,
   if (tag != LBER_SEQUENCE)
     goto exit;
 
-  for (tag = ber_first_element(ber, &berLen, &last); tag != LBER_DEFAULT;
-       tag = ber_next_element(ber, &berLen, last)) {
+  for (tag = ber_first_element(ber, &berLen, &last); tag != LBER_DEFAULT; tag = ber_next_element(ber, &berLen, last)) {
     switch (tag) {
     case PPOLICY_WARNING:
       ber_skip_tag(ber, &berLen);

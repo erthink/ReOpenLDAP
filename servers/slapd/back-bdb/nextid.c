@@ -47,8 +47,7 @@ int bdb_last_id(BackendDB *be, DB_TXN *tid) {
   data.flags = DB_DBT_USERMEM | DB_DBT_PARTIAL;
 
   /* Get a read cursor */
-  rc = bdb->bi_id2entry->bdi_db->cursor(bdb->bi_id2entry->bdi_db, tid, &cursor,
-                                        0);
+  rc = bdb->bi_id2entry->bdi_db->cursor(bdb->bi_id2entry->bdi_db, tid, &cursor, 0);
 
   if (rc == 0) {
     rc = cursor->c_get(cursor, &key, &data, DB_LAST);
@@ -64,8 +63,7 @@ int bdb_last_id(BackendDB *be, DB_TXN *tid) {
     break;
 
   default:
-    Debug(LDAP_DEBUG_ANY, "=> bdb_last_id: get failed: %s (%d)\n",
-          db_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "=> bdb_last_id: get failed: %s (%d)\n", db_strerror(rc), rc);
     goto done;
   }
 

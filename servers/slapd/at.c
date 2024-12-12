@@ -65,8 +65,7 @@ struct aindexrec {
 
 static Avlnode *attr_index = NULL;
 static Avlnode *attr_cache = NULL;
-static LDAP_STAILQ_HEAD(ATList, AttributeType) attr_list =
-    LDAP_STAILQ_HEAD_INITIALIZER(attr_list);
+static LDAP_STAILQ_HEAD(ATList, AttributeType) attr_list = LDAP_STAILQ_HEAD_INITIALIZER(attr_list);
 
 /* Last hardcoded attribute registered */
 AttributeType *at_sys_tail;
@@ -207,8 +206,7 @@ static void at_delete_names(AttributeType *at) {
 
     ber_str2bv(*names, 0, 0, &tmpair.air_name);
     tmpair.air_at = at;
-    air = (struct aindexrec *)avl_delete(&attr_index, (caddr_t)&tmpair,
-                                         attr_index_cmp);
+    air = (struct aindexrec *)avl_delete(&attr_index, (caddr_t)&tmpair, attr_index_cmp);
     assert(air != NULL);
     ldap_memfree(air);
     names++;
@@ -383,8 +381,7 @@ static int at_dup_error(void *left, void *right) {
   return -1;
 }
 
-static int at_insert(AttributeType **rat, AttributeType *prev,
-                     const char **err) {
+static int at_insert(AttributeType **rat, AttributeType *prev, const char **err) {
   struct aindexrec *air;
   char **names = NULL;
   AttributeType *sat = *rat;
@@ -456,8 +453,7 @@ static int at_insert(AttributeType **rat, AttributeType *prev,
       air = (struct aindexrec *)ch_calloc(1, sizeof(struct aindexrec));
       ber_str2bv(*names, 0, 0, &air->air_name);
       air->air_at = sat;
-      if (avl_insert(&attr_index, (caddr_t)air, attr_index_cmp,
-                     avl_dup_error)) {
+      if (avl_insert(&attr_index, (caddr_t)air, attr_index_cmp, avl_dup_error)) {
         AttributeType *old_sat;
         int rc;
 
@@ -475,8 +471,7 @@ static int at_insert(AttributeType **rat, AttributeType *prev,
           names--;
           ber_str2bv(*names, 0, 0, &tmpair.air_name);
           tmpair.air_at = sat;
-          air = (struct aindexrec *)avl_delete(&attr_index, (caddr_t)&tmpair,
-                                               attr_index_cmp);
+          air = (struct aindexrec *)avl_delete(&attr_index, (caddr_t)&tmpair, attr_index_cmp);
           assert(air != NULL);
           ldap_memfree(air);
         }
@@ -486,8 +481,7 @@ static int at_insert(AttributeType **rat, AttributeType *prev,
 
           ber_str2bv(sat->sat_oid, 0, 0, &tmpair.air_name);
           tmpair.air_at = sat;
-          air = (struct aindexrec *)avl_delete(&attr_index, (caddr_t)&tmpair,
-                                               attr_index_cmp);
+          air = (struct aindexrec *)avl_delete(&attr_index, (caddr_t)&tmpair, attr_index_cmp);
           assert(air != NULL);
           ldap_memfree(air);
         }
@@ -525,8 +519,7 @@ static int at_insert(AttributeType **rat, AttributeType *prev,
   return 0;
 }
 
-int at_add(LDAPAttributeType *at, int user, AttributeType **rsat,
-           AttributeType *prev, const char **err) {
+int at_add(LDAPAttributeType *at, int user, AttributeType **rsat, AttributeType *prev, const char **err) {
   AttributeType *sat = NULL;
   MatchingRule *mr = NULL;
   Syntax *syn = NULL;
@@ -687,13 +680,11 @@ int at_add(LDAPAttributeType *at, int user, AttributeType **rsat,
    */
   if (sat->sat_extensions) {
     for (i = 0; sat->sat_extensions[i]; i++) {
-      if (!strcasecmp(sat->sat_extensions[i]->lsei_name, "X-ORDERED") &&
-          sat->sat_extensions[i]->lsei_values) {
+      if (!strcasecmp(sat->sat_extensions[i]->lsei_name, "X-ORDERED") && sat->sat_extensions[i]->lsei_values) {
         if (!strcasecmp(sat->sat_extensions[i]->lsei_values[0], "VALUES")) {
           sat->sat_flags |= SLAP_AT_ORDERED_VAL;
           break;
-        } else if (!strcasecmp(sat->sat_extensions[i]->lsei_values[0],
-                               "SIBLINGS")) {
+        } else if (!strcasecmp(sat->sat_extensions[i]->lsei_values[0], "SIBLINGS")) {
           sat->sat_flags |= SLAP_AT_ORDERED_SIB;
           break;
         }
@@ -891,8 +882,7 @@ int at_add(LDAPAttributeType *at, int user, AttributeType **rsat,
 #ifdef SLAPD_UNUSED
 static int at_index_printnode(void *v_air, void *ignore) {
   struct aindexrec *air = v_air;
-  printf("%s = %s\n", air->air_name.bv_val,
-         ldap_attributetype2str(&air->air_at->sat_atype));
+  printf("%s = %s\n", air->air_name.bv_val, ldap_attributetype2str(&air->air_at->sat_atype));
   return (0);
 }
 
@@ -903,8 +893,7 @@ static void at_index_print(void) {
 #endif
 #endif
 
-void at_unparse(BerVarray *res, AttributeType *start, AttributeType *end,
-                int sys) {
+void at_unparse(BerVarray *res, AttributeType *start, AttributeType *end, int sys) {
   AttributeType *at;
   int i, num;
   struct berval bv, *bva = NULL, idx;
@@ -999,8 +988,7 @@ int register_at(const char *def, AttributeDescription **rad, int dupok) {
 
   at = ldap_str2attributetype(def, &code, &err, LDAP_SCHEMA_ALLOW_ALL);
   if (!at) {
-    Debug(LDAP_DEBUG_ANY, "register_at: AttributeType \"%s\": %s, %s\n", def,
-          ldap_scherr2str(code), err);
+    Debug(LDAP_DEBUG_ANY, "register_at: AttributeType \"%s\": %s, %s\n", def, ldap_scherr2str(code), err);
     return code;
   }
 
@@ -1010,8 +998,7 @@ int register_at(const char *def, AttributeDescription **rad, int dupok) {
       freeit = 1;
 
     } else {
-      Debug(LDAP_DEBUG_ANY, "register_at: AttributeType \"%s\": %s, %s\n", def,
-            scherr2str(code), err);
+      Debug(LDAP_DEBUG_ANY, "register_at: AttributeType \"%s\": %s, %s\n", def, scherr2str(code), err);
       ldap_attributetype_free(at);
       return code;
     }

@@ -48,8 +48,7 @@ static LUTIL_PASSWD_HASH_FUNC hash_bsdmd5;
 static const struct berval scheme_bsdmd5 = BER_BVC("{BSDMD5}");
 static const struct berval magic_bsdmd5 = BER_BVC("$1$");
 
-static const unsigned char apr64[] =
-    "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+static const unsigned char apr64[] = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 #define APR_SALT_SIZE 8
 
@@ -62,8 +61,8 @@ static const unsigned char apr64[] =
  * this stuff is worth it, you can buy me a beer in return Poul-Henning Kamp
  * ----------------------------------------------------------------------------
  */
-static void do_phk_hash(const struct berval *passwd, const struct berval *salt,
-                        const struct berval *magic, unsigned char *digest) {
+static void do_phk_hash(const struct berval *passwd, const struct berval *salt, const struct berval *magic,
+                        unsigned char *digest) {
   lutil_MD5_CTX ctx, ctx1;
   int n;
 
@@ -96,28 +95,25 @@ static void do_phk_hash(const struct berval *passwd, const struct berval *salt,
   for (n = 0; n < 1000; n++) {
     lutil_MD5Init(&ctx1);
     if (n & 1)
-      lutil_MD5Update(&ctx1, (const unsigned char *)passwd->bv_val,
-                      passwd->bv_len);
+      lutil_MD5Update(&ctx1, (const unsigned char *)passwd->bv_val, passwd->bv_len);
     else
       lutil_MD5Update(&ctx1, digest, LUTIL_MD5_BYTES);
 
     if (n % 3)
       lutil_MD5Update(&ctx1, (const unsigned char *)salt->bv_val, salt->bv_len);
     if (n % 7)
-      lutil_MD5Update(&ctx1, (const unsigned char *)passwd->bv_val,
-                      passwd->bv_len);
+      lutil_MD5Update(&ctx1, (const unsigned char *)passwd->bv_val, passwd->bv_len);
 
     if (n & 1)
       lutil_MD5Update(&ctx1, digest, LUTIL_MD5_BYTES);
     else
-      lutil_MD5Update(&ctx1, (const unsigned char *)passwd->bv_val,
-                      passwd->bv_len);
+      lutil_MD5Update(&ctx1, (const unsigned char *)passwd->bv_val, passwd->bv_len);
     lutil_MD5Final(digest, &ctx1);
   }
 }
 
-static int chk_phk(const struct berval *magic, const struct berval *passwd,
-                   const struct berval *cred, const char **text) {
+static int chk_phk(const struct berval *magic, const struct berval *passwd, const struct berval *cred,
+                   const char **text) {
   unsigned char digest[LUTIL_MD5_BYTES];
   unsigned char *orig_pass;
   int rc;
@@ -155,19 +151,18 @@ static int chk_phk(const struct berval *magic, const struct berval *passwd,
   return rc ? LUTIL_PASSWD_ERR : LUTIL_PASSWD_OK;
 }
 
-static int chk_apr1(const struct berval *scheme, const struct berval *passwd,
-                    const struct berval *cred, const char **text) {
+static int chk_apr1(const struct berval *scheme, const struct berval *passwd, const struct berval *cred,
+                    const char **text) {
   return chk_phk(&magic_apr1, passwd, cred, text);
 }
 
-static int chk_bsdmd5(const struct berval *scheme, const struct berval *passwd,
-                      const struct berval *cred, const char **text) {
+static int chk_bsdmd5(const struct berval *scheme, const struct berval *passwd, const struct berval *cred,
+                      const char **text) {
   return chk_phk(&magic_bsdmd5, passwd, cred, text);
 }
 
-static int hash_phk(const struct berval *scheme, const struct berval *magic,
-                    const struct berval *passwd, struct berval *hash,
-                    const char **text) {
+static int hash_phk(const struct berval *scheme, const struct berval *magic, const struct berval *passwd,
+                    struct berval *hash, const char **text) {
   unsigned char digest_buf[LUTIL_MD5_BYTES];
   char salt_buf[APR_SALT_SIZE];
   struct berval digest;
@@ -194,13 +189,12 @@ static int hash_phk(const struct berval *scheme, const struct berval *magic,
   return lutil_passwd_string64(scheme, &digest, hash, &salt);
 }
 
-static int hash_apr1(const struct berval *scheme, const struct berval *passwd,
-                     struct berval *hash, const char **text) {
+static int hash_apr1(const struct berval *scheme, const struct berval *passwd, struct berval *hash, const char **text) {
   return hash_phk(scheme, &magic_apr1, passwd, hash, text);
 }
 
-static int hash_bsdmd5(const struct berval *scheme, const struct berval *passwd,
-                       struct berval *hash, const char **text) {
+static int hash_bsdmd5(const struct berval *scheme, const struct berval *passwd, struct berval *hash,
+                       const char **text) {
   return hash_phk(scheme, &magic_bsdmd5, passwd, hash, text);
 }
 
@@ -208,7 +202,6 @@ SLAP_MODULE_ENTRY(pw_arp1, modinit)(int argc, char *argv[]) {
   int rc;
   rc = lutil_passwd_add((struct berval *)&scheme_apr1, chk_apr1, hash_apr1);
   if (!rc)
-    rc = lutil_passwd_add((struct berval *)&scheme_bsdmd5, chk_bsdmd5,
-                          hash_bsdmd5);
+    rc = lutil_passwd_add((struct berval *)&scheme_bsdmd5, chk_bsdmd5, hash_bsdmd5);
   return rc;
 }

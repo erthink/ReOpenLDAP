@@ -40,8 +40,7 @@ __extern_C const char *lber_strerror(int err);
 #define STRERROR(e) lber_strerror(e)
 #elif defined(HAVE_SYS_ERRLIST)
 /* this is thread safe */
-#define STRERROR(e)                                                            \
-  ((e) > -1 && (e) < sys_nerr ? sys_errlist[(e)] : _AC_ERRNO_UNKNOWN)
+#define STRERROR(e) ((e) > -1 && (e) < sys_nerr ? sys_errlist[(e)] : _AC_ERRNO_UNKNOWN)
 
 #elif defined(HAVE_STRERROR)
 /* this may not be thread safe */

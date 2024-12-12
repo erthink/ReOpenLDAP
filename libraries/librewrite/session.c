@@ -36,9 +36,7 @@ static int rewrite_cookie_cmp(const void *c1, const void *c2) {
   assert(s1->ls_cookie != NULL);
   assert(s2->ls_cookie != NULL);
 
-  return ((s1->ls_cookie < s2->ls_cookie)
-              ? -1
-              : ((s1->ls_cookie > s2->ls_cookie) ? 1 : 0));
+  return ((s1->ls_cookie < s2->ls_cookie) ? -1 : ((s1->ls_cookie > s2->ls_cookie) ? 1 : 0));
 }
 
 /*
@@ -63,8 +61,7 @@ static int rewrite_cookie_dup(void *c1, void *c2) {
 /*
  * Inits a session
  */
-struct rewrite_session *rewrite_session_init(struct rewrite_info *info,
-                                             const void *cookie) {
+struct rewrite_session *rewrite_session_init(struct rewrite_info *info, const void *cookie) {
   struct rewrite_session *session, tmp;
   int rc;
 
@@ -76,8 +73,7 @@ struct rewrite_session *rewrite_session_init(struct rewrite_info *info,
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
 
   tmp.ls_cookie = (void *)cookie;
-  session = (struct rewrite_session *)avl_find(info->li_cookies, (caddr_t)&tmp,
-                                               rewrite_cookie_cmp);
+  session = (struct rewrite_session *)avl_find(info->li_cookies, (caddr_t)&tmp, rewrite_cookie_cmp);
   if (session) {
     session->ls_count++;
 #ifdef USE_REWRITE_LDAP_PVT_THREADS
@@ -110,8 +106,7 @@ struct rewrite_session *rewrite_session_init(struct rewrite_info *info,
   }
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
 
-  rc = avl_insert(&info->li_cookies, (caddr_t)session, rewrite_cookie_cmp,
-                  rewrite_cookie_dup);
+  rc = avl_insert(&info->li_cookies, (caddr_t)session, rewrite_cookie_cmp, rewrite_cookie_dup);
   info->li_num_cookies++;
 
 #ifdef USE_REWRITE_LDAP_PVT_THREADS
@@ -134,8 +129,7 @@ struct rewrite_session *rewrite_session_init(struct rewrite_info *info,
 /*
  * Fetches a session
  */
-struct rewrite_session *rewrite_session_find(struct rewrite_info *info,
-                                             const void *cookie) {
+struct rewrite_session *rewrite_session_find(struct rewrite_info *info, const void *cookie) {
   struct rewrite_session *session, tmp;
 
   assert(info != NULL);
@@ -145,8 +139,7 @@ struct rewrite_session *rewrite_session_find(struct rewrite_info *info,
 #ifdef USE_REWRITE_LDAP_PVT_THREADS
   ldap_pvt_thread_rdwr_rlock(&info->li_cookies_mutex);
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
-  session = (struct rewrite_session *)avl_find(info->li_cookies, (caddr_t)&tmp,
-                                               rewrite_cookie_cmp);
+  session = (struct rewrite_session *)avl_find(info->li_cookies, (caddr_t)&tmp, rewrite_cookie_cmp);
 #ifdef USE_REWRITE_LDAP_PVT_THREADS
   if (session) {
     ldap_pvt_thread_mutex_lock(&session->ls_mutex);
@@ -161,8 +154,7 @@ struct rewrite_session *rewrite_session_find(struct rewrite_info *info,
 /*
  * Returns a session
  */
-void rewrite_session_return(struct rewrite_info *info,
-                            struct rewrite_session *session) {
+void rewrite_session_return(struct rewrite_info *info, struct rewrite_session *session) {
   assert(session != NULL);
   session->ls_count--;
   ldap_pvt_thread_mutex_unlock(&session->ls_mutex);
@@ -171,8 +163,8 @@ void rewrite_session_return(struct rewrite_info *info,
 /*
  * Defines and inits a var with session scope
  */
-int rewrite_session_var_set_f(struct rewrite_info *info, const void *cookie,
-                              const char *name, const char *value, int flags) {
+int rewrite_session_var_set_f(struct rewrite_info *info, const void *cookie, const char *name, const char *value,
+                              int flags) {
   struct rewrite_session *session;
   struct rewrite_var *var;
 
@@ -226,8 +218,7 @@ int rewrite_session_var_set_f(struct rewrite_info *info, const void *cookie,
 /*
  * Gets a var with session scope
  */
-int rewrite_session_var_get(struct rewrite_info *info, const void *cookie,
-                            const char *name, struct berval *value) {
+int rewrite_session_var_get(struct rewrite_info *info, const void *cookie, const char *name, struct berval *value) {
   struct rewrite_session *session;
   struct rewrite_var *var;
   int rc = REWRITE_SUCCESS;

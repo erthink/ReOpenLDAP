@@ -62,8 +62,7 @@ int sock_back_compare(Operation *op, SlapReply *rs) {
   sock_print_suffixes(fp, op->o_bd);
   fprintf(fp, "dn: %s\n", op->o_req_dn.bv_val);
   /* could be binary */
-  text = ldif_put_wrap(LDIF_PUT_VALUE, op->orc_ava->aa_desc->ad_cname.bv_val,
-                       op->orc_ava->aa_value.bv_val,
+  text = ldif_put_wrap(LDIF_PUT_VALUE, op->orc_ava->aa_desc->ad_cname.bv_val, op->orc_ava->aa_value.bv_val,
                        op->orc_ava->aa_value.bv_len, LDIF_LINE_WIDTH_MAX);
   if (text) {
     fprintf(fp, "%s\n", text);

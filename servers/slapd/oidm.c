@@ -27,8 +27,7 @@
 #include "lutil.h"
 #include "slapconfig.h"
 
-static LDAP_STAILQ_HEAD(OidMacroList, OidMacro) om_list =
-    LDAP_STAILQ_HEAD_INITIALIZER(om_list);
+static LDAP_STAILQ_HEAD(OidMacroList, OidMacro) om_list = LDAP_STAILQ_HEAD_INITIALIZER(om_list);
 
 OidMacro *om_sys_tail;
 
@@ -94,8 +93,7 @@ int parse_oidm(struct config_args_s *c, int user, OidMacro **rom) {
 
   oidv = oidm_find(c->argv[2]);
   if (!oidv) {
-    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: OID %s not recognized",
-             c->argv[0], c->argv[2]);
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: OID %s not recognized", c->argv[0], c->argv[2]);
     Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s %s\n", c->log, c->cr_msg);
     return 1;
   }
@@ -103,9 +101,7 @@ int parse_oidm(struct config_args_s *c, int user, OidMacro **rom) {
   oid = oidm_find(c->argv[1]);
   if (oid != NULL) {
     int rc;
-    snprintf(c->cr_msg, sizeof(c->cr_msg),
-             "%s: \"%s\" previously defined \"%s\"", c->argv[0], c->argv[1],
-             oid);
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: \"%s\" previously defined \"%s\"", c->argv[0], c->argv[1], oid);
     Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s %s\n", c->log, c->cr_msg);
     /* Allow duplicate if the definition is identical */
     rc = strcmp(oid, oidv) != 0;
@@ -117,8 +113,7 @@ int parse_oidm(struct config_args_s *c, int user, OidMacro **rom) {
 
   om = (OidMacro *)SLAP_CALLOC(sizeof(OidMacro), 1);
   if (om == NULL) {
-    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: SLAP_CALLOC failed",
-             c->argv[0]);
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: SLAP_CALLOC failed", c->argv[0]);
     Debug(LDAP_DEBUG_ANY, "%s %s\n", c->log, c->cr_msg);
     if (oidv != c->argv[2])
       SLAP_FREE(oidv);
@@ -192,8 +187,7 @@ void oidm_unparse(BerVarray *res, OidMacro *start, OidMacro *end, int sys) {
       if (!sys) {
         idx.bv_len = sprintf(idx.bv_val, "{%d}", i);
       }
-      bva[i].bv_len =
-          idx.bv_len + om->som_names[j].bv_len + om->som_subs[j].bv_len + 1;
+      bva[i].bv_len = idx.bv_len + om->som_names[j].bv_len + om->som_subs[j].bv_len + 1;
       bva[i].bv_val = ch_malloc(bva[i].bv_len + 1);
       ptr = lutil_strcopy(bva[i].bv_val, ibuf);
       ptr = lutil_strcopy(ptr, om->som_names[j].bv_val);

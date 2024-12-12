@@ -64,13 +64,11 @@ int dnssrv_back_referrals(Operation *op, SlapReply *rs) {
     return LDAP_REFERRAL;
   }
 
-  Debug(LDAP_DEBUG_TRACE, "DNSSRV: dn=\"%s\" -> domain=\"%s\"\n",
-        op->o_req_dn.bv_val, domain);
+  Debug(LDAP_DEBUG_TRACE, "DNSSRV: dn=\"%s\" -> domain=\"%s\"\n", op->o_req_dn.bv_val, domain);
 
   i = ldap_domain2hostlist(domain, &hostlist);
   if (i) {
-    Debug(LDAP_DEBUG_TRACE, "DNSSRV: domain2hostlist(%s) returned %d\n", domain,
-          i);
+    Debug(LDAP_DEBUG_TRACE, "DNSSRV: domain2hostlist(%s) returned %d\n", domain, i);
     rs->sr_text = "no DNS SRV RR available for DN";
     rc = LDAP_NO_SUCH_OBJECT;
     goto done;
@@ -100,12 +98,10 @@ int dnssrv_back_referrals(Operation *op, SlapReply *rs) {
     }
   }
 
-  Statslog(LDAP_DEBUG_STATS, "%s DNSSRV p=%d dn=\"%s\" url=\"%s\"\n",
-           op->o_log_prefix, op->o_protocol, op->o_req_dn.bv_val,
-           urls[0].bv_val);
+  Statslog(LDAP_DEBUG_STATS, "%s DNSSRV p=%d dn=\"%s\" url=\"%s\"\n", op->o_log_prefix, op->o_protocol,
+           op->o_req_dn.bv_val, urls[0].bv_val);
 
-  Debug(LDAP_DEBUG_TRACE, "DNSSRV: dn=\"%s\" -> url=\"%s\"\n",
-        op->o_req_dn.bv_val, urls[0].bv_val);
+  Debug(LDAP_DEBUG_TRACE, "DNSSRV: dn=\"%s\" -> url=\"%s\"\n", op->o_req_dn.bv_val, urls[0].bv_val);
 
   rs->sr_ref = urls;
   send_ldap_error(op, rs, LDAP_REFERRAL, "DNS SRV generated referrals");

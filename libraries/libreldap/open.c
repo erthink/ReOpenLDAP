@@ -34,8 +34,7 @@
 
 /* Caller must hold the conn_mutex since simultaneous accesses are possible */
 int ldap_open_defconn(LDAP *ld) {
-  ld->ld_defconn =
-      ldap_new_connection(ld, &ld->ld_options.ldo_defludp, 1, 1, NULL, 0, 0);
+  ld->ld_defconn = ldap_new_connection(ld, &ld->ld_options.ldo_defludp, 1, 1, NULL, 0, 0);
 
   if (ld->ld_defconn == NULL) {
     ld->ld_errno = LDAP_SERVER_DOWN;
@@ -97,8 +96,7 @@ LDAP *ldap_open(const char *host, int port) {
     ld = NULL;
   }
 
-  Debug(LDAP_DEBUG_TRACE, "ldap_open: %s\n",
-        ld != NULL ? "succeeded" : "failed");
+  Debug(LDAP_DEBUG_TRACE, "ldap_open: %s\n", ld != NULL ? "succeeded" : "failed");
 
   return ld;
 }
@@ -126,8 +124,7 @@ int ldap_create(LDAP **ldp) {
     return (LDAP_NO_MEMORY);
   }
 
-  if ((ld->ldc = (struct ldap_common *)LDAP_CALLOC(
-           1, sizeof(struct ldap_common))) == NULL) {
+  if ((ld->ldc = (struct ldap_common *)LDAP_CALLOC(1, sizeof(struct ldap_common))) == NULL) {
     LDAP_FREE((char *)ld);
     return (LDAP_NO_MEMORY);
   }
@@ -143,15 +140,12 @@ int ldap_create(LDAP **ldp) {
   if (ld->ld_options.ldo_tls_pin_hashalg) {
     int len = strlen(gopts->ldo_tls_pin_hashalg);
 
-    ld->ld_options.ldo_tls_pin_hashalg =
-        LDAP_MALLOC(len + 1 + gopts->ldo_tls_pin.bv_len);
+    ld->ld_options.ldo_tls_pin_hashalg = LDAP_MALLOC(len + 1 + gopts->ldo_tls_pin.bv_len);
     if (!ld->ld_options.ldo_tls_pin_hashalg)
       goto nomem;
 
-    ld->ld_options.ldo_tls_pin.bv_val =
-        ld->ld_options.ldo_tls_pin_hashalg + len + 1;
-    memcpy(ld->ld_options.ldo_tls_pin_hashalg, gopts->ldo_tls_pin_hashalg,
-           len + 1 + gopts->ldo_tls_pin.bv_len);
+    ld->ld_options.ldo_tls_pin.bv_val = ld->ld_options.ldo_tls_pin_hashalg + len + 1;
+    memcpy(ld->ld_options.ldo_tls_pin_hashalg, gopts->ldo_tls_pin_hashalg, len + 1 + gopts->ldo_tls_pin.bv_len);
   } else if (!BER_BVISEMPTY(&ld->ld_options.ldo_tls_pin)) {
     ber_dupbv(&ld->ld_options.ldo_tls_pin, &gopts->ldo_tls_pin);
   }
@@ -167,16 +161,10 @@ int ldap_create(LDAP **ldp) {
   ld->ld_options.ldo_conn_cbs = NULL;
 
 #ifdef HAVE_CYRUS_SASL
-  ld->ld_options.ldo_def_sasl_mech =
-      gopts->ldo_def_sasl_mech ? LDAP_STRDUP(gopts->ldo_def_sasl_mech) : NULL;
-  ld->ld_options.ldo_def_sasl_realm =
-      gopts->ldo_def_sasl_realm ? LDAP_STRDUP(gopts->ldo_def_sasl_realm) : NULL;
-  ld->ld_options.ldo_def_sasl_authcid =
-      gopts->ldo_def_sasl_authcid ? LDAP_STRDUP(gopts->ldo_def_sasl_authcid)
-                                  : NULL;
-  ld->ld_options.ldo_def_sasl_authzid =
-      gopts->ldo_def_sasl_authzid ? LDAP_STRDUP(gopts->ldo_def_sasl_authzid)
-                                  : NULL;
+  ld->ld_options.ldo_def_sasl_mech = gopts->ldo_def_sasl_mech ? LDAP_STRDUP(gopts->ldo_def_sasl_mech) : NULL;
+  ld->ld_options.ldo_def_sasl_realm = gopts->ldo_def_sasl_realm ? LDAP_STRDUP(gopts->ldo_def_sasl_realm) : NULL;
+  ld->ld_options.ldo_def_sasl_authcid = gopts->ldo_def_sasl_authcid ? LDAP_STRDUP(gopts->ldo_def_sasl_authcid) : NULL;
+  ld->ld_options.ldo_def_sasl_authzid = gopts->ldo_def_sasl_authzid ? LDAP_STRDUP(gopts->ldo_def_sasl_authzid) : NULL;
 #endif
 
 #ifdef WITH_TLS
@@ -331,11 +319,9 @@ int ldap_init_fd(ber_socket_t fd, int proto, const char *url, LDAP **ldp) {
   switch (proto) {
   case LDAP_PROTO_TCP:
 #ifdef LDAP_DEBUG
-    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_debug,
-                       LBER_SBIOD_LEVEL_PROVIDER, (void *)"tcp_");
+    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_debug, LBER_SBIOD_LEVEL_PROVIDER, (void *)"tcp_");
 #endif
-    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_tcp,
-                       LBER_SBIOD_LEVEL_PROVIDER, NULL);
+    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_tcp, LBER_SBIOD_LEVEL_PROVIDER, NULL);
     break;
 
 #ifdef LDAP_CONNECTIONLESS
@@ -343,31 +329,25 @@ int ldap_init_fd(ber_socket_t fd, int proto, const char *url, LDAP **ldp) {
     LDAP_IS_UDP(ld) = 1;
     if (ld->ld_options.ldo_peer)
       ldap_memfree(ld->ld_options.ldo_peer);
-    ld->ld_options.ldo_peer =
-        ldap_memcalloc(1, sizeof(struct sockaddr_storage));
+    ld->ld_options.ldo_peer = ldap_memcalloc(1, sizeof(struct sockaddr_storage));
     len = sizeof(struct sockaddr_storage);
     if (getpeername(fd, ld->ld_options.ldo_peer, &len) < 0) {
       ldap_unbind_ext(ld, NULL, NULL);
       return (AC_SOCKET_ERROR);
     }
 #ifdef LDAP_DEBUG
-    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_debug,
-                       LBER_SBIOD_LEVEL_PROVIDER, (void *)"udp_");
+    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_debug, LBER_SBIOD_LEVEL_PROVIDER, (void *)"udp_");
 #endif
-    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_udp,
-                       LBER_SBIOD_LEVEL_PROVIDER, NULL);
-    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_readahead,
-                       LBER_SBIOD_LEVEL_PROVIDER, NULL);
+    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_udp, LBER_SBIOD_LEVEL_PROVIDER, NULL);
+    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_readahead, LBER_SBIOD_LEVEL_PROVIDER, NULL);
     break;
 #endif /* LDAP_CONNECTIONLESS */
 
   case LDAP_PROTO_IPC:
 #ifdef LDAP_DEBUG
-    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_debug,
-                       LBER_SBIOD_LEVEL_PROVIDER, (void *)"ipc_");
+    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_debug, LBER_SBIOD_LEVEL_PROVIDER, (void *)"ipc_");
 #endif
-    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_fd,
-                       LBER_SBIOD_LEVEL_PROVIDER, NULL);
+    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_fd, LBER_SBIOD_LEVEL_PROVIDER, NULL);
     break;
 
   case LDAP_PROTO_EXT:
@@ -380,8 +360,7 @@ int ldap_init_fd(ber_socket_t fd, int proto, const char *url, LDAP **ldp) {
   }
 
 #ifdef LDAP_DEBUG
-  ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_debug, INT_MAX,
-                     (void *)"ldap_");
+  ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_debug, INT_MAX, (void *)"ldap_");
 #endif
 
   /* Add the connection to the *LDAP's select pool */
@@ -392,8 +371,7 @@ int ldap_init_fd(ber_socket_t fd, int proto, const char *url, LDAP **ldp) {
 }
 
 /* Protected by ld_conn_mutex */
-int ldap_int_open_connection(LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv,
-                             int async) {
+int ldap_int_open_connection(LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv, int async) {
   int rc = -1;
   int proto;
 
@@ -406,11 +384,9 @@ int ldap_int_open_connection(LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv,
     if (rc == -1)
       return rc;
 #ifdef LDAP_DEBUG
-    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_debug,
-                       LBER_SBIOD_LEVEL_PROVIDER, (void *)"tcp_");
+    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_debug, LBER_SBIOD_LEVEL_PROVIDER, (void *)"tcp_");
 #endif
-    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_tcp,
-                       LBER_SBIOD_LEVEL_PROVIDER, NULL);
+    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_tcp, LBER_SBIOD_LEVEL_PROVIDER, NULL);
 
     break;
 
@@ -422,14 +398,11 @@ int ldap_int_open_connection(LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv,
     if (rc == -1)
       return rc;
 #ifdef LDAP_DEBUG
-    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_debug,
-                       LBER_SBIOD_LEVEL_PROVIDER, (void *)"udp_");
+    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_debug, LBER_SBIOD_LEVEL_PROVIDER, (void *)"udp_");
 #endif
-    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_udp,
-                       LBER_SBIOD_LEVEL_PROVIDER, NULL);
+    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_udp, LBER_SBIOD_LEVEL_PROVIDER, NULL);
 
-    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_readahead,
-                       LBER_SBIOD_LEVEL_PROVIDER, NULL);
+    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_readahead, LBER_SBIOD_LEVEL_PROVIDER, NULL);
 
     break;
 #endif
@@ -440,11 +413,9 @@ int ldap_int_open_connection(LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv,
     if (rc == -1)
       return rc;
 #ifdef LDAP_DEBUG
-    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_debug,
-                       LBER_SBIOD_LEVEL_PROVIDER, (void *)"ipc_");
+    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_debug, LBER_SBIOD_LEVEL_PROVIDER, (void *)"ipc_");
 #endif
-    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_fd,
-                       LBER_SBIOD_LEVEL_PROVIDER, NULL);
+    ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_fd, LBER_SBIOD_LEVEL_PROVIDER, NULL);
 
     break;
 #endif /* LDAP_PF_LOCAL */
@@ -456,8 +427,7 @@ int ldap_int_open_connection(LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv,
   conn->lconn_created = ldap_now_steady();
 
 #ifdef LDAP_DEBUG
-  ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_debug, INT_MAX,
-                     (void *)"ldap_");
+  ber_sockbuf_add_io(conn->lconn_sb, &ber_sockbuf_io_debug, INT_MAX, (void *)"ldap_");
 #endif
 
 #ifdef LDAP_CONNECTIONLESS
@@ -466,8 +436,7 @@ int ldap_int_open_connection(LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv,
 #endif
 
 #ifdef WITH_TLS
-  if (rc == 0 && (ld->ld_options.ldo_tls_mode == LDAP_OPT_X_TLS_HARD ||
-                  strcmp(srv->lud_scheme, "ldaps") == 0)) {
+  if (rc == 0 && (ld->ld_options.ldo_tls_mode == LDAP_OPT_X_TLS_HARD || strcmp(srv->lud_scheme, "ldaps") == 0)) {
     ++conn->lconn_refcnt; /* avoid premature free */
 
     rc = ldap_int_tls_start(ld, conn, srv);
@@ -551,11 +520,9 @@ int ldap_open_internal_connection(LDAP **ldp, ber_socket_t *fdp) {
   }
   ber_sockbuf_ctrl(c->lconn_sb, LBER_SB_OPT_SET_FD, fdp);
 #ifdef LDAP_DEBUG
-  ber_sockbuf_add_io(c->lconn_sb, &ber_sockbuf_io_debug,
-                     LBER_SBIOD_LEVEL_PROVIDER, (void *)"int_");
+  ber_sockbuf_add_io(c->lconn_sb, &ber_sockbuf_io_debug, LBER_SBIOD_LEVEL_PROVIDER, (void *)"int_");
 #endif
-  ber_sockbuf_add_io(c->lconn_sb, &ber_sockbuf_io_tcp,
-                     LBER_SBIOD_LEVEL_PROVIDER, NULL);
+  ber_sockbuf_add_io(c->lconn_sb, &ber_sockbuf_io_tcp, LBER_SBIOD_LEVEL_PROVIDER, NULL);
   ld->ld_defconn = c;
   LDAP_MUTEX_UNLOCK(&ld->ld_conn_mutex);
 

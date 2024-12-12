@@ -26,8 +26,7 @@
  * Appends a rule to the double linked list of rules
  * Helper for rewrite_rule_compile
  */
-static int append_rule(struct rewrite_context *context,
-                       struct rewrite_rule *rule) {
+static int append_rule(struct rewrite_context *context, struct rewrite_rule *rule) {
   struct rewrite_rule *r;
 
   assert(context != NULL);
@@ -46,8 +45,7 @@ static int append_rule(struct rewrite_context *context,
  * Appends an action to the linked list of actions
  * Helper for rewrite_rule_compile
  */
-static int append_action(struct rewrite_action **pbase,
-                         struct rewrite_action *action) {
+static int append_action(struct rewrite_action **pbase, struct rewrite_action *action) {
   struct rewrite_action **pa;
 
   assert(pbase != NULL);
@@ -101,8 +99,7 @@ static void destroy_actions(struct rewrite_action *paction) {
 
 /*
  */
-int rewrite_rule_compile(struct rewrite_info *info,
-                         struct rewrite_context *context, const char *pattern,
+int rewrite_rule_compile(struct rewrite_info *info, struct rewrite_context *context, const char *pattern,
                          const char *result, const char *flagstring) {
   int flags = REWRITE_REGEX_EXTENDED | REWRITE_REGEX_ICASE;
   int mode = REWRITE_RECURSE;
@@ -327,8 +324,7 @@ int rewrite_rule_compile(struct rewrite_info *info,
   rule->lr_pattern = strdup(pattern);
   rule->lr_subststring = strdup(result);
   rule->lr_flagstring = strdup(flagstring);
-  if (rule->lr_pattern == NULL || rule->lr_subststring == NULL ||
-      rule->lr_flagstring == NULL) {
+  if (rule->lr_pattern == NULL || rule->lr_subststring == NULL || rule->lr_flagstring == NULL) {
     goto fail;
   }
 
@@ -373,8 +369,7 @@ fail:
  *      STOP:   fine, rule matched; stop processing following rules
  *      UNWILL: rule matched; force 'unwilling to perform'
  */
-int rewrite_rule_apply(struct rewrite_info *info, struct rewrite_op *op,
-                       struct rewrite_rule *rule, const char *arg,
+int rewrite_rule_apply(struct rewrite_info *info, struct rewrite_op *op, struct rewrite_rule *rule, const char *arg,
                        char **result) {
   size_t nmatch = REWRITE_MAX_MATCH;
   regmatch_t match[REWRITE_MAX_MATCH];
@@ -432,8 +427,7 @@ recurse:;
     return rc;
   }
 
-  if ((rule->lr_mode & REWRITE_RECURSE) == REWRITE_RECURSE &&
-      op->lo_num_passes < info->li_max_passes &&
+  if ((rule->lr_mode & REWRITE_RECURSE) == REWRITE_RECURSE && op->lo_num_passes < info->li_max_passes &&
       ++strcnt < rule->lr_max_passes) {
     string = *result;
 

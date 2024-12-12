@@ -34,8 +34,7 @@ void lutil_HASHInit(lutil_HASH_CTX *ctx) { ctx->hash = HASH_OFFSET; }
 /*
  * Update hash
  */
-void lutil_HASHUpdate(lutil_HASH_CTX *ctx, const unsigned char *buf,
-                      ber_len_t len) {
+void lutil_HASHUpdate(lutil_HASH_CTX *ctx, const unsigned char *buf, ber_len_t len) {
   const unsigned char *p, *e;
   ber_uint_t h;
 
@@ -78,8 +77,7 @@ void lutil_HASH64Init(lutil_HASH_CTX *ctx) { ctx->hash64 = HASH64_OFFSET; }
 /*
  * Update hash
  */
-void lutil_HASH64Update(lutil_HASH_CTX *ctx, const unsigned char *buf,
-                        ber_len_t len) {
+void lutil_HASH64Update(lutil_HASH_CTX *ctx, const unsigned char *buf, ber_len_t len) {
   const unsigned char *p, *e;
   unsigned long long h;
 

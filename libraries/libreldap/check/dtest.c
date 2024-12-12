@@ -33,9 +33,7 @@
 
 #include <lber.h>
 
-static void usage(const char *name) {
-  fprintf(stderr, "usage: %s fmt\n", name);
-}
+static void usage(const char *name) { fprintf(stderr, "usage: %s fmt\n", name); }
 
 int main(int argc, char **argv) {
   char *s;
@@ -63,8 +61,7 @@ int main(int argc, char **argv) {
 
   sb = ber_sockbuf_alloc();
   fd = fileno(stdin);
-  ber_sockbuf_add_io(sb, &ber_sockbuf_io_fd, LBER_SBIOD_LEVEL_PROVIDER,
-                     (void *)&fd);
+  ber_sockbuf_add_io(sb, &ber_sockbuf_io_fd, LBER_SBIOD_LEVEL_PROVIDER, (void *)&fd);
 
   ber = ber_alloc_t(LBER_USE_DER);
   if (ber == NULL) {
@@ -86,8 +83,7 @@ int main(int argc, char **argv) {
     return (EXIT_FAILURE);
   }
 
-  printf("decode: message tag 0x%lx and length %ld\n", (unsigned long)tag,
-         (long)len);
+  printf("decode: message tag 0x%lx and length %ld\n", (unsigned long)tag, (long)len);
 
   for (s = argv[1]; *s; s++) {
     char buf[128];

@@ -74,8 +74,7 @@ int lutil_get_now(double *now) {
 }
 
 int lutil_meter_open(lutil_meter_t *meter, const lutil_meter_display_t *display,
-                     const lutil_meter_estimator_t *estimator,
-                     size_t goal_value) {
+                     const lutil_meter_estimator_t *estimator, size_t goal_value) {
   int rc;
 
   assert(meter != NULL);
@@ -124,19 +123,13 @@ int lutil_meter_update(lutil_meter_t *meter, size_t position, int force) {
   if (frac <= 0.0)
     return 0;
   if (frac >= 1.0) {
-    rc = meter->display->display_update(&meter->display_data, 1.0, 0,
-                                        (time_t)elapsed,
-                                        ((double)position) / elapsed);
+    rc = meter->display->display_update(&meter->display_data, 1.0, 0, (time_t)elapsed, ((double)position) / elapsed);
   } else {
-    rc = meter->estimator->estimator_update(
-        &meter->estimator_data, meter->start_time, frac, &remaining_time);
+    rc = meter->estimator->estimator_update(&meter->estimator_data, meter->start_time, frac, &remaining_time);
     if (rc == 0) {
       cycle_length = now - meter->last_update;
-      speed = cycle_length > 0.0
-                  ? ((double)(position - meter->last_position)) / cycle_length
-                  : 0.0;
-      rc = meter->display->display_update(
-          &meter->display_data, frac, remaining_time, (time_t)elapsed, speed);
+      speed = cycle_length > 0.0 ? ((double)(position - meter->last_position)) / cycle_length : 0.0;
+      rc = meter->display->display_update(&meter->display_data, frac, remaining_time, (time_t)elapsed, speed);
       if (rc == 0) {
         meter->last_update = now;
         meter->last_position = position;
@@ -178,8 +171,7 @@ static int text_open(void **display_datap) {
   return 0;
 }
 
-static int text_update(void **display_datap, double frac, time_t remaining_time,
-                       time_t elapsed, double byte_rate) {
+static int text_update(void **display_datap, double frac, time_t remaining_time, time_t elapsed, double byte_rate) {
   text_display_state_t *data;
   char *buf, *buf_end;
 
@@ -211,9 +203,7 @@ static int text_update(void **display_datap, double frac, time_t remaining_time,
     static const char fill_char = '#';
     static const char blank_char = ' ';
     char *bar_end = buf + bar_length;
-    char *bar_pos = frac < 0.0   ? buf
-                    : frac < 1.0 ? buf + (int)(bar_lengthd * frac)
-                                 : bar_end;
+    char *bar_pos = frac < 0.0 ? buf : frac < 1.0 ? buf + (int)(bar_lengthd * frac) : bar_end;
 
     assert((buf_end - buf) > bar_length);
     while (buf < bar_end) {
@@ -288,8 +278,7 @@ static int null_open_close(void **datap) {
   return 0;
 }
 
-static int linear_update(void **estimator_datap, double start, double frac,
-                         time_t *remaining) {
+static int linear_update(void **estimator_datap, double start, double frac, time_t *remaining) {
   double now;
   double elapsed;
 
@@ -315,8 +304,6 @@ static int linear_update(void **estimator_datap, double start, double frac,
   }
 }
 
-const lutil_meter_display_t lutil_meter_text_display = {text_open, text_update,
-                                                        text_close};
+const lutil_meter_display_t lutil_meter_text_display = {text_open, text_update, text_close};
 
-const lutil_meter_estimator_t lutil_meter_linear_estimator = {
-    null_open_close, linear_update, null_open_close};
+const lutil_meter_estimator_t lutil_meter_linear_estimator = {null_open_close, linear_update, null_open_close};

@@ -122,8 +122,7 @@ void tool_destroy(void);
 void tool_exit(LDAP *ld, int status) __attribute__((noreturn));
 void tool_server_controls(LDAP *, LDAPControl *, int);
 int tool_check_abandon(LDAP *ld, int msgid);
-void tool_perror(const char *func, int err, const char *extra,
-                 const char *matched, const char *info, char **refs);
+void tool_perror(const char *func, int err, const char *extra, const char *matched, const char *info, char **refs);
 void tool_print_ctrls(LDAP *ld, LDAPControl **ctrls);
 int tool_write_ldif(int type, char *name, char *value, ber_len_t vallen);
 int tool_is_oid(const char *s);

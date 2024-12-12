@@ -56,8 +56,7 @@ static struct berval shadow_keys[] = {BER_BVC("uid"),
 #define FLG_KEY 8
 
 /* default values for attributes */
-static struct berval default_shadow_userPassword =
-    BER_BVC("*"); /* unmatchable */
+static struct berval default_shadow_userPassword = BER_BVC("*"); /* unmatchable */
 static int default_nums[] = {
     0,  0, -1, /* LastChange */
     -1,        /* Min */
@@ -89,8 +88,7 @@ static long to_date(struct berval *date, AttributeDescription *attr) {
     buffer[l] = '\0';
     value = strtol(buffer, &tmp, 0);
     if ((buffer[0] == '\0') || (*tmp != '\0')) {
-      Debug(LDAP_DEBUG_ANY, "shadow entry contains non-numeric %s value\n",
-            attr->ad_cname.bv_val);
+      Debug(LDAP_DEBUG_ANY, "shadow entry contains non-numeric %s value\n", attr->ad_cname.bv_val);
       return 0;
     }
     return value / 864 - 134774;
@@ -99,8 +97,7 @@ static long to_date(struct berval *date, AttributeDescription *attr) {
   }
   value = strtol(date->bv_val, &tmp, 0);
   if ((date->bv_val[0] == '\0') || (*tmp != '\0')) {
-    Debug(LDAP_DEBUG_ANY, "shadow entry contains non-numeric %s value\n",
-          attr->ad_cname.bv_val);
+    Debug(LDAP_DEBUG_ANY, "shadow entry contains non-numeric %s value\n", attr->ad_cname.bv_val);
     return 0;
   }
   return value;
@@ -110,36 +107,33 @@ static long to_date(struct berval *date, AttributeDescription *attr) {
 #define UF_DONT_EXPIRE_PASSWD 0x10000
 #endif
 
-#define GET_OPTIONAL_LONG(var, key)                                            \
-  a = attr_find(entry->e_attrs, cbp->mi->mi_attrs[key].an_desc);               \
-  if (!a || BER_BVISNULL(&a->a_vals[0]))                                       \
-    var = default_nums[key];                                                   \
-  else {                                                                       \
-    if (a->a_numvals > 1) {                                                    \
-      Debug(LDAP_DEBUG_ANY, "shadow entry %s contains multiple %s values\n",   \
-            entry->e_name.bv_val,                                              \
-            cbp->mi->mi_attrs[key].an_desc->ad_cname.bv_val);                  \
-    }                                                                          \
-    var = strtol(a->a_vals[0].bv_val, &tmp, 0);                                \
-    if ((a->a_vals[0].bv_val[0] == '\0') || (*tmp != '\0')) {                  \
-      Debug(LDAP_DEBUG_ANY, "shadow entry %s contains non-numeric %s value\n", \
-            entry->e_name.bv_val,                                              \
-            cbp->mi->mi_attrs[key].an_desc->ad_cname.bv_val);                  \
-      return 0;                                                                \
-    }                                                                          \
+#define GET_OPTIONAL_LONG(var, key)                                                                                    \
+  a = attr_find(entry->e_attrs, cbp->mi->mi_attrs[key].an_desc);                                                       \
+  if (!a || BER_BVISNULL(&a->a_vals[0]))                                                                               \
+    var = default_nums[key];                                                                                           \
+  else {                                                                                                               \
+    if (a->a_numvals > 1) {                                                                                            \
+      Debug(LDAP_DEBUG_ANY, "shadow entry %s contains multiple %s values\n", entry->e_name.bv_val,                     \
+            cbp->mi->mi_attrs[key].an_desc->ad_cname.bv_val);                                                          \
+    }                                                                                                                  \
+    var = strtol(a->a_vals[0].bv_val, &tmp, 0);                                                                        \
+    if ((a->a_vals[0].bv_val[0] == '\0') || (*tmp != '\0')) {                                                          \
+      Debug(LDAP_DEBUG_ANY, "shadow entry %s contains non-numeric %s value\n", entry->e_name.bv_val,                   \
+            cbp->mi->mi_attrs[key].an_desc->ad_cname.bv_val);                                                          \
+      return 0;                                                                                                        \
+    }                                                                                                                  \
   }
 
-#define GET_OPTIONAL_DATE(var, key)                                            \
-  a = attr_find(entry->e_attrs, cbp->mi->mi_attrs[key].an_desc);               \
-  if (!a || BER_BVISNULL(&a->a_vals[0]))                                       \
-    var = default_nums[key];                                                   \
-  else {                                                                       \
-    if (a->a_numvals > 1) {                                                    \
-      Debug(LDAP_DEBUG_ANY, "shadow entry %s contains multiple %s values\n",   \
-            entry->e_name.bv_val,                                              \
-            cbp->mi->mi_attrs[key].an_desc->ad_cname.bv_val);                  \
-    }                                                                          \
-    var = to_date(&a->a_vals[0], cbp->mi->mi_attrs[key].an_desc);              \
+#define GET_OPTIONAL_DATE(var, key)                                                                                    \
+  a = attr_find(entry->e_attrs, cbp->mi->mi_attrs[key].an_desc);                                                       \
+  if (!a || BER_BVISNULL(&a->a_vals[0]))                                                                               \
+    var = default_nums[key];                                                                                           \
+  else {                                                                                                               \
+    if (a->a_numvals > 1) {                                                                                            \
+      Debug(LDAP_DEBUG_ANY, "shadow entry %s contains multiple %s values\n", entry->e_name.bv_val,                     \
+            cbp->mi->mi_attrs[key].an_desc->ad_cname.bv_val);                                                          \
+    }                                                                                                                  \
+    var = to_date(&a->a_vals[0], cbp->mi->mi_attrs[key].an_desc);                                                      \
   }
 
 NSSOV_CBPRIV(shadow, char buf[256]; struct berval name;);
@@ -163,8 +157,7 @@ static int write_shadow(nssov_shadow_cbp *cbp, Entry *entry) {
   if (BER_BVISNULL(&cbp->name)) {
     a = attr_find(entry->e_attrs, cbp->mi->mi_attrs[UID_KEY].an_desc);
     if (!a) {
-      Debug(LDAP_DEBUG_ANY, "shadow entry %s does not contain %s value\n",
-            entry->e_name.bv_val,
+      Debug(LDAP_DEBUG_ANY, "shadow entry %s does not contain %s value\n", entry->e_name.bv_val,
             cbp->mi->mi_attrs[UID_KEY].an_desc->ad_cname.bv_val);
       return 0;
     }
@@ -195,8 +188,7 @@ static int write_shadow(nssov_shadow_cbp *cbp, Entry *entry) {
   /* get flag */
   GET_OPTIONAL_LONG(flag, FLG_KEY);
   /* if we're using AD handle the flag specially */
-  if (strcasecmp(cbp->mi->mi_attrs[CHG_KEY].an_desc->ad_cname.bv_val,
-                 "pwdLastSet") == 0) {
+  if (strcasecmp(cbp->mi->mi_attrs[CHG_KEY].an_desc->ad_cname.bv_val, "pwdLastSet") == 0) {
     if (flag & UF_DONT_EXPIRE_PASSWD)
       maxdays = 99999;
     flag = 0;
@@ -219,17 +211,12 @@ static int write_shadow(nssov_shadow_cbp *cbp, Entry *entry) {
 
 NSSOV_CB(shadow)
 
-NSSOV_HANDLE(shadow, byname, char fbuf[1024];
-             struct berval filter = {sizeof(fbuf)}; filter.bv_val = fbuf;
-             READ_STRING(fp, cbp.buf);, cbp.name.bv_len = tmpint32;
-             cbp.name.bv_val = cbp.buf;
-             Debug(LDAP_DEBUG_ANY, "nssov_shadow_byname(%s)\n",
-                   cbp.name.bv_val);
-             , NSLCD_ACTION_SHADOW_BYNAME,
-             nssov_filter_byname(cbp.mi, UID_KEY, &cbp.name, &filter))
+NSSOV_HANDLE(shadow, byname, char fbuf[1024]; struct berval filter = {sizeof(fbuf)}; filter.bv_val = fbuf;
+             READ_STRING(fp, cbp.buf);, cbp.name.bv_len = tmpint32; cbp.name.bv_val = cbp.buf;
+             Debug(LDAP_DEBUG_ANY, "nssov_shadow_byname(%s)\n", cbp.name.bv_val);
+             , NSLCD_ACTION_SHADOW_BYNAME, nssov_filter_byname(cbp.mi, UID_KEY, &cbp.name, &filter))
 
 NSSOV_HANDLE(shadow, all, struct berval filter;
              /* no parameters to read */
-             BER_BVZERO(&cbp.name);
-             , Debug(LDAP_DEBUG_ANY, "nssov_shadow_all()\n");
+             BER_BVZERO(&cbp.name);, Debug(LDAP_DEBUG_ANY, "nssov_shadow_all()\n");
              , NSLCD_ACTION_SHADOW_ALL, (filter = cbp.mi->mi_filter, 0))

@@ -37,8 +37,7 @@
 
 #include "slapd-common.h"
 
-static void do_addel(struct tester_conn_args *config, LDIFRecord *record,
-                     int friendly);
+static void do_addel(struct tester_conn_args *config, LDIFRecord *record, int friendly);
 
 static void usage(char *name, char opt) {
   if (opt) {
@@ -103,8 +102,7 @@ int main(int argc, char **argv) {
   bv.bv_val = buf;
   bv.bv_len = i;
 
-  if (ldap_parse_ldif_record(&bv, lineno, &record, "slapd-addel",
-                             LDIF_DEFAULT_ADD | LDIF_ENTRIES_ONLY)) {
+  if (ldap_parse_ldif_record(&bv, lineno, &record, "slapd-addel", LDIF_DEFAULT_ADD | LDIF_ENTRIES_ONLY)) {
     tester_error("ldif_read_record failed");
     exit(EXIT_FAILURE);
   }
@@ -112,8 +110,7 @@ int main(int argc, char **argv) {
 
   if ((record.lr_op != LDAP_REQ_ADD) || (!record.lrop_mods)) {
 
-    fprintf(stderr, "%s: invalid entry DN in file \"%s\".\n", argv[0],
-            filename);
+    fprintf(stderr, "%s: invalid entry DN in file \"%s\".\n", argv[0], filename);
     exit(EXIT_FAILURE);
   }
 
@@ -127,8 +124,7 @@ int main(int argc, char **argv) {
   exit(EXIT_SUCCESS);
 }
 
-static void do_addel(struct tester_conn_args *config, LDIFRecord *record,
-                     int friendly) {
+static void do_addel(struct tester_conn_args *config, LDIFRecord *record, int friendly) {
   LDAP *ld = NULL;
   int i = 0, do_retry = config->retries;
   int rc = LDAP_SUCCESS;
@@ -139,15 +135,13 @@ retry:;
   }
 
   if (do_retry == config->retries) {
-    fprintf(stderr, "PID=%ld - Add/Delete(%d): entry=\"%s\".\n", (long)pid,
-            config->loops, record->lr_dn.bv_val);
+    fprintf(stderr, "PID=%ld - Add/Delete(%d): entry=\"%s\".\n", (long)pid, config->loops, record->lr_dn.bv_val);
   }
 
   for (; i < config->loops; i++) {
 
     /* add the entry */
-    rc =
-        ldap_add_ext_s(ld, record->lr_dn.bv_val, record->lrop_mods, NULL, NULL);
+    rc = ldap_add_ext_s(ld, record->lr_dn.bv_val, record->lrop_mods, NULL, NULL);
     if (rc != LDAP_SUCCESS) {
       tester_ldap_error(ld, "ldap_add_ext_s", NULL);
       switch (rc) {

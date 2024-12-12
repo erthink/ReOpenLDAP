@@ -40,14 +40,13 @@
 #include <lber_hipagut.h>
 #define BER_MEM_VALID(p, s) lber_hug_memchk_ensure(p, 0)
 #define LIBC_MEM_TAG 0x71BC
-#elif defined(HAVE_VALGRIND) || defined(USE_VALGRIND) ||                       \
-    defined(__SANITIZE_ADDRESS__)
-#define BER_MEM_VALID(p, s)                                                    \
-  do {                                                                         \
-    if ((s) > 0) {                                                             \
-      LDAP_ENSURE(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(p, s) == 0);               \
-      LDAP_ENSURE(ASAN_REGION_IS_POISONED(p, s) == 0);                         \
-    }                                                                          \
+#elif defined(HAVE_VALGRIND) || defined(USE_VALGRIND) || defined(__SANITIZE_ADDRESS__)
+#define BER_MEM_VALID(p, s)                                                                                            \
+  do {                                                                                                                 \
+    if ((s) > 0) {                                                                                                     \
+      LDAP_ENSURE(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(p, s) == 0);                                                       \
+      LDAP_ENSURE(ASAN_REGION_IS_POISONED(p, s) == 0);                                                                 \
+    }                                                                                                                  \
   } while (0)
 #else
 #define BER_MEM_VALID(p, s) __noop()
@@ -64,8 +63,8 @@ void ber_memfree_x(void *p, void *ctx) {
     p = lber_hug_memchk_drown(p, LIBC_MEM_TAG);
 #if LDAP_MEMORY_DEBUG > 3
     struct lber_hug_memchk *mh = p;
-    fprintf(stderr, "%p.%zu -f- %zu ber_memfree %zu\n", mh, mh->hm_sequence,
-            mh->hm_length, lber_hug_memchk_info.mi_inuse_bytes);
+    fprintf(stderr, "%p.%zu -f- %zu ber_memfree %zu\n", mh, mh->hm_sequence, mh->hm_length,
+            lber_hug_memchk_info.mi_inuse_bytes);
 #endif
 #endif /* LDAP_MEMORY_DEBUG */
 
@@ -115,8 +114,8 @@ void *ber_memalloc_x(ber_len_t s, void *ctx) {
       p = lber_hug_memchk_setup(p, s, LIBC_MEM_TAG, LBER_HUG_POISON_DEFAULT);
 #if LDAP_MEMORY_DEBUG > 3
       struct lber_hug_memchk *mh = LBER_HUG_CHUNK(p);
-      fprintf(stderr, "%p.%zu -a- %zu ber_memalloc %zu\n", mh, mh->hm_sequence,
-              mh->hm_length, lber_hug_memchk_info.mi_inuse_bytes);
+      fprintf(stderr, "%p.%zu -a- %zu ber_memalloc %zu\n", mh, mh->hm_sequence, mh->hm_length,
+              lber_hug_memchk_info.mi_inuse_bytes);
 #endif
     }
 #endif /* LDAP_MEMORY_DEBUG */
@@ -136,10 +135,10 @@ void *ber_memalloc_x(ber_len_t s, void *ctx) {
 
 void *ber_memalloc(ber_len_t s) { return ber_memalloc_x(s, NULL); }
 
-#define LIM_SQRT(t) /* some value < sqrt(max value of unsigned type t) */      \
-  ((0UL | (t) - 1) >> 31 >> 31 > 1 ? ((t)1 << 32) - 1                          \
-   : (0UL | (t) - 1) >> 31         ? 65535U                                    \
-   : (0UL | (t) - 1) >> 15         ? 255U                                      \
+#define LIM_SQRT(t) /* some value < sqrt(max value of unsigned type t) */                                              \
+  ((0UL | (t) - 1) >> 31 >> 31 > 1 ? ((t)1 << 32) - 1                                                                  \
+   : (0UL | (t) - 1) >> 31         ? 65535U                                                                            \
+   : (0UL | (t) - 1) >> 15         ? 255U                                                                              \
                                    : 15U)
 
 void *ber_memcalloc_x(ber_len_t n, ber_len_t s, void *ctx) {
@@ -171,12 +170,11 @@ void *ber_memcalloc_x(ber_len_t n, ber_len_t s, void *ctx) {
 
 #if LDAP_MEMORY_DEBUG > 0
     if (p) {
-      p = lber_hug_memchk_setup(p, payload_bytes, LIBC_MEM_TAG,
-                                LBER_HUG_POISON_CALLOC_ALREADY);
+      p = lber_hug_memchk_setup(p, payload_bytes, LIBC_MEM_TAG, LBER_HUG_POISON_CALLOC_ALREADY);
 #if LDAP_MEMORY_DEBUG > 3
       struct lber_hug_memchk *mh = LBER_HUG_CHUNK(p);
-      fprintf(stderr, "%p.%zu -a- %zu ber_memcalloc %zu\n", mh, mh->hm_sequence,
-              mh->hm_length, lber_hug_memchk_info.mi_inuse_bytes);
+      fprintf(stderr, "%p.%zu -a- %zu ber_memcalloc %zu\n", mh, mh->hm_sequence, mh->hm_length,
+              lber_hug_memchk_info.mi_inuse_bytes);
 #endif
     }
 #endif /* LDAP_MEMORY_DEBUG */
@@ -194,9 +192,7 @@ void *ber_memcalloc_x(ber_len_t n, ber_len_t s, void *ctx) {
   return p;
 }
 
-void *ber_memcalloc(ber_len_t n, ber_len_t s) {
-  return ber_memcalloc_x(n, s, NULL);
-}
+void *ber_memcalloc(ber_len_t n, ber_len_t s) { return ber_memcalloc_x(n, s, NULL); }
 
 void *ber_memrealloc_x(void *p, ber_len_t s, void *ctx) {
   /* realloc(NULL,s) -> malloc(s) */
@@ -232,8 +228,7 @@ void *ber_memrealloc_x(void *p, ber_len_t s, void *ctx) {
       p = lber_hug_realloc_commit(old_size, p, LIBC_MEM_TAG, s);
 #if LDAP_MEMORY_DEBUG > 3
       struct lber_hug_memchk *mh = LBER_HUG_CHUNK(p);
-      fprintf(stderr, "%p.%zu -a- %zu ber_memrealloc %zu\n", mh,
-              mh->hm_sequence, mh->hm_length,
+      fprintf(stderr, "%p.%zu -a- %zu ber_memrealloc %zu\n", mh, mh->hm_sequence, mh->hm_length,
               lber_hug_memchk_info.mi_inuse_bytes);
 #endif
     } else {
@@ -254,9 +249,7 @@ void *ber_memrealloc_x(void *p, ber_len_t s, void *ctx) {
   return p;
 }
 
-void *ber_memrealloc(void *p, ber_len_t s) {
-  return ber_memrealloc_x(p, s, NULL);
-}
+void *ber_memrealloc(void *p, ber_len_t s) { return ber_memrealloc_x(p, s, NULL); }
 
 void ber_bvfree_x(struct berval *bv, void *ctx) {
   if (unlikely(bv == NULL))
@@ -342,12 +335,9 @@ int ber_bvecadd_x(struct berval ***bvec, struct berval *bv, void *ctx) {
   return i;
 }
 
-int ber_bvecadd(struct berval ***bvec, struct berval *bv) {
-  return ber_bvecadd_x(bvec, bv, NULL);
-}
+int ber_bvecadd(struct berval ***bvec, struct berval *bv) { return ber_bvecadd_x(bvec, bv, NULL); }
 
-struct berval *ber_dupbv_x(struct berval *dst, const struct berval *src,
-                           void *ctx) {
+struct berval *ber_dupbv_x(struct berval *dst, const struct berval *src, void *ctx) {
   struct berval *dup, tmp;
 
   if (unlikely(src == NULL)) {
@@ -387,16 +377,11 @@ struct berval *ber_dupbv_x(struct berval *dst, const struct berval *src,
   }
 }
 
-struct berval *ber_dupbv(struct berval *dst, const struct berval *src) {
-  return ber_dupbv_x(dst, src, NULL);
-}
+struct berval *ber_dupbv(struct berval *dst, const struct berval *src) { return ber_dupbv_x(dst, src, NULL); }
 
-struct berval *ber_bvdup(struct berval *src) {
-  return ber_dupbv_x(NULL, src, NULL);
-}
+struct berval *ber_bvdup(struct berval *src) { return ber_dupbv_x(NULL, src, NULL); }
 
-struct berval *ber_str2bv_x(const char *s, ber_len_t len, int dup,
-                            struct berval *bv, void *ctx) {
+struct berval *ber_str2bv_x(const char *s, ber_len_t len, int dup, struct berval *bv, void *ctx) {
   struct berval *ret;
 
   if (unlikely(s == NULL)) {
@@ -427,13 +412,11 @@ struct berval *ber_str2bv_x(const char *s, ber_len_t len, int dup,
   return ret;
 }
 
-struct berval *ber_str2bv(const char *s, ber_len_t len, int dup,
-                          struct berval *bv) {
+struct berval *ber_str2bv(const char *s, ber_len_t len, int dup, struct berval *bv) {
   return ber_str2bv_x(s, len, dup, bv, NULL);
 }
 
-struct berval *ber_mem2bv_x(const char *s, ber_len_t len, int dup,
-                            struct berval *bv, void *ctx) {
+struct berval *ber_mem2bv_x(const char *s, ber_len_t len, int dup, struct berval *bv, void *ctx) {
   struct berval *ret;
 
   if (unlikely(s == NULL)) {
@@ -466,8 +449,7 @@ struct berval *ber_mem2bv_x(const char *s, ber_len_t len, int dup,
   return ret;
 }
 
-struct berval *ber_mem2bv(const char *s, ber_len_t len, int dup,
-                          struct berval *bv) {
+struct berval *ber_mem2bv(const char *s, ber_len_t len, int dup, struct berval *bv) {
   return ber_mem2bv_x(s, len, dup, bv, NULL);
 }
 
@@ -517,17 +499,14 @@ char *ber_strndup_x(const char *s, ber_len_t l, void *ctx) {
   return p;
 }
 
-char *ber_strndup(const char *s, ber_len_t l) {
-  return ber_strndup_x(s, l, NULL);
-}
+char *ber_strndup(const char *s, ber_len_t l) { return ber_strndup_x(s, l, NULL); }
 
 /*
  * dst is resized as required by src and the value of src is copied into dst
  * dst->bv_val must be NULL (and dst->bv_len must be 0), or it must be
  * alloc'ed with the context ctx
  */
-struct berval *ber_bvreplace_x(struct berval *dst, const struct berval *src,
-                               void *ctx) {
+struct berval *ber_bvreplace_x(struct berval *dst, const struct berval *src, void *ctx) {
   if (BER_BVISNULL(dst) || dst->bv_len < src->bv_len) {
     dst->bv_val = ber_memrealloc_x(dst->bv_val, src->bv_len + 1, ctx);
   }
@@ -538,9 +517,7 @@ struct berval *ber_bvreplace_x(struct berval *dst, const struct berval *src,
   return dst;
 }
 
-struct berval *ber_bvreplace(struct berval *dst, const struct berval *src) {
-  return ber_bvreplace_x(dst, src, NULL);
-}
+struct berval *ber_bvreplace(struct berval *dst, const struct berval *src) { return ber_bvreplace_x(dst, src, NULL); }
 
 void ber_bvarray_free_x(BerVarray a, void *ctx) {
   int i;
@@ -614,8 +591,7 @@ int ber_bvarray_add_x(BerVarray *a, BerValue *bv, void *ctx) {
       return n;
     }
 
-    atmp = (BerValue *)ber_memrealloc_x((char *)*a, (n + 2) * sizeof(BerValue),
-                                        ctx);
+    atmp = (BerValue *)ber_memrealloc_x((char *)*a, (n + 2) * sizeof(BerValue), ctx);
 
     if (atmp == NULL) {
       return -1;
@@ -631,6 +607,4 @@ int ber_bvarray_add_x(BerVarray *a, BerValue *bv, void *ctx) {
   return n;
 }
 
-int ber_bvarray_add(BerVarray *a, BerValue *bv) {
-  return ber_bvarray_add_x(a, bv, NULL);
-}
+int ber_bvarray_add(BerVarray *a, BerValue *bv) { return ber_bvarray_add_x(a, bv, NULL); }

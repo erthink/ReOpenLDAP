@@ -33,8 +33,8 @@ LDAP_BEGIN_DECL
 AttrInfo *wt_attr_mask(struct wt_info *wi, AttributeDescription *desc);
 void wt_attr_flush(struct wt_info *wi);
 void wt_attr_index_unparse(struct wt_info *wi, BerVarray *bva);
-int wt_attr_index_config(struct wt_info *wi, const char *fname, int lineno,
-                         int argc, char **argv, struct config_reply_s *c_reply);
+int wt_attr_index_config(struct wt_info *wi, const char *fname, int lineno, int argc, char **argv,
+                         struct config_reply_s *c_reply);
 void wt_attr_index_destroy(struct wt_info *wi);
 
 /*
@@ -62,36 +62,28 @@ ID wt_idl_next(ID *ids, ID *cursor);
 int wt_idl_append_one(ID *ids, ID id);
 void wt_idl_sort(ID *ids, ID *tmp);
 int wt_idl_intersection(ID *a, ID *b);
-int wt_filter_candidates(Operation *op, wt_ctx *wc, Filter *f, ID *ids, ID *tmp,
-                         ID *stack);
+int wt_filter_candidates(Operation *op, wt_ctx *wc, Filter *f, ID *ids, ID *tmp, ID *stack);
 int wt_idl_union(ID *a, ID *b);
 
 /*
  * index.c
  */
 
-extern AttrInfo *wt_index_mask(Backend *be, AttributeDescription *desc,
-                               struct berval *atname);
+extern AttrInfo *wt_index_mask(Backend *be, AttributeDescription *desc, struct berval *atname);
 
 int wt_index_entry(Operation *op, wt_ctx *wc, int r, Entry *e);
-int wt_index_values(Operation *op, wt_ctx *wc, AttributeDescription *desc,
-                    BerVarray vals, ID id, int opid);
-int wt_index_param(Backend *be, AttributeDescription *desc, int ftype,
-                   slap_mask_t *maskp, struct berval *prefixp);
+int wt_index_values(Operation *op, wt_ctx *wc, AttributeDescription *desc, BerVarray vals, ID id, int opid);
+int wt_index_param(Backend *be, AttributeDescription *desc, int ftype, slap_mask_t *maskp, struct berval *prefixp);
 
-#define wt_index_entry_add(op, t, e)                                           \
-  wt_index_entry((op), (t), SLAP_INDEX_ADD_OP, (e))
-#define wt_index_entry_del(op, t, e)                                           \
-  wt_index_entry((op), (t), SLAP_INDEX_DELETE_OP, (e))
+#define wt_index_entry_add(op, t, e) wt_index_entry((op), (t), SLAP_INDEX_ADD_OP, (e))
+#define wt_index_entry_del(op, t, e) wt_index_entry((op), (t), SLAP_INDEX_DELETE_OP, (e))
 
 /*
  * key.c
  */
-int wt_key_read(Backend *be, WT_CURSOR *cursor, struct berval *k, ID *ids,
-                WT_CURSOR **saved_cursor, int get_flag);
+int wt_key_read(Backend *be, WT_CURSOR *cursor, struct berval *k, ID *ids, WT_CURSOR **saved_cursor, int get_flag);
 
-int wt_key_change(Backend *be, WT_CURSOR *cursor, struct berval *k, ID id,
-                  int op);
+int wt_key_change(Backend *be, WT_CURSOR *cursor, struct berval *k, ID id, int op);
 
 /*
  * nextid.c
@@ -102,8 +94,7 @@ int wt_last_id(BackendDB *be, WT_SESSION *session, ID *out);
 /*
  * modify.c
  */
-int wt_modify_internal(Operation *op, wt_ctx *wc, Modifications *modlist,
-                       Entry *e, const char **text, char *textbuf,
+int wt_modify_internal(Operation *op, wt_ctx *wc, Modifications *modlist, Entry *e, const char **text, char *textbuf,
                        size_t textlen);
 
 /*
@@ -119,8 +110,7 @@ int wt_dn2id(Operation *op, wt_ctx *wc, struct berval *ndn, ID *id);
 
 int wt_dn2id_add(Operation *op, wt_ctx *wc, ID pid, Entry *e);
 
-int wt_dn2idl(Operation *op, wt_ctx *wc, struct berval *ndn, Entry *e, ID *ids,
-              ID *stack);
+int wt_dn2idl(Operation *op, wt_ctx *wc, struct berval *ndn, Entry *e, ID *ids, ID *stack);
 
 int wt_dn2id_delete(Operation *op, wt_ctx *wc, struct berval *ndn);
 

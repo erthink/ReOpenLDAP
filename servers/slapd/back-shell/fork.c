@@ -84,8 +84,7 @@ pid_t forkandexec(char **args, FILE **rfp, FILE **wfp) {
   }
 
   /* parent */
-  if ((*rfp = fdopen(c2p[0], "r")) == NULL ||
-      (*wfp = fdopen(p2c[1], "w")) == NULL) {
+  if ((*rfp = fdopen(c2p[0], "r")) == NULL || (*wfp = fdopen(p2c[1], "w")) == NULL) {
     Debug(LDAP_DEBUG_ANY, "fdopen failed\n");
     if (*rfp) {
       fclose(*rfp);

@@ -33,8 +33,7 @@ size_t lutil_uuidstr(char *buf, size_t len) {
   return strlen(buf);
 }
 
-int lutil_uuidstr_from_normalized(char *uuid, size_t uuidlen, char *buf,
-                                  size_t buflen) {
+int lutil_uuidstr_from_normalized(char *uuid, size_t uuidlen, char *buf, size_t buflen) {
   unsigned char nibble;
   int i, d = 0;
 

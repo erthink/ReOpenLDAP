@@ -32,10 +32,8 @@
  * Client-side of <draft-wahl-ldap-session-03>
  */
 
-int ldap_create_session_tracking_value(LDAP *ld, char *sessionSourceIp,
-                                       char *sessionSourceName, char *formatOID,
-                                       struct berval *sessionTrackingIdentifier,
-                                       struct berval *value) {
+int ldap_create_session_tracking_value(LDAP *ld, char *sessionSourceIp, char *sessionSourceName, char *formatOID,
+                                       struct berval *sessionTrackingIdentifier, struct berval *value) {
   BerElement *ber = NULL;
   ber_tag_t tag;
 
@@ -82,8 +80,7 @@ int ldap_create_session_tracking_value(LDAP *ld, char *sessionSourceIp,
   if (oid.bv_len > 1024)
     goto param_error;
 
-  if (sessionTrackingIdentifier == NULL ||
-      sessionTrackingIdentifier->bv_val == NULL) {
+  if (sessionTrackingIdentifier == NULL || sessionTrackingIdentifier->bv_val == NULL) {
     BER_BVSTR(&id, "");
 
   } else {
@@ -121,9 +118,8 @@ done:;
 /*
  * NOTE: this API is bad; it could be much more efficient...
  */
-int ldap_create_session_tracking_control(
-    LDAP *ld, char *sessionSourceIp, char *sessionSourceName, char *formatOID,
-    struct berval *sessionTrackingIdentifier, LDAPControl **ctrlp) {
+int ldap_create_session_tracking_control(LDAP *ld, char *sessionSourceIp, char *sessionSourceName, char *formatOID,
+                                         struct berval *sessionTrackingIdentifier, LDAPControl **ctrlp) {
   struct berval value;
 
   if (ctrlp == NULL) {
@@ -131,12 +127,10 @@ int ldap_create_session_tracking_control(
     return ld->ld_errno;
   }
 
-  ld->ld_errno = ldap_create_session_tracking_value(
-      ld, sessionSourceIp, sessionSourceName, formatOID,
-      sessionTrackingIdentifier, &value);
+  ld->ld_errno = ldap_create_session_tracking_value(ld, sessionSourceIp, sessionSourceName, formatOID,
+                                                    sessionTrackingIdentifier, &value);
   if (ld->ld_errno == LDAP_SUCCESS) {
-    ld->ld_errno = ldap_control_create(LDAP_CONTROL_X_SESSION_TRACKING, 0,
-                                       &value, 0, ctrlp);
+    ld->ld_errno = ldap_control_create(LDAP_CONTROL_X_SESSION_TRACKING, 0, &value, 0, ctrlp);
     if (ld->ld_errno != LDAP_SUCCESS) {
       LDAP_FREE(value.bv_val);
     }
@@ -145,15 +139,13 @@ int ldap_create_session_tracking_control(
   return ld->ld_errno;
 }
 
-int ldap_parse_session_tracking_control(LDAP *ld, LDAPControl *ctrl,
-                                        struct berval *ip, struct berval *name,
+int ldap_parse_session_tracking_control(LDAP *ld, LDAPControl *ctrl, struct berval *ip, struct berval *name,
                                         struct berval *oid, struct berval *id) {
   BerElement *ber;
   ber_tag_t tag;
   ber_len_t len;
 
-  if (ld == NULL || ctrl == NULL || ip == NULL || name == NULL || oid == NULL ||
-      id == NULL) {
+  if (ld == NULL || ctrl == NULL || ip == NULL || name == NULL || oid == NULL || id == NULL) {
     if (ld) {
       ld->ld_errno = LDAP_PARAM_ERROR;
     }

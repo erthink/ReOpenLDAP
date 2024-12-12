@@ -53,16 +53,14 @@ static int cargv_size = 0;
 static int cargc = 0;
 static char *strtok_quote_ptr;
 
-static int dsaschema_parse_at(const char *fname, int lineno, char *line,
-                              char **argv) {
+static int dsaschema_parse_at(const char *fname, int lineno, char *line, char **argv) {
   LDAPAttributeType *at;
   int code;
   const char *err;
 
   at = ldap_str2attributetype(line, &code, &err, LDAP_SCHEMA_ALLOW_ALL);
   if (!at) {
-    fprintf(stderr, "%s: line %d: %s before %s\n", fname, lineno,
-            ldap_scherr2str(code), err);
+    fprintf(stderr, "%s: line %d: %s before %s\n", fname, lineno, ldap_scherr2str(code), err);
     return 1;
   }
 
@@ -73,8 +71,7 @@ static int dsaschema_parse_at(const char *fname, int lineno, char *line,
 
   code = at_add(at, 0, NULL, NULL, &err);
   if (code) {
-    fprintf(stderr, "%s: line %d: %s: \"%s\"\n", fname, lineno,
-            ldap_scherr2str(code), err);
+    fprintf(stderr, "%s: line %d: %s: \"%s\"\n", fname, lineno, ldap_scherr2str(code), err);
     return 1;
   }
 
@@ -83,16 +80,14 @@ static int dsaschema_parse_at(const char *fname, int lineno, char *line,
   return 0;
 }
 
-static int dsaschema_parse_oc(const char *fname, int lineno, char *line,
-                              char **argv) {
+static int dsaschema_parse_oc(const char *fname, int lineno, char *line, char **argv) {
   LDAPObjectClass *oc;
   int code;
   const char *err;
 
   oc = ldap_str2objectclass(line, &code, &err, LDAP_SCHEMA_ALLOW_ALL);
   if (!oc) {
-    fprintf(stderr, "%s: line %d: %s before %s\n", fname, lineno,
-            ldap_scherr2str(code), err);
+    fprintf(stderr, "%s: line %d: %s before %s\n", fname, lineno, ldap_scherr2str(code), err);
     return 1;
   }
 
@@ -103,8 +98,7 @@ static int dsaschema_parse_oc(const char *fname, int lineno, char *line,
 
   code = oc_add(oc, 0, NULL, NULL, &err);
   if (code) {
-    fprintf(stderr, "%s: line %d: %s: \"%s\"\n", fname, lineno,
-            ldap_scherr2str(code), err);
+    fprintf(stderr, "%s: line %d: %s: \"%s\"\n", fname, lineno, ldap_scherr2str(code), err);
     return 1;
   }
 
@@ -112,16 +106,14 @@ static int dsaschema_parse_oc(const char *fname, int lineno, char *line,
   return 0;
 }
 
-static int dsaschema_parse_cr(const char *fname, int lineno, char *line,
-                              char **argv) {
+static int dsaschema_parse_cr(const char *fname, int lineno, char *line, char **argv) {
   LDAPContentRule *cr;
   int code;
   const char *err;
 
   cr = ldap_str2contentrule(line, &code, &err, LDAP_SCHEMA_ALLOW_ALL);
   if (!cr) {
-    fprintf(stderr, "%s: line %d: %s before %s\n", fname, lineno,
-            ldap_scherr2str(code), err);
+    fprintf(stderr, "%s: line %d: %s before %s\n", fname, lineno, ldap_scherr2str(code), err);
     return 1;
   }
 
@@ -132,8 +124,7 @@ static int dsaschema_parse_cr(const char *fname, int lineno, char *line,
 
   code = cr_add(cr, 0, NULL, &err);
   if (code) {
-    fprintf(stderr, "%s: line %d: %s: \"%s\"\n", fname, lineno,
-            ldap_scherr2str(code), err);
+    fprintf(stderr, "%s: line %d: %s: \"%s\"\n", fname, lineno, ldap_scherr2str(code), err);
     return 1;
   }
 
@@ -157,8 +148,7 @@ static int dsaschema_read_config(const char *fname, int depth) {
 
   fp = fopen(fname, "r");
   if (fp == NULL) {
-    fprintf(stderr, "could not open config file \"%s\": %s (%d)\n", fname,
-            strerror(errno), errno);
+    fprintf(stderr, "could not open config file \"%s\": %s (%d)\n", fname, strerror(errno), errno);
     return 1;
   }
   fp_getline_init(&lineno);
@@ -182,11 +172,9 @@ static int dsaschema_read_config(const char *fname, int depth) {
       continue;
     }
 
-    if (strcasecmp(cargv[0], "attributetype") == 0 ||
-        strcasecmp(cargv[0], "attribute") == 0) {
+    if (strcasecmp(cargv[0], "attributetype") == 0 || strcasecmp(cargv[0], "attribute") == 0) {
       if (cargc < 2) {
-        fprintf(stderr, "%s: line %d: illegal attribute type format\n", fname,
-                lineno);
+        fprintf(stderr, "%s: line %d: illegal attribute type format\n", fname, lineno);
         return 1;
       } else if (*cargv[1] == '(' /*')'*/) {
         char *p;
@@ -196,9 +184,7 @@ static int dsaschema_read_config(const char *fname, int depth) {
         if (rc != 0)
           return rc;
       } else {
-        fprintf(stderr,
-                "%s: line %d: old attribute type format not supported\n", fname,
-                lineno);
+        fprintf(stderr, "%s: line %d: old attribute type format not supported\n", fname, lineno);
       }
     } else if (strcasecmp(cargv[0], "ditcontentrule") == 0) {
       char *p;
@@ -208,8 +194,7 @@ static int dsaschema_read_config(const char *fname, int depth) {
         return rc;
     } else if (strcasecmp(cargv[0], "objectclass") == 0) {
       if (cargc < 2) {
-        fprintf(stderr, "%s: line %d: illegal objectclass format\n", fname,
-                lineno);
+        fprintf(stderr, "%s: line %d: illegal objectclass format\n", fname, lineno);
         return 1;
       } else if (*cargv[1] == '(' /*')'*/) {
         char *p;
@@ -219,14 +204,11 @@ static int dsaschema_read_config(const char *fname, int depth) {
         if (rc != 0)
           return rc;
       } else {
-        fprintf(stderr, "%s: line %d: object class format not supported\n",
-                fname, lineno);
+        fprintf(stderr, "%s: line %d: object class format not supported\n", fname, lineno);
       }
     } else if (strcasecmp(cargv[0], "include") == 0) {
       if (cargc < 2) {
-        fprintf(stderr,
-                "%s: line %d: missing file name in \"include <filename>\" line",
-                fname, lineno);
+        fprintf(stderr, "%s: line %d: missing file name in \"include <filename>\" line", fname, lineno);
         return 1;
       }
       savefname = strdup(cargv[1]);
@@ -239,8 +221,7 @@ static int dsaschema_read_config(const char *fname, int depth) {
       free(savefname);
       lineno = savelineno - 1;
     } else {
-      fprintf(stderr, "%s: line %d: unknown directive \"%s\" (ignored)\n",
-              fname, lineno, cargv[0]);
+      fprintf(stderr, "%s: line %d: unknown directive \"%s\" (ignored)\n", fname, lineno, cargv[0]);
     }
   }
 
@@ -338,15 +319,15 @@ static char buf[BUFSIZ];
 static char *line;
 static size_t lmax, lcur;
 
-#define CATLINE(buf)                                                           \
-  do {                                                                         \
-    size_t len = strlen(buf);                                                  \
-    while (lcur + len + 1 > lmax) {                                            \
-      lmax += BUFSIZ;                                                          \
-      line = (char *)realloc(line, lmax);                                      \
-    }                                                                          \
-    strcpy(line + lcur, buf);                                                  \
-    lcur += len;                                                               \
+#define CATLINE(buf)                                                                                                   \
+  do {                                                                                                                 \
+    size_t len = strlen(buf);                                                                                          \
+    while (lcur + len + 1 > lmax) {                                                                                    \
+      lmax += BUFSIZ;                                                                                                  \
+      line = (char *)realloc(line, lmax);                                                                              \
+    }                                                                                                                  \
+    strcpy(line + lcur, buf);                                                                                          \
+    lcur += len;                                                                                                       \
   } while (0)
 
 static char *fp_getline(FILE *fp, int *lineno) {
@@ -371,8 +352,7 @@ static char *fp_getline(FILE *fp, int *lineno) {
     }
 
     /* trim off trailing \ and append the next line */
-    if (line[0] != '\0' && (p = line + strlen(line) - 1)[0] == '\\' &&
-        p[-1] != '\\') {
+    if (line[0] != '\0' && (p = line + strlen(line) - 1)[0] == '\\' && p[-1] != '\\') {
       p[0] = '\0';
       lcur--;
 

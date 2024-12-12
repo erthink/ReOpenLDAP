@@ -36,9 +36,8 @@ int backsql_modrdn(Operation *op, SlapReply *rs) {
   backsql_entryID e_id = BACKSQL_ENTRYID_INIT, n_id = BACKSQL_ENTRYID_INIT;
   backsql_srch_info bsi = {0};
   backsql_oc_map_rec *oc = NULL;
-  struct berval pdn = BER_BVNULL, pndn = BER_BVNULL, *new_pdn = NULL,
-                *new_npdn = NULL, new_dn = BER_BVNULL, new_ndn = BER_BVNULL,
-                realnew_dn = BER_BVNULL;
+  struct berval pdn = BER_BVNULL, pndn = BER_BVNULL, *new_pdn = NULL, *new_npdn = NULL, new_dn = BER_BVNULL,
+                new_ndn = BER_BVNULL, realnew_dn = BER_BVNULL;
   Entry r = {0}, p = {0}, n = {0}, *e = NULL;
   int manageDSAit = get_manageDSAit(op);
   struct berval *newSuperior = op->oq_modrdn.rs_newSup;
@@ -46,8 +45,7 @@ int backsql_modrdn(Operation *op, SlapReply *rs) {
   Debug(LDAP_DEBUG_TRACE,
         "==>backsql_modrdn() renaming entry \"%s\", "
         "newrdn=\"%s\", newSuperior=\"%s\"\n",
-        op->o_req_dn.bv_val, op->oq_modrdn.rs_newrdn.bv_val,
-        newSuperior ? newSuperior->bv_val : "(NULL)");
+        op->o_req_dn.bv_val, op->oq_modrdn.rs_newrdn.bv_val, newSuperior ? newSuperior->bv_val : "(NULL)");
 
   rs->sr_err = backsql_get_db_conn(op, &dbh);
   if (rs->sr_err != LDAP_SUCCESS) {
@@ -59,17 +57,15 @@ int backsql_modrdn(Operation *op, SlapReply *rs) {
   }
 
   bsi.bsi_e = &r;
-  rs->sr_err = backsql_init_search(
-      &bsi, &op->o_req_ndn, LDAP_SCOPE_BASE, (time_t)(-1), NULL, dbh, op, rs,
-      slap_anlist_all_attributes,
-      (BACKSQL_ISF_MATCHED | BACKSQL_ISF_GET_ENTRY | BACKSQL_ISF_GET_OC));
+  rs->sr_err = backsql_init_search(&bsi, &op->o_req_ndn, LDAP_SCOPE_BASE, (time_t)(-1), NULL, dbh, op, rs,
+                                   slap_anlist_all_attributes,
+                                   (BACKSQL_ISF_MATCHED | BACKSQL_ISF_GET_ENTRY | BACKSQL_ISF_GET_OC));
   switch (rs->sr_err) {
   case LDAP_SUCCESS:
     break;
 
   case LDAP_REFERRAL:
-    if (manageDSAit && !BER_BVISNULL(&bsi.bsi_e->e_nname) &&
-        dn_match(&op->o_req_ndn, &bsi.bsi_e->e_nname)) {
+    if (manageDSAit && !BER_BVISNULL(&bsi.bsi_e->e_nname) && dn_match(&op->o_req_ndn, &bsi.bsi_e->e_nname)) {
       rs->sr_err = LDAP_SUCCESS;
       rs_send_cleanup(rs);
       break;
@@ -90,11 +86,9 @@ int backsql_modrdn(Operation *op, SlapReply *rs) {
     goto done;
   }
 
-  Debug(LDAP_DEBUG_TRACE, "   backsql_modrdn(): entry id=" BACKSQL_IDFMT "\n",
-        BACKSQL_IDARG(e_id.eid_id));
+  Debug(LDAP_DEBUG_TRACE, "   backsql_modrdn(): entry id=" BACKSQL_IDFMT "\n", BACKSQL_IDARG(e_id.eid_id));
 
-  if (get_assert(op) &&
-      (test_filter(op, &r, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
+  if (get_assert(op) && (test_filter(op, &r, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
     rs->sr_err = LDAP_ASSERTION_FAILED;
     e = &r;
     goto done;
@@ -141,12 +135,10 @@ int backsql_modrdn(Operation *op, SlapReply *rs) {
   bsi.bsi_e = &p;
   e_id = bsi.bsi_base_id;
   memset(&bsi.bsi_base_id, 0, sizeof(bsi.bsi_base_id));
-  rs->sr_err = backsql_init_search(
-      &bsi, &pndn, LDAP_SCOPE_BASE, (time_t)(-1), NULL, dbh, op, rs,
-      slap_anlist_all_attributes, BACKSQL_ISF_GET_ENTRY);
+  rs->sr_err = backsql_init_search(&bsi, &pndn, LDAP_SCOPE_BASE, (time_t)(-1), NULL, dbh, op, rs,
+                                   slap_anlist_all_attributes, BACKSQL_ISF_GET_ENTRY);
 
-  Debug(LDAP_DEBUG_TRACE,
-        "   backsql_modrdn(): old parent entry id is " BACKSQL_IDFMT "\n",
+  Debug(LDAP_DEBUG_TRACE, "   backsql_modrdn(): old parent entry id is " BACKSQL_IDFMT "\n",
         BACKSQL_IDARG(bsi.bsi_base_id.eid_id));
 
   if (rs->sr_err != LDAP_SUCCESS) {
@@ -156,8 +148,7 @@ int backsql_modrdn(Operation *op, SlapReply *rs) {
     goto done;
   }
 
-  if (!access_allowed(op, &p, slap_schema.si_ad_children, NULL,
-                      newSuperior ? ACL_WDEL : ACL_WRITE, NULL)) {
+  if (!access_allowed(op, &p, slap_schema.si_ad_children, NULL, newSuperior ? ACL_WDEL : ACL_WRITE, NULL)) {
     Debug(LDAP_DEBUG_TRACE, "   no access to parent\n");
     rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
     goto done;
@@ -185,26 +176,20 @@ int backsql_modrdn(Operation *op, SlapReply *rs) {
      * Check for children access to new parent
      */
     bsi.bsi_e = &n;
-    rs->sr_err =
-        backsql_init_search(&bsi, new_npdn, LDAP_SCOPE_BASE, (time_t)(-1), NULL,
-                            dbh, op, rs, slap_anlist_all_attributes,
-                            (BACKSQL_ISF_MATCHED | BACKSQL_ISF_GET_ENTRY));
+    rs->sr_err = backsql_init_search(&bsi, new_npdn, LDAP_SCOPE_BASE, (time_t)(-1), NULL, dbh, op, rs,
+                                     slap_anlist_all_attributes, (BACKSQL_ISF_MATCHED | BACKSQL_ISF_GET_ENTRY));
     if (rs->sr_err != LDAP_SUCCESS) {
-      Debug(LDAP_DEBUG_TRACE,
-            "backsql_modrdn(): "
-            "could not retrieve renameDN ID - no such entry\n");
+      Debug(LDAP_DEBUG_TRACE, "backsql_modrdn(): "
+                              "could not retrieve renameDN ID - no such entry\n");
       e = &n;
       goto done;
     }
 
     n_id = bsi.bsi_base_id;
 
-    Debug(LDAP_DEBUG_TRACE,
-          "   backsql_modrdn(): new parent entry id=" BACKSQL_IDFMT "\n",
-          BACKSQL_IDARG(n_id.eid_id));
+    Debug(LDAP_DEBUG_TRACE, "   backsql_modrdn(): new parent entry id=" BACKSQL_IDFMT "\n", BACKSQL_IDARG(n_id.eid_id));
 
-    if (!access_allowed(op, &n, slap_schema.si_ad_children, NULL, ACL_WADD,
-                        NULL)) {
+    if (!access_allowed(op, &n, slap_schema.si_ad_children, NULL, ACL_WADD, NULL)) {
       Debug(LDAP_DEBUG_TRACE,
             "   backsql_modrdn(): "
             "no access to new parent \"%s\"\n",
@@ -241,8 +226,7 @@ int backsql_modrdn(Operation *op, SlapReply *rs) {
   build_new_dn(&new_dn, new_pdn, &op->oq_modrdn.rs_newrdn, op->o_tmpmemctx);
   build_new_dn(&new_ndn, new_npdn, &op->oq_modrdn.rs_nnewrdn, op->o_tmpmemctx);
 
-  Debug(LDAP_DEBUG_TRACE, "   backsql_modrdn(): new entry dn is \"%s\"\n",
-        new_dn.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "   backsql_modrdn(): new entry dn is \"%s\"\n", new_dn.bv_val);
 
   realnew_dn = new_dn;
   if (backsql_api_dn2odbc(op, rs, &realnew_dn)) {
@@ -352,8 +336,7 @@ int backsql_modrdn(Operation *op, SlapReply *rs) {
   oc = e_id.eid_oc;
 
   if (op->orr_modlist != NULL) {
-    rs->sr_err =
-        backsql_modify_internal(op, rs, dbh, oc, &e_id, op->orr_modlist);
+    rs->sr_err = backsql_modify_internal(op, rs, dbh, oc, &e_id, op->orr_modlist);
     slap_graduate_commit_csn(op);
     if (rs->sr_err != LDAP_SUCCESS) {
       e = &r;
@@ -368,17 +351,14 @@ int backsql_modrdn(Operation *op, SlapReply *rs) {
     (void)backsql_free_entryID(&e_id, 0, op->o_tmpmemctx);
 
     bsi.bsi_e = &r;
-    rs->sr_err =
-        backsql_init_search(&bsi, &new_ndn, LDAP_SCOPE_BASE, (time_t)(-1), NULL,
-                            dbh, op, rs, slap_anlist_all_attributes,
-                            (BACKSQL_ISF_MATCHED | BACKSQL_ISF_GET_ENTRY));
+    rs->sr_err = backsql_init_search(&bsi, &new_ndn, LDAP_SCOPE_BASE, (time_t)(-1), NULL, dbh, op, rs,
+                                     slap_anlist_all_attributes, (BACKSQL_ISF_MATCHED | BACKSQL_ISF_GET_ENTRY));
     switch (rs->sr_err) {
     case LDAP_SUCCESS:
       break;
 
     case LDAP_REFERRAL:
-      if (manageDSAit && !BER_BVISNULL(&bsi.bsi_e->e_nname) &&
-          dn_match(&new_ndn, &bsi.bsi_e->e_nname)) {
+      if (manageDSAit && !BER_BVISNULL(&bsi.bsi_e->e_nname) && dn_match(&new_ndn, &bsi.bsi_e->e_nname)) {
         rs->sr_err = LDAP_SUCCESS;
         rs_send_cleanup(rs);
         break;
@@ -387,9 +367,8 @@ int backsql_modrdn(Operation *op, SlapReply *rs) {
       /* fallthru */
 
     default:
-      Debug(LDAP_DEBUG_TRACE,
-            "backsql_modrdn(): "
-            "could not retrieve modrdnDN ID - no such entry\n");
+      Debug(LDAP_DEBUG_TRACE, "backsql_modrdn(): "
+                              "could not retrieve modrdnDN ID - no such entry\n");
       if (!BER_BVISNULL(&r.e_nname)) {
         /* FIXME: should always be true! */
         e = &r;
@@ -402,8 +381,7 @@ int backsql_modrdn(Operation *op, SlapReply *rs) {
 
     e_id = bsi.bsi_base_id;
 
-    rs->sr_err = entry_schema_check(op, &r, NULL, 0, 0, NULL, &rs->sr_text,
-                                    textbuf, sizeof(textbuf));
+    rs->sr_err = entry_schema_check(op, &r, NULL, 0, 0, NULL, &rs->sr_text, textbuf, sizeof(textbuf));
     if (rs->sr_err != LDAP_SUCCESS) {
       Debug(LDAP_DEBUG_TRACE,
             "   backsql_modrdn(\"%s\"): "
@@ -416,8 +394,7 @@ int backsql_modrdn(Operation *op, SlapReply *rs) {
 
 done:;
   if (e != NULL) {
-    if (!access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE,
-                        NULL)) {
+    if (!access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL)) {
       rs->sr_err = LDAP_NO_SUCH_OBJECT;
       rs_send_cleanup(rs);
     }

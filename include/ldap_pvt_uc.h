@@ -86,28 +86,20 @@ LDAP_V(const char) ldap_utf8_lentab[128];
 LDAP_V(const char) ldap_utf8_mintab[32];
 
 #define LDAP_UTF8_ISASCII(p) (!(*(const unsigned char *)(p) & 0x80))
-#define LDAP_UTF8_CHARLEN(p)                                                   \
-  (LDAP_UTF8_ISASCII(p)                                                        \
-       ? 1                                                                     \
-       : ldap_utf8_lentab[*(const unsigned char *)(p) ^ 0x80])
+#define LDAP_UTF8_CHARLEN(p) (LDAP_UTF8_ISASCII(p) ? 1 : ldap_utf8_lentab[*(const unsigned char *)(p) ^ 0x80])
 
 /* This is like CHARLEN but additionally validates to make sure
  * the char used the shortest possible encoding.
  * 'l' is used to temporarily hold the result of CHARLEN.
  */
-#define LDAP_UTF8_CHARLEN2(p, l)                                               \
-  (((l = LDAP_UTF8_CHARLEN(p)) < 3 ||                                          \
-    (ldap_utf8_mintab[*(const unsigned char *)(p) & 0x1f] & (p)[1]))           \
-       ? l                                                                     \
-       : 0)
+#define LDAP_UTF8_CHARLEN2(p, l)                                                                                       \
+  (((l = LDAP_UTF8_CHARLEN(p)) < 3 || (ldap_utf8_mintab[*(const unsigned char *)(p) & 0x1f] & (p)[1])) ? l : 0)
 
 #define LDAP_UTF8_OFFSET(p) (LDAP_UTF8_ISASCII(p) ? 1 : ldap_utf8_offset((p)))
 
-#define LDAP_UTF8_COPY(d, s)                                                   \
-  (LDAP_UTF8_ISASCII(s) ? (*(d) = *(s), 1) : ldap_utf8_copy((d), (s)))
+#define LDAP_UTF8_COPY(d, s) (LDAP_UTF8_ISASCII(s) ? (*(d) = *(s), 1) : ldap_utf8_copy((d), (s)))
 
-#define LDAP_UTF8_NEXT(p)                                                      \
-  (LDAP_UTF8_ISASCII(p) ? (char *)(p) + 1 : ldap_utf8_next((p)))
+#define LDAP_UTF8_NEXT(p) (LDAP_UTF8_ISASCII(p) ? (char *)(p) + 1 : ldap_utf8_next((p)))
 
 #define LDAP_UTF8_INCR(p) ((p) = LDAP_UTF8_NEXT(p))
 

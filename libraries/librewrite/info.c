@@ -147,13 +147,12 @@ int rewrite_info_delete(struct rewrite_info **pinfo) {
  * 	- ok with copy of string as result,
  * 	- use the default rewrite context.
  */
-int rewrite(struct rewrite_info *info, const char *rewriteContext,
-            const char *string, char **result) {
+int rewrite(struct rewrite_info *info, const char *rewriteContext, const char *string, char **result) {
   return rewrite_session(info, rewriteContext, string, NULL, result);
 }
 
-int rewrite_session(struct rewrite_info *info, const char *rewriteContext,
-                    const char *string, const void *cookie, char **result) {
+int rewrite_session(struct rewrite_info *info, const char *rewriteContext, const char *string, const void *cookie,
+                    char **result) {
   struct rewrite_context *context;
   struct rewrite_op op = {0, 0, NULL, NULL, NULL};
   int rc;

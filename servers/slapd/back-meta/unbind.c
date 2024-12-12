@@ -36,9 +36,8 @@ int meta_back_conn_destroy(Backend *be, Connection *conn) {
   metaconn_t *mc, mc_curr = {{0}};
   int i;
 
-  Debug(LDAP_DEBUG_TRACE,
-        "=>meta_back_conn_destroy: fetching conn=%ld DN=\"%s\"\n",
-        conn->c_connid, BER_BVISNULL(&conn->c_ndn) ? "" : conn->c_ndn.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "=>meta_back_conn_destroy: fetching conn=%ld DN=\"%s\"\n", conn->c_connid,
+        BER_BVISNULL(&conn->c_ndn) ? "" : conn->c_ndn.bv_val);
 
   mc_curr.mc_conn = conn;
 
@@ -46,8 +45,7 @@ int meta_back_conn_destroy(Backend *be, Connection *conn) {
 #if META_BACK_PRINT_CONNTREE > 0
   meta_back_print_conntree(mi, ">>> meta_back_conn_destroy");
 #endif /* META_BACK_PRINT_CONNTREE */
-  while ((mc = avl_delete(&mi->mi_conninfo.lai_tree, (caddr_t)&mc_curr,
-                          meta_back_conn_cmp)) != NULL) {
+  while ((mc = avl_delete(&mi->mi_conninfo.lai_tree, (caddr_t)&mc_curr, meta_back_conn_cmp)) != NULL) {
     assert(!LDAP_BACK_PCONN_ISPRIV(mc));
     Debug(LDAP_DEBUG_TRACE,
           "=>meta_back_conn_destroy: destroying conn %lu "

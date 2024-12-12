@@ -43,8 +43,7 @@ void wt_idl_check(ID *ids) {
 
 void wt_idl_dump(ID *ids) {
   if (WT_IDL_IS_RANGE(ids)) {
-    Debug(LDAP_DEBUG_ANY, "IDL: range ( %ld - %ld )\n",
-          (long)WT_IDL_RANGE_FIRST(ids), (long)WT_IDL_RANGE_LAST(ids));
+    Debug(LDAP_DEBUG_ANY, "IDL: range ( %ld - %ld )\n", (long)WT_IDL_RANGE_FIRST(ids), (long)WT_IDL_RANGE_LAST(ids));
 
   } else {
     ID i;
@@ -298,8 +297,7 @@ int wt_idl_intersection(ID *a, ID *b) {
    * just the list. If idmin to idmax is contiguous, just
    * turn it into a range.
    */
-  if (WT_IDL_IS_RANGE(b) && WT_IDL_RANGE_FIRST(b) <= WT_IDL_FIRST(a) &&
-      WT_IDL_RANGE_LAST(b) >= WT_IDL_LLAST(a)) {
+  if (WT_IDL_IS_RANGE(b) && WT_IDL_RANGE_FIRST(b) <= WT_IDL_FIRST(a) && WT_IDL_RANGE_LAST(b) >= WT_IDL_LLAST(a)) {
     if (idmax - idmin + 1 == a[0]) {
       a[0] = NOID;
       a[1] = idmin;
@@ -556,8 +554,7 @@ int wt_idl_append(ID *a, ID *b) {
 
   ida = WT_IDL_LAST(a);
   idb = WT_IDL_LAST(b);
-  if (WT_IDL_IS_RANGE(a) || WT_IDL_IS_RANGE(b) ||
-      a[0] + b[0] >= WT_IDL_UM_MAX) {
+  if (WT_IDL_IS_RANGE(a) || WT_IDL_IS_RANGE(b) || a[0] + b[0] >= WT_IDL_UM_MAX) {
     a[2] = IDL_MAX(ida, idb);
     a[1] = IDL_MIN(a[1], b[1]);
     a[0] = NOID;
@@ -595,9 +592,9 @@ int wt_idl_append(ID *a, ID *b) {
 /* Quicksort + Insertion sort for small arrays */
 
 #define SMALL 8
-#define SWAP(a, b)                                                             \
-  itmp = (a);                                                                  \
-  (a) = (b);                                                                   \
+#define SWAP(a, b)                                                                                                     \
+  itmp = (a);                                                                                                          \
+  (a) = (b);                                                                                                           \
   (b) = itmp
 
 void wt_idl_sort(ID *ids, ID *tmp) {

@@ -32,8 +32,7 @@
 static int monitor_back_add_plugin(monitor_info_t *mi, Backend *be, Entry *e);
 #endif /* defined(LDAP_SLAPI) */
 
-static int monitor_subsys_database_modify(Operation *op, SlapReply *rs,
-                                          Entry *e);
+static int monitor_subsys_database_modify(Operation *op, SlapReply *rs, Entry *e);
 
 static struct restricted_ops_t {
   struct berval op;
@@ -47,31 +46,26 @@ static struct restricted_ops_t {
                       {BER_BVC("rename"), SLAP_RESTRICT_OP_RENAME},
                       {BER_BVC("search"), SLAP_RESTRICT_OP_SEARCH},
                       {BER_BVNULL, 0}},
-  restricted_exops[] = {
-      {BER_BVC(LDAP_EXOP_START_TLS), SLAP_RESTRICT_EXOP_START_TLS},
-      {BER_BVC(LDAP_EXOP_MODIFY_PASSWD), SLAP_RESTRICT_EXOP_MODIFY_PASSWD},
-      {BER_BVC(LDAP_EXOP_WHO_AM_I), SLAP_RESTRICT_EXOP_WHOAMI},
-      {BER_BVC(LDAP_EXOP_CANCEL), SLAP_RESTRICT_EXOP_CANCEL},
-      {BER_BVNULL, 0}};
+  restricted_exops[] = {{BER_BVC(LDAP_EXOP_START_TLS), SLAP_RESTRICT_EXOP_START_TLS},
+                        {BER_BVC(LDAP_EXOP_MODIFY_PASSWD), SLAP_RESTRICT_EXOP_MODIFY_PASSWD},
+                        {BER_BVC(LDAP_EXOP_WHO_AM_I), SLAP_RESTRICT_EXOP_WHOAMI},
+                        {BER_BVC(LDAP_EXOP_CANCEL), SLAP_RESTRICT_EXOP_CANCEL},
+                        {BER_BVNULL, 0}};
 
-static int init_readOnly(monitor_info_t *mi, Entry *e,
-                         slap_mask_t restrictops) {
-  struct berval *tf =
-      ((restrictops & SLAP_RESTRICT_OP_MASK) == SLAP_RESTRICT_OP_WRITES)
-          ? (struct berval *)&slap_true_bv
-          : (struct berval *)&slap_false_bv;
+static int init_readOnly(monitor_info_t *mi, Entry *e, slap_mask_t restrictops) {
+  struct berval *tf = ((restrictops & SLAP_RESTRICT_OP_MASK) == SLAP_RESTRICT_OP_WRITES)
+                          ? (struct berval *)&slap_true_bv
+                          : (struct berval *)&slap_false_bv;
 
   return attr_merge_one(e, mi->mi_ad_readOnly, tf, NULL);
 }
 
-static int init_restrictedOperation(monitor_info_t *mi, Entry *e,
-                                    slap_mask_t restrictops) {
+static int init_restrictedOperation(monitor_info_t *mi, Entry *e, slap_mask_t restrictops) {
   int i, rc;
 
   for (i = 0; restricted_ops[i].op.bv_val; i++) {
     if (restrictops & restricted_ops[i].tag) {
-      rc = attr_merge_one(e, mi->mi_ad_restrictedOperation,
-                          &restricted_ops[i].op, &restricted_ops[i].op);
+      rc = attr_merge_one(e, mi->mi_ad_restrictedOperation, &restricted_ops[i].op, &restricted_ops[i].op);
       if (rc) {
         return rc;
       }
@@ -80,8 +74,7 @@ static int init_restrictedOperation(monitor_info_t *mi, Entry *e,
 
   for (i = 0; restricted_exops[i].op.bv_val; i++) {
     if (restrictops & restricted_exops[i].tag) {
-      rc = attr_merge_one(e, mi->mi_ad_restrictedOperation,
-                          &restricted_exops[i].op, &restricted_exops[i].op);
+      rc = attr_merge_one(e, mi->mi_ad_restrictedOperation, &restricted_exops[i].op, &restricted_exops[i].op);
       if (rc) {
         return rc;
       }
@@ -91,10 +84,8 @@ static int init_restrictedOperation(monitor_info_t *mi, Entry *e,
   return LDAP_SUCCESS;
 }
 
-static int monitor_subsys_overlay_init_one(monitor_info_t *mi, BackendDB *be,
-                                           monitor_subsys_t *ms,
-                                           monitor_subsys_t *ms_overlay,
-                                           slap_overinst *on, Entry *e_database,
+static int monitor_subsys_overlay_init_one(monitor_info_t *mi, BackendDB *be, monitor_subsys_t *ms,
+                                           monitor_subsys_t *ms_overlay, slap_overinst *on, Entry *e_database,
                                            Entry **ep_overlay) {
   char buf[BACKMONITOR_BUFSIZE];
   int j, o;
@@ -129,8 +120,7 @@ static int monitor_subsys_overlay_init_one(monitor_info_t *mi, BackendDB *be,
   bv.bv_len = snprintf(buf, sizeof(buf), "cn=Overlay %d", o);
   bv.bv_val = buf;
 
-  e_overlay = monitor_entry_stub(&e_database->e_name, &e_database->e_nname, &bv,
-                                 mi->mi_oc_monitoredObject, NULL, NULL);
+  e_overlay = monitor_entry_stub(&e_database->e_name, &e_database->e_nname, &bv, mi->mi_oc_monitoredObject, NULL, NULL);
 
   if (e_overlay == NULL) {
     Debug(LDAP_DEBUG_ANY,
@@ -143,18 +133,15 @@ static int monitor_subsys_overlay_init_one(monitor_info_t *mi, BackendDB *be,
   ber_str2bv(on->on_bi.bi_type, 0, 0, &bv);
   attr_merge_normalize_one(e_overlay, mi->mi_ad_monitoredInfo, &bv, NULL);
 
-  bv.bv_len = snprintf(buf, sizeof(buf), "cn=Overlay %d,%s", j,
-                       ms_overlay->mss_dn.bv_val);
+  bv.bv_len = snprintf(buf, sizeof(buf), "cn=Overlay %d,%s", j, ms_overlay->mss_dn.bv_val);
   bv.bv_val = buf;
   attr_merge_normalize_one(e_overlay, slap_schema.si_ad_seeAlso, &bv, NULL);
 
   if (SLAP_MONITOR(be)) {
-    attr_merge(e_overlay, slap_schema.si_ad_monitorContext, be->be_suffix,
-               be->be_nsuffix);
+    attr_merge(e_overlay, slap_schema.si_ad_monitorContext, be->be_suffix, be->be_nsuffix);
 
   } else {
-    attr_merge(e_overlay, slap_schema.si_ad_namingContexts, be->be_suffix,
-               NULL);
+    attr_merge(e_overlay, slap_schema.si_ad_namingContexts, be->be_suffix, NULL);
   }
 
   mp_overlay = monitor_entrypriv_create();
@@ -180,12 +167,9 @@ static int monitor_subsys_overlay_init_one(monitor_info_t *mi, BackendDB *be,
   return 0;
 }
 
-static int monitor_subsys_database_init_one(monitor_info_t *mi, BackendDB *be,
-                                            monitor_subsys_t *ms,
-                                            monitor_subsys_t *ms_backend,
-                                            monitor_subsys_t *ms_overlay,
-                                            struct berval *rdn,
-                                            Entry *e_database, Entry ***epp) {
+static int monitor_subsys_database_init_one(monitor_info_t *mi, BackendDB *be, monitor_subsys_t *ms,
+                                            monitor_subsys_t *ms_backend, monitor_subsys_t *ms_overlay,
+                                            struct berval *rdn, Entry *e_database, Entry ***epp) {
   char buf[BACKMONITOR_BUFSIZE];
   int j;
   slap_overinfo *oi = NULL;
@@ -210,8 +194,7 @@ static int monitor_subsys_database_init_one(monitor_info_t *mi, BackendDB *be,
     bi = oi->oi_orig;
   }
 
-  e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, rdn,
-                         mi->mi_oc_monitoredObject, NULL, NULL);
+  e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, rdn, mi->mi_oc_monitoredObject, NULL, NULL);
 
   if (e == NULL) {
     Debug(LDAP_DEBUG_ANY,
@@ -224,20 +207,15 @@ static int monitor_subsys_database_init_one(monitor_info_t *mi, BackendDB *be,
   ber_str2bv(bi->bi_type, 0, 0, &bv);
   attr_merge_normalize_one(e, mi->mi_ad_monitoredInfo, &bv, NULL);
   attr_merge_one(e, mi->mi_ad_monitorIsShadow,
-                 SLAP_SHADOW(be) ? (struct berval *)&slap_true_bv
-                                 : (struct berval *)&slap_false_bv,
-                 NULL);
+                 SLAP_SHADOW(be) ? (struct berval *)&slap_true_bv : (struct berval *)&slap_false_bv, NULL);
 
   if (SLAP_MONITOR(be)) {
-    attr_merge(e, slap_schema.si_ad_monitorContext, be->be_suffix,
-               be->be_nsuffix);
-    attr_merge(e_database, slap_schema.si_ad_monitorContext, be->be_suffix,
-               be->be_nsuffix);
+    attr_merge(e, slap_schema.si_ad_monitorContext, be->be_suffix, be->be_nsuffix);
+    attr_merge(e_database, slap_schema.si_ad_monitorContext, be->be_suffix, be->be_nsuffix);
 
   } else {
     attr_merge(e, slap_schema.si_ad_namingContexts, be->be_suffix, NULL);
-    attr_merge(e_database, slap_schema.si_ad_namingContexts, be->be_suffix,
-               NULL);
+    attr_merge(e_database, slap_schema.si_ad_namingContexts, be->be_suffix, NULL);
 
     if (SLAP_GLUE_SUBORDINATE(be)) {
       BackendDB *sup_be = select_backend(&be->be_nsuffix[0], 1);
@@ -248,8 +226,7 @@ static int monitor_subsys_database_init_one(monitor_info_t *mi, BackendDB *be,
               be->be_suffix[0].bv_val);
 
       } else {
-        attr_merge(e, mi->mi_ad_monitorSuperiorDN, sup_be->be_suffix,
-                   sup_be->be_nsuffix);
+        attr_merge(e, mi->mi_ad_monitorSuperiorDN, sup_be->be_suffix, sup_be->be_nsuffix);
       }
     }
   }
@@ -258,8 +235,7 @@ static int monitor_subsys_database_init_one(monitor_info_t *mi, BackendDB *be,
   (void)init_restrictedOperation(mi, e, be->be_restrictops);
 
   if (SLAP_SHADOW(be) && be->be_update_refs) {
-    attr_merge_normalize(e, mi->mi_ad_monitorUpdateRef, be->be_update_refs,
-                         NULL);
+    attr_merge_normalize(e, mi->mi_ad_monitorUpdateRef, be->be_update_refs, NULL);
   }
 
   if (oi != NULL) {
@@ -289,8 +265,7 @@ static int monitor_subsys_database_init_one(monitor_info_t *mi, BackendDB *be,
       }
       assert(on2 != NULL);
 
-      snprintf(buf, sizeof(buf), "cn=Overlay %d,%s", j,
-               ms_overlay->mss_dn.bv_val);
+      snprintf(buf, sizeof(buf), "cn=Overlay %d,%s", j, ms_overlay->mss_dn.bv_val);
       ber_str2bv(buf, 0, 0, &bv);
       attr_merge_normalize_one(e, slap_schema.si_ad_seeAlso, &bv, NULL);
     }
@@ -300,8 +275,7 @@ static int monitor_subsys_database_init_one(monitor_info_t *mi, BackendDB *be,
   LDAP_STAILQ_FOREACH(bi2, &backendInfo, bi_next) {
     j++;
     if (bi2->bi_type == bi->bi_type) {
-      snprintf(buf, sizeof(buf), "cn=Backend %d,%s", j,
-               ms_backend->mss_dn.bv_val);
+      snprintf(buf, sizeof(buf), "cn=Backend %d,%s", j, ms_backend->mss_dn.bv_val);
       bv.bv_val = buf;
       bv.bv_len = strlen(buf);
       attr_merge_normalize_one(e, slap_schema.si_ad_seeAlso, &bv, NULL);
@@ -336,8 +310,7 @@ static int monitor_subsys_database_init_one(monitor_info_t *mi, BackendDB *be,
     slap_overinst *on = oi->oi_list;
 
     for (; on; on = on->on_next) {
-      monitor_subsys_overlay_init_one(mi, be, ms, ms_overlay, on, e,
-                                      ep_overlay);
+      monitor_subsys_overlay_init_one(mi, be, ms, ms_overlay, on, e, ep_overlay);
     }
   }
 
@@ -347,9 +320,7 @@ static int monitor_subsys_database_init_one(monitor_info_t *mi, BackendDB *be,
   return 0;
 }
 
-static int monitor_back_register_database_and_overlay(BackendDB *be,
-                                                      struct slap_overinst *on,
-                                                      struct berval *ndn_out) {
+static int monitor_back_register_database_and_overlay(BackendDB *be, struct slap_overinst *on, struct berval *ndn_out) {
   monitor_info_t *mi;
   Entry *e_database, **ep;
   int i, rc;
@@ -442,8 +413,7 @@ static int monitor_back_register_database_and_overlay(BackendDB *be,
     goto done;
   }
 
-  rc = monitor_subsys_database_init_one(mi, be, ms_database, ms_backend,
-                                        ms_overlay, &bv, e_database, &ep);
+  rc = monitor_subsys_database_init_one(mi, be, ms_database, ms_backend, ms_overlay, &bv, e_database, &ep);
   if (rc != 0) {
     goto done;
   }
@@ -486,8 +456,7 @@ int monitor_back_register_database(BackendDB *be, struct berval *ndn_out) {
   return monitor_back_register_database_and_overlay(be, NULL, ndn_out);
 }
 
-int monitor_back_register_overlay(BackendDB *be, struct slap_overinst *on,
-                                  struct berval *ndn_out) {
+int monitor_back_register_overlay(BackendDB *be, struct slap_overinst *on, struct berval *ndn_out) {
   return monitor_back_register_database_and_overlay(be, on, ndn_out);
 }
 
@@ -539,8 +508,7 @@ int monitor_subsys_database_init(BackendDB *be, monitor_subsys_t *ms) {
   ep = &mp->mp_children;
 
   BER_BVSTR(&bv, "cn=Frontend");
-  rc = monitor_subsys_database_init_one(mi, frontendDB, ms, ms_backend,
-                                        ms_overlay, &bv, e_database, &ep);
+  rc = monitor_subsys_database_init_one(mi, frontendDB, ms, ms_backend, ms_overlay, &bv, e_database, &ep);
   if (rc != 0) {
     goto bailout;
   }
@@ -556,8 +524,7 @@ int monitor_subsys_database_init(BackendDB *be, monitor_subsys_t *ms) {
       goto bailout;
     }
 
-    rc = monitor_subsys_database_init_one(mi, be, ms, ms_backend, ms_overlay,
-                                          &bv, e_database, &ep);
+    rc = monitor_subsys_database_init_one(mi, be, ms, ms_backend, ms_overlay, &bv, e_database, &ep);
     if (rc != 0) {
       goto bailout;
     }
@@ -614,8 +581,7 @@ static int value_mask(BerVarray v, slap_mask_t cur, slap_mask_t *delta) {
   return LDAP_SUCCESS;
 }
 
-static int monitor_subsys_database_modify(Operation *op, SlapReply *rs,
-                                          Entry *e) {
+static int monitor_subsys_database_modify(Operation *op, SlapReply *rs, Entry *e) {
   monitor_info_t *mi = (monitor_info_t *)op->o_bd->be_private;
   int rc = LDAP_OTHER;
   Attribute *save_attrs, *a;
@@ -660,8 +626,7 @@ static int monitor_subsys_database_modify(Operation *op, SlapReply *rs,
 
       if (mod->sm_values) {
         if (!BER_BVISNULL(&mod->sm_values[1])) {
-          rs->sr_text =
-              "attempting to modify multiple values of single-valued attribute";
+          rs->sr_text = "attempting to modify multiple values of single-valued attribute";
           rc = rs->sr_err = LDAP_CONSTRAINT_VIOLATION;
           goto done;
         }
@@ -687,14 +652,12 @@ static int monitor_subsys_database_modify(Operation *op, SlapReply *rs,
         }
         ro_gotval--;
 
-        if (val == 0 &&
-            (rp_cur & SLAP_RESTRICT_OP_WRITES) == SLAP_RESTRICT_OP_WRITES) {
+        if (val == 0 && (rp_cur & SLAP_RESTRICT_OP_WRITES) == SLAP_RESTRICT_OP_WRITES) {
           rc = rs->sr_err = LDAP_NO_SUCH_ATTRIBUTE;
           goto done;
         }
 
-        if (val == 1 &&
-            (rp_cur & SLAP_RESTRICT_OP_WRITES) != SLAP_RESTRICT_OP_WRITES) {
+        if (val == 1 && (rp_cur & SLAP_RESTRICT_OP_WRITES) != SLAP_RESTRICT_OP_WRITES) {
           rc = rs->sr_err = LDAP_NO_SUCH_ATTRIBUTE;
           goto done;
         }
@@ -799,8 +762,7 @@ static int monitor_subsys_database_modify(Operation *op, SlapReply *rs,
     goto done;
   }
 
-  if ((rp_cur & SLAP_RESTRICT_OP_EXTENDED) &&
-      (rp_cur & SLAP_RESTRICT_EXOP_MASK)) {
+  if ((rp_cur & SLAP_RESTRICT_OP_EXTENDED) && (rp_cur & SLAP_RESTRICT_EXOP_MASK)) {
     rc = rs->sr_err = LDAP_CONSTRAINT_VIOLATION;
     goto done;
   }
@@ -904,15 +866,13 @@ static int monitor_subsys_database_modify(Operation *op, SlapReply *rs,
     if (rp_add) {
       for (i = 0; !BER_BVISNULL(&restricted_ops[i].op); i++) {
         if (rp_add & restricted_ops[i].tag) {
-          attr_merge_one(e, mi->mi_ad_restrictedOperation,
-                         &restricted_ops[i].op, &restricted_ops[i].op);
+          attr_merge_one(e, mi->mi_ad_restrictedOperation, &restricted_ops[i].op, &restricted_ops[i].op);
         }
       }
 
       for (i = 0; !BER_BVISNULL(&restricted_exops[i].op); i++) {
         if (rp_add & restricted_exops[i].tag) {
-          attr_merge_one(e, mi->mi_ad_restrictedOperation,
-                         &restricted_exops[i].op, &restricted_exops[i].op);
+          attr_merge_one(e, mi->mi_ad_restrictedOperation, &restricted_exops[i].op, &restricted_exops[i].op);
         }
       }
     }
@@ -934,8 +894,7 @@ done:;
 }
 
 #if defined(LDAP_SLAPI)
-static int monitor_back_add_plugin(monitor_info_t *mi, Backend *be,
-                                   Entry *e_database) {
+static int monitor_back_add_plugin(monitor_info_t *mi, Backend *be, Entry *e_database) {
   Slapi_PBlock *pCurrentPB;
   int i, rc = LDAP_SUCCESS;
 
@@ -963,11 +922,9 @@ static int monitor_back_add_plugin(monitor_info_t *mi, Backend *be,
                "vendor: %s; "
                "version: %s; "
                "description: %s",
-               i, srchdesc->spd_id, srchdesc->spd_vendor, srchdesc->spd_version,
-               srchdesc->spd_description);
+               i, srchdesc->spd_id, srchdesc->spd_vendor, srchdesc->spd_version, srchdesc->spd_description);
     } else {
-      snprintf(buf, sizeof(buf), "plugin %d name: <no description available>",
-               i);
+      snprintf(buf, sizeof(buf), "plugin %d name: <no description available>", i);
     }
 
     ber_str2bv(buf, 0, 0, &bv);
@@ -975,8 +932,7 @@ static int monitor_back_add_plugin(monitor_info_t *mi, Backend *be,
 
     i++;
 
-  } while ((slapi_int_pblock_get_next(&pCurrentPB) == LDAP_SUCCESS) &&
-           (pCurrentPB != NULL));
+  } while ((slapi_int_pblock_get_next(&pCurrentPB) == LDAP_SUCCESS) && (pCurrentPB != NULL));
 
 done:
   return rc;

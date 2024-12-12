@@ -59,8 +59,7 @@ int ldap_pvt_put_control(const LDAPControl *c, BerElement *ber) {
  * ldap_int_put_controls
  */
 
-int ldap_int_put_controls(LDAP *ld, LDAPControl *const *ctrls,
-                          BerElement *ber) {
+int ldap_int_put_controls(LDAP *ld, LDAPControl *const *ctrls, BerElement *ber) {
   LDAPControl *const *c;
 
   assert(ld != NULL);
@@ -151,8 +150,7 @@ int ldap_pvt_get_controls(BerElement *ber, LDAPControl ***ctrls) {
 
   *ctrls[nctrls] = NULL;
 
-  for (tag = ber_first_element(ber, &len, &opaque); tag != LBER_ERROR;
-       tag = ber_next_element(ber, &len, opaque)) {
+  for (tag = ber_first_element(ber, &len, &opaque); tag != LBER_ERROR; tag = ber_next_element(ber, &len, opaque)) {
     LDAPControl *tctrl;
     LDAPControl **tctrls;
 
@@ -161,9 +159,7 @@ int ldap_pvt_get_controls(BerElement *ber, LDAPControl ***ctrls) {
     /* allocate pointer space for current controls (nctrls)
      * + this control + extra NULL
      */
-    tctrls = (tctrl == NULL)
-                 ? NULL
-                 : LDAP_REALLOC(*ctrls, (nctrls + 2) * sizeof(LDAPControl *));
+    tctrls = (tctrl == NULL) ? NULL : LDAP_REALLOC(*ctrls, (nctrls + 2) * sizeof(LDAPControl *));
 
     if (tctrls == NULL) {
       /* one of the above allocation failed */
@@ -320,8 +316,7 @@ LDAPControl *ldap_control_dup(const LDAPControl *c) {
 
     new->ldctl_value.bv_len = c->ldctl_value.bv_len;
 
-    memcpy(new->ldctl_value.bv_val, c->ldctl_value.bv_val,
-           c->ldctl_value.bv_len);
+    memcpy(new->ldctl_value.bv_val, c->ldctl_value.bv_val, c->ldctl_value.bv_len);
 
     new->ldctl_value.bv_val[new->ldctl_value.bv_len] = '\0';
 
@@ -337,8 +332,7 @@ LDAPControl *ldap_control_dup(const LDAPControl *c) {
 /*
  * Find a LDAPControl
  */
-LDAPControl *ldap_control_find(const char *oid, LDAPControl **ctrls,
-                               LDAPControl ***nextctrlp) {
+LDAPControl *ldap_control_find(const char *oid, LDAPControl **ctrls, LDAPControl ***nextctrlp) {
   if (oid == NULL || ctrls == NULL || *ctrls == NULL) {
     return NULL;
   }
@@ -363,8 +357,7 @@ LDAPControl *ldap_control_find(const char *oid, LDAPControl **ctrls,
 /*
  * Create a LDAPControl, optionally from value
  */
-int ldap_control_create(const char *requestOID, int iscritical,
-                        struct berval *value, int dupval, LDAPControl **ctrlp) {
+int ldap_control_create(const char *requestOID, int iscritical, struct berval *value, int dupval, LDAPControl **ctrlp) {
   LDAPControl *ctrl;
 
   assert(requestOID != NULL);

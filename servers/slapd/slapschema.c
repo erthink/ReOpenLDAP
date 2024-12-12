@@ -59,11 +59,9 @@ int slapschema(int argc, char **argv) {
   (void)SIGNAL(SIGINT, slapcat_sig);
   (void)SIGNAL(SIGTERM, slapcat_sig);
 
-  if (!be->be_entry_open || !be->be_entry_close ||
-      !(be->be_entry_first || be->be_entry_first_x) || !be->be_entry_next ||
-      !be->be_entry_get) {
-    fprintf(stderr, "%s: database doesn't support necessary operations.\n",
-            progname);
+  if (!be->be_entry_open || !be->be_entry_close || !(be->be_entry_first || be->be_entry_first_x) ||
+      !be->be_entry_next || !be->be_entry_get) {
+    fprintf(stderr, "%s: database doesn't support necessary operations.\n", progname);
     exit(EXIT_FAILURE);
   }
 
@@ -83,8 +81,7 @@ int slapschema(int argc, char **argv) {
 
   } else {
     if (be->be_entry_first_x) {
-      id = be->be_entry_first_x(be, sub_ndn.bv_len ? &sub_ndn : NULL, scope,
-                                filter);
+      id = be->be_entry_first_x(be, sub_ndn.bv_len ? &sub_ndn : NULL, scope, filter);
 
     } else {
       assert(be->be_entry_first != NULL);
@@ -132,8 +129,7 @@ int slapschema(int argc, char **argv) {
 
     rc = entry_schema_check(op, e, NULL, 0, 0, NULL, &text, textbuf, textlen);
     if (rc != LDAP_SUCCESS) {
-      fprintf(ldiffp->fp, "# (%d) %s%s%s\n", rc, ldap_err2string(rc),
-              text ? ": " : "", text ? text : "");
+      fprintf(ldiffp->fp, "# (%d) %s%s%s\n", rc, ldap_err2string(rc), text ? ": " : "", text ? text : "");
       fprintf(ldiffp->fp, "dn: %s\n\n", e->e_name.bv_val);
     }
 

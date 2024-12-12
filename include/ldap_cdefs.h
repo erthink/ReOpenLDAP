@@ -58,8 +58,7 @@
 
 #ifndef __GNUC_PREREQ
 #if defined(__GNUC__) && defined(__GNUC_MINOR__)
-#define __GNUC_PREREQ(maj, min)                                                \
-  ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+#define __GNUC_PREREQ(maj, min) ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
 #else
 #define __GNUC_PREREQ(maj, min) 0
 #endif
@@ -76,8 +75,7 @@
 
 #ifndef __CLANG_PREREQ
 #ifdef __clang__
-#define __CLANG_PREREQ(maj, min)                                               \
-  ((__clang_major__ << 16) + __clang_minor__ >= ((maj) << 16) + (min))
+#define __CLANG_PREREQ(maj, min) ((__clang_major__ << 16) + __clang_minor__ >= ((maj) << 16) + (min))
 #else
 #define __CLANG_PREREQ(maj, min) (0)
 #endif
@@ -86,8 +84,7 @@
 #ifndef __reldap_exportable
 #if defined(__GNUC__)
 #if !defined(__clang__)
-#define __reldap_exportable                                                    \
-  __attribute__((visibility("default"), externally_visible))
+#define __reldap_exportable __attribute__((visibility("default"), externally_visible))
 #else
 #define __reldap_exportable __attribute__((visibility("default")))
 #endif
@@ -169,8 +166,7 @@
  */
 
 /* RELDAP library */
-#if defined(RELDAP_LIBRARY) &&                                                 \
-    (defined(RELDAP_LIBS_SHARED) || defined(SLAPD_DYNAMIC))
+#if defined(RELDAP_LIBRARY) && (defined(RELDAP_LIBS_SHARED) || defined(SLAPD_DYNAMIC))
 #define LDAP_F(type) __reldap_exportable type
 #define LDAP_V(type) extern __reldap_exportable type
 #define LDAP_LDIF_F(type) __reldap_exportable type

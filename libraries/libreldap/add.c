@@ -47,8 +47,7 @@
  * (Source: RFC 4511)
  */
 
-BerElement *ldap_build_add_req(LDAP *ld, const char *dn, LDAPMod **attrs,
-                               LDAPControl **sctrls, LDAPControl **cctrls,
+BerElement *ldap_build_add_req(LDAP *ld, const char *dn, LDAPMod **attrs, LDAPControl **sctrls, LDAPControl **cctrls,
                                ber_int_t *msgidp) {
   BerElement *ber;
   int i, rc;
@@ -89,8 +88,7 @@ BerElement *ldap_build_add_req(LDAP *ld, const char *dn, LDAPMod **attrs,
           }
         }
 
-        rc = ber_printf(ber, "{s[V]N}", attrs[i]->mod_type,
-                        attrs[i]->mod_bvalues);
+        rc = ber_printf(ber, "{s[V]N}", attrs[i]->mod_type, attrs[i]->mod_bvalues);
 
       } else {
         if (attrs[i]->mod_values == NULL) {
@@ -99,8 +97,7 @@ BerElement *ldap_build_add_req(LDAP *ld, const char *dn, LDAPMod **attrs,
           return (NULL);
         }
 
-        rc = ber_printf(ber, "{s[v]N}", attrs[i]->mod_type,
-                        attrs[i]->mod_values);
+        rc = ber_printf(ber, "{s[v]N}", attrs[i]->mod_type, attrs[i]->mod_values);
       }
       if (rc == -1) {
         ld->ld_errno = LDAP_ENCODING_ERROR;
@@ -153,8 +150,7 @@ BerElement *ldap_build_add_req(LDAP *ld, const char *dn, LDAPMod **attrs,
  *		}
  *	rc = ldap_add_ext( ld, dn, attrs, NULL, NULL, &msgid );
  */
-int ldap_add_ext(LDAP *ld, const char *dn, LDAPMod **attrs,
-                 LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
+int ldap_add_ext(LDAP *ld, const char *dn, LDAPMod **attrs, LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
   BerElement *ber;
   int rc;
   ber_int_t id;
@@ -183,8 +179,7 @@ int ldap_add_ext(LDAP *ld, const char *dn, LDAPMod **attrs,
   return LDAP_SUCCESS;
 }
 
-int ldap_add_ext_s(LDAP *ld, const char *dn, LDAPMod **attrs,
-                   LDAPControl **sctrls, LDAPControl **cctrls) {
+int ldap_add_ext_s(LDAP *ld, const char *dn, LDAPMod **attrs, LDAPControl **sctrls, LDAPControl **cctrls) {
   int msgid = 0, rc;
   LDAPMessage *res;
 
@@ -193,9 +188,7 @@ int ldap_add_ext_s(LDAP *ld, const char *dn, LDAPMod **attrs,
   if (rc != LDAP_SUCCESS)
     return (rc);
 
-  if (ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res) ==
-          -1 ||
-      !res)
+  if (ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res) == -1 || !res)
     return (ld->ld_errno);
 
   return (ldap_result2error(ld, res, 1));

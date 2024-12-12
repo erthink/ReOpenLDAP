@@ -37,8 +37,7 @@
 #include "common.h"
 
 void usage(void) {
-  fprintf(stderr,
-          _("Issue LDAP Who am I? operation to request user's authzid\n\n"));
+  fprintf(stderr, _("Issue LDAP Who am I? operation to request user's authzid\n\n"));
   fprintf(stderr, _("usage: %s [options]\n"), prog);
   tool_common_usage();
   exit(EXIT_FAILURE);
@@ -176,8 +175,7 @@ int main(int argc, char *argv[]) {
 
 skip:
   ldap_msgfree(res);
-  if (verbose || code != LDAP_SUCCESS || (matcheddn && *matcheddn) ||
-      (text && *text) || refs || ctrls) {
+  if (verbose || code != LDAP_SUCCESS || (matcheddn && *matcheddn) || (text && *text) || refs || ctrls) {
     printf(_("Result: %s (%d)\n"), ldap_err2string(code), code);
 
     if (text && *text) {

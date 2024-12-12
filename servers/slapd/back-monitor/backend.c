@@ -74,8 +74,7 @@ int monitor_subsys_backend_init(BackendDB *be, monitor_subsys_t *ms) {
     bv.bv_len = snprintf(buf, sizeof(buf), "cn=Backend %d", i);
     bv.bv_val = buf;
 
-    e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv,
-                           mi->mi_oc_monitoredObject, NULL, NULL);
+    e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv, mi->mi_oc_monitoredObject, NULL, NULL);
 
     if (e == NULL) {
       Debug(LDAP_DEBUG_ANY,
@@ -90,9 +89,7 @@ int monitor_subsys_backend_init(BackendDB *be, monitor_subsys_t *ms) {
     attr_merge_normalize_one(e_backend, mi->mi_ad_monitoredInfo, &bv, NULL);
 
     attr_merge_normalize_one(e, mi->mi_ad_monitorRuntimeConfig,
-                             bi->bi_cf_ocs == NULL
-                                 ? (struct berval *)&slap_false_bv
-                                 : (struct berval *)&slap_true_bv,
+                             bi->bi_cf_ocs == NULL ? (struct berval *)&slap_false_bv : (struct berval *)&slap_true_bv,
                              NULL);
 
     if (bi->bi_controls) {
@@ -115,8 +112,7 @@ int monitor_subsys_backend_init(BackendDB *be, monitor_subsys_t *ms) {
         continue;
       }
 
-      snprintf(buf, sizeof(buf), "cn=Database %d,%s", j,
-               ms_database->mss_dn.bv_val);
+      snprintf(buf, sizeof(buf), "cn=Database %d,%s", j, ms_database->mss_dn.bv_val);
 
       ber_str2bv(buf, 0, 0, &dn);
       attr_merge_normalize_one(e, slap_schema.si_ad_seeAlso, &dn, NULL);

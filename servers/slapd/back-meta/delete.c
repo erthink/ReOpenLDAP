@@ -70,10 +70,8 @@ retry:;
     goto cleanup;
   }
 
-  rs->sr_err = ldap_delete_ext(mc->mc_conns[candidate].msc_ld, mdn.bv_val,
-                               ctrls, NULL, &msgid);
-  rs->sr_err = meta_back_op_result(mc, op, rs, candidate, msgid,
-                                   mt->mt_timeout[SLAP_OP_DELETE],
+  rs->sr_err = ldap_delete_ext(mc->mc_conns[candidate].msc_ld, mdn.bv_val, ctrls, NULL, &msgid);
+  rs->sr_err = meta_back_op_result(mc, op, rs, candidate, msgid, mt->mt_timeout[SLAP_OP_DELETE],
                                    (LDAP_BACK_SENDRESULT | retrying));
   if (rs->sr_err == LDAP_UNAVAILABLE && retrying) {
     retrying &= ~LDAP_BACK_RETRYING;

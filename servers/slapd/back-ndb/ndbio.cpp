@@ -94,9 +94,7 @@ extern "C" NdbAttrInfo *ndb_ai_get(struct ndb_info *ni, struct berval *aname) {
   return ai;
 }
 
-static int ndb_ai_check(struct ndb_info *ni, NdbOcInfo *oci,
-                        AttributeType **attrs, char **ptr, int *col,
-                        int create) {
+static int ndb_ai_check(struct ndb_info *ni, NdbOcInfo *oci, AttributeType **attrs, char **ptr, int *col, int create) {
   NdbAttrInfo *ai;
   int i;
 
@@ -173,8 +171,7 @@ static int ndb_ai_check(struct ndb_info *ni, NdbOcInfo *oci,
       if (ai->na_flag & NDB_INFO_ATBLOB) {
         *ptr += sprintf(*ptr, ", `%s` BLOB", ai->na_attr->sat_cname.bv_val);
       } else {
-        *ptr += sprintf(*ptr, ", `%s` VARCHAR(%d)",
-                        ai->na_attr->sat_cname.bv_val, ai->na_len);
+        *ptr += sprintf(*ptr, ", `%s` VARCHAR(%d)", ai->na_attr->sat_cname.bv_val, ai->na_len);
       }
     }
   }
@@ -204,8 +201,7 @@ static int ndb_oc_create(struct ndb_info *ni, NdbOcInfo *oci, int create) {
     col += i;
   }
   /* assume all are present */
-  oci->no_attrs =
-      (struct ndb_attrinfo **)ch_malloc(col * sizeof(struct ndb_attrinfo *));
+  oci->no_attrs = (struct ndb_attrinfo **)ch_malloc(col * sizeof(struct ndb_attrinfo *));
 
   col = 2;
   ldap_pvt_thread_rdwr_wlock(&ni->ni_ai_rwlock);
@@ -218,25 +214,21 @@ static int ndb_oc_create(struct ndb_info *ni, NdbOcInfo *oci, int create) {
   ldap_pvt_thread_rdwr_wunlock(&ni->ni_ai_rwlock);
 
   /* shrink down to just the needed size */
-  oci->no_attrs = (struct ndb_attrinfo **)ch_realloc(
-      oci->no_attrs, oci->no_nattrs * sizeof(struct ndb_attrinfo *));
+  oci->no_attrs = (struct ndb_attrinfo **)ch_realloc(oci->no_attrs, oci->no_nattrs * sizeof(struct ndb_attrinfo *));
 
   if (create) {
-    ptr = lutil_strcopy(
-        ptr, ", PRIMARY KEY(eid, vid) ) ENGINE=ndb PARTITION BY KEY(eid)");
+    ptr = lutil_strcopy(ptr, ", PRIMARY KEY(eid, vid) ) ENGINE=ndb PARTITION BY KEY(eid)");
     rc = mysql_real_query(&ni->ni_sql, buf, ptr - buf);
     if (rc) {
-      Debug(LDAP_DEBUG_ANY, "ndb_oc_create: CREATE TABLE %s failed, %s (%d)\n",
-            oci->no_table.bv_val, mysql_error(&ni->ni_sql),
-            mysql_errno(&ni->ni_sql));
+      Debug(LDAP_DEBUG_ANY, "ndb_oc_create: CREATE TABLE %s failed, %s (%d)\n", oci->no_table.bv_val,
+            mysql_error(&ni->ni_sql), mysql_errno(&ni->ni_sql));
     }
   }
   return rc;
 }
 
 /* Read table definitions from the DB and populate ObjectClassInfo */
-extern "C" int ndb_oc_read(struct ndb_info *ni,
-                           const NdbDictionary::Dictionary *myDict) {
+extern "C" int ndb_oc_read(struct ndb_info *ni, const NdbDictionary::Dictionary *myDict) {
   const NdbDictionary::Table *myTable;
   const NdbDictionary::Column *myCol;
   NdbOcInfo *oci, octmp;
@@ -291,8 +283,7 @@ extern "C" int ndb_oc_read(struct ndb_info *ni,
         ;
       col += j;
     }
-    oci->no_attrs =
-        (struct ndb_attrinfo **)ch_malloc(col * sizeof(struct ndb_attrinfo *));
+    oci->no_attrs = (struct ndb_attrinfo **)ch_malloc(col * sizeof(struct ndb_attrinfo *));
     avl_insert(&ni->ni_oc_tree, oci, ndb_name_cmp, avl_dup_error);
 
     col = myTable->getNoOfColumns();
@@ -332,15 +323,13 @@ extern "C" int ndb_oc_read(struct ndb_info *ni,
       rc = ndb_ai_check(ni, oci, oci->no_oc->soc_allowed, NULL, &col, 0);
     }
     /* shrink down to just the needed size */
-    oci->no_attrs = (struct ndb_attrinfo **)ch_realloc(
-        oci->no_attrs, oci->no_nattrs * sizeof(struct ndb_attrinfo *));
+    oci->no_attrs = (struct ndb_attrinfo **)ch_realloc(oci->no_attrs, oci->no_nattrs * sizeof(struct ndb_attrinfo *));
   }
   return 0;
 }
 
-static int ndb_oc_list(struct ndb_info *ni,
-                       const NdbDictionary::Dictionary *myDict,
-                       struct berval *oname, int implied, NdbOcs *out) {
+static int ndb_oc_list(struct ndb_info *ni, const NdbDictionary::Dictionary *myDict, struct berval *oname, int implied,
+                       NdbOcs *out) {
   const NdbDictionary::Table *myTable;
   NdbOcInfo *oci = NULL, octmp;
   ObjectClass *oc;
@@ -425,8 +414,7 @@ static int ndb_oc_list(struct ndb_info *ni,
   return 0;
 }
 
-extern "C" int ndb_aset_get(struct ndb_info *ni, struct berval *sname,
-                            struct berval *attrs, NdbOcInfo **ret) {
+extern "C" int ndb_aset_get(struct ndb_info *ni, struct berval *sname, struct berval *attrs, NdbOcInfo **ret) {
   NdbOcInfo *oci, octmp;
   int i, rc;
 
@@ -441,8 +429,7 @@ extern "C" int ndb_aset_get(struct ndb_info *ni, struct berval *sname,
   }
   i++;
 
-  oci = (NdbOcInfo *)ch_calloc(1, sizeof(NdbOcInfo) + sizeof(ObjectClass) +
-                                      i * sizeof(AttributeType *) +
+  oci = (NdbOcInfo *)ch_calloc(1, sizeof(NdbOcInfo) + sizeof(ObjectClass) + i * sizeof(AttributeType *) +
                                       sname->bv_len + 1);
   oci->no_oc = (ObjectClass *)(oci + 1);
   oci->no_oc->soc_required = (AttributeType **)(oci->no_oc + 1);
@@ -485,25 +472,21 @@ extern "C" int ndb_aset_create(struct ndb_info *ni, NdbOcInfo *oci) {
     if (oci->no_attrs[i]->na_oi != oci)
       continue;
     ai = oci->no_attrs[i];
-    ptr += sprintf(ptr, ", `%s` VARCHAR(%d)", ai->na_attr->sat_cname.bv_val,
-                   ai->na_len);
+    ptr += sprintf(ptr, ", `%s` VARCHAR(%d)", ai->na_attr->sat_cname.bv_val, ai->na_len);
     if (ai->na_flag & NDB_INFO_INDEX) {
       ptr += sprintf(ptr, ", INDEX (`%s`)", ai->na_attr->sat_cname.bv_val);
     }
   }
-  ptr = lutil_strcopy(
-      ptr, ", PRIMARY KEY(eid, vid) ) ENGINE=ndb PARTITION BY KEY(eid)");
+  ptr = lutil_strcopy(ptr, ", PRIMARY KEY(eid, vid) ) ENGINE=ndb PARTITION BY KEY(eid)");
   i = mysql_real_query(&ni->ni_sql, buf, ptr - buf);
   if (i) {
-    Debug(LDAP_DEBUG_ANY, "ndb_aset_create: CREATE TABLE %s failed, %s (%d)\n",
-          oci->no_table.bv_val, mysql_error(&ni->ni_sql),
-          mysql_errno(&ni->ni_sql));
+    Debug(LDAP_DEBUG_ANY, "ndb_aset_create: CREATE TABLE %s failed, %s (%d)\n", oci->no_table.bv_val,
+          mysql_error(&ni->ni_sql), mysql_errno(&ni->ni_sql));
   }
   return i;
 }
 
-static int ndb_oc_check(BackendDB *be, Ndb *ndb, struct berval *ocsin,
-                        NdbOcs *out) {
+static int ndb_oc_check(BackendDB *be, Ndb *ndb, struct berval *ocsin, NdbOcs *out) {
   struct ndb_info *ni = (struct ndb_info *)be->be_private;
   const NdbDictionary::Dictionary *myDict = ndb->getDictionary();
 
@@ -535,10 +518,8 @@ static int ndb_flush_blobs;
 
 /* set all the unique attrs of this objectclass into the table
  */
-extern "C" int ndb_oc_attrs(NdbTransaction *txn,
-                            const NdbDictionary::Table *myTable, Entry *e,
-                            NdbOcInfo *no, NdbAttrInfo **attrs, int nattrs,
-                            Attribute *old) {
+extern "C" int ndb_oc_attrs(NdbTransaction *txn, const NdbDictionary::Table *myTable, Entry *e, NdbOcInfo *no,
+                            NdbAttrInfo **attrs, int nattrs, Attribute *old) {
   char buf[65538], *ptr;
   Attribute **an, **ao, *a;
   NdbOperation *myop;
@@ -631,35 +612,29 @@ extern "C" int ndb_oc_attrs(NdbTransaction *txn,
           NdbBlob *myBlob = myop->getBlobHandle(attrs[j]->na_column);
           rc = LDAP_OTHER;
           if (!myBlob) {
-            Debug(LDAP_DEBUG_TRACE,
-                  "ndb_oc_attrs: getBlobHandle failed %s (%d)\n",
-                  myop->getNdbError().message, myop->getNdbError().code);
+            Debug(LDAP_DEBUG_TRACE, "ndb_oc_attrs: getBlobHandle failed %s (%d)\n", myop->getNdbError().message,
+                  myop->getNdbError().code);
             goto done;
           }
           if (slapMode & SLAP_TOOL_MODE)
             ndb_flush_blobs = 1;
           if (changed & V_INS) {
-            if (myBlob->setValue(an[j]->a_vals[i].bv_val,
-                                 an[j]->a_vals[i].bv_len)) {
-              Debug(LDAP_DEBUG_TRACE,
-                    "ndb_oc_attrs: blob->setValue failed %s (%d)\n",
-                    myBlob->getNdbError().message, myBlob->getNdbError().code);
+            if (myBlob->setValue(an[j]->a_vals[i].bv_val, an[j]->a_vals[i].bv_len)) {
+              Debug(LDAP_DEBUG_TRACE, "ndb_oc_attrs: blob->setValue failed %s (%d)\n", myBlob->getNdbError().message,
+                    myBlob->getNdbError().code);
               goto done;
             }
           } else {
             if (myBlob->setValue(NULL, 0)) {
-              Debug(LDAP_DEBUG_TRACE,
-                    "ndb_oc_attrs: blob->setValue failed %s (%d)\n",
-                    myBlob->getNdbError().message, myBlob->getNdbError().code);
+              Debug(LDAP_DEBUG_TRACE, "ndb_oc_attrs: blob->setValue failed %s (%d)\n", myBlob->getNdbError().message,
+                    myBlob->getNdbError().code);
               goto done;
             }
           }
         } else {
           if (changed & V_INS) {
             if (an[j]->a_vals[i].bv_len > (ber_len_t)attrs[j]->na_len) {
-              Debug(LDAP_DEBUG_ANY,
-                    "ndb_oc_attrs: attribute %s too long for column\n",
-                    attrs[j]->na_name.bv_val);
+              Debug(LDAP_DEBUG_ANY, "ndb_oc_attrs: attribute %s too long for column\n", attrs[j]->na_name.bv_val);
               rc = LDAP_CONSTRAINT_VIOLATION;
               goto done;
             }
@@ -686,14 +661,12 @@ extern "C" int ndb_oc_attrs(NdbTransaction *txn,
 done:
   ch_free(an);
   if (rc) {
-    Debug(LDAP_DEBUG_TRACE, "ndb_oc_attrs: failed %s (%d)\n",
-          myop->getNdbError().message, myop->getNdbError().code);
+    Debug(LDAP_DEBUG_TRACE, "ndb_oc_attrs: failed %s (%d)\n", myop->getNdbError().message, myop->getNdbError().code);
   }
   return rc;
 }
 
-static int ndb_oc_put(const NdbDictionary::Dictionary *myDict,
-                      NdbTransaction *txn, NdbOcInfo *no, Entry *e) {
+static int ndb_oc_put(const NdbDictionary::Dictionary *myDict, NdbTransaction *txn, NdbOcInfo *no, Entry *e) {
   const NdbDictionary::Table *myTable;
   int i, rc;
 
@@ -743,8 +716,7 @@ extern "C" int ndb_entry_put_data(BackendDB *be, NdbArgs *NA) {
   return 0;
 }
 
-static void ndb_oc_get(Operation *op, NdbOcInfo *no, int *j, int *nocs,
-                       NdbOcInfo ***oclist) {
+static void ndb_oc_get(Operation *op, NdbOcInfo *no, int *j, int *nocs, NdbOcInfo ***oclist) {
   int i;
   NdbOcInfo **ol2;
 
@@ -760,8 +732,7 @@ static void ndb_oc_get(Operation *op, NdbOcInfo *no, int *j, int *nocs,
 
   if (*j >= *nocs) {
     *nocs *= 2;
-    ol2 = (NdbOcInfo **)op->o_tmprealloc(*oclist, *nocs * sizeof(NdbOcInfo *),
-                                         op->o_tmpmemctx);
+    ol2 = (NdbOcInfo **)op->o_tmprealloc(*oclist, *nocs * sizeof(NdbOcInfo *), op->o_tmpmemctx);
     *oclist = ol2;
   }
   ol2 = *oclist;
@@ -793,8 +764,7 @@ extern "C" int ndb_entry_get_data(Operation *op, NdbArgs *NA, int update) {
   myOcs.no_info[myOcs.no_ninfo++] = ni->ni_opattrs;
   nocs = myOcs.no_ninfo;
 
-  oclist = (NdbOcInfo **)op->o_tmpcalloc(1, nocs * sizeof(NdbOcInfo *),
-                                         op->o_tmpmemctx);
+  oclist = (NdbOcInfo **)op->o_tmpcalloc(1, nocs * sizeof(NdbOcInfo *), op->o_tmpmemctx);
 
   for (i = 0, j = 0; i < myOcs.no_ninfo; i++) {
     ndb_oc_get(op, myOcs.no_info[i], &j, &nocs, &oclist);
@@ -809,20 +779,17 @@ extern "C" int ndb_entry_get_data(Operation *op, NdbArgs *NA, int update) {
 
   attrs = (char **)op->o_tmpalloc(nattrs * sizeof(char *), op->o_tmpmemctx);
 
-  myop = (NdbIndexScanOperation **)op->o_tmpalloc(
-      nattrs * sizeof(NdbIndexScanOperation *), op->o_tmpmemctx);
+  myop = (NdbIndexScanOperation **)op->o_tmpalloc(nattrs * sizeof(NdbIndexScanOperation *), op->o_tmpmemctx);
 
   k = 0;
   ptr = abuf;
   for (i = 0; i < nocs; i++) {
     oci = oclist[i];
 
-    myop[i] =
-        NA->txn->getNdbIndexScanOperation("PRIMARY", oci->no_table.bv_val);
+    myop[i] = NA->txn->getNdbIndexScanOperation("PRIMARY", oci->no_table.bv_val);
     if (!myop[i])
       goto leave;
-    if (myop[i]->readTuples(update ? NdbOperation::LM_Exclusive
-                                   : NdbOperation::LM_CommittedRead))
+    if (myop[i]->readTuples(update ? NdbOperation::LM_Exclusive : NdbOperation::LM_CommittedRead))
       goto leave;
     if (myop[i]->setBound(0U, NdbIndexScanOperation::BoundEQ, &eid))
       goto leave;
@@ -847,16 +814,14 @@ extern "C" int ndb_entry_get_data(Operation *op, NdbArgs *NA, int update) {
   /* Must use IgnoreError, because an entry with multiple objectClasses may not
    * actually have attributes defined in each class / table.
    */
-  if (NA->txn->execute(NdbTransaction::NoCommit, NdbOperation::AO_IgnoreError,
-                       1) < 0)
+  if (NA->txn->execute(NdbTransaction::NoCommit, NdbOperation::AO_IgnoreError, 1) < 0)
     goto leave;
 
   /* count results */
   for (i = 0; i < nocs; i++) {
     if ((j = myop[i]->nextResult(true))) {
       if (j < 0) {
-        Debug(LDAP_DEBUG_TRACE,
-              "ndb_entry_get_data: first nextResult(%d) failed: %s (%d)\n", i,
+        Debug(LDAP_DEBUG_TRACE, "ndb_entry_get_data: first nextResult(%d) failed: %s (%d)\n", i,
               myop[i]->getNdbError().message, myop[i]->getNdbError().code);
       }
       myop[i] = NULL;
@@ -945,8 +910,7 @@ extern "C" int ndb_entry_get_data(Operation *op, NdbArgs *NA, int update) {
           bv[0].bv_val = (char *)ch_malloc(len + 1);
           len2 = len;
           if (bi->readData(bv[0].bv_val, len2)) {
-            Debug(LDAP_DEBUG_TRACE,
-                  "ndb_entry_get_data: blob readData failed: %s (%d), len %d\n",
+            Debug(LDAP_DEBUG_TRACE, "ndb_entry_get_data: blob readData failed: %s (%d), len %d\n",
                   bi->getNdbError().message, bi->getNdbError().code, len2);
           }
           bv[0].bv_val[len] = '\0';
@@ -986,8 +950,7 @@ extern "C" int ndb_entry_get_data(Operation *op, NdbArgs *NA, int update) {
         continue;
       if ((j = myop[i]->nextResult(true))) {
         if (j < 0) {
-          Debug(LDAP_DEBUG_TRACE,
-                "ndb_entry_get_data: last nextResult(%d) failed: %s (%d)\n", i,
+          Debug(LDAP_DEBUG_TRACE, "ndb_entry_get_data: last nextResult(%d) failed: %s (%d)\n", i,
                 myop[i]->getNdbError().message, myop[i]->getNdbError().code);
         }
         myop[i] = NULL;
@@ -1212,8 +1175,7 @@ extern "C" int ndb_entry_put_info(BackendDB *be, NdbArgs *NA, int update) {
   return 0;
 }
 
-extern "C" struct berval *ndb_str2bvarray(char *str, int len, char delim,
-                                          void *ctx) {
+extern "C" struct berval *ndb_str2bvarray(char *str, int len, char delim, void *ctx) {
   struct berval *list, tmp;
   char *beg;
   int i, num;
@@ -1237,8 +1199,7 @@ extern "C" struct berval *ndb_str2bvarray(char *str, int len, char delim,
   }
 
   num = i;
-  list =
-      (struct berval *)slap_sl_malloc((num + 1) * sizeof(struct berval), ctx);
+  list = (struct berval *)slap_sl_malloc((num + 1) * sizeof(struct berval), ctx);
 
   for (i = 0, beg = str; i < num; i++) {
     tmp.bv_val = beg;
@@ -1277,8 +1238,7 @@ extern "C" struct berval *ndb_ref2oclist(const char *ref, void *ctx) {
 /* Retrieve the DN2ID_TABLE fields. Can call with NULL ocs if just verifying
  * the existence of a DN.
  */
-extern "C" int ndb_entry_get_info(Operation *op, NdbArgs *NA, int update,
-                                  struct berval *matched) {
+extern "C" int ndb_entry_get_info(Operation *op, NdbArgs *NA, int update, struct berval *matched) {
   const NdbDictionary::Dictionary *myDict = NA->ndb->getDictionary();
   const NdbDictionary::Table *myTable = myDict->getTable(DN2ID_TABLE);
   NdbOperation *myop[NDB_MAX_RDNS];
@@ -1298,8 +1258,7 @@ extern "C" int ndb_entry_get_info(Operation *op, NdbArgs *NA, int update,
     return LDAP_OTHER;
   }
 
-  if (myop[0]->readTuple(update ? NdbOperation::LM_Exclusive
-                                : NdbOperation::LM_CommittedRead)) {
+  if (myop[0]->readTuple(update ? NdbOperation::LM_Exclusive : NdbOperation::LM_CommittedRead)) {
     return LDAP_OTHER;
   }
 
@@ -1325,8 +1284,7 @@ extern "C" int ndb_entry_get_info(Operation *op, NdbArgs *NA, int update,
     }
   }
 
-  if (NA->txn->execute(NdbTransaction::NoCommit, NdbOperation::AO_IgnoreError,
-                       1) < 0) {
+  if (NA->txn->execute(NdbTransaction::NoCommit, NdbOperation::AO_IgnoreError, 1) < 0) {
     return LDAP_OTHER;
   }
 
@@ -1377,8 +1335,7 @@ extern "C" int ndb_entry_get_info(Operation *op, NdbArgs *NA, int update,
           }
         }
       }
-      if (NA->txn->execute(NdbTransaction::NoCommit,
-                           NdbOperation::AO_IgnoreError, 1) < 0) {
+      if (NA->txn->execute(NdbTransaction::NoCommit, NdbOperation::AO_IgnoreError, 1) < 0) {
         return LDAP_OTHER;
       }
       for (--i; i >= 0; i--) {
@@ -1388,8 +1345,7 @@ extern "C" int ndb_entry_get_info(Operation *op, NdbArgs *NA, int update,
           NA->erdns = NA->rdns->nr_num;
           NA->rdns->nr_num = j;
           matched->bv_len += i;
-          matched->bv_val =
-              NA->e->e_name.bv_val + NA->e->e_name.bv_len - matched->bv_len;
+          matched->bv_val = NA->e->e_name.bv_val + NA->e->e_name.bv_len - matched->bv_len;
           if (!eid[i]->isNULL())
             NA->e->e_id = eid[i]->u_64_value();
           if (!NA->ocs)
@@ -1472,8 +1428,7 @@ extern "C" int ndb_thread_handle(Operation *op, Ndb **ndb) {
       return rc;
     }
     data = (void *)myNdb;
-    if ((rc = ldap_pvt_thread_pool_setkey(op->o_threadctx, ni, data,
-                                          ndb_thread_hfree, NULL, NULL))) {
+    if ((rc = ldap_pvt_thread_pool_setkey(op->o_threadctx, ni, data, ndb_thread_hfree, NULL, NULL))) {
       delete myNdb;
       Debug(LDAP_DEBUG_ANY, "ndb_thread_handle: err %d\n", rc);
       return rc;
@@ -1483,8 +1438,8 @@ extern "C" int ndb_thread_handle(Operation *op, Ndb **ndb) {
   return 0;
 }
 
-extern "C" int ndb_entry_get(Operation *op, struct berval *ndn, ObjectClass *oc,
-                             AttributeDescription *ad, int rw, Entry **ent) {
+extern "C" int ndb_entry_get(Operation *op, struct berval *ndn, ObjectClass *oc, AttributeDescription *ad, int rw,
+                             Entry **ent) {
   struct ndb_info *ni __maybe_unused = (struct ndb_info *)op->o_bd->be_private;
   NdbArgs NA;
   Entry e = {0};
@@ -1495,8 +1450,7 @@ extern "C" int ndb_entry_get(Operation *op, struct berval *ndn, ObjectClass *oc,
 
   NA.txn = NA.ndb->startTransaction();
   if (!NA.txn) {
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(ndb_entry_get) ": startTransaction failed: %s (%d)\n",
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(ndb_entry_get) ": startTransaction failed: %s (%d)\n",
           NA.ndb->getNdbError().message, NA.ndb->getNdbError().code);
     return 1;
   }
@@ -1579,8 +1533,7 @@ extern "C" void ndb_check_referral(Operation *op, SlapReply *rs, NdbArgs *NA) {
   }
 
   /* return referral only if "disclose" is granted on the object */
-  if (access_allowed(op, NA->e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE,
-                     NULL)) {
+  if (access_allowed(op, NA->e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL)) {
     Attribute a;
     for (i = 0; !BER_BVISNULL(&NA->ocs[i]); i++)
       ;

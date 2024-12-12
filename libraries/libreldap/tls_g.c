@@ -91,17 +91,12 @@ static int tlsg_mutex_destroy(void **lock) {
   return err;
 }
 
-static int tlsg_mutex_lock(void **lock) {
-  return ldap_pvt_thread_mutex_lock(*lock);
-}
+static int tlsg_mutex_lock(void **lock) { return ldap_pvt_thread_mutex_lock(*lock); }
 
-static int tlsg_mutex_unlock(void **lock) {
-  return ldap_pvt_thread_mutex_unlock(*lock);
-}
+static int tlsg_mutex_unlock(void **lock) { return ldap_pvt_thread_mutex_unlock(*lock); }
 
 static void tlsg_thr_init(void) {
-  gnutls_global_set_mutex(tlsg_mutex_init, tlsg_mutex_destroy, tlsg_mutex_lock,
-                          tlsg_mutex_unlock);
+  gnutls_global_set_mutex(tlsg_mutex_init, tlsg_mutex_destroy, tlsg_mutex_lock, tlsg_mutex_unlock);
 }
 #endif /* LDAP_R_COMPILE */
 
@@ -188,25 +183,21 @@ static int tlsg_getfile(const char *path, gnutls_datum_t *buf) {
 /*
  * initialize a new TLS context
  */
-static int tlsg_ctx_init(struct ldapoptions *lo, struct ldaptls *lt,
-                         int is_server) {
+static int tlsg_ctx_init(struct ldapoptions *lo, struct ldaptls *lt, int is_server) {
   tlsg_ctx *ctx = lo->ldo_tls_ctx;
   int rc;
 
   if (lo->ldo_tls_ciphersuite && tlsg_parse_ciphers(ctx, lt->lt_ciphersuite)) {
-    Debug(LDAP_DEBUG_ANY, "TLS: could not set cipher list %s.\n",
-          lo->ldo_tls_ciphersuite);
+    Debug(LDAP_DEBUG_ANY, "TLS: could not set cipher list %s.\n", lo->ldo_tls_ciphersuite);
     return -1;
   }
 
   if (lo->ldo_tls_cacertdir != NULL) {
-    Debug(LDAP_DEBUG_ANY,
-          "TLS: warning: cacertdir not implemented for gnutls\n");
+    Debug(LDAP_DEBUG_ANY, "TLS: warning: cacertdir not implemented for gnutls\n");
   }
 
   if (lo->ldo_tls_cacertfile != NULL) {
-    rc = gnutls_certificate_set_x509_trust_file(ctx->cred, lt->lt_cacertfile,
-                                                GNUTLS_X509_FMT_PEM);
+    rc = gnutls_certificate_set_x509_trust_file(ctx->cred, lt->lt_cacertfile, GNUTLS_X509_FMT_PEM);
     if (rc < 0)
       return -1;
   }
@@ -214,14 +205,12 @@ static int tlsg_ctx_init(struct ldapoptions *lo, struct ldaptls *lt,
     gnutls_datum_t buf;
     buf.data = (unsigned char *)lo->ldo_tls_cacert.bv_val;
     buf.size = lo->ldo_tls_cacert.bv_len;
-    rc = gnutls_certificate_set_x509_trust_mem(ctx->cred, &buf,
-                                               GNUTLS_X509_FMT_DER);
+    rc = gnutls_certificate_set_x509_trust_mem(ctx->cred, &buf, GNUTLS_X509_FMT_DER);
     if (rc < 0)
       return -1;
   }
 
-  if ((lo->ldo_tls_certfile && lo->ldo_tls_keyfile) ||
-      (lo->ldo_tls_cert.bv_val && lo->ldo_tls_key.bv_val)) {
+  if ((lo->ldo_tls_certfile && lo->ldo_tls_keyfile) || (lo->ldo_tls_cert.bv_val && lo->ldo_tls_key.bv_val)) {
     gnutls_x509_privkey_t key;
     gnutls_datum_t buf;
     gnutls_x509_crt_t certs[VERIFY_DEPTH];
@@ -253,14 +242,12 @@ static int tlsg_ctx_init(struct ldapoptions *lo, struct ldaptls *lt,
     if (lo->ldo_tls_cert.bv_val) {
       buf.data = (unsigned char *)lo->ldo_tls_cert.bv_val;
       buf.size = lo->ldo_tls_cert.bv_len;
-      rc = gnutls_x509_crt_list_import(certs, &max, &buf, GNUTLS_X509_FMT_DER,
-                                       0);
+      rc = gnutls_x509_crt_list_import(certs, &max, &buf, GNUTLS_X509_FMT_DER, 0);
     } else {
       rc = tlsg_getfile(lt->lt_certfile, &buf);
       if (rc)
         return -1;
-      rc = gnutls_x509_crt_list_import(certs, &max, &buf, GNUTLS_X509_FMT_PEM,
-                                       0);
+      rc = gnutls_x509_crt_list_import(certs, &max, &buf, GNUTLS_X509_FMT_PEM, 0);
       LDAP_FREE(buf.data);
     }
     if (rc < 0)
@@ -272,8 +259,7 @@ static int tlsg_ctx_init(struct ldapoptions *lo, struct ldaptls *lt,
     if (max == 1 && !gnutls_x509_crt_check_issuer(certs[0], certs[0])) {
       unsigned int i;
       for (i = 1; i < VERIFY_DEPTH; i++) {
-        if (gnutls_certificate_get_issuer(ctx->cred, certs[i - 1], &certs[i],
-                                          0))
+        if (gnutls_certificate_get_issuer(ctx->cred, certs[i - 1], &certs[i], 0))
           break;
         max++;
         /* If this CA is self-signed, we're done */
@@ -293,8 +279,7 @@ static int tlsg_ctx_init(struct ldapoptions *lo, struct ldaptls *lt,
   }
 
   if (lo->ldo_tls_crlfile) {
-    rc = gnutls_certificate_set_x509_crl_file(ctx->cred, lt->lt_crlfile,
-                                              GNUTLS_X509_FMT_PEM);
+    rc = gnutls_certificate_set_x509_crl_file(ctx->cred, lt->lt_crlfile, GNUTLS_X509_FMT_PEM);
     if (rc < 0)
       return -1;
     rc = 0;
@@ -303,8 +288,7 @@ static int tlsg_ctx_init(struct ldapoptions *lo, struct ldaptls *lt,
   /* FIXME: ITS#5992 - this should be configurable,
    * and V1 CA certs should be phased out ASAP.
    */
-  gnutls_certificate_set_verify_flags(ctx->cred,
-                                      GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT);
+  gnutls_certificate_set_verify_flags(ctx->cred, GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT);
 
   if (is_server && lo->ldo_tls_dhfile) {
     gnutls_datum_t buf;
@@ -313,8 +297,7 @@ static int tlsg_ctx_init(struct ldapoptions *lo, struct ldaptls *lt,
       return -1;
     rc = gnutls_dh_params_init(&ctx->dh_params);
     if (rc == 0)
-      rc = gnutls_dh_params_import_pkcs3(ctx->dh_params, &buf,
-                                         GNUTLS_X509_FMT_PEM);
+      rc = gnutls_dh_params_import_pkcs3(ctx->dh_params, &buf, GNUTLS_X509_FMT_PEM);
     LDAP_FREE(buf.data);
     if (rc)
       return -1;
@@ -346,8 +329,7 @@ static tls_session *tlsg_session_new(tls_ctx *ctx, int is_server) {
     int flag = 0;
     if (c->reqcert) {
       flag = GNUTLS_CERT_REQUEST;
-      if (c->reqcert == LDAP_OPT_X_TLS_DEMAND ||
-          c->reqcert == LDAP_OPT_X_TLS_HARD)
+      if (c->reqcert == LDAP_OPT_X_TLS_DEMAND || c->reqcert == LDAP_OPT_X_TLS_HARD)
         flag = GNUTLS_CERT_REQUIRE;
       gnutls_certificate_server_set_request(session->session, flag);
     }
@@ -360,8 +342,7 @@ static int tlsg_session_accept(tls_session *session) {
   int rc, retry;
 
   for (retry = 0, rc = gnutls_handshake(s->session);
-       (rc == GNUTLS_E_INTERRUPTED || rc == GNUTLS_E_AGAIN) && ++retry < 3;
-       rc = gnutls_handshake(s->session))
+       (rc == GNUTLS_E_INTERRUPTED || rc == GNUTLS_E_AGAIN) && ++retry < 3; rc = gnutls_handshake(s->session))
     ;
   if (rc == 0 && s->ctx->reqcert != LDAP_OPT_X_TLS_NEVER) {
     const gnutls_datum_t *peer_cert_list;
@@ -379,9 +360,7 @@ static int tlsg_session_accept(tls_session *session) {
   return rc;
 }
 
-static int tlsg_session_connect(LDAP *ld, tls_session *session) {
-  return tlsg_session_accept(session);
-}
+static int tlsg_session_connect(LDAP *ld, tls_session *session) { return tlsg_session_accept(session); }
 
 static int tlsg_session_upflags(Sockbuf *sb, tls_session *session, int rc) {
   tlsg_session *s = (tlsg_session *)session;
@@ -400,13 +379,11 @@ static int tlsg_session_upflags(Sockbuf *sb, tls_session *session, int rc) {
   return 0;
 }
 
-static char *tlsg_session_errmsg(tls_session *sess, int rc, char *buf,
-                                 size_t len) {
+static char *tlsg_session_errmsg(tls_session *sess, int rc, char *buf, size_t len) {
   return (char *)gnutls_strerror(rc);
 }
 
-static void tlsg_x509_cert_dn(struct berval *cert, struct berval *dn,
-                              int get_subject) {
+static void tlsg_x509_cert_dn(struct berval *cert, struct berval *dn, int get_subject) {
   BerElementBuffer berbuf;
   BerElement *ber = (BerElement *)&berbuf;
   ber_tag_t tag;
@@ -421,8 +398,7 @@ static void tlsg_x509_cert_dn(struct berval *cert, struct berval *dn,
     tag = ber_skip_tag(ber, &len);
     tag = ber_get_int(ber, &i); /* Int: Version */
   }
-  tag =
-      ber_skip_tag(ber, &len); /* Int: Serial (can be longer than ber_int_t) */
+  tag = ber_skip_tag(ber, &len); /* Int: Serial (can be longer than ber_int_t) */
   ber_skip_data(ber, len);
   tag = ber_skip_tag(ber, &len); /* Sequence: Signature */
   ber_skip_data(ber, len);
@@ -484,8 +460,7 @@ static int tlsg_session_peer_dn(tls_session *session, struct berval *der_dn) {
 
 #define CN_OID "2.5.4.3"
 
-static int tlsg_session_chkhost(LDAP *ld, tls_session *session,
-                                const char *name_in) {
+static int tlsg_session_chkhost(LDAP *ld, tls_session *session, const char *name_in) {
   tlsg_session *s = (tlsg_session *)session;
   int i, ret;
   const gnutls_datum_t *peer_cert_list;
@@ -548,8 +523,7 @@ static int tlsg_session_chkhost(LDAP *ld, tls_session *session,
 
   for (i = 0, ret = 0; ret >= 0; i++) {
     altnamesize = sizeof(altname);
-    ret = gnutls_x509_crt_get_subject_alt_name(cert, i, altname, &altnamesize,
-                                               NULL);
+    ret = gnutls_x509_crt_get_subject_alt_name(cert, i, altname, &altnamesize, NULL);
     if (ret < 0)
       break;
 
@@ -567,8 +541,7 @@ static int tlsg_session_chkhost(LDAP *ld, tls_session *session,
       }
 
       /* Is this a wildcard match? */
-      if (domain && (altname[0] == '*') && (altname[1] == '.') &&
-          (len2 == altnamesize - 1) &&
+      if (domain && (altname[0] == '*') && (altname[1] == '.') && (len2 == altnamesize - 1) &&
           !strncasecmp(domain, &altname[1], len2)) {
         break;
       }
@@ -596,8 +569,7 @@ static int tlsg_session_chkhost(LDAP *ld, tls_session *session,
     i = 0;
     do {
       altnamesize = 0;
-      ret = gnutls_x509_crt_get_dn_by_oid(cert, CN_OID, i, 1, altname,
-                                          &altnamesize);
+      ret = gnutls_x509_crt_get_dn_by_oid(cert, CN_OID, i, 1, altname, &altnamesize);
       if (ret == GNUTLS_E_SHORT_MEMORY_BUFFER)
         i++;
       else
@@ -606,19 +578,16 @@ static int tlsg_session_chkhost(LDAP *ld, tls_session *session,
 
     if (i) {
       altnamesize = sizeof(altname);
-      ret = gnutls_x509_crt_get_dn_by_oid(cert, CN_OID, i - 1, 0, altname,
-                                          &altnamesize);
+      ret = gnutls_x509_crt_get_dn_by_oid(cert, CN_OID, i - 1, 0, altname, &altnamesize);
     }
 
     if (ret < 0) {
-      Debug(LDAP_DEBUG_ANY,
-            "TLS: unable to get common name from peer certificate.\n");
+      Debug(LDAP_DEBUG_ANY, "TLS: unable to get common name from peer certificate.\n");
       ret = LDAP_CONNECT_ERROR;
       if (ld->ld_error) {
         LDAP_FREE(ld->ld_error);
       }
-      ld->ld_error =
-          LDAP_STRDUP(_("TLS: unable to get CN from peer certificate"));
+      ld->ld_error = LDAP_STRDUP(_("TLS: unable to get CN from peer certificate"));
 
     } else {
       ret = LDAP_LOCAL_ERROR;
@@ -629,8 +598,7 @@ static int tlsg_session_chkhost(LDAP *ld, tls_session *session,
 
       } else if ((altname[0] == '*') && (altname[1] == '.')) {
         /* Is this a wildcard match? */
-        if (domain && (len2 == altnamesize - 1) &&
-            !strncasecmp(domain, &altname[1], len2)) {
+        if (domain && (len2 == altnamesize - 1) && !strncasecmp(domain, &altname[1], len2)) {
           ret = LDAP_SUCCESS;
         }
       }
@@ -646,8 +614,7 @@ static int tlsg_session_chkhost(LDAP *ld, tls_session *session,
       if (ld->ld_error) {
         LDAP_FREE(ld->ld_error);
       }
-      ld->ld_error =
-          LDAP_STRDUP(_("TLS: hostname does not match CN in peer certificate"));
+      ld->ld_error = LDAP_STRDUP(_("TLS: hostname does not match CN in peer certificate"));
     }
   }
   gnutls_x509_crt_deinit(cert);
@@ -662,8 +629,7 @@ static int tlsg_session_strength(tls_session *session) {
   return gnutls_cipher_get_key_size(c) * 8;
 }
 
-static int tlsg_session_unique(tls_session *sess, struct berval *buf,
-                               int is_server) {
+static int tlsg_session_unique(tls_session *sess, struct berval *buf, int is_server) {
   tlsg_session *s = (tlsg_session *)sess;
   gnutls_datum_t cb;
   int rc;
@@ -706,8 +672,7 @@ static int tlsg_session_peercert(tls_session *sess, struct berval *der) {
   return 0;
 }
 
-static int tlsg_session_pinning(LDAP *ld, tls_session *sess, char *hashalg,
-                                struct berval *hash) {
+static int tlsg_session_pinning(LDAP *ld, tls_session *sess, char *hashalg, struct berval *hash) {
   tlsg_session *s = (tlsg_session *)sess;
   const gnutls_datum_t *cert_list;
   unsigned int cert_list_size = 0;
@@ -770,8 +735,7 @@ static int tlsg_session_pinning(LDAP *ld, tls_session *sess, char *hashalg,
   if (hashalg) {
     keyhash.bv_len = gnutls_hash_get_len(alg);
     keyhash.bv_val = LDAP_MALLOC(keyhash.bv_len);
-    if (!keyhash.bv_val ||
-        gnutls_fingerprint(alg, &key, keyhash.bv_val, &keyhash.bv_len) < 0) {
+    if (!keyhash.bv_val || gnutls_fingerprint(alg, &key, keyhash.bv_val, &keyhash.bv_len) < 0) {
       goto done;
     }
   } else {
@@ -786,8 +750,7 @@ static int tlsg_session_pinning(LDAP *ld, tls_session *sess, char *hashalg,
     if (ld->ld_error) {
       LDAP_FREE(ld->ld_error);
     }
-    ld->ld_error =
-        LDAP_STRDUP("TLS: public key hash does not match provided pin");
+    ld->ld_error = LDAP_STRDUP("TLS: public key hash does not match provided pin");
   } else {
     rc = LDAP_SUCCESS;
   }
@@ -841,8 +804,7 @@ static ssize_t tlsg_recv(gnutls_transport_ptr_t ptr, void *buf, size_t len) {
   return LBER_SBIOD_READ_NEXT(p->sbiod, buf, len);
 }
 
-static ssize_t tlsg_send(gnutls_transport_ptr_t ptr, const void *buf,
-                         size_t len) {
+static ssize_t tlsg_send(gnutls_transport_ptr_t ptr, const void *buf, size_t len) {
   struct tls_data *p;
 
   if (buf == NULL || len <= 0)
@@ -923,8 +885,7 @@ static int tlsg_sb_ctrl(Sockbuf_IO_Desc *sbiod, int opt, void *arg) {
   return LBER_SBIOD_CTRL_NEXT(sbiod, opt, arg);
 }
 
-static ber_slen_t tlsg_sb_read(Sockbuf_IO_Desc *sbiod, void *buf,
-                               ber_len_t len) {
+static ber_slen_t tlsg_sb_read(Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len) {
   struct tls_data *p;
   ber_slen_t ret;
 
@@ -942,8 +903,7 @@ static ber_slen_t tlsg_sb_read(Sockbuf_IO_Desc *sbiod, void *buf,
     ret = 0;
     break;
   case GNUTLS_E_REHANDSHAKE:
-    for (ret = gnutls_handshake(p->session->session);
-         ret == GNUTLS_E_INTERRUPTED || ret == GNUTLS_E_AGAIN;
+    for (ret = gnutls_handshake(p->session->session); ret == GNUTLS_E_INTERRUPTED || ret == GNUTLS_E_AGAIN;
          ret = gnutls_handshake(p->session->session))
       ;
     sbiod->sbiod_sb->sb_trans_needs_read = 1;
@@ -955,8 +915,7 @@ static ber_slen_t tlsg_sb_read(Sockbuf_IO_Desc *sbiod, void *buf,
   return ret;
 }
 
-static ber_slen_t tlsg_sb_write(Sockbuf_IO_Desc *sbiod, void *buf,
-                                ber_len_t len) {
+static ber_slen_t tlsg_sb_write(Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len) {
   struct tls_data *p;
   ber_slen_t ret;
 
@@ -995,19 +954,16 @@ static int tlsg_cert_verify(tlsg_session *ssl) {
 
   err = gnutls_certificate_verify_peers2(ssl->session, &status);
   if (err < 0) {
-    Debug(LDAP_DEBUG_ANY, "TLS: gnutls_certificate_verify_peers2 failed %d\n",
-          err);
+    Debug(LDAP_DEBUG_ANY, "TLS: gnutls_certificate_verify_peers2 failed %d\n", err);
     return -1;
   }
   if (status) {
-    Debug(LDAP_DEBUG_TRACE, "TLS: peer cert untrusted or revoked (0x%x)\n",
-          status);
+    Debug(LDAP_DEBUG_TRACE, "TLS: peer cert untrusted or revoked (0x%x)\n", status);
     return -1;
   }
   peertime = gnutls_certificate_expiration_time_peers(ssl->session);
   if (peertime == (time_t)-1) {
-    Debug(LDAP_DEBUG_ANY,
-          "TLS: gnutls_certificate_expiration_time_peers failed\n");
+    Debug(LDAP_DEBUG_ANY, "TLS: gnutls_certificate_expiration_time_peers failed\n");
     return -1;
   }
   if (peertime < now) {
@@ -1016,8 +972,7 @@ static int tlsg_cert_verify(tlsg_session *ssl) {
   }
   peertime = gnutls_certificate_activation_time_peers(ssl->session);
   if (peertime == (time_t)-1) {
-    Debug(LDAP_DEBUG_ANY,
-          "TLS: gnutls_certificate_activation_time_peers failed\n");
+    Debug(LDAP_DEBUG_ANY, "TLS: gnutls_certificate_activation_time_peers failed\n");
     return -1;
   }
   if (peertime > now) {

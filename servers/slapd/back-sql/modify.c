@@ -42,8 +42,7 @@ int backsql_modify(Operation *op, SlapReply *rs) {
    * (missing mapping, SQL write fails or so) the entire operation
    * should be rolled-back
    */
-  Debug(LDAP_DEBUG_TRACE, "==>backsql_modify(): modifying entry \"%s\"\n",
-        op->o_req_ndn.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "==>backsql_modify(): modifying entry \"%s\"\n", op->o_req_ndn.bv_val);
 
   rs->sr_err = backsql_get_db_conn(op, &dbh);
   if (rs->sr_err != LDAP_SUCCESS) {
@@ -58,17 +57,15 @@ int backsql_modify(Operation *op, SlapReply *rs) {
   }
 
   bsi.bsi_e = &m;
-  rs->sr_err = backsql_init_search(
-      &bsi, &op->o_req_ndn, LDAP_SCOPE_BASE, (time_t)(-1), NULL, dbh, op, rs,
-      slap_anlist_all_attributes,
-      (BACKSQL_ISF_MATCHED | BACKSQL_ISF_GET_ENTRY | BACKSQL_ISF_GET_OC));
+  rs->sr_err = backsql_init_search(&bsi, &op->o_req_ndn, LDAP_SCOPE_BASE, (time_t)(-1), NULL, dbh, op, rs,
+                                   slap_anlist_all_attributes,
+                                   (BACKSQL_ISF_MATCHED | BACKSQL_ISF_GET_ENTRY | BACKSQL_ISF_GET_OC));
   switch (rs->sr_err) {
   case LDAP_SUCCESS:
     break;
 
   case LDAP_REFERRAL:
-    if (manageDSAit && !BER_BVISNULL(&bsi.bsi_e->e_nname) &&
-        dn_match(&op->o_req_ndn, &bsi.bsi_e->e_nname)) {
+    if (manageDSAit && !BER_BVISNULL(&bsi.bsi_e->e_nname) && dn_match(&op->o_req_ndn, &bsi.bsi_e->e_nname)) {
       rs->sr_err = LDAP_SUCCESS;
       rs_send_cleanup(rs);
       break;
@@ -94,8 +91,7 @@ int backsql_modify(Operation *op, SlapReply *rs) {
         "modifying entry \"%s\" (id=" BACKSQL_IDFMT ")\n",
         bsi.bsi_base_id.eid_dn.bv_val, BACKSQL_IDARG(bsi.bsi_base_id.eid_id));
 
-  if (get_assert(op) &&
-      (test_filter(op, &m, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
+  if (get_assert(op) && (test_filter(op, &m, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
     rs->sr_err = LDAP_ASSERTION_FAILED;
     e = &m;
     goto done;
@@ -112,8 +108,7 @@ int backsql_modify(Operation *op, SlapReply *rs) {
     goto done;
   }
 
-  rs->sr_err = backsql_modify_internal(op, rs, dbh, oc, &bsi.bsi_base_id,
-                                       op->orm_modlist);
+  rs->sr_err = backsql_modify_internal(op, rs, dbh, oc, &bsi.bsi_base_id, op->orm_modlist);
   if (rs->sr_err != LDAP_SUCCESS) {
     e = &m;
     goto do_transact;
@@ -131,8 +126,7 @@ int backsql_modify(Operation *op, SlapReply *rs) {
       goto do_transact;
     }
 
-    rs->sr_err = entry_schema_check(op, &m, NULL, 0, 0, NULL, &rs->sr_text,
-                                    textbuf, sizeof(textbuf));
+    rs->sr_err = entry_schema_check(op, &m, NULL, 0, 0, NULL, &rs->sr_text, textbuf, sizeof(textbuf));
     if (rs->sr_err != LDAP_SUCCESS) {
       Debug(LDAP_DEBUG_TRACE,
             "   backsql_modify(\"%s\"): "
@@ -156,8 +150,7 @@ do_transact:;
 
 done:;
   if (e != NULL) {
-    if (!access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE,
-                        NULL)) {
+    if (!access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL)) {
       rs->sr_err = LDAP_NO_SUCH_OBJECT;
       rs_send_cleanup(rs);
     }

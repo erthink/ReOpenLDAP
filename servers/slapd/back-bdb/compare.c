@@ -62,8 +62,7 @@ dn2entry_retry:
   if (rs->sr_err == DB_NOTFOUND) {
     if (e != NULL) {
       /* return referral only if "disclose" is granted on the object */
-      if (!access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE,
-                          NULL)) {
+      if (!access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL)) {
         rs->sr_err = LDAP_NO_SUCH_OBJECT;
       } else {
         rs->sr_matched = ch_strdup(e->e_dn);
@@ -74,8 +73,7 @@ dn2entry_retry:
       bdb_cache_return_entry_r(bdb, e, &lock);
       e = NULL;
     } else {
-      rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn,
-                                    LDAP_SCOPE_DEFAULT);
+      rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
       rs->sr_err = rs->sr_ref ? LDAP_REFERRAL : LDAP_NO_SUCH_OBJECT;
     }
     rs->sr_flags = REP_MATCHED_MUSTBEFREED | REP_REF_MUSTBEFREED;
@@ -84,8 +82,7 @@ dn2entry_retry:
 
   if (!manageDSAit && is_entry_referral(e)) {
     /* return referral only if "disclose" is granted on the object */
-    if (!access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE,
-                        NULL)) {
+    if (!access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL)) {
       rs->sr_err = LDAP_NO_SUCH_OBJECT;
     } else {
       /* entry is a referral, don't allow compare */

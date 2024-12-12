@@ -138,8 +138,7 @@ int rewrite_var_replace(struct rewrite_var *var, const char *value, int flags) {
 /*
  * Inserts a newly created var
  */
-struct rewrite_var *rewrite_var_insert_f(Avlnode **tree, const char *name,
-                                         const char *value, int flags) {
+struct rewrite_var *rewrite_var_insert_f(Avlnode **tree, const char *name, const char *value, int flags) {
   struct rewrite_var *var;
   int rc = 0;
 
@@ -203,8 +202,7 @@ cleanup:;
 /*
  * Sets/inserts a var
  */
-struct rewrite_var *rewrite_var_set_f(Avlnode **tree, const char *name,
-                                      const char *value, int flags) {
+struct rewrite_var *rewrite_var_set_f(Avlnode **tree, const char *name, const char *value, int flags) {
   struct rewrite_var *var;
 
   assert(tree != NULL);

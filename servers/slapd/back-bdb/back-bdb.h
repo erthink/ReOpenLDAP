@@ -23,8 +23,7 @@
 
 LDAP_BEGIN_DECL
 
-#define DB_VERSION_FULL                                                        \
-  ((DB_VERSION_MAJOR << 24) | (DB_VERSION_MINOR << 16) | DB_VERSION_PATCH)
+#define DB_VERSION_FULL ((DB_VERSION_MAJOR << 24) | (DB_VERSION_MINOR << 16) | DB_VERSION_PATCH)
 
 #define DN_BASE_PREFIX SLAP_INDEX_EQUALITY_PREFIX
 #define DN_ONE_PREFIX '%'
@@ -254,8 +253,7 @@ struct bdb_op_info {
 };
 #define BOI_DONTFREE 1
 
-#define DB_OPEN(db, file, name, type, flags, mode)                             \
-  ((db)->open)(db, file, name, type, flags, mode)
+#define DB_OPEN(db, file, name, type, flags, mode) ((db)->open)(db, file, name, type, flags, mode)
 
 #if DB_VERSION_MAJOR < 4
 #define LOCK_DETECT(env, f, t, a) lock_detect(env, f, t, a)
@@ -285,8 +283,7 @@ struct bdb_op_info {
 /* BDB 4.1.17 adds txn arg to db->open */
 #if DB_VERSION_FULL >= 0x04010011
 #undef DB_OPEN
-#define DB_OPEN(db, file, name, type, flags, mode)                             \
-  ((db)->open)(db, NULL, file, name, type, flags, mode)
+#define DB_OPEN(db, file, name, type, flags, mode) ((db)->open)(db, NULL, file, name, type, flags, mode)
 #endif
 
 /* #undef BDB_LOG_DEBUG */
@@ -295,17 +292,14 @@ struct bdb_op_info {
 
 /* env->log_printf appeared in 4.4 */
 #if DB_VERSION_FULL >= 0x04040000
-#define BDB_LOG_PRINTF(env, txn, fmt, ...)                                     \
-  (env)->log_printf((env), (txn), (fmt), __VA_ARGS__)
+#define BDB_LOG_PRINTF(env, txn, fmt, ...) (env)->log_printf((env), (txn), (fmt), __VA_ARGS__)
 #else
-extern int __db_logmsg(const DB_ENV *env, DB_TXN *txn, const char *op,
-                       u_int32_t flags, const char *fmt, ...);
-#define BDB_LOG_PRINTF(env, txn, fmt, ...)                                     \
-  __db_logmsg((env), (txn), "DIAGNOSTIC", 0, (fmt), __VA_ARGS__)
+extern int __db_logmsg(const DB_ENV *env, DB_TXN *txn, const char *op, u_int32_t flags, const char *fmt, ...);
+#define BDB_LOG_PRINTF(env, txn, fmt, ...) __db_logmsg((env), (txn), "DIAGNOSTIC", 0, (fmt), __VA_ARGS__)
 #endif
 
 /* !BDB_LOG_DEBUG */
-#elif (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) ||            \
+#elif (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) ||                                                    \
     (defined(__GNUC__) && __GNUC__ >= 3 && !defined(__STRICT_ANSI__))
 #define BDB_LOG_PRINTF(a, b, c, ...)
 #else
@@ -324,31 +318,31 @@ extern int __db_logmsg(const DB_ENV *env, DB_TXN *txn, const char *op,
 #define BDB_CSN_RETRY 2
 
 /* Copy an ID "src" to pointer "dst" in big-endian byte order */
-#define BDB_ID2DISK(src, dst)                                                  \
-  do {                                                                         \
-    int i0;                                                                    \
-    ID tmp;                                                                    \
-    unsigned char *_p;                                                         \
-    tmp = (src);                                                               \
-    _p = (unsigned char *)(dst);                                               \
-    for (i0 = sizeof(ID) - 1; i0 >= 0; i0--) {                                 \
-      _p[i0] = tmp & 0xff;                                                     \
-      tmp >>= 8;                                                               \
-    }                                                                          \
+#define BDB_ID2DISK(src, dst)                                                                                          \
+  do {                                                                                                                 \
+    int i0;                                                                                                            \
+    ID tmp;                                                                                                            \
+    unsigned char *_p;                                                                                                 \
+    tmp = (src);                                                                                                       \
+    _p = (unsigned char *)(dst);                                                                                       \
+    for (i0 = sizeof(ID) - 1; i0 >= 0; i0--) {                                                                         \
+      _p[i0] = tmp & 0xff;                                                                                             \
+      tmp >>= 8;                                                                                                       \
+    }                                                                                                                  \
   } while (0)
 
 /* Copy a pointer "src" to a pointer "dst" from big-endian to native order */
-#define BDB_DISK2ID(src, dst)                                                  \
-  do {                                                                         \
-    unsigned i0;                                                               \
-    ID tmp = 0;                                                                \
-    unsigned char *_p;                                                         \
-    _p = (unsigned char *)(src);                                               \
-    for (i0 = 0; i0 < sizeof(ID); i0++) {                                      \
-      tmp <<= 8;                                                               \
-      tmp |= *_p++;                                                            \
-    }                                                                          \
-    *(dst) = tmp;                                                              \
+#define BDB_DISK2ID(src, dst)                                                                                          \
+  do {                                                                                                                 \
+    unsigned i0;                                                                                                       \
+    ID tmp = 0;                                                                                                        \
+    unsigned char *_p;                                                                                                 \
+    _p = (unsigned char *)(src);                                                                                       \
+    for (i0 = 0; i0 < sizeof(ID); i0++) {                                                                              \
+      tmp <<= 8;                                                                                                       \
+      tmp |= *_p++;                                                                                                    \
+    }                                                                                                                  \
+    *(dst) = tmp;                                                                                                      \
   } while (0)
 
 LDAP_END_DECL

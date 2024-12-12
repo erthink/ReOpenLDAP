@@ -36,26 +36,22 @@ int do_abandon(Operation *op, SlapReply *rs) {
    */
 
   if (ber_scanf(op->o_ber, "i", &id) == LBER_ERROR) {
-    Debug(LDAP_DEBUG_ANY, "%s do_abandon: ber_scanf failed\n",
-          op->o_log_prefix);
+    Debug(LDAP_DEBUG_ANY, "%s do_abandon: ber_scanf failed\n", op->o_log_prefix);
     send_ldap_discon(op, rs, LDAP_PROTOCOL_ERROR, "decoding error");
     return SLAPD_DISCONNECT;
   }
 
-  Statslog(LDAP_DEBUG_STATS, "%s ABANDON msg=%ld\n", op->o_log_prefix,
-           (long)id);
+  Statslog(LDAP_DEBUG_STATS, "%s ABANDON msg=%ld\n", op->o_log_prefix, (long)id);
 
   if (get_ctrls(op, rs, 0) != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_ANY, "%s do_abandon: get_ctrls failed\n",
-          op->o_log_prefix);
+    Debug(LDAP_DEBUG_ANY, "%s do_abandon: get_ctrls failed\n", op->o_log_prefix);
     return rs->sr_err;
   }
 
   Debug(LDAP_DEBUG_ARGS, "%s do_abandon: id=%ld\n", op->o_log_prefix, (long)id);
 
   if (id <= 0) {
-    Debug(LDAP_DEBUG_ANY, "%s do_abandon: bad msgid %ld\n", op->o_log_prefix,
-          (long)id);
+    Debug(LDAP_DEBUG_ANY, "%s do_abandon: bad msgid %ld\n", op->o_log_prefix, (long)id);
     return LDAP_SUCCESS;
   }
 
@@ -85,8 +81,7 @@ int do_abandon(Operation *op, SlapReply *rs) {
       }
     }
 
-  } else if (o->o_tag == LDAP_REQ_BIND || o->o_tag == LDAP_REQ_UNBIND ||
-             o->o_tag == LDAP_REQ_ABANDON) {
+  } else if (o->o_tag == LDAP_REQ_BIND || o->o_tag == LDAP_REQ_UNBIND || o->o_tag == LDAP_REQ_ABANDON) {
     msg = "cannot be abandoned";
 
 #if 0 /* Would break o_abandon used as "suppress response" flag, ITS#6138 */
@@ -110,8 +105,7 @@ int do_abandon(Operation *op, SlapReply *rs) {
 
   ldap_pvt_thread_mutex_unlock(&op->o_conn->c_mutex);
 
-  Debug(LDAP_DEBUG_TRACE, "%s do_abandon: op=%ld %s\n", op->o_log_prefix,
-        (long)id, msg);
+  Debug(LDAP_DEBUG_TRACE, "%s do_abandon: op=%ld %s\n", op->o_log_prefix, (long)id, msg);
   return rs->sr_err;
 }
 

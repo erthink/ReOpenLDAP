@@ -91,8 +91,7 @@ static const char *policy_txt[] = {"none", "from", "to", "any"};
 
 static int authz_policy = SASL_AUTHZ_NONE;
 
-static int slap_sasl_match(Operation *opx, struct berval *rule,
-                           struct berval *assertDN, struct berval *authc);
+static int slap_sasl_match(Operation *opx, struct berval *rule, struct berval *assertDN, struct berval *authc);
 
 int slap_sasl_setpolicy(const char *arg) {
   int rc = LDAP_SUCCESS;
@@ -120,8 +119,7 @@ const char *slap_sasl_getpolicy() {
     return policy_txt[authz_policy];
 }
 
-int slap_parse_user(struct berval *id, struct berval *user,
-                    struct berval *realm, struct berval *mech) {
+int slap_parse_user(struct berval *id, struct berval *user, struct berval *realm, struct berval *mech) {
   char u;
 
   assert(id != NULL);
@@ -288,8 +286,7 @@ int authzValidate(Syntax *syntax, struct berval *in) {
      * 4) u[.mech[/realm]]:<ID>
      */
   } else if ((in->bv_val[0] == 'u' || in->bv_val[0] == 'U') &&
-             (in->bv_val[1] == ':' || in->bv_val[1] == '/' ||
-              in->bv_val[1] == '.')) {
+             (in->bv_val[1] == ':' || in->bv_val[1] == '/' || in->bv_val[1] == '.')) {
     char buf[SLAP_LDAPDN_MAXLEN];
     struct berval id, user = BER_BVNULL, realm = BER_BVNULL, mech = BER_BVNULL;
 
@@ -318,8 +315,7 @@ int authzValidate(Syntax *syntax, struct berval *in) {
      * <DN> must pass DN normalization
      */
   } else if (strncasecmp(in->bv_val, "group", STRLENOF("group")) == 0) {
-    struct berval group_dn = BER_BVNULL, group_oc = BER_BVNULL,
-                  member_at = BER_BVNULL;
+    struct berval group_dn = BER_BVNULL, group_oc = BER_BVNULL, member_at = BER_BVNULL;
 
     bv.bv_val = in->bv_val + STRLENOF("group");
     bv.bv_len = in->bv_len - STRLENOF("group");
@@ -412,8 +408,7 @@ int authzValidate(Syntax *syntax, struct berval *in) {
     goto done;
   }
 
-  if ((ludp->lud_host && *ludp->lud_host) || ludp->lud_attrs ||
-      ludp->lud_exts) {
+  if ((ludp->lud_host && *ludp->lud_host) || ludp->lud_attrs || ludp->lud_exts) {
     /* host part must be empty */
     /* attrs and extensions parts must be empty */
     rc = LDAP_INVALID_SYNTAX;
@@ -440,8 +435,7 @@ done:
   return (rc);
 }
 
-static int authzPrettyNormal(struct berval *val, struct berval *normalized,
-                             void *ctx, int normalize) {
+static int authzPrettyNormal(struct berval *val, struct berval *normalized, void *ctx, int normalize) {
   struct berval bv;
   int rc = LDAP_INVALID_SYNTAX;
   LDAPURLDesc *ludp = NULL;
@@ -583,8 +577,7 @@ static int authzPrettyNormal(struct berval *val, struct berval *normalized,
      * 4) u[.mech[/realm]]:<ID>
      */
   } else if ((val->bv_val[0] == 'u' || val->bv_val[0] == 'U') &&
-             (val->bv_val[1] == ':' || val->bv_val[1] == '/' ||
-              val->bv_val[1] == '.')) {
+             (val->bv_val[1] == ':' || val->bv_val[1] == '/' || val->bv_val[1] == '.')) {
     char buf[SLAP_LDAPDN_MAXLEN];
     struct berval id, user = BER_BVNULL, realm = BER_BVNULL, mech = BER_BVNULL;
 
@@ -615,8 +608,7 @@ static int authzPrettyNormal(struct berval *val, struct berval *normalized,
      * <DN> must pass DN normalization
      */
   } else if (strncasecmp(val->bv_val, "group", STRLENOF("group")) == 0) {
-    struct berval group_dn = BER_BVNULL, group_oc = BER_BVNULL,
-                  member_at = BER_BVNULL, out = BER_BVNULL;
+    struct berval group_dn = BER_BVNULL, group_oc = BER_BVNULL, member_at = BER_BVNULL, out = BER_BVNULL;
     char *ptr;
 
     bv.bv_val = val->bv_val + STRLENOF("group");
@@ -751,8 +743,7 @@ static int authzPrettyNormal(struct berval *val, struct berval *normalized,
     goto done;
   }
 
-  if ((ludp->lud_host && *ludp->lud_host) || ludp->lud_attrs ||
-      ludp->lud_exts) {
+  if ((ludp->lud_host && *ludp->lud_host) || ludp->lud_attrs || ludp->lud_exts) {
     /* host part must be empty */
     /* attrs and extensions parts must be empty */
     rc = LDAP_INVALID_SYNTAX;
@@ -831,22 +822,20 @@ done:
   return (rc);
 }
 
-int authzNormalize(slap_mask_t usage, Syntax *syntax, MatchingRule *mr,
-                   struct berval *val, struct berval *normalized, void *ctx) {
+int authzNormalize(slap_mask_t usage, Syntax *syntax, MatchingRule *mr, struct berval *val, struct berval *normalized,
+                   void *ctx) {
   int rc;
 
   Debug(LDAP_DEBUG_TRACE, ">>> authzNormalize: <%s>\n", val->bv_val);
 
   rc = authzPrettyNormal(val, normalized, ctx, 1);
 
-  Debug(LDAP_DEBUG_TRACE, "<<< authzNormalize: <%s> (%d)\n", normalized->bv_val,
-        rc);
+  Debug(LDAP_DEBUG_TRACE, "<<< authzNormalize: <%s> (%d)\n", normalized->bv_val, rc);
 
   return rc;
 }
 
-int authzPretty(Syntax *syntax, struct berval *val, struct berval *out,
-                void *ctx) {
+int authzPretty(Syntax *syntax, struct berval *val, struct berval *out, void *ctx) {
   int rc;
 
   Debug(LDAP_DEBUG_TRACE, ">>> authzPretty: <%s>\n", val->bv_val);
@@ -858,9 +847,8 @@ int authzPretty(Syntax *syntax, struct berval *val, struct berval *out,
   return rc;
 }
 
-static int slap_parseURI(Operation *op, struct berval *uri, struct berval *base,
-                         struct berval *nbase, int *scope, Filter **filter,
-                         struct berval *fstr, int normalize) {
+static int slap_parseURI(Operation *op, struct berval *uri, struct berval *base, struct berval *nbase, int *scope,
+                         Filter **filter, struct berval *fstr, int normalize) {
   struct berval bv;
   int rc;
   LDAPURLDesc *ludp;
@@ -981,8 +969,7 @@ static int slap_parseURI(Operation *op, struct berval *uri, struct berval *base,
      * u:<uid>
      */
   } else if ((uri->bv_val[0] == 'u' || uri->bv_val[0] == 'U') &&
-             (uri->bv_val[1] == ':' || uri->bv_val[1] == '/' ||
-              uri->bv_val[1] == '.')) {
+             (uri->bv_val[1] == ':' || uri->bv_val[1] == '/' || uri->bv_val[1] == '.')) {
     Connection c = *op->o_conn;
     char buf[SLAP_LDAPDN_MAXLEN];
     struct berval id, user = BER_BVNULL, realm = BER_BVNULL, mech = BER_BVNULL;
@@ -1007,8 +994,7 @@ static int slap_parseURI(Operation *op, struct berval *uri, struct berval *base,
       BER_BVSTR(&c.c_sasl_bind_mech, "AUTHZ");
     }
 
-    rc =
-        slap_sasl_getdn(&c, op, &user, realm.bv_val, nbase, SLAP_GETDN_AUTHZID);
+    rc = slap_sasl_getdn(&c, op, &user, realm.bv_val, nbase, SLAP_GETDN_AUTHZID);
 
     if (rc == LDAP_SUCCESS) {
       *scope = LDAP_X_SCOPE_EXACT;
@@ -1025,8 +1011,7 @@ static int slap_parseURI(Operation *op, struct berval *uri, struct berval *base,
      * <groupdn> must pass DN normalization
      */
   } else if (strncasecmp(uri->bv_val, "group", STRLENOF("group")) == 0) {
-    struct berval group_dn = BER_BVNULL, group_oc = BER_BVNULL,
-                  member_at = BER_BVNULL;
+    struct berval group_dn = BER_BVNULL, group_oc = BER_BVNULL, member_at = BER_BVNULL;
     char *tmp;
 
     bv.bv_val = uri->bv_val + STRLENOF("group");
@@ -1074,15 +1059,12 @@ static int slap_parseURI(Operation *op, struct berval *uri, struct berval *base,
 
     /* FIXME: caller needs to add value of member attribute
      * and close brackets twice */
-    fstr->bv_len = STRLENOF("(&(objectClass=)(=" /* )) */) + group_oc.bv_len +
-                   member_at.bv_len;
+    fstr->bv_len = STRLENOF("(&(objectClass=)(=" /* )) */) + group_oc.bv_len + member_at.bv_len;
     fstr->bv_val = ch_malloc(fstr->bv_len + 1);
 
-    tmp = lutil_strncopy(fstr->bv_val, "(&(objectClass=" /* )) */,
-                         STRLENOF("(&(objectClass=" /* )) */));
+    tmp = lutil_strncopy(fstr->bv_val, "(&(objectClass=" /* )) */, STRLENOF("(&(objectClass=" /* )) */));
     tmp = lutil_strncopy(tmp, group_oc.bv_val, group_oc.bv_len);
-    tmp = lutil_strncopy(tmp, /* ( */ ")(" /* ) */,
-                         STRLENOF(/* ( */ ")(" /* ) */));
+    tmp = lutil_strncopy(tmp, /* ( */ ")(" /* ) */, STRLENOF(/* ( */ ")(" /* ) */));
     tmp = lutil_strncopy(tmp, member_at.bv_val, member_at.bv_len);
     tmp = lutil_strncopy(tmp, "=", STRLENOF("="));
 
@@ -1132,8 +1114,7 @@ static int slap_parseURI(Operation *op, struct berval *uri, struct berval *base,
     goto done;
   }
 
-  if ((ludp->lud_host && *ludp->lud_host) || ludp->lud_attrs ||
-      ludp->lud_exts) {
+  if ((ludp->lud_host && *ludp->lud_host) || ludp->lud_attrs || ludp->lud_exts) {
     /* host part must be empty */
     /* attrs and extensions parts must be empty */
     rc = LDAP_PROTOCOL_ERROR;
@@ -1216,8 +1197,7 @@ static int slap_sasl_rx_off(const char *rep, int *off) {
 #endif /* ! SLAP_AUTH_REWRITE */
 
 #ifdef SLAP_AUTH_REWRITE
-int slap_sasl_rewrite_config(const char *fname, int lineno, int argc,
-                             char **argv) {
+int slap_sasl_rewrite_config(const char *fname, int lineno, int argc, char **argv) {
   int rc;
   char *savearg0;
 
@@ -1244,9 +1224,7 @@ static int slap_sasl_rewrite_destroy(void) {
   return 0;
 }
 
-static int slap_sasl_regexp_rewrite_config(const char *fname, int lineno,
-                                           const char *match,
-                                           const char *replace,
+static int slap_sasl_regexp_rewrite_config(const char *fname, int lineno, const char *match, const char *replace,
                                            const char *context) {
   int rc;
   char *argvRule[] = {"rewriteRule", NULL, NULL, ":@", NULL};
@@ -1285,22 +1263,18 @@ int slap_sasl_regexp_config(const char *match, const char *replace) {
   int rc;
   SaslRegexp_t *reg;
 
-  SaslRegexp = (SaslRegexp_t *)ch_realloc(
-      (char *)SaslRegexp, (nSaslRegexp + 1) * sizeof(SaslRegexp_t));
+  SaslRegexp = (SaslRegexp_t *)ch_realloc((char *)SaslRegexp, (nSaslRegexp + 1) * sizeof(SaslRegexp_t));
 
   reg = &SaslRegexp[nSaslRegexp];
 
 #ifdef SLAP_AUTH_REWRITE
-  rc = slap_sasl_regexp_rewrite_config("sasl-regexp", 0, match, replace,
-                                       AUTHID_CONTEXT);
+  rc = slap_sasl_regexp_rewrite_config("sasl-regexp", 0, match, replace, AUTHID_CONTEXT);
 #else /* ! SLAP_AUTH_REWRITE */
 
   /* Precompile matching pattern */
   rc = regcomp(&reg->sr_workspace, match, REG_EXTENDED | REG_ICASE);
   if (rc) {
-    Debug(LDAP_DEBUG_ANY,
-          "SASL match pattern %s could not be compiled by regexp engine\n",
-          match);
+    Debug(LDAP_DEBUG_ANY, "SASL match pattern %s could not be compiled by regexp engine\n", match);
 
 #ifdef ENABLE_REWRITE
     /* Dummy block to force symbol references in librewrite */
@@ -1357,8 +1331,7 @@ void slap_sasl_regexp_unparse(BerVarray *out) {
   BER_BVZERO(bva + nSaslRegexp);
   for (i = 0; i < nSaslRegexp; i++) {
     idx.bv_len = sprintf(idx.bv_val, "{%d}", i);
-    bva[i].bv_len = idx.bv_len + strlen(SaslRegexp[i].sr_match) +
-                    strlen(SaslRegexp[i].sr_replace) + 5;
+    bva[i].bv_len = idx.bv_len + strlen(SaslRegexp[i].sr_match) + strlen(SaslRegexp[i].sr_replace) + 5;
     bva[i].bv_val = ch_malloc(bva[i].bv_len + 1);
     ptr = lutil_strcopy(bva[i].bv_val, ibuf);
     *ptr++ = '"';
@@ -1373,8 +1346,7 @@ void slap_sasl_regexp_unparse(BerVarray *out) {
 
 #ifndef SLAP_AUTH_REWRITE
 /* Perform replacement on regexp matches */
-static void slap_sasl_rx_exp(const char *rep, const int *off, regmatch_t *str,
-                             const char *saslname, struct berval *out,
+static void slap_sasl_rx_exp(const char *rep, const int *off, regmatch_t *str, const char *saslname, struct berval *out,
                              void *ctx) {
   int i, n, len, insert;
 
@@ -1424,8 +1396,7 @@ static void slap_sasl_rx_exp(const char *rep, const int *off, regmatch_t *str,
    LDAP URI to find the matching LDAP entry, using the pattern matching
    strings given in the saslregexp config file directive(s) */
 
-static int slap_authz_regexp(struct berval *in, struct berval *out, int flags,
-                             void *ctx) {
+static int slap_authz_regexp(struct berval *in, struct berval *out, int flags, void *ctx) {
 #ifdef SLAP_AUTH_REWRITE
   const char *context = AUTHID_CONTEXT;
 
@@ -1435,8 +1406,7 @@ static int slap_authz_regexp(struct berval *in, struct berval *out, int flags,
 
   /* FIXME: if aware of authc/authz mapping,
    * we could use different contexts ... */
-  switch (
-      rewrite_session(sasl_rwinfo, context, in->bv_val, NULL, &out->bv_val)) {
+  switch (rewrite_session(sasl_rwinfo, context, in->bv_val, NULL, &out->bv_val)) {
   case REWRITE_REGEXEC_OK:
     if (!BER_BVISNULL(out)) {
       char *val = out->bv_val;
@@ -1447,8 +1417,7 @@ static int slap_authz_regexp(struct berval *in, struct berval *out, int flags,
     } else {
       ber_dupbv_x(out, in, ctx);
     }
-    Debug(LDAP_DEBUG_ARGS, "[rw] %s: \"%s\" -> \"%s\"\n", context, in->bv_val,
-          out->bv_val);
+    Debug(LDAP_DEBUG_ARGS, "[rw] %s: \"%s\" -> \"%s\"\n", context, in->bv_val, out->bv_val);
     return 1;
 
   case REWRITE_REGEXEC_UNWILLING:
@@ -1465,8 +1434,7 @@ static int slap_authz_regexp(struct berval *in, struct berval *out, int flags,
 
   memset(out, 0, sizeof(*out));
 
-  Debug(LDAP_DEBUG_TRACE, "slap_authz_regexp: converting SASL name %s\n",
-        saslname);
+  Debug(LDAP_DEBUG_TRACE, "slap_authz_regexp: converting SASL name %s\n", saslname);
 
   if ((saslname == NULL) || (nSaslRegexp == 0)) {
     return (0);
@@ -1474,8 +1442,7 @@ static int slap_authz_regexp(struct berval *in, struct berval *out, int flags,
 
   /* Match the normalized SASL name to the saslregexp patterns */
   for (reg = SaslRegexp, i = 0; i < nSaslRegexp; i++, reg++) {
-    if (regexec(&reg->sr_workspace, saslname, SASLREGEX_REPLACE, sr_strings,
-                0) == 0)
+    if (regexec(&reg->sr_workspace, saslname, SASLREGEX_REPLACE, sr_strings, 0) == 0)
       break;
   }
 
@@ -1487,11 +1454,9 @@ static int slap_authz_regexp(struct berval *in, struct berval *out, int flags,
    * replace pattern of the form "x$1y$2z". The returned string needs
    * to replace the $1,$2 with the strings that matched (b.*) and (d.*)
    */
-  slap_sasl_rx_exp(reg->sr_replace, reg->sr_offset, sr_strings, saslname, out,
-                   ctx);
+  slap_sasl_rx_exp(reg->sr_replace, reg->sr_offset, sr_strings, saslname, out, ctx);
 
-  Debug(LDAP_DEBUG_TRACE, "slap_authz_regexp: converted SASL name to %s\n",
-        BER_BVISEMPTY(out) ? "" : out->bv_val);
+  Debug(LDAP_DEBUG_TRACE, "slap_authz_regexp: converted SASL name to %s\n", BER_BVISEMPTY(out) ? "" : out->bv_val);
 
   return (1);
 #endif /* ! SLAP_AUTH_REWRITE */
@@ -1509,9 +1474,7 @@ static int sasl_sc_sasl2dn(Operation *op, SlapReply *rs) {
     op->o_tmpfree(ndn->bv_val, op->o_tmpmemctx);
     BER_BVZERO(ndn);
 
-    Debug(LDAP_DEBUG_TRACE,
-          "%s: slap_sc_sasl2dn: search DN returned more than 1 entry\n",
-          op->o_log_prefix);
+    Debug(LDAP_DEBUG_TRACE, "%s: slap_sc_sasl2dn: search DN returned more than 1 entry\n", op->o_log_prefix);
     return LDAP_UNAVAILABLE; /* short-circuit the search */
   }
 
@@ -1538,8 +1501,7 @@ static int sasl_sc_smatch(Operation *o, SlapReply *rs) {
   return 0;
 }
 
-int slap_sasl_matches(Operation *op, BerVarray rules, struct berval *assertDN,
-                      struct berval *authc) {
+int slap_sasl_matches(Operation *op, BerVarray rules, struct berval *assertDN, struct berval *authc) {
   int rc = LDAP_INAPPROPRIATE_AUTH;
 
   if (rules != NULL) {
@@ -1564,8 +1526,7 @@ int slap_sasl_matches(Operation *op, BerVarray rules, struct berval *assertDN,
  * The assertDN should not have the dn: prefix
  */
 
-static int slap_sasl_match(Operation *opx, struct berval *rule,
-                           struct berval *assertDN, struct berval *authc) {
+static int slap_sasl_match(Operation *opx, struct berval *rule, struct berval *assertDN, struct berval *authc) {
   int rc;
   regex_t reg;
   smatch_info sm;
@@ -1582,8 +1543,7 @@ static int slap_sasl_match(Operation *opx, struct berval *rule,
         assertDN->bv_len ? assertDN->bv_val : "(null)", rule->bv_val);
 
   /* NOTE: don't normalize rule if authz syntax is enabled */
-  rc = slap_parseURI(opx, rule, &base, &op.o_req_ndn, &op.ors_scope,
-                     &op.ors_filter, &op.ors_filterstr, 0);
+  rc = slap_parseURI(opx, rule, &base, &op.o_req_ndn, &op.ors_scope, &op.ors_filter, &op.ors_filterstr, 0);
 
   if (rc != LDAP_SUCCESS)
     goto CONCLUDED;
@@ -1650,8 +1610,7 @@ static int slap_sasl_match(Operation *opx, struct berval *rule,
   }
 
   case LDAP_X_SCOPE_REGEX:
-    rc = regcomp(&reg, op.o_req_ndn.bv_val,
-                 REG_EXTENDED | REG_ICASE | REG_NOSUB);
+    rc = regcomp(&reg, op.o_req_ndn.bv_val, REG_EXTENDED | REG_ICASE | REG_NOSUB);
     if (rc == 0) {
       rc = regexec(&reg, assertDN->bv_val, 0, NULL, 0);
       regfree(&reg);
@@ -1670,9 +1629,7 @@ static int slap_sasl_match(Operation *opx, struct berval *rule,
      * we need to append the <assertDN> so that the <group_dn> is searched
      * with scope "base", and the filter ensures that <assertDN> is
      * member of the group */
-    tmp = ch_realloc(op.ors_filterstr.bv_val, op.ors_filterstr.bv_len +
-                                                  assertDN->bv_len +
-                                                  STRLENOF(/*"(("*/ "))") + 1);
+    tmp = ch_realloc(op.ors_filterstr.bv_val, op.ors_filterstr.bv_len + assertDN->bv_len + STRLENOF(/*"(("*/ "))") + 1);
     if (tmp == NULL) {
       rc = LDAP_NO_MEMORY;
       goto CONCLUDED;
@@ -1716,9 +1673,8 @@ static int slap_sasl_match(Operation *opx, struct berval *rule,
     goto CONCLUDED;
   }
 
-  Debug(LDAP_DEBUG_TRACE,
-        "slap_sasl_match: performing internal search (base=%s, scope=%d)\n",
-        op.o_req_ndn.bv_val, op.ors_scope);
+  Debug(LDAP_DEBUG_TRACE, "slap_sasl_match: performing internal search (base=%s, scope=%d)\n", op.o_req_ndn.bv_val,
+        op.ors_scope);
 
   op.o_bd = select_backend(&op.o_req_ndn, 1);
   if ((op.o_bd == NULL) || (op.o_bd->be_search == NULL)) {
@@ -1777,16 +1733,13 @@ CONCLUDED:
  *
  * The DNs should not have the dn: prefix
  */
-static int slap_sasl_check_authz(Operation *op, struct berval *searchDN,
-                                 struct berval *assertDN,
-                                 AttributeDescription *ad,
-                                 struct berval *authc) {
+static int slap_sasl_check_authz(Operation *op, struct berval *searchDN, struct berval *assertDN,
+                                 AttributeDescription *ad, struct berval *authc) {
   int rc, do_not_cache = op->o_do_not_cache;
   BerVarray vals = NULL;
 
-  Debug(LDAP_DEBUG_TRACE,
-        "==>slap_sasl_check_authz: does %s match %s rule in %s?\n",
-        assertDN->bv_val, ad->ad_cname.bv_val, searchDN->bv_val);
+  Debug(LDAP_DEBUG_TRACE, "==>slap_sasl_check_authz: does %s match %s rule in %s?\n", assertDN->bv_val,
+        ad->ad_cname.bv_val, searchDN->bv_val);
 
   /* ITS#4760: don't cache group access */
   op->o_do_not_cache = 1;
@@ -1802,8 +1755,7 @@ COMPLETE:
   if (vals)
     ber_bvarray_free_x(vals, op->o_tmpmemctx);
 
-  Debug(LDAP_DEBUG_TRACE, "<==slap_sasl_check_authz: %s check returning %d\n",
-        ad->ad_cname.bv_val, rc);
+  Debug(LDAP_DEBUG_TRACE, "<==slap_sasl_check_authz: %s check returning %d\n", ad->ad_cname.bv_val, rc);
 
   return (rc);
 }
@@ -1816,8 +1768,7 @@ COMPLETE:
  * an internal search must be done, and if that search returns exactly one
  * entry, return the DN of that one entry.
  */
-void slap_sasl2dn(Operation *opx, struct berval *saslname,
-                  struct berval *sasldn, int flags) {
+void slap_sasl2dn(Operation *opx, struct berval *saslname, struct berval *sasldn, int flags) {
   int rc;
   slap_callback cb = {NULL, sasl_sc_sasl2dn, NULL, NULL};
   Operation op = {0};
@@ -1840,8 +1791,7 @@ void slap_sasl2dn(Operation *opx, struct berval *saslname,
 
   /* NOTE: always normalize regout because it results
    * from string submatch expansion */
-  rc = slap_parseURI(opx, &regout, &base, &op.o_req_ndn, &op.ors_scope,
-                     &op.ors_filter, &op.ors_filterstr, 1);
+  rc = slap_parseURI(opx, &regout, &base, &op.o_req_ndn, &op.ors_scope, &op.ors_filter, &op.ors_filterstr, 1);
   if (!BER_BVISNULL(&regout))
     slap_sl_free(regout.bv_val, opx->o_tmpmemctx);
   if (rc != LDAP_SUCCESS) {
@@ -1878,9 +1828,8 @@ void slap_sasl2dn(Operation *opx, struct berval *saslname,
     LDAP_BUG();
   }
 
-  Debug(LDAP_DEBUG_TRACE,
-        "slap_sasl2dn: performing internal search (base=%s, scope=%d)\n",
-        op.o_req_ndn.bv_val, op.ors_scope);
+  Debug(LDAP_DEBUG_TRACE, "slap_sasl2dn: performing internal search (base=%s, scope=%d)\n", op.o_req_ndn.bv_val,
+        op.ors_scope);
 
   if ((op.o_bd == NULL) || (op.o_bd->be_search == NULL)) {
     goto FINISHED;
@@ -1941,8 +1890,7 @@ FINISHED:
  * The DNs should not have the dn: prefix
  */
 
-int slap_sasl_authorized(Operation *op, struct berval *authcDN,
-                         struct berval *authzDN) {
+int slap_sasl_authorized(Operation *op, struct berval *authcDN, struct berval *authzDN) {
   int rc = LDAP_INAPPROPRIATE_AUTH;
 
   /* User binding as anonymous */
@@ -1956,8 +1904,7 @@ int slap_sasl_authorized(Operation *op, struct berval *authcDN,
     goto DONE;
   }
 
-  Debug(LDAP_DEBUG_TRACE, "==>slap_sasl_authorized: can %s become %s?\n",
-        authcDN->bv_len ? authcDN->bv_val : "(null)",
+  Debug(LDAP_DEBUG_TRACE, "==>slap_sasl_authorized: can %s become %s?\n", authcDN->bv_len ? authcDN->bv_val : "(null)",
         authzDN->bv_len ? authzDN->bv_val : "(null)");
 
   /* If person is authorizing to self, succeed */
@@ -1967,16 +1914,14 @@ int slap_sasl_authorized(Operation *op, struct berval *authcDN,
   }
 
   /* Allow the manager to authorize as any DN. */
-  if (op->o_conn->c_authz_backend &&
-      be_isroot_dn(op->o_conn->c_authz_backend, authcDN)) {
+  if (op->o_conn->c_authz_backend && be_isroot_dn(op->o_conn->c_authz_backend, authcDN)) {
     rc = LDAP_SUCCESS;
     goto DONE;
   }
 
   /* Check source rules */
   if (authz_policy & SASL_AUTHZ_TO) {
-    rc = slap_sasl_check_authz(op, authcDN, authzDN,
-                               slap_schema.si_ad_saslAuthzTo, authcDN);
+    rc = slap_sasl_check_authz(op, authcDN, authzDN, slap_schema.si_ad_saslAuthzTo, authcDN);
     if ((rc == LDAP_SUCCESS) ^ ((authz_policy & SASL_AUTHZ_AND) != 0)) {
       if (rc != LDAP_SUCCESS)
         rc = LDAP_INAPPROPRIATE_AUTH;
@@ -1986,8 +1931,7 @@ int slap_sasl_authorized(Operation *op, struct berval *authcDN,
 
   /* Check destination rules */
   if (authz_policy & SASL_AUTHZ_FROM) {
-    rc = slap_sasl_check_authz(op, authzDN, authcDN,
-                               slap_schema.si_ad_saslAuthzFrom, authcDN);
+    rc = slap_sasl_check_authz(op, authzDN, authcDN, slap_schema.si_ad_saslAuthzFrom, authcDN);
     if (rc == LDAP_SUCCESS) {
       goto DONE;
     }

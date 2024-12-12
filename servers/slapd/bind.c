@@ -44,8 +44,7 @@ int do_bind(Operation *op, SlapReply *rs) {
   }
   if (!BER_BVISEMPTY(&op->o_conn->c_dn)) {
     /* log authorization identity demotion */
-    Statslog(LDAP_DEBUG_STATS, "%s BIND anonymous mech=implicit ssf=0\n",
-             op->o_log_prefix);
+    Statslog(LDAP_DEBUG_STATS, "%s BIND anonymous mech=implicit ssf=0\n", op->o_log_prefix);
   }
   connection2anonymous(op->o_conn);
   if (op->o_conn->c_sasl_bind_in_progress) {
@@ -135,39 +134,31 @@ int do_bind(Operation *op, SlapReply *rs) {
    * However, we must dup with regular malloc when storing any
    * resulting DNs in the op or conn structures.
    */
-  rs->sr_err =
-      dnPrettyNormal(NULL, &dn, &op->o_req_dn, &op->o_req_ndn, op->o_tmpmemctx);
+  rs->sr_err = dnPrettyNormal(NULL, &dn, &op->o_req_dn, &op->o_req_ndn, op->o_tmpmemctx);
   if (rs->sr_err != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_ANY, "%s do_bind: invalid dn (%s)\n", op->o_log_prefix,
-          dn.bv_val);
+    Debug(LDAP_DEBUG_ANY, "%s do_bind: invalid dn (%s)\n", op->o_log_prefix, dn.bv_val);
     send_ldap_error(op, rs, LDAP_INVALID_DN_SYNTAX, "invalid DN");
     goto cleanup;
   }
 
-  Statslog(LDAP_DEBUG_STATS, "%s BIND dn=\"%s\" method=%ld\n", op->o_log_prefix,
-           op->o_req_dn.bv_val, (unsigned long)op->orb_method);
+  Statslog(LDAP_DEBUG_STATS, "%s BIND dn=\"%s\" method=%ld\n", op->o_log_prefix, op->o_req_dn.bv_val,
+           (unsigned long)op->orb_method);
 
   if (op->orb_method == LDAP_AUTH_SASL) {
-    Debug(LDAP_DEBUG_TRACE, "do_bind: dn (%s) SASL mech %s\n",
-          op->o_req_dn.bv_val, mech.bv_val);
+    Debug(LDAP_DEBUG_TRACE, "do_bind: dn (%s) SASL mech %s\n", op->o_req_dn.bv_val, mech.bv_val);
 
   } else {
-    Debug(LDAP_DEBUG_TRACE, "do_bind: version=%ld dn=\"%s\" method=%ld\n",
-          (unsigned long)version, op->o_req_dn.bv_val,
+    Debug(LDAP_DEBUG_TRACE, "do_bind: version=%ld dn=\"%s\" method=%ld\n", (unsigned long)version, op->o_req_dn.bv_val,
           (unsigned long)op->orb_method);
   }
 
   if (version < LDAP_VERSION_MIN || version > LDAP_VERSION_MAX) {
-    Debug(LDAP_DEBUG_ANY, "%s do_bind: unknown version=%ld\n", op->o_log_prefix,
-          (unsigned long)version);
-    send_ldap_error(op, rs, LDAP_PROTOCOL_ERROR,
-                    "requested protocol version not supported");
+    Debug(LDAP_DEBUG_ANY, "%s do_bind: unknown version=%ld\n", op->o_log_prefix, (unsigned long)version);
+    send_ldap_error(op, rs, LDAP_PROTOCOL_ERROR, "requested protocol version not supported");
     goto cleanup;
 
   } else if (!(global_allows & SLAP_ALLOW_BIND_V2) && version < LDAP_VERSION3) {
-    send_ldap_error(
-        op, rs, LDAP_PROTOCOL_ERROR,
-        "historical protocol version requested, use LDAPv3 instead");
+    send_ldap_error(op, rs, LDAP_PROTOCOL_ERROR, "historical protocol version requested, use LDAPv3 instead");
     goto cleanup;
   }
 
@@ -210,25 +201,21 @@ int fe_op_bind(Operation *op, SlapReply *rs) {
 
   /* check for inappropriate controls */
   if (get_manageDSAit(op) == SLAP_CONTROL_CRITICAL) {
-    send_ldap_error(op, rs, LDAP_UNAVAILABLE_CRITICAL_EXTENSION,
-                    "manageDSAit control inappropriate");
+    send_ldap_error(op, rs, LDAP_UNAVAILABLE_CRITICAL_EXTENSION, "manageDSAit control inappropriate");
     goto cleanup;
   }
 
   if (op->orb_method == LDAP_AUTH_SASL) {
     if (op->o_protocol < LDAP_VERSION3) {
-      Debug(LDAP_DEBUG_ANY, "do_bind: sasl with LDAPv%ld\n",
-            (unsigned long)op->o_protocol);
-      send_ldap_discon(op, rs, LDAP_PROTOCOL_ERROR,
-                       "SASL bind requires LDAPv3");
+      Debug(LDAP_DEBUG_ANY, "do_bind: sasl with LDAPv%ld\n", (unsigned long)op->o_protocol);
+      send_ldap_discon(op, rs, LDAP_PROTOCOL_ERROR, "SASL bind requires LDAPv3");
       rs->sr_err = SLAPD_DISCONNECT;
       goto cleanup;
     }
 
     if (BER_BVISNULL(&op->orb_mech) || BER_BVISEMPTY(&op->orb_mech)) {
       Debug(LDAP_DEBUG_ANY, "do_bind: no sasl mechanism provided\n");
-      send_ldap_error(op, rs, LDAP_AUTH_METHOD_NOT_SUPPORTED,
-                      "no SASL mechanism provided");
+      send_ldap_error(op, rs, LDAP_AUTH_METHOD_NOT_SUPPORTED, "no SASL mechanism provided");
       goto cleanup;
     }
 
@@ -277,13 +264,11 @@ int fe_op_bind(Operation *op, SlapReply *rs) {
     if (BER_BVISEMPTY(&op->orb_cred) || BER_BVISEMPTY(&op->o_req_ndn)) {
       rs->sr_err = LDAP_SUCCESS;
 
-      if (!BER_BVISEMPTY(&op->orb_cred) &&
-          !(global_allows & SLAP_ALLOW_BIND_ANON_CRED)) {
+      if (!BER_BVISEMPTY(&op->orb_cred) && !(global_allows & SLAP_ALLOW_BIND_ANON_CRED)) {
         /* cred is not empty, disallow */
         rs->sr_err = LDAP_INVALID_CREDENTIALS;
 
-      } else if (!BER_BVISEMPTY(&op->o_req_ndn) &&
-                 !(global_allows & SLAP_ALLOW_BIND_ANON_DN)) {
+      } else if (!BER_BVISEMPTY(&op->o_req_ndn) && !(global_allows & SLAP_ALLOW_BIND_ANON_DN)) {
         /* DN is not empty, disallow */
         rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
         rs->sr_text = "unauthenticated bind (DN with no password) disallowed";
@@ -311,8 +296,7 @@ int fe_op_bind(Operation *op, SlapReply *rs) {
       rs->sr_text = "unwilling to perform simple authentication";
 
       send_ldap_result(op, rs);
-      Debug(LDAP_DEBUG_TRACE, "do_bind: v%d simple bind(%s) disallowed\n",
-            op->o_protocol, op->o_req_ndn.bv_val);
+      Debug(LDAP_DEBUG_TRACE, "do_bind: v%d simple bind(%s) disallowed\n", op->o_protocol, op->o_req_ndn.bv_val);
       goto cleanup;
     }
 
@@ -321,8 +305,7 @@ int fe_op_bind(Operation *op, SlapReply *rs) {
     rs->sr_text = "unknown authentication method";
 
     send_ldap_result(op, rs);
-    Debug(LDAP_DEBUG_TRACE, "do_bind: v%d unknown authentication method (%d)\n",
-          op->o_protocol, op->orb_method);
+    Debug(LDAP_DEBUG_TRACE, "do_bind: v%d unknown authentication method (%d)\n", op->o_protocol, op->orb_method);
     goto cleanup;
   }
 
@@ -361,8 +344,7 @@ int fe_op_bind(Operation *op, SlapReply *rs) {
     }
 
   } else {
-    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                    "operation not supported within naming context (bind)");
+    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "operation not supported within naming context (bind)");
   }
 
 cleanup:;
@@ -393,11 +375,11 @@ int fe_op_bind_success(Operation *op, SlapReply *rs) {
   }
 
   /* log authorization identity */
-  Statslog(LDAP_DEBUG_STATS, "%s BIND dn=\"%s\" mech=%s ssf=0\n",
-           op->o_log_prefix, op->o_conn->c_dn.bv_val, op->orb_mech.bv_val);
+  Statslog(LDAP_DEBUG_STATS, "%s BIND dn=\"%s\" mech=%s ssf=0\n", op->o_log_prefix, op->o_conn->c_dn.bv_val,
+           op->orb_mech.bv_val);
 
-  Debug(LDAP_DEBUG_TRACE, "do_bind: v%d bind: \"%s\" to \"%s\"\n",
-        op->o_protocol, op->o_req_dn.bv_val, op->o_conn->c_dn.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "do_bind: v%d bind: \"%s\" to \"%s\"\n", op->o_protocol, op->o_req_dn.bv_val,
+        op->o_conn->c_dn.bv_val);
 
   ldap_pvt_thread_mutex_unlock(&op->o_conn->c_mutex);
 

@@ -168,8 +168,7 @@ static int deref_parseCtrl(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
 
   ber_init2(ber, &ctrl->ldctl_value, 0);
 
-  for (tag = ber_first_element(ber, &len, &last); tag != LBER_DEFAULT;
-       tag = ber_next_element(ber, &len, last)) {
+  for (tag = ber_first_element(ber, &len, &last); tag != LBER_DEFAULT; tag = ber_next_element(ber, &len, last)) {
     struct berval derefAttr;
     DerefSpec *ds, *dstmp;
     const char *text;
@@ -177,17 +176,14 @@ static int deref_parseCtrl(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
     ber_len_t cnt = sizeof(struct berval);
     ber_len_t off = 0;
 
-    if (ber_scanf(ber, "{m{M}}", &derefAttr, &attributes, &cnt, off) ==
-            LBER_ERROR ||
-        !cnt) {
+    if (ber_scanf(ber, "{m{M}}", &derefAttr, &attributes, &cnt, off) == LBER_ERROR || !cnt) {
       rs->sr_text = "Dereference control: derefSpec decoding error";
       rs->sr_err = LDAP_PROTOCOL_ERROR;
       goto done;
     }
 
-    ds = (DerefSpec *)op->o_tmpcalloc(
-        1, sizeof(DerefSpec) + sizeof(AttributeDescription *) * (cnt + 1),
-        op->o_tmpmemctx);
+    ds = (DerefSpec *)op->o_tmpcalloc(1, sizeof(DerefSpec) + sizeof(AttributeDescription *) * (cnt + 1),
+                                      op->o_tmpmemctx);
     ds->ds_attributes = (AttributeDescription **)&ds[1];
     ds->ds_nattrs = cnt;
 
@@ -200,8 +196,7 @@ static int deref_parseCtrl(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
 
     for (dstmp = dshead; dstmp && dstmp != ds; dstmp = dstmp->ds_next) {
       if (dstmp->ds_derefAttr == ds->ds_derefAttr) {
-        rs->sr_text =
-            "Dereference control: derefAttr must be unique within control";
+        rs->sr_text = "Dereference control: derefAttr must be unique within control";
         rs->sr_err = LDAP_PROTOCOL_ERROR;
         goto done;
       }
@@ -209,8 +204,7 @@ static int deref_parseCtrl(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
 
     if (!(ds->ds_derefAttr->ad_type->sat_syntax->ssyn_flags & SLAP_SYNTAX_DN)) {
       if (ctrl->ldctl_iscritical) {
-        rs->sr_text =
-            "Dereference control: derefAttr syntax not distinguishedName";
+        rs->sr_text = "Dereference control: derefAttr syntax not distinguishedName";
         rs->sr_err = LDAP_PROTOCOL_ERROR;
         goto done;
       }
@@ -237,8 +231,7 @@ static int deref_parseCtrl(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
 
   op->o_ctrlderef = (void *)dshead;
 
-  op->o_deref =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_deref = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   rs->sr_err = LDAP_SUCCESS;
 
@@ -289,8 +282,7 @@ static int deref_response(Operation *op, SlapReply *rs) {
     Entry *ebase;
     int i;
 
-    rc = overlay_entry_get_ov(op, &rs->sr_entry->e_nname, NULL, NULL, 0, &ebase,
-                              dc->dc_on);
+    rc = overlay_entry_get_ov(op, &rs->sr_entry->e_nname, NULL, NULL, 0, &ebase, dc->dc_on);
     if (rc != LDAP_SUCCESS || ebase == NULL) {
       return SLAP_CB_CONTINUE;
     }
@@ -302,16 +294,12 @@ static int deref_response(Operation *op, SlapReply *rs) {
         DerefVal *dv;
         BerVarray *bva;
 
-        if (!access_allowed(op, rs->sr_entry, a->a_desc, NULL, ACL_READ,
-                            &acl_state)) {
+        if (!access_allowed(op, rs->sr_entry, a->a_desc, NULL, ACL_READ, &acl_state)) {
           continue;
         }
 
         dr = op->o_tmpcalloc(
-            1,
-            sizeof(DerefRes) +
-                (sizeof(DerefVal) + sizeof(BerVarray *) * ds->ds_nattrs) *
-                    (a->a_numvals + 1),
+            1, sizeof(DerefRes) + (sizeof(DerefVal) + sizeof(BerVarray *) * ds->ds_nattrs) * (a->a_numvals + 1),
             op->o_tmpmemctx);
         dr->dr_spec = *ds;
         dv = dr->dr_vals = (DerefVal *)&dr[1];
@@ -327,8 +315,7 @@ static int deref_response(Operation *op, SlapReply *rs) {
           dv[i].dv_attrVals = bva;
           bva += ds->ds_nattrs;
 
-          if (!access_allowed(op, rs->sr_entry, a->a_desc, &a->a_nvals[i],
-                              ACL_READ, &acl_state)) {
+          if (!access_allowed(op, rs->sr_entry, a->a_desc, &a->a_nvals[i], ACL_READ, &acl_state)) {
             dv[i].dv_derefSpecVal.bv_val = &dummy;
             continue;
           }
@@ -338,18 +325,15 @@ static int deref_response(Operation *op, SlapReply *rs) {
           nVals++;
           nDerefVals++;
 
-          rc = overlay_entry_get_ov(op, &a->a_nvals[i], NULL, NULL, 0, &e,
-                                    dc->dc_on);
+          rc = overlay_entry_get_ov(op, &a->a_nvals[i], NULL, NULL, 0, &e, dc->dc_on);
           if (rc == LDAP_SUCCESS && e != NULL) {
             int j;
 
-            if (access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_READ,
-                               NULL)) {
+            if (access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_READ, NULL)) {
               for (j = 0; j < ds->ds_nattrs; j++) {
                 Attribute *aa;
 
-                if (!access_allowed(op, e, ds->ds_attributes[j], NULL, ACL_READ,
-                                    &acl_state)) {
+                if (!access_allowed(op, e, ds->ds_attributes[j], NULL, ACL_READ, &acl_state)) {
                   continue;
                 }
 
@@ -357,16 +341,13 @@ static int deref_response(Operation *op, SlapReply *rs) {
                 if (aa != NULL) {
                   unsigned k, h, last = aa->a_numvals;
 
-                  ber_bvarray_dup_x(&dv[i].dv_attrVals[j], aa->a_vals,
-                                    op->o_tmpmemctx);
+                  ber_bvarray_dup_x(&dv[i].dv_attrVals[j], aa->a_vals, op->o_tmpmemctx);
 
                   bv.bv_len += ds->ds_attributes[j]->ad_cname.bv_len;
 
                   for (k = 0, h = 0; k < aa->a_numvals; k++) {
-                    if (!access_allowed(op, e, aa->a_desc, &aa->a_nvals[k],
-                                        ACL_READ, &acl_state)) {
-                      op->o_tmpfree(dv[i].dv_attrVals[j][h].bv_val,
-                                    op->o_tmpmemctx);
+                    if (!access_allowed(op, e, aa->a_desc, &aa->a_nvals[k], ACL_READ, &acl_state)) {
+                      op->o_tmpfree(dv[i].dv_attrVals[j][h].bv_val, op->o_tmpmemctx);
                       dv[i].dv_attrVals[j][h] = dv[i].dv_attrVals[j][--last];
                       BER_BVZERO(&dv[i].dv_attrVals[j][last]);
                       continue;
@@ -395,9 +376,8 @@ static int deref_response(Operation *op, SlapReply *rs) {
     }
 
     /* cook the control value */
-    bv.bv_len += nVals * sizeof(struct berval) +
-                 nAttrs * sizeof(struct berval) +
-                 nDerefVals * sizeof(DerefVal) + nDerefRes * sizeof(DerefRes);
+    bv.bv_len += nVals * sizeof(struct berval) + nAttrs * sizeof(struct berval) + nDerefVals * sizeof(DerefVal) +
+                 nDerefRes * sizeof(DerefRes);
     bv.bv_val = op->o_tmpalloc(bv.bv_len, op->o_tmpmemctx);
 
     ber_init2(ber, &bv, LBER_USE_DER);
@@ -412,19 +392,15 @@ static int deref_response(Operation *op, SlapReply *rs) {
           continue;
         }
 
-        rc = ber_printf(ber, "{OO" /*}*/, &dr->dr_spec.ds_derefAttr->ad_cname,
-                        &dr->dr_vals[i].dv_derefSpecVal);
+        rc = ber_printf(ber, "{OO" /*}*/, &dr->dr_spec.ds_derefAttr->ad_cname, &dr->dr_vals[i].dv_derefSpecVal);
         op->o_tmpfree(dr->dr_vals[i].dv_derefSpecVal.bv_val, op->o_tmpmemctx);
         for (j = 0; j < dr->dr_spec.ds_nattrs; j++) {
           if (dr->dr_vals[i].dv_attrVals[j] != NULL) {
             if (first) {
-              rc = ber_printf(ber, "t{" /*}*/,
-                              (LBER_CONSTRUCTED | LBER_CLASS_CONTEXT));
+              rc = ber_printf(ber, "t{" /*}*/, (LBER_CONSTRUCTED | LBER_CLASS_CONTEXT));
               first = 0;
             }
-            rc = ber_printf(ber, "{O[W]}",
-                            &dr->dr_spec.ds_attributes[j]->ad_cname,
-                            dr->dr_vals[i].dv_attrVals[j]);
+            rc = ber_printf(ber, "{O[W]}", &dr->dr_spec.ds_attributes[j]->ad_cname, dr->dr_vals[i].dv_attrVals[j]);
             op->o_tmpfree(dr->dr_vals[i].dv_attrVals[j], op->o_tmpmemctx);
           }
         }
@@ -446,8 +422,7 @@ static int deref_response(Operation *op, SlapReply *rs) {
       goto cleanup;
     }
 
-    ctrl = op->o_tmpcalloc(1, sizeof(LDAPControl) + ctrlval.bv_len + 1,
-                           op->o_tmpmemctx);
+    ctrl = op->o_tmpcalloc(1, sizeof(LDAPControl) + ctrlval.bv_len + 1, op->o_tmpmemctx);
     ctrl->ldctl_value.bv_val = (char *)&ctrl[1];
     ctrl->ldctl_oid = LDAP_CONTROL_X_DEREF;
     ctrl->ldctl_iscritical = 0;
@@ -483,8 +458,7 @@ static int deref_op_search(Operation *op, SlapReply *rs) {
     slap_callback *sc;
     deref_cb_t *dc;
 
-    sc = op->o_tmpcalloc(1, sizeof(slap_callback) + sizeof(deref_cb_t),
-                         op->o_tmpmemctx);
+    sc = op->o_tmpcalloc(1, sizeof(slap_callback) + sizeof(deref_cb_t), op->o_tmpmemctx);
 
     dc = (deref_cb_t *)&sc[1];
     dc->dc_on = (slap_overinst *)op->o_bd->bd_info;
@@ -505,12 +479,10 @@ static int deref_db_init(BackendDB *be, ConfigReply *cr) {
   if (ov_count == 0) {
     int rc;
 
-    rc = register_supported_control2(LDAP_CONTROL_X_DEREF, SLAP_CTRL_SEARCH,
-                                     NULL, deref_parseCtrl, 1, /* replace */
+    rc = register_supported_control2(LDAP_CONTROL_X_DEREF, SLAP_CTRL_SEARCH, NULL, deref_parseCtrl, 1, /* replace */
                                      &deref_cid);
     if (rc != LDAP_SUCCESS) {
-      Debug(LDAP_DEBUG_ANY, "deref_init: Failed to register control (%d)\n",
-            rc);
+      Debug(LDAP_DEBUG_ANY, "deref_init: Failed to register control (%d)\n", rc);
       return rc;
     }
   }
@@ -518,9 +490,7 @@ static int deref_db_init(BackendDB *be, ConfigReply *cr) {
   return LDAP_SUCCESS;
 }
 
-static int deref_db_open(BackendDB *be, ConfigReply *cr) {
-  return overlay_register_control(be, LDAP_CONTROL_X_DEREF);
-}
+static int deref_db_open(BackendDB *be, ConfigReply *cr) { return overlay_register_control(be, LDAP_CONTROL_X_DEREF); }
 
 #ifdef SLAP_CONFIG_DELETE
 static int deref_db_destroy(BackendDB *be, ConfigReply *cr) {

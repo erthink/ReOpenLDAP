@@ -42,8 +42,7 @@ static int xpasswd_mutex_init = 0;
  * NOTE: these are old-fashion maps; new maps will be parsed on separate
  * config lines, and referred by name.
  */
-struct rewrite_map *rewrite_xmap_parse(struct rewrite_info *info, const char *s,
-                                       const char **currpos) {
+struct rewrite_map *rewrite_xmap_parse(struct rewrite_info *info, const char *s, const char **currpos) {
   struct rewrite_map *map;
 
   assert(info != NULL);
@@ -233,8 +232,7 @@ struct rewrite_map *rewrite_xmap_parse(struct rewrite_info *info, const char *s,
  * NOTE: these are old-fashion maps; new maps will be parsed on separate
  * config lines, and referred by name.
  */
-int rewrite_xmap_apply(struct rewrite_info *info, struct rewrite_op *op,
-                       struct rewrite_map *map, struct berval *key,
+int rewrite_xmap_apply(struct rewrite_info *info, struct rewrite_op *op, struct rewrite_map *map, struct berval *key,
                        struct berval *val) {
   int rc = REWRITE_SUCCESS;
 
@@ -379,9 +377,8 @@ int rewrite_xmap_apply(struct rewrite_info *info, struct rewrite_op *op,
 
     /* rc = ldap_search_s( ld, lud->lud_dn, lud->lud_scope,
                     filter, lud->lud_attrs, attrsonly, &res ); */
-    rc =
-        ldap_search_ext_s(ld, lud->lud_dn, lud->lud_scope, filter,
-                          lud->lud_attrs, attrsonly, NULL, NULL, NULL, 0, &res);
+    rc = ldap_search_ext_s(ld, lud->lud_dn, lud->lud_scope, filter, lud->lud_attrs, attrsonly, NULL, NULL, NULL, 0,
+                           &res);
 
     if (rc != LDAP_SUCCESS) {
       ldap_unbind_ext(ld, NULL, NULL);

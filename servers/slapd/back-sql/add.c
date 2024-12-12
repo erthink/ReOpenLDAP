@@ -40,15 +40,12 @@
  * - operational attributes
  * - empty attributes
  */
-#define backsql_opattr_skip(ad)                                                \
-  (is_at_operational((ad)->ad_type) && (ad) != slap_schema.si_ad_ref)
-#define backsql_attr_skip(ad, vals)                                            \
-  (((ad) == slap_schema.si_ad_objectClass && (vals) &&                         \
-    BER_BVISNULL(&((vals)[1]))) ||                                             \
-   backsql_opattr_skip((ad)) || ((vals) && BER_BVISNULL(&((vals)[0]))))
+#define backsql_opattr_skip(ad) (is_at_operational((ad)->ad_type) && (ad) != slap_schema.si_ad_ref)
+#define backsql_attr_skip(ad, vals)                                                                                    \
+  (((ad) == slap_schema.si_ad_objectClass && (vals) && BER_BVISNULL(&((vals)[1]))) || backsql_opattr_skip((ad)) ||     \
+   ((vals) && BER_BVISNULL(&((vals)[0]))))
 
-int backsql_modify_delete_all_values(Operation *op, SlapReply *rs, SQLHDBC dbh,
-                                     backsql_entryID *e_id,
+int backsql_modify_delete_all_values(Operation *op, SlapReply *rs, SQLHDBC dbh, backsql_entryID *e_id,
                                      backsql_at_map_rec *at) {
   backsql_info *bi = (backsql_info *)op->o_bd->be_private;
   RETCODE rc;
@@ -150,8 +147,7 @@ int backsql_modify_delete_all_values(Operation *op, SlapReply *rs, SQLHDBC dbh,
         }
       }
       po = (BACKSQL_IS_DEL(at->bam_param_order)) > 0;
-      rc = backsql_BindParamID(sth, pno + 1 + po, SQL_PARAM_INPUT,
-                               &e_id->eid_keyval);
+      rc = backsql_BindParamID(sth, pno + 1 + po, SQL_PARAM_INPUT, &e_id->eid_keyval);
       if (rc != SQL_SUCCESS) {
         Debug(LDAP_DEBUG_TRACE,
               "   backsql_modify_delete_all_values(): "
@@ -175,8 +171,7 @@ int backsql_modify_delete_all_values(Operation *op, SlapReply *rs, SQLHDBC dbh,
        * maybe need binary bind?
        */
       col_len = strlen(row.cols[i]);
-      rc = backsql_BindParamStr(sth, pno + 2 - po, SQL_PARAM_INPUT, row.cols[i],
-                                col_len);
+      rc = backsql_BindParamStr(sth, pno + 2 - po, SQL_PARAM_INPUT, row.cols[i], col_len);
       if (rc != SQL_SUCCESS) {
         Debug(LDAP_DEBUG_TRACE,
               "   backsql_modify_delete_all_values(): "
@@ -230,8 +225,7 @@ done:;
   return rs->sr_err;
 }
 
-int backsql_modify_internal(Operation *op, SlapReply *rs, SQLHDBC dbh,
-                            backsql_oc_map_rec *oc, backsql_entryID *e_id,
+int backsql_modify_internal(Operation *op, SlapReply *rs, SQLHDBC dbh, backsql_oc_map_rec *oc, backsql_entryID *e_id,
                             Modifications *modlist) {
   backsql_info *bi = (backsql_info *)op->o_bd->be_private;
   RETCODE rc;
@@ -418,8 +412,7 @@ int backsql_modify_internal(Operation *op, SlapReply *rs, SQLHDBC dbh,
           }
         }
         po = (BACKSQL_IS_ADD(at->bam_param_order)) > 0;
-        rc = backsql_BindParamID(sth, pno + 1 + po, SQL_PARAM_INPUT,
-                                 &e_id->eid_keyval);
+        rc = backsql_BindParamID(sth, pno + 1 + po, SQL_PARAM_INPUT, &e_id->eid_keyval);
         if (rc != SQL_SUCCESS) {
           Debug(LDAP_DEBUG_TRACE,
                 "   backsql_modify_internal(): "
@@ -442,8 +435,7 @@ int backsql_modify_internal(Operation *op, SlapReply *rs, SQLHDBC dbh,
          * check for syntax needed here
          * maybe need binary bind?
          */
-        rc =
-            backsql_BindParamBerVal(sth, pno + 2 - po, SQL_PARAM_INPUT, at_val);
+        rc = backsql_BindParamBerVal(sth, pno + 2 - po, SQL_PARAM_INPUT, at_val);
         if (rc != SQL_SUCCESS) {
           Debug(LDAP_DEBUG_TRACE,
                 "   backsql_modify_internal(): "
@@ -564,8 +556,7 @@ int backsql_modify_internal(Operation *op, SlapReply *rs, SQLHDBC dbh,
           }
         }
         po = (BACKSQL_IS_DEL(at->bam_param_order)) > 0;
-        rc = backsql_BindParamID(sth, pno + 1 + po, SQL_PARAM_INPUT,
-                                 &e_id->eid_keyval);
+        rc = backsql_BindParamID(sth, pno + 1 + po, SQL_PARAM_INPUT, &e_id->eid_keyval);
         if (rc != SQL_SUCCESS) {
           Debug(LDAP_DEBUG_TRACE,
                 "   backsql_modify_internal(): "
@@ -588,8 +579,7 @@ int backsql_modify_internal(Operation *op, SlapReply *rs, SQLHDBC dbh,
          * check for syntax needed here
          * maybe need binary bind?
          */
-        rc =
-            backsql_BindParamBerVal(sth, pno + 2 - po, SQL_PARAM_INPUT, at_val);
+        rc = backsql_BindParamBerVal(sth, pno + 2 - po, SQL_PARAM_INPUT, at_val);
         if (rc != SQL_SUCCESS) {
           Debug(LDAP_DEBUG_TRACE,
                 "   backsql_modify_internal(): "
@@ -650,8 +640,8 @@ int backsql_modify_internal(Operation *op, SlapReply *rs, SQLHDBC dbh,
   }
 
 done:;
-  Debug(LDAP_DEBUG_TRACE, "<==backsql_modify_internal(): %d%s%s\n", rs->sr_err,
-        rs->sr_text ? ": " : "", rs->sr_text ? rs->sr_text : "");
+  Debug(LDAP_DEBUG_TRACE, "<==backsql_modify_internal(): %d%s%s\n", rs->sr_err, rs->sr_text ? ": " : "",
+        rs->sr_text ? rs->sr_text : "");
 
   /*
    * FIXME: should fail in case one change fails?
@@ -659,8 +649,7 @@ done:;
   return rs->sr_err;
 }
 
-static int backsql_add_attr(Operation *op, SlapReply *rs, SQLHDBC dbh,
-                            backsql_oc_map_rec *oc, Attribute *at,
+static int backsql_add_attr(Operation *op, SlapReply *rs, SQLHDBC dbh, backsql_oc_map_rec *oc, Attribute *at,
                             backsql_key_t new_keyval) {
   backsql_info *bi = (backsql_info *)op->o_bd->be_private;
   backsql_at_map_rec *at_rec = NULL;
@@ -677,8 +666,7 @@ static int backsql_add_attr(Operation *op, SlapReply *rs, SQLHDBC dbh,
           "   backsql_add_attr(\"%s\"): "
           "attribute \"%s\" is not registered "
           "in objectclass \"%s\"\n",
-          op->ora_e->e_name.bv_val, at->a_desc->ad_cname.bv_val,
-          BACKSQL_OC_NAME(oc));
+          op->ora_e->e_name.bv_val, at->a_desc->ad_cname.bv_val, BACKSQL_OC_NAME(oc));
 
     if (BACKSQL_FAIL_IF_NO_MAPPING(bi)) {
       rs->sr_text = "operation not permitted "
@@ -695,8 +683,7 @@ static int backsql_add_attr(Operation *op, SlapReply *rs, SQLHDBC dbh,
           "add procedure is not defined "
           "for attribute \"%s\" "
           "of structuralObjectClass \"%s\"\n",
-          op->ora_e->e_name.bv_val, at->a_desc->ad_cname.bv_val,
-          BACKSQL_OC_NAME(oc));
+          op->ora_e->e_name.bv_val, at->a_desc->ad_cname.bv_val, BACKSQL_OC_NAME(oc));
 
     if (BACKSQL_FAIL_IF_NO_MAPPING(bi)) {
       rs->sr_text = "operation not permitted "
@@ -707,8 +694,7 @@ static int backsql_add_attr(Operation *op, SlapReply *rs, SQLHDBC dbh,
     return LDAP_SUCCESS;
   }
 
-  for (i = 0, at_val = &at->a_vals[i]; !BER_BVISNULL(at_val);
-       i++, at_val = &at->a_vals[i]) {
+  for (i = 0, at_val = &at->a_vals[i]; !BER_BVISNULL(at_val); i++, at_val = &at->a_vals[i]) {
     /* procedure return code */
     int prc = LDAP_SUCCESS;
     /* first parameter #, parameter order */
@@ -785,10 +771,8 @@ static int backsql_add_attr(Operation *op, SlapReply *rs, SQLHDBC dbh,
     }
 
     if (DebugTest(LDAP_DEBUG_TRACE)) {
-      char logbuf[STRLENOF("val[], id=") +
-                  2 * LDAP_PVT_INTTYPE_CHARS(unsigned long)];
-      snprintf(logbuf, sizeof(logbuf), "val[%lu], id=" BACKSQL_IDNUMFMT, i,
-               new_keyval);
+      char logbuf[STRLENOF("val[], id=") + 2 * LDAP_PVT_INTTYPE_CHARS(unsigned long)];
+      snprintf(logbuf, sizeof(logbuf), "val[%lu], id=" BACKSQL_IDNUMFMT, i, new_keyval);
       Debug(LDAP_DEBUG_TRACE,
             "   backsql_add_attr(\"%s\"): "
             "executing \"%s\" %s\n",
@@ -873,8 +857,7 @@ int backsql_add(Operation *op, SlapReply *rs) {
   if (BACKSQL_CHECK_SCHEMA(bi)) {
     char textbuf[SLAP_TEXT_BUFLEN] = {'\0'};
 
-    rs->sr_err = entry_schema_check(op, op->ora_e, NULL, 0, 1, NULL,
-                                    &rs->sr_text, textbuf, sizeof(textbuf));
+    rs->sr_err = entry_schema_check(op, op->ora_e, NULL, 0, 1, NULL, &rs->sr_text, textbuf, sizeof(textbuf));
     if (rs->sr_err != LDAP_SUCCESS) {
       Debug(LDAP_DEBUG_TRACE,
             "   backsql_add(\"%s\"): "
@@ -887,8 +870,7 @@ int backsql_add(Operation *op, SlapReply *rs) {
 
   slap_add_opattrs(op, &rs->sr_text, textbuf, textlen, 1);
 
-  if (get_assert(op) &&
-      (test_filter(op, op->ora_e, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
+  if (get_assert(op) && (test_filter(op, op->ora_e, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
     Debug(LDAP_DEBUG_TRACE,
           "   backsql_add(\"%s\"): "
           "assertion control failed -- aborting\n",
@@ -927,8 +909,7 @@ int backsql_add(Operation *op, SlapReply *rs) {
       goto done;
     }
 
-    rs->sr_err = structural_class(at->a_vals, &soc, NULL, &text, buf,
-                                  sizeof(buf), op->o_tmpmemctx);
+    rs->sr_err = structural_class(at->a_vals, &soc, NULL, &text, buf, sizeof(buf), op->o_tmpmemctx);
     if (rs->sr_err != LDAP_SUCCESS) {
       Debug(LDAP_DEBUG_TRACE,
             "   backsql_add(\"%s\"): "
@@ -982,8 +963,7 @@ int backsql_add(Operation *op, SlapReply *rs) {
   }
 
   /* check write access */
-  if (!access_allowed_mask(op, op->ora_e, slap_schema.si_ad_entry, NULL,
-                           ACL_WADD, NULL, &mask)) {
+  if (!access_allowed_mask(op, op->ora_e, slap_schema.si_ad_entry, NULL, ACL_WADD, NULL, &mask)) {
     rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
     e = op->ora_e;
     goto done;
@@ -1042,24 +1022,21 @@ int backsql_add(Operation *op, SlapReply *rs) {
      * Get the parent
      */
     bsi.bsi_e = &p;
-    rs->sr_err = backsql_init_search(
-        &bsi, &pdn, LDAP_SCOPE_BASE, (time_t)(-1), NULL, dbh, op, rs,
-        slap_anlist_no_attrs, (BACKSQL_ISF_MATCHED | BACKSQL_ISF_GET_ENTRY));
+    rs->sr_err = backsql_init_search(&bsi, &pdn, LDAP_SCOPE_BASE, (time_t)(-1), NULL, dbh, op, rs, slap_anlist_no_attrs,
+                                     (BACKSQL_ISF_MATCHED | BACKSQL_ISF_GET_ENTRY));
     if (rs->sr_err != LDAP_SUCCESS) {
       Debug(LDAP_DEBUG_TRACE,
             "backsql_add(): "
             "could not retrieve addDN parent "
             "\"%s\" ID - %s matched=\"%s\"\n",
-            pdn.bv_val,
-            rs->sr_err == LDAP_REFERRAL ? "referral" : "no such entry",
+            pdn.bv_val, rs->sr_err == LDAP_REFERRAL ? "referral" : "no such entry",
             rs->sr_matched ? rs->sr_matched : "(null)");
       e = &p;
       goto done;
     }
 
     /* check "children" pseudo-attribute access to parent */
-    if (!access_allowed(op, &p, slap_schema.si_ad_children, NULL, ACL_WADD,
-                        NULL)) {
+    if (!access_allowed(op, &p, slap_schema.si_ad_children, NULL, ACL_WADD, NULL)) {
       rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
       e = &p;
       goto done;
@@ -1103,8 +1080,7 @@ int backsql_add(Operation *op, SlapReply *rs) {
   if (oc->bom_create_hint) {
     at = attr_find(op->ora_e->e_attrs, oc->bom_create_hint);
     if (at && at->a_vals) {
-      backsql_BindParamStr(sth, colnum, SQL_PARAM_INPUT, at->a_vals[0].bv_val,
-                           at->a_vals[0].bv_len);
+      backsql_BindParamStr(sth, colnum, SQL_PARAM_INPUT, at->a_vals[0].bv_val, at->a_vals[0].bv_len);
       Debug(LDAP_DEBUG_TRACE,
             "backsql_add(): "
             "create_proc hint: param = '%s'\n",
@@ -1120,8 +1096,7 @@ int backsql_add(Operation *op, SlapReply *rs) {
     colnum++;
   }
 
-  Debug(LDAP_DEBUG_TRACE, "   backsql_add(\"%s\"): executing \"%s\"\n",
-        op->ora_e->e_name.bv_val, oc->bom_create_proc);
+  Debug(LDAP_DEBUG_TRACE, "   backsql_add(\"%s\"): executing \"%s\"\n", op->ora_e->e_name.bv_val, oc->bom_create_proc);
   rc = SQLExecute(sth);
   if (rc != SQL_SUCCESS) {
     Debug(LDAP_DEBUG_TRACE,
@@ -1211,8 +1186,8 @@ int backsql_add(Operation *op, SlapReply *rs) {
 		}
 #endif
 
-    rc = SQLBindCol(sth, (SQLUSMALLINT)1, SQL_C_ULONG, (SQLPOINTER)&new_keyval,
-                    (SQLINTEGER)sizeof(new_keyval), &value_len);
+    rc = SQLBindCol(sth, (SQLUSMALLINT)1, SQL_C_ULONG, (SQLPOINTER)&new_keyval, (SQLINTEGER)sizeof(new_keyval),
+                    &value_len);
 
     rc = SQLFetch(sth);
 
@@ -1312,10 +1287,10 @@ int backsql_add(Operation *op, SlapReply *rs) {
     char buf[SLAP_TEXT_BUFLEN];
 
     snprintf(buf, sizeof(buf),
-             "executing \"%s\" for dn=\"%s\"  oc_map_id=" BACKSQL_IDNUMFMT
-             " p_id=" BACKSQL_IDFMT " keyval=" BACKSQL_IDNUMFMT,
-             bi->sql_insentry_stmt, op->ora_e->e_name.bv_val, oc->bom_id,
-             BACKSQL_IDARG(bsi.bsi_base_id.eid_id), new_keyval);
+             "executing \"%s\" for dn=\"%s\"  oc_map_id=" BACKSQL_IDNUMFMT " p_id=" BACKSQL_IDFMT
+             " keyval=" BACKSQL_IDNUMFMT,
+             bi->sql_insentry_stmt, op->ora_e->e_name.bv_val, oc->bom_id, BACKSQL_IDARG(bsi.bsi_base_id.eid_id),
+             new_keyval);
     Debug(LDAP_DEBUG_TRACE, "   backsql_add(): %s\n", buf);
   }
 
@@ -1409,8 +1384,7 @@ done:;
       /* mask already collected */
       disclose = 0;
 
-    } else if (e == &p && !access_allowed(op, &p, slap_schema.si_ad_entry, NULL,
-                                          ACL_DISCLOSE, NULL)) {
+    } else if (e == &p && !access_allowed(op, &p, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL)) {
       disclose = 0;
     }
 
@@ -1439,8 +1413,8 @@ done:;
     backsql_entry_clean(op, &p);
   }
 
-  Debug(LDAP_DEBUG_TRACE, "<==backsql_add(\"%s\"): %d \"%s\"\n",
-        op->ora_e->e_name.bv_val, rs->sr_err, rs->sr_text ? rs->sr_text : "");
+  Debug(LDAP_DEBUG_TRACE, "<==backsql_add(\"%s\"): %d \"%s\"\n", op->ora_e->e_name.bv_val, rs->sr_err,
+        rs->sr_text ? rs->sr_text : "");
 
   rs_send_cleanup(rs);
   return rs->sr_err;

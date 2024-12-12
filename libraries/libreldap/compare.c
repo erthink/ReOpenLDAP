@@ -34,9 +34,8 @@
  *	}
  */
 
-BerElement *ldap_build_compare_req(LDAP *ld, const char *dn, const char *attr,
-                                   struct berval *bvalue, LDAPControl **sctrls,
-                                   LDAPControl **cctrls, int *msgidp) {
+BerElement *ldap_build_compare_req(LDAP *ld, const char *dn, const char *attr, struct berval *bvalue,
+                                   LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
   BerElement *ber;
   int rc;
 
@@ -80,8 +79,7 @@ BerElement *ldap_build_compare_req(LDAP *ld, const char *dn, const char *attr,
  *		"userPassword", &bvalue,
  *		sctrl, cctrl, &msgid )
  */
-int ldap_compare_ext(LDAP *ld, const char *dn, const char *attr,
-                     struct berval *bvalue, LDAPControl **sctrls,
+int ldap_compare_ext(LDAP *ld, const char *dn, const char *attr, struct berval *bvalue, LDAPControl **sctrls,
                      LDAPControl **cctrls, int *msgidp) {
   int rc;
   BerElement *ber;
@@ -109,8 +107,7 @@ int ldap_compare_ext(LDAP *ld, const char *dn, const char *attr,
   return (*msgidp < 0 ? ld->ld_errno : LDAP_SUCCESS);
 }
 
-int ldap_compare_ext_s(LDAP *ld, const char *dn, const char *attr,
-                       struct berval *bvalue, LDAPControl **sctrl,
+int ldap_compare_ext_s(LDAP *ld, const char *dn, const char *attr, struct berval *bvalue, LDAPControl **sctrl,
                        LDAPControl **cctrl) {
   int rc;
   int msgid = 0;
@@ -121,9 +118,7 @@ int ldap_compare_ext_s(LDAP *ld, const char *dn, const char *attr,
   if (rc != LDAP_SUCCESS)
     return (rc);
 
-  if (ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res) ==
-          -1 ||
-      !res)
+  if (ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res) == -1 || !res)
     return (ld->ld_errno);
 
   return (ldap_result2error(ld, res, 1));

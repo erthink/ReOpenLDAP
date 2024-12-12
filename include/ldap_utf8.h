@@ -58,26 +58,22 @@ ldap_x_wcs_to_utf8s(char *utf8str, const wchar_t *wcstr, size_t count);
 
 /* UTF-8 character to MultiByte character */
 LDAP_F(int)
-ldap_x_utf8_to_mb(char *mbchar, const char *utf8char,
-                  int (*ldap_f_wctomb)(char *mbchar, wchar_t wchar));
+ldap_x_utf8_to_mb(char *mbchar, const char *utf8char, int (*ldap_f_wctomb)(char *mbchar, wchar_t wchar));
 
 /* UTF-8 string to MultiByte string */
 LDAP_F(int)
 ldap_x_utf8s_to_mbs(char *mbstr, const char *utf8str, size_t count,
-                    size_t (*ldap_f_wcstombs)(char *mbstr, const wchar_t *wcstr,
-                                              size_t count));
+                    size_t (*ldap_f_wcstombs)(char *mbstr, const wchar_t *wcstr, size_t count));
 
 /* MultiByte character to UTF-8 character */
 LDAP_F(int)
 ldap_x_mb_to_utf8(char *utf8char, const char *mbchar, size_t mbsize,
-                  int (*ldap_f_mbtowc)(wchar_t *wchar, const char *mbchar,
-                                       size_t count));
+                  int (*ldap_f_mbtowc)(wchar_t *wchar, const char *mbchar, size_t count));
 
 /* MultiByte string to UTF-8 string */
 LDAP_F(int)
 ldap_x_mbs_to_utf8s(char *utf8str, const char *mbstr, size_t count,
-                    size_t (*ldap_f_mbstowcs)(wchar_t *wcstr, const char *mbstr,
-                                              size_t count));
+                    size_t (*ldap_f_mbstowcs)(wchar_t *wcstr, const char *mbstr, size_t count));
 
 LDAP_END_DECL
 

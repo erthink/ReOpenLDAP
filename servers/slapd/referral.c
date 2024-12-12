@@ -32,8 +32,7 @@
  * This routine generates the DN appropriate to return in
  * an LDAP referral.
  */
-static char *referral_dn_muck(const char *refDN, struct berval *baseDN,
-                              struct berval *targetDN) {
+static char *referral_dn_muck(const char *refDN, struct berval *baseDN, struct berval *targetDN) {
   int rc;
   struct berval bvin;
   struct berval nrefDN = BER_BVNULL;
@@ -95,8 +94,7 @@ static char *referral_dn_muck(const char *refDN, struct berval *baseDN,
         return ntargetDN.bv_val;
       }
 
-      rc = strcasecmp(&ntargetDN.bv_val[ntargetDN.bv_len - nbaseDN.bv_len],
-                      nbaseDN.bv_val);
+      rc = strcasecmp(&ntargetDN.bv_val[ntargetDN.bv_len - nbaseDN.bv_len], nbaseDN.bv_val);
       if (rc) {
         /* target not subordinate to base */
         ch_free(nrefDN.bv_val);
@@ -146,8 +144,7 @@ int validate_global_referral(const char *url) {
 
   default:
     /* other error, bail */
-    Debug(LDAP_DEBUG_ANY, "referral: invalid URL (%s): %s (%d)\n", url,
-          "" /* ldap_url_error2str(rc) */, rc);
+    Debug(LDAP_DEBUG_ANY, "referral: invalid URL (%s): %s (%d)\n", url, "" /* ldap_url_error2str(rc) */, rc);
     return 1;
   }
 
@@ -166,8 +163,7 @@ int validate_global_referral(const char *url) {
     rc = 1;
 
   } else if (lurl->lud_filter) {
-    Debug(LDAP_DEBUG_ANY, "referral: URL (%s): contains explicit filter\n",
-          url);
+    Debug(LDAP_DEBUG_ANY, "referral: URL (%s): contains explicit filter\n", url);
     rc = 1;
   }
 
@@ -175,8 +171,7 @@ int validate_global_referral(const char *url) {
   return rc;
 }
 
-BerVarray referral_rewrite(BerVarray in, struct berval *base,
-                           struct berval *target, int scope) {
+BerVarray referral_rewrite(BerVarray in, struct berval *base, struct berval *target, int scope) {
   int i;
   BerVarray refs;
   struct berval *iv, *jv;

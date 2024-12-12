@@ -59,8 +59,7 @@
 static int quiet = 0;
 
 void usage(void) {
-  fprintf(stderr, _("usage: %s [options] DN <attr:value|attr::b64value>\n"),
-          prog);
+  fprintf(stderr, _("usage: %s [options] DN <attr:value|attr::b64value>\n"), prog);
   fprintf(stderr, _("where:\n"));
   fprintf(stderr, _("  DN\tDistinguished Name\n"));
   fprintf(stderr, _("  attr\tassertion attribute\n"));
@@ -70,11 +69,8 @@ void usage(void) {
   fprintf(stderr, _("Compare options:\n"));
   fprintf(stderr, _("  -E [!]<ext>[=<extparam>] compare extensions (! "
                     "indicates criticality)\n"));
-  fprintf(stderr,
-          _("             !dontUseCopy                (Don't Use Copy)\n"));
-  fprintf(
-      stderr,
-      _("  -M         enable Manage DSA IT control (-MM to make critical)\n"));
+  fprintf(stderr, _("             !dontUseCopy                (Don't Use Copy)\n"));
+  fprintf(stderr, _("  -M         enable Manage DSA IT control (-MM to make critical)\n"));
   fprintf(stderr, _("  -P version protocol version (default: 3)\n"));
   fprintf(stderr, _("  -z         Quiet mode,"
                     " don't print anything, use return values\n"));
@@ -82,8 +78,8 @@ void usage(void) {
   exit(EXIT_FAILURE);
 }
 
-static int docompare(LDAP *ld, char *dn, char *attr, struct berval *bvalue,
-                     int quiet, LDAPControl **sctrls, LDAPControl **cctrls);
+static int docompare(LDAP *ld, char *dn, char *attr, struct berval *bvalue, int quiet, LDAPControl **sctrls,
+                     LDAPControl **cctrls);
 
 const char options[] = "z"
                        "Cd:D:e:h:H:IMnNO:o:p:P:QR:U:vVw:WxX:y:Y:Z";
@@ -190,8 +186,7 @@ int main(int argc, char **argv) {
   } else {
     /* it's base64 encoded. */
     bvalue.bv_val = malloc(strlen(&sep[1]));
-    bvalue.bv_len = lutil_b64_pton(&sep[1], (unsigned char *)bvalue.bv_val,
-                                   strlen(&sep[1]));
+    bvalue.bv_len = lutil_b64_pton(&sep[1], (unsigned char *)bvalue.bv_val, strlen(&sep[1]));
 
     if (bvalue.bv_len == (ber_len_t)-1) {
       fprintf(stderr, _("base64 decode error\n"));
@@ -232,8 +227,8 @@ int main(int argc, char **argv) {
   tool_exit(ld, rc);
 }
 
-static int docompare(LDAP *ld, char *dn, char *attr, struct berval *bvalue,
-                     int quiet, LDAPControl **sctrls, LDAPControl **cctrls) {
+static int docompare(LDAP *ld, char *dn, char *attr, struct berval *bvalue, int quiet, LDAPControl **sctrls,
+                     LDAPControl **cctrls) {
   int rc, msgid, code;
   LDAPMessage *res;
   char *matcheddn;
@@ -274,16 +269,12 @@ static int docompare(LDAP *ld, char *dn, char *attr, struct berval *bvalue,
   rc = ldap_parse_result(ld, res, &code, &matcheddn, &text, &refs, &ctrls, 1);
 
   if (rc != LDAP_SUCCESS) {
-    fprintf(stderr, "%s: ldap_parse_result: %s (%d)\n", prog,
-            ldap_err2string(rc), rc);
+    fprintf(stderr, "%s: ldap_parse_result: %s (%d)\n", prog, ldap_err2string(rc), rc);
     return rc;
   }
 
-  if (!quiet &&
-      (verbose ||
-       (code != LDAP_SUCCESS && code != LDAP_COMPARE_TRUE &&
-        code != LDAP_COMPARE_FALSE) ||
-       (matcheddn && *matcheddn) || (text && *text) || (refs && *refs))) {
+  if (!quiet && (verbose || (code != LDAP_SUCCESS && code != LDAP_COMPARE_TRUE && code != LDAP_COMPARE_FALSE) ||
+                 (matcheddn && *matcheddn) || (text && *text) || (refs && *refs))) {
     printf(_("Compare Result: %s (%d)\n"), ldap_err2string(code), code);
 
     if (text && *text) {

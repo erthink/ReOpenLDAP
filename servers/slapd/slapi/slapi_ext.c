@@ -53,9 +53,7 @@ struct slapi_extension_block {
   void **extensions;
 };
 
-static int get_extension_block(int objecttype, void *object,
-                               struct slapi_extension_block **eblock,
-                               void **parent) {
+static int get_extension_block(int objecttype, void *object, struct slapi_extension_block **eblock, void **parent) {
   switch ((slapi_extension_t)objecttype) {
   case SLAPI_X_EXT_CONNECTION:
     *eblock = ((Connection *)object)->c_extensions;
@@ -89,16 +87,15 @@ static int map_extension_type(const char *objectname, slapi_extension_t *type) {
   return 0;
 }
 
-static void new_extension(struct slapi_extension_block *eblock, int objecttype,
-                          void *object, void *parent, int extensionhandle) {
+static void new_extension(struct slapi_extension_block *eblock, int objecttype, void *object, void *parent,
+                          int extensionhandle) {
   slapi_extension_constructor_fnptr constructor;
 
   assert(objecttype < SLAPI_X_EXT_MAX);
   assert(extensionhandle < registered_extensions.extensions[objecttype].count);
 
   assert(registered_extensions.extensions[objecttype].constructors != NULL);
-  constructor = registered_extensions.extensions[objecttype]
-                    .constructors[extensionhandle];
+  constructor = registered_extensions.extensions[objecttype].constructors[extensionhandle];
 
   assert(eblock->extensions[extensionhandle] == NULL);
 
@@ -109,8 +106,8 @@ static void new_extension(struct slapi_extension_block *eblock, int objecttype,
   }
 }
 
-static void free_extension(struct slapi_extension_block *eblock, int objecttype,
-                           void *object, void *parent, int extensionhandle) {
+static void free_extension(struct slapi_extension_block *eblock, int objecttype, void *object, void *parent,
+                           int extensionhandle) {
   slapi_extension_destructor_fnptr destructor;
 
   assert(objecttype < SLAPI_X_EXT_MAX);
@@ -118,8 +115,7 @@ static void free_extension(struct slapi_extension_block *eblock, int objecttype,
 
   if (eblock->extensions[extensionhandle] != NULL) {
     assert(registered_extensions.extensions[objecttype].destructors != NULL);
-    destructor = registered_extensions.extensions[objecttype]
-                     .destructors[extensionhandle];
+    destructor = registered_extensions.extensions[objecttype].destructors[extensionhandle];
     if (destructor != NULL) {
       (*destructor)(eblock->extensions[extensionhandle], object, parent);
     }
@@ -127,8 +123,7 @@ static void free_extension(struct slapi_extension_block *eblock, int objecttype,
   }
 }
 
-void *slapi_get_object_extension(int objecttype, void *object,
-                                 int extensionhandle) {
+void *slapi_get_object_extension(int objecttype, void *object, int extensionhandle) {
   struct slapi_extension_block *eblock;
   void *parent;
 
@@ -143,8 +138,7 @@ void *slapi_get_object_extension(int objecttype, void *object,
   return NULL;
 }
 
-void slapi_set_object_extension(int objecttype, void *object,
-                                int extensionhandle, void *extension) {
+void slapi_set_object_extension(int objecttype, void *object, int extensionhandle, void *extension) {
   struct slapi_extension_block *eblock;
   void *parent;
 
@@ -161,11 +155,10 @@ void slapi_set_object_extension(int objecttype, void *object,
   }
 }
 
-int slapi_register_object_extension(
-    const char *pluginname, const char *objectname,
-    slapi_extension_constructor_fnptr constructor,
-    slapi_extension_destructor_fnptr destructor, int *objecttype,
-    int *extensionhandle) {
+int slapi_register_object_extension(const char *pluginname, const char *objectname,
+                                    slapi_extension_constructor_fnptr constructor,
+                                    slapi_extension_destructor_fnptr destructor, int *objecttype,
+                                    int *extensionhandle) {
   int rc;
   slapi_extension_t type;
   struct slapi_registered_extension *re;
@@ -193,22 +186,20 @@ int slapi_register_object_extension(
   re->count++;
 
   if (re->constructors == NULL) {
-    re->constructors = (slapi_extension_constructor_fnptr *)slapi_ch_calloc(
-        re->count, sizeof(slapi_extension_constructor_fnptr));
+    re->constructors =
+        (slapi_extension_constructor_fnptr *)slapi_ch_calloc(re->count, sizeof(slapi_extension_constructor_fnptr));
   } else {
     re->constructors = (slapi_extension_constructor_fnptr *)slapi_ch_realloc(
-        (char *)re->constructors,
-        re->count * sizeof(slapi_extension_constructor_fnptr));
+        (char *)re->constructors, re->count * sizeof(slapi_extension_constructor_fnptr));
   }
   re->constructors[*extensionhandle] = constructor;
 
   if (re->destructors == NULL) {
-    re->destructors = (slapi_extension_destructor_fnptr *)slapi_ch_calloc(
-        re->count, sizeof(slapi_extension_destructor_fnptr));
+    re->destructors =
+        (slapi_extension_destructor_fnptr *)slapi_ch_calloc(re->count, sizeof(slapi_extension_destructor_fnptr));
   } else {
     re->destructors = (slapi_extension_destructor_fnptr *)slapi_ch_realloc(
-        (char *)re->destructors,
-        re->count * sizeof(slapi_extension_destructor_fnptr));
+        (char *)re->destructors, re->count * sizeof(slapi_extension_destructor_fnptr));
   }
   re->destructors[*extensionhandle] = destructor;
 
@@ -252,8 +243,7 @@ int slapi_int_create_object_extensions(int objecttype, void *object) {
   eblock = (struct slapi_extension_block *)slapi_ch_calloc(1, sizeof(*eblock));
 
   if (registered_extensions.extensions[objecttype].count) {
-    eblock->extensions = (void **)slapi_ch_calloc(
-        registered_extensions.extensions[objecttype].count, sizeof(void *));
+    eblock->extensions = (void **)slapi_ch_calloc(registered_extensions.extensions[objecttype].count, sizeof(void *));
     for (i = 0; i < registered_extensions.extensions[objecttype].count; i++) {
       new_extension(eblock, objecttype, object, parent, i);
     }
@@ -289,8 +279,7 @@ int slapi_int_free_object_extensions(int objecttype, void *object) {
   eblock = (struct slapi_extension_block *)*peblock;
 
   if (eblock->extensions != NULL) {
-    for (i = registered_extensions.extensions[objecttype].count - 1; i >= 0;
-         --i) {
+    for (i = registered_extensions.extensions[objecttype].count - 1; i >= 0; --i) {
       free_extension(eblock, objecttype, object, parent, i);
     }
 
@@ -317,8 +306,7 @@ int slapi_int_clear_object_extensions(int objecttype, void *object) {
     return 0;
   }
 
-  for (i = registered_extensions.extensions[objecttype].count - 1; i >= 0;
-       --i) {
+  for (i = registered_extensions.extensions[objecttype].count - 1; i >= 0; --i) {
     free_extension(eblock, objecttype, object, parent, i);
   }
 

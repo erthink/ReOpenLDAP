@@ -67,8 +67,7 @@ static authzid_conn_t *authzid_conn_find(Connection *c) {
   authzid_conn_t *ac = NULL, tmp = {0};
 
   tmp.conn = c;
-  ac =
-      (authzid_conn_t *)avl_find(authzid_tree, (caddr_t)&tmp, authzid_conn_cmp);
+  ac = (authzid_conn_t *)avl_find(authzid_tree, (caddr_t)&tmp, authzid_conn_cmp);
   if (ac == NULL || (ac != NULL && ac->refcnt != 0)) {
     ac = NULL;
   }
@@ -114,8 +113,7 @@ static int authzid_conn_insert(Connection *c, char flag) {
   ac->conn = c;
   ac->refcnt = 0;
   ac->authzid_flag = flag;
-  rc = avl_insert(&authzid_tree, (caddr_t)ac, authzid_conn_cmp,
-                  authzid_conn_dup);
+  rc = avl_insert(&authzid_tree, (caddr_t)ac, authzid_conn_cmp, authzid_conn_dup);
   ldap_pvt_thread_mutex_unlock(&authzid_mutex);
 
   return rc;
@@ -292,8 +290,7 @@ static int parse_authzid_ctrl(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   /* drop ongoing requests */
   (void)authzid_conn_remove(op->o_conn);
 
-  op->o_ctrlflag[authzid_cid] =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_ctrlflag[authzid_cid] = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   return LDAP_SUCCESS;
 }
@@ -310,14 +307,11 @@ static int authzid_db_init(BackendDB *be, ConfigReply *cr) {
 
   int rc;
 
-  rc = register_supported_control(LDAP_CONTROL_AUTHZID_REQUEST,
-                                  SLAP_CTRL_GLOBAL | SLAP_CTRL_BIND |
-                                      SLAP_CTRL_HIDE,
+  rc = register_supported_control(LDAP_CONTROL_AUTHZID_REQUEST, SLAP_CTRL_GLOBAL | SLAP_CTRL_BIND | SLAP_CTRL_HIDE,
                                   NULL, parse_authzid_ctrl, &authzid_cid);
   if (rc != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_ANY,
-          "authzid_initialize: Failed to register control '%s' (%d)\n",
-          LDAP_CONTROL_AUTHZID_REQUEST, rc);
+    Debug(LDAP_DEBUG_ANY, "authzid_initialize: Failed to register control '%s' (%d)\n", LDAP_CONTROL_AUTHZID_REQUEST,
+          rc);
     return rc;
   }
 
@@ -349,6 +343,4 @@ static int authzid_initialize(void) {
   return overlay_register(&authzid);
 }
 
-SLAP_MODULE_ENTRY(authzid, modinit)(int argc, char *argv[]) {
-  return authzid_initialize();
-}
+SLAP_MODULE_ENTRY(authzid, modinit)(int argc, char *argv[]) { return authzid_initialize(); }

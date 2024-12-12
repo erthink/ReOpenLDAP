@@ -42,8 +42,7 @@ private:
 
 protected:
 public:
-  LDAPEntriesHandler(TTXlaConnection &conn, const char *ownerP,
-                     const char *nameP);
+  LDAPEntriesHandler(TTXlaConnection &conn, const char *ownerP, const char *nameP);
   ~LDAPEntriesHandler();
 
   virtual void HandleDelete(ttXlaUpdateDesc_t *);
@@ -53,8 +52,7 @@ public:
   static void ReverseAndUpper(char *dnP, int id, bool commit = true);
 };
 
-LDAPEntriesHandler::LDAPEntriesHandler(TTXlaConnection &conn,
-                                       const char *ownerP, const char *nameP)
+LDAPEntriesHandler::LDAPEntriesHandler(TTXlaConnection &conn, const char *ownerP, const char *nameP)
     : TTXlaTableHandler(conn, ownerP, nameP) {
   Id = Dn = Oc_map_id = Parent = Keyval = Dn_ru = -1;
 
@@ -115,8 +113,7 @@ void LDAPEntriesHandler::ReverseAndUpper(char *dnP, int id, bool commit) {
     assignDn_ru.setParam(2, id);
     assignDn_ru.Execute(stat);
   } catch (TTStatus stat) {
-    cerr << "Error updating id " << id << " ('" << dnP << "' to '" << dn_rn
-         << "'): " << stat;
+    cerr << "Error updating id " << id << " ('" << dnP << "' to '" << dn_rn << "'): " << stat;
     exit(1);
   }
 
@@ -232,8 +229,7 @@ int main(int argc, char *argv[]) {
   }
 
   try {
-    assignDn_ru.Prepare(&conn2, "update ldap_entries set dn_ru=? where id=?",
-                        "", stat);
+    assignDn_ru.Prepare(&conn2, "update ldap_entries set dn_ru=? where id=?", "", stat);
     getNullDNs.Prepare(&conn2,
                        "select dn, id from ldap_entries "
                        "where dn_ru is null "

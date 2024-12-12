@@ -29,9 +29,8 @@
 
 #include "slap.h"
 
-BerMemoryFunctions ch_mfuncs = {
-    (BER_MEMALLOC_FN *)ch_malloc, (BER_MEMCALLOC_FN *)ch_calloc,
-    (BER_MEMREALLOC_FN *)ch_realloc, (BER_MEMFREE_FN *)ch_free};
+BerMemoryFunctions ch_mfuncs = {(BER_MEMALLOC_FN *)ch_malloc, (BER_MEMCALLOC_FN *)ch_calloc,
+                                (BER_MEMREALLOC_FN *)ch_realloc, (BER_MEMFREE_FN *)ch_free};
 
 void *ch_malloc(ber_len_t size) {
   void *new;
@@ -75,8 +74,7 @@ void *ch_calloc(ber_len_t nelem, ber_len_t size) {
   void *new;
 
   if ((new = (void *)ber_memcalloc_x(nelem, size, NULL)) == NULL) {
-    Debug(LDAP_DEBUG_ANY, "ch_calloc of %lu elems of %lu bytes failed\n",
-          (long)nelem, (long)size);
+    Debug(LDAP_DEBUG_ANY, "ch_calloc of %lu elems of %lu bytes failed\n", (long)nelem, (long)size);
     LDAP_BUG();
     exit(EXIT_FAILURE);
   }

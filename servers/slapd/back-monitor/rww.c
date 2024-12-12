@@ -41,9 +41,7 @@ enum {
 static struct monitor_rww_t {
   struct berval rdn;
   struct berval nrdn;
-} monitor_rww[] = {{BER_BVC("cn=Read"), BER_BVNULL},
-                   {BER_BVC("cn=Write"), BER_BVNULL},
-                   {BER_BVNULL, BER_BVNULL}};
+} monitor_rww[] = {{BER_BVC("cn=Read"), BER_BVNULL}, {BER_BVC("cn=Write"), BER_BVNULL}, {BER_BVNULL, BER_BVNULL}};
 
 int monitor_subsys_rww_init(BackendDB *be, monitor_subsys_t *ms) {
   monitor_info_t *mi;
@@ -76,8 +74,7 @@ int monitor_subsys_rww_init(BackendDB *be, monitor_subsys_t *ms) {
     struct berval nrdn, bv;
     Entry *e;
 
-    e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &monitor_rww[i].rdn,
-                           mi->mi_oc_monitorCounterObject, NULL, NULL);
+    e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &monitor_rww[i].rdn, mi->mi_oc_monitorCounterObject, NULL, NULL);
     if (e == NULL) {
       Debug(LDAP_DEBUG_ANY,
             "monitor_subsys_rww_init: "
@@ -160,8 +157,7 @@ static int monitor_subsys_rww_update(Operation *op, SlapReply *rs, Entry *e) {
   }
 
   nconns = nwritewaiters = nreadwaiters = 0;
-  for (c = connection_first(&connindex); c != NULL;
-       c = connection_next(c, &connindex), nconns++) {
+  for (c = connection_first(&connindex); c != NULL; c = connection_next(c, &connindex), nconns++) {
     if (c->c_writewaiter) {
       nwritewaiters++;
     }

@@ -31,10 +31,8 @@ struct mindexrec {
 };
 
 static Avlnode *mr_index = NULL;
-static LDAP_SLIST_HEAD(MRList, MatchingRule) mr_list =
-    LDAP_SLIST_HEAD_INITIALIZER(&mr_list);
-static LDAP_SLIST_HEAD(MRUList, MatchingRuleUse) mru_list =
-    LDAP_SLIST_HEAD_INITIALIZER(&mru_list);
+static LDAP_SLIST_HEAD(MRList, MatchingRule) mr_list = LDAP_SLIST_HEAD_INITIALIZER(&mr_list);
+static LDAP_SLIST_HEAD(MRUList, MatchingRuleUse) mru_list = LDAP_SLIST_HEAD_INITIALIZER(&mru_list);
 
 static int mr_index_cmp(const void *v_mir1, const void *v_mir2) {
   const struct mindexrec *mir1 = v_mir1;
@@ -42,8 +40,7 @@ static int mr_index_cmp(const void *v_mir1, const void *v_mir2) {
   int i = mir1->mir_name.bv_len - mir2->mir_name.bv_len;
   if (i)
     return i;
-  return strncasecmp(mir1->mir_name.bv_val, mir2->mir_name.bv_val,
-                     mir1->mir_name.bv_len);
+  return strncasecmp(mir1->mir_name.bv_val, mir2->mir_name.bv_val, mir1->mir_name.bv_len);
 }
 
 static int mr_index_name_cmp(const void *v_name, const void *v_mir) {
@@ -140,8 +137,7 @@ int mr_make_syntax_compat_with_mr(Syntax *syn, MatchingRule *mr) {
     }
   }
 
-  mr->smr_compat_syntaxes =
-      ch_realloc(mr->smr_compat_syntaxes, sizeof(Syntax *) * (n + 2));
+  mr->smr_compat_syntaxes = ch_realloc(mr->smr_compat_syntaxes, sizeof(Syntax *) * (n + 2));
   mr->smr_compat_syntaxes[n] = syn;
   mr->smr_compat_syntaxes[n + 1] = NULL;
 
@@ -173,8 +169,7 @@ int mr_make_syntax_compat_with_mrs(const char *syntax, char *const *mrs) {
   return rc;
 }
 
-int mr_add(LDAPMatchingRule *mr, slap_mrule_defs_rec *def, MatchingRule *amr,
-           const char **err) {
+int mr_add(LDAPMatchingRule *mr, slap_mrule_defs_rec *def, MatchingRule *amr, const char **err) {
   MatchingRule *smr;
   Syntax *syn;
   Syntax **compat_syn = NULL;
@@ -240,8 +235,7 @@ int register_matching_rule(slap_mrule_defs_rec *def) {
   const char *err;
 
   if (def->mrd_usage == SLAP_MR_NONE && def->mrd_compat_syntaxes == NULL) {
-    Debug(LDAP_DEBUG_ANY, "register_matching_rule: not usable %s\n",
-          def->mrd_desc);
+    Debug(LDAP_DEBUG_ANY, "register_matching_rule: not usable %s\n", def->mrd_desc);
 
     return -1;
   }
@@ -256,10 +250,8 @@ int register_matching_rule(slap_mrule_defs_rec *def) {
       return -1;
     }
 
-    if ((def->mrd_usage & SLAP_MR_EQUALITY) &&
-        ((def->mrd_usage & SLAP_MR_SUBTYPE_MASK) == SLAP_MR_NONE)) {
-      if (SLAP_MR_EQUALITY_APPROX !=
-          (amr->smr_usage & (SLAP_MR_EQUALITY | SLAP_MR_SUBTYPE_MASK))) {
+    if ((def->mrd_usage & SLAP_MR_EQUALITY) && ((def->mrd_usage & SLAP_MR_SUBTYPE_MASK) == SLAP_MR_NONE)) {
+      if (SLAP_MR_EQUALITY_APPROX != (amr->smr_usage & (SLAP_MR_EQUALITY | SLAP_MR_SUBTYPE_MASK))) {
         Debug(LDAP_DEBUG_ANY,
               "register_matching_rule: "
               "inappropriate (approx) association %s for %s\n",
@@ -277,9 +269,8 @@ int register_matching_rule(slap_mrule_defs_rec *def) {
 
   mr = ldap_str2matchingrule(def->mrd_desc, &code, &err, LDAP_SCHEMA_ALLOW_ALL);
   if (!mr) {
-    Debug(LDAP_DEBUG_ANY,
-          "Error in register_matching_rule: %s before %s in %s\n",
-          ldap_scherr2str(code), err, def->mrd_desc);
+    Debug(LDAP_DEBUG_ANY, "Error in register_matching_rule: %s before %s in %s\n", ldap_scherr2str(code), err,
+          def->mrd_desc);
 
     return -1;
   }
@@ -289,8 +280,7 @@ int register_matching_rule(slap_mrule_defs_rec *def) {
   ldap_memfree(mr);
 
   if (code) {
-    Debug(LDAP_DEBUG_ANY, "Error in register_matching_rule: %s for %s in %s\n",
-          scherr2str(code), err, def->mrd_desc);
+    Debug(LDAP_DEBUG_ANY, "Error in register_matching_rule: %s for %s in %s\n", scherr2str(code), err, def->mrd_desc);
 
     return -1;
   }
@@ -362,8 +352,7 @@ int matching_rule_use_init(void) {
     mru->smru_names = mr->smr_names;
     mru->smru_desc = mr->smr_desc;
 
-    Debug(LDAP_DEBUG_TRACE, "    %s (%s): ", mru->smru_oid,
-          mru->smru_names ? mru->smru_names[0] : "");
+    Debug(LDAP_DEBUG_TRACE, "    %s (%s): ", mru->smru_oid, mru->smru_names ? mru->smru_names[0] : "");
 
     at = NULL;
     for (at_start(&at); at; at_next(&at)) {
@@ -404,9 +393,8 @@ int matching_rule_use_init(void) {
 }
 
 int mr_usable_with_at(MatchingRule *mr, AttributeType *at) {
-  if ((mr->smr_usage & SLAP_MR_EXT) &&
-      (mr->smr_syntax == at->sat_syntax || mr == at->sat_equality ||
-       mr == at->sat_approx || syn_is_sup(at->sat_syntax, mr->smr_syntax))) {
+  if ((mr->smr_usage & SLAP_MR_EXT) && (mr->smr_syntax == at->sat_syntax || mr == at->sat_equality ||
+                                        mr == at->sat_approx || syn_is_sup(at->sat_syntax, mr->smr_syntax))) {
     return 1;
   }
 
@@ -465,8 +453,7 @@ int mru_schema_info(Entry *e) {
     assert(!(mru->smru_usage & SLAP_MR_HIDE));
 
     if (mru->smru_str.bv_val == NULL) {
-      if (ldap_matchingruleuse2bv(&mru->smru_mruleuse, &mru->smru_str) ==
-          NULL) {
+      if (ldap_matchingruleuse2bv(&mru->smru_mruleuse, &mru->smru_str) == NULL) {
         return -1;
       }
     }

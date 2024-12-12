@@ -26,8 +26,7 @@
 
 #include "ldap-int.h"
 
-int ldap_create_deref_control_value(LDAP *ld, LDAPDerefSpec *ds,
-                                    struct berval *value) {
+int ldap_create_deref_control_value(LDAP *ld, LDAPDerefSpec *ds, struct berval *value) {
   BerElement *ber = NULL;
   ber_tag_t tag;
   int i;
@@ -98,8 +97,7 @@ done:;
   return ld->ld_errno;
 }
 
-int ldap_create_deref_control(LDAP *ld, LDAPDerefSpec *ds, int iscritical,
-                              LDAPControl **ctrlp) {
+int ldap_create_deref_control(LDAP *ld, LDAPDerefSpec *ds, int iscritical, LDAPControl **ctrlp) {
   struct berval value;
 
   if (ctrlp == NULL) {
@@ -109,8 +107,7 @@ int ldap_create_deref_control(LDAP *ld, LDAPDerefSpec *ds, int iscritical,
 
   ld->ld_errno = ldap_create_deref_control_value(ld, ds, &value);
   if (ld->ld_errno == LDAP_SUCCESS) {
-    ld->ld_errno =
-        ldap_control_create(LDAP_CONTROL_X_DEREF, iscritical, &value, 0, ctrlp);
+    ld->ld_errno = ldap_control_create(LDAP_CONTROL_X_DEREF, iscritical, &value, 0, ctrlp);
     if (ld->ld_errno != LDAP_SUCCESS) {
       LDAP_FREE(value.bv_val);
     }
@@ -141,8 +138,7 @@ void ldap_derefresponse_free(LDAPDerefRes *dr) {
   }
 }
 
-int ldap_parse_derefresponse_control(LDAP *ld, LDAPControl *ctrl,
-                                     LDAPDerefRes **drp2) {
+int ldap_parse_derefresponse_control(LDAP *ld, LDAPControl *ctrl, LDAPDerefRes **drp2) {
   BerElement *ber;
   ber_tag_t tag;
   ber_len_t len;
@@ -165,8 +161,7 @@ int ldap_parse_derefresponse_control(LDAP *ld, LDAPControl *ctrl,
 
   /* Extract the count and cookie from the control. */
   drp = &drhead;
-  for (tag = ber_first_element(ber, &len, &last); tag != LBER_DEFAULT;
-       tag = ber_next_element(ber, &len, last)) {
+  for (tag = ber_first_element(ber, &len, &last); tag != LBER_DEFAULT; tag = ber_next_element(ber, &len, last)) {
     LDAPDerefRes *dr;
     LDAPDerefVal **dvp;
     char *last2;
@@ -181,8 +176,7 @@ int ldap_parse_derefresponse_control(LDAP *ld, LDAPControl *ctrl,
 
     tag = ber_peek_tag(ber, &len);
     if (tag == (LBER_CONSTRUCTED | LBER_CLASS_CONTEXT)) {
-      for (tag = ber_first_element(ber, &len, &last2); tag != LBER_DEFAULT;
-           tag = ber_next_element(ber, &len, last2)) {
+      for (tag = ber_first_element(ber, &len, &last2); tag != LBER_DEFAULT; tag = ber_next_element(ber, &len, last2)) {
         LDAPDerefVal *dv;
 
         dv = LDAP_CALLOC(1, sizeof(LDAPDerefVal));
@@ -227,8 +221,7 @@ done:;
   return ld->ld_errno;
 }
 
-int ldap_parse_deref_control(LDAP *ld, LDAPControl **ctrls,
-                             LDAPDerefRes **drp) {
+int ldap_parse_deref_control(LDAP *ld, LDAPControl **ctrls, LDAPDerefRes **drp) {
   LDAPControl *c;
 
   if (drp == NULL) {

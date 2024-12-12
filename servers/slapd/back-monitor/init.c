@@ -45,29 +45,28 @@ BackendDB *be_monitor;
 static struct monitor_subsys_t **monitor_subsys;
 static int monitor_subsys_opened;
 static monitor_info_t monitor_info;
-static const monitor_extra_t monitor_extra = {
-    monitor_back_is_configured,
-    monitor_back_get_subsys,
-    monitor_back_get_subsys_by_dn,
+static const monitor_extra_t monitor_extra = {monitor_back_is_configured,
+                                              monitor_back_get_subsys,
+                                              monitor_back_get_subsys_by_dn,
 
-    monitor_back_register_subsys,
-    monitor_back_register_backend,
-    monitor_back_register_database,
-    monitor_back_register_overlay_info,
-    monitor_back_register_overlay,
-    monitor_back_register_entry,
-    monitor_back_register_entry_parent,
-    monitor_back_register_entry_attrs,
-    monitor_back_register_entry_callback,
+                                              monitor_back_register_subsys,
+                                              monitor_back_register_backend,
+                                              monitor_back_register_database,
+                                              monitor_back_register_overlay_info,
+                                              monitor_back_register_overlay,
+                                              monitor_back_register_entry,
+                                              monitor_back_register_entry_parent,
+                                              monitor_back_register_entry_attrs,
+                                              monitor_back_register_entry_callback,
 
-    monitor_back_unregister_entry,
-    monitor_back_unregister_entry_parent,
-    monitor_back_unregister_entry_attrs,
-    monitor_back_unregister_entry_callback,
+                                              monitor_back_unregister_entry,
+                                              monitor_back_unregister_entry_parent,
+                                              monitor_back_unregister_entry_attrs,
+                                              monitor_back_unregister_entry_callback,
 
-    monitor_back_entry_stub,
-    monitor_back_entrypriv_create,
-    monitor_back_register_subsys_late};
+                                              monitor_back_entry_stub,
+                                              monitor_back_entrypriv_create,
+                                              monitor_back_register_subsys_late};
 
 /*
  * subsystem data
@@ -84,9 +83,7 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
         BER_BVNULL,
         BER_BVNULL,
         BER_BVNULL,
-        {BER_BVC(
-             "This subsystem contains information about available backends."),
-         BER_BVNULL},
+        {BER_BVC("This subsystem contains information about available backends."), BER_BVNULL},
         MONITOR_F_PERSISTENT_CH,
         monitor_subsys_backend_init,
         NULL, /* destroy */
@@ -99,8 +96,7 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
         BER_BVNULL,
         BER_BVNULL,
         BER_BVNULL,
-        {BER_BVC("This subsystem contains information about connections."),
-         BER_BVNULL},
+        {BER_BVC("This subsystem contains information about connections."), BER_BVNULL},
         MONITOR_F_VOLATILE_CH,
         monitor_subsys_conn_init,
         NULL, /* destroy */
@@ -113,9 +109,7 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
         BER_BVNULL,
         BER_BVNULL,
         BER_BVNULL,
-        {BER_BVC(
-             "This subsystem contains information about configured databases."),
-         BER_BVNULL},
+        {BER_BVC("This subsystem contains information about configured databases."), BER_BVNULL},
         MONITOR_F_PERSISTENT_CH,
         monitor_subsys_database_init,
         NULL, /* destroy */
@@ -128,8 +122,7 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
         BER_BVNULL,
         BER_BVNULL,
         BER_BVNULL,
-        {BER_BVC("This subsystem contains information about active listeners."),
-         BER_BVNULL},
+        {BER_BVC("This subsystem contains information about active listeners."), BER_BVNULL},
         MONITOR_F_PERSISTENT_CH,
         monitor_subsys_listener_init,
         NULL, /* destroy */
@@ -143,9 +136,7 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
         BER_BVNULL,
         BER_BVNULL,
         {BER_BVC("This subsystem contains information about logging."),
-         BER_BVC(
-             "Set the attribute \"managedInfo\" to the desired log levels."),
-         BER_BVNULL},
+         BER_BVC("Set the attribute \"managedInfo\" to the desired log levels."), BER_BVNULL},
         MONITOR_F_NONE,
         monitor_subsys_log_init,
         NULL, /* destroy */
@@ -158,9 +149,7 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
         BER_BVNULL,
         BER_BVNULL,
         BER_BVNULL,
-        {BER_BVC(
-             "This subsystem contains information about performed operations."),
-         BER_BVNULL},
+        {BER_BVC("This subsystem contains information about performed operations."), BER_BVNULL},
         MONITOR_F_PERSISTENT_CH,
         monitor_subsys_ops_init,
         NULL, /* destroy */
@@ -173,9 +162,7 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
         BER_BVNULL,
         BER_BVNULL,
         BER_BVNULL,
-        {BER_BVC(
-             "This subsystem contains information about available overlays."),
-         BER_BVNULL},
+        {BER_BVC("This subsystem contains information about available overlays."), BER_BVNULL},
         MONITOR_F_PERSISTENT_CH,
         monitor_subsys_overlay_init,
         NULL, /* destroy */
@@ -188,8 +175,7 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
         BER_BVNULL,
         BER_BVNULL,
         BER_BVNULL,
-        {BER_BVC("This subsystem contains information about SASL."),
-         BER_BVNULL},
+        {BER_BVC("This subsystem contains information about SASL."), BER_BVNULL},
         MONITOR_F_NONE,
         NULL, /* init */
         NULL, /* destroy */
@@ -215,8 +201,7 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
         BER_BVNULL,
         BER_BVNULL,
         BER_BVNULL,
-        {BER_BVC("This subsystem contains information about threads."),
-         BER_BVNULL},
+        {BER_BVC("This subsystem contains information about threads."), BER_BVNULL},
         MONITOR_F_PERSISTENT_CH,
         monitor_subsys_thread_init,
         NULL, /* destroy */
@@ -229,8 +214,7 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
         BER_BVNULL,
         BER_BVNULL,
         BER_BVNULL,
-        {BER_BVC("This subsystem contains information about time."),
-         BER_BVNULL},
+        {BER_BVC("This subsystem contains information about time."), BER_BVNULL},
         MONITOR_F_PERSISTENT_CH,
         monitor_subsys_time_init,
         NULL, /* destroy */
@@ -256,9 +240,7 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
         BER_BVNULL,
         BER_BVNULL,
         BER_BVNULL,
-        {BER_BVC(
-             "This subsystem contains information about read/write waiters."),
-         BER_BVNULL},
+        {BER_BVC("This subsystem contains information about read/write waiters."), BER_BVNULL},
         MONITOR_F_PERSISTENT_CH,
         monitor_subsys_rww_init,
         NULL, /* destroy */
@@ -379,8 +361,7 @@ int monitor_back_register_overlay_info(slap_overinst *on) { return -1; }
 
 int monitor_back_register_backend_limbo(BackendInfo *bi) { return -1; }
 
-int monitor_back_register_database_limbo(BackendDB *be,
-                                         struct berval *ndn_out) {
+int monitor_back_register_database_limbo(BackendDB *be, struct berval *ndn_out) {
   entry_limbo_t **elpp, el = {0};
   monitor_info_t *mi;
 
@@ -410,8 +391,7 @@ int monitor_back_register_database_limbo(BackendDB *be,
 
 int monitor_back_register_overlay_info_limbo(slap_overinst *on) { return -1; }
 
-int monitor_back_register_overlay_limbo(BackendDB *be, struct slap_overinst *on,
-                                        struct berval *ndn_out) {
+int monitor_back_register_overlay_limbo(BackendDB *be, struct slap_overinst *on, struct berval *ndn_out) {
   entry_limbo_t **elpp, el = {0};
   monitor_info_t *mi;
 
@@ -440,8 +420,7 @@ int monitor_back_register_overlay_limbo(BackendDB *be, struct slap_overinst *on,
   return 0;
 }
 
-int monitor_back_register_entry(Entry *e, monitor_callback_t *cb,
-                                monitor_subsys_t *mss, unsigned long flags) {
+int monitor_back_register_entry(Entry *e, monitor_callback_t *cb, monitor_subsys_t *mss, unsigned long flags) {
   monitor_info_t *mi;
 
   if (be_monitor == NULL) {
@@ -594,11 +573,8 @@ int monitor_back_register_entry(Entry *e, monitor_callback_t *cb,
   return 0;
 }
 
-int monitor_back_register_entry_parent(Entry *e, monitor_callback_t *cb,
-                                       monitor_subsys_t *mss,
-                                       unsigned long flags,
-                                       struct berval *nbase, int scope,
-                                       struct berval *filter) {
+int monitor_back_register_entry_parent(Entry *e, monitor_callback_t *cb, monitor_subsys_t *mss, unsigned long flags,
+                                       struct berval *nbase, int scope, struct berval *filter) {
   monitor_info_t *mi;
   struct berval ndn = BER_BVNULL;
 
@@ -637,8 +613,7 @@ int monitor_back_register_entry_parent(Entry *e, monitor_callback_t *cb,
             "monitor_back_register_entry_parent(\"\"): "
             "base=\"%s\" scope=%s filter=\"%s\": "
             "unable to find entry\n",
-            nbase->bv_val ? nbase->bv_val : "\"\"", ldap_pvt_scope2str(scope),
-            filter->bv_val);
+            nbase->bv_val ? nbase->bv_val : "\"\"", ldap_pvt_scope2str(scope), filter->bv_val);
       return -1;
     }
 
@@ -822,8 +797,7 @@ static int monitor_search2ndn_cb(Operation *op, SlapReply *rs) {
   return 0;
 }
 
-int monitor_search2ndn(struct berval *nbase, int scope, struct berval *filter,
-                       struct berval *ndn) {
+int monitor_search2ndn(struct berval *nbase, int scope, struct berval *filter, struct berval *ndn) {
   Connection conn = {0};
   OperationBuffer opbuf;
   Operation *op;
@@ -856,8 +830,7 @@ int monitor_search2ndn(struct berval *nbase, int scope, struct berval *filter,
     ber_dupbv_x(&op->o_req_ndn, &op->o_bd->be_nsuffix[0], op->o_tmpmemctx);
 
   } else {
-    if (dnPrettyNormal(NULL, nbase, &op->o_req_dn, &op->o_req_ndn,
-                       op->o_tmpmemctx)) {
+    if (dnPrettyNormal(NULL, nbase, &op->o_req_dn, &op->o_req_ndn, op->o_tmpmemctx)) {
       return -1;
     }
   }
@@ -925,10 +898,8 @@ cleanup:;
   return rc;
 }
 
-int monitor_back_register_entry_attrs(struct berval *ndn_in, Attribute *a,
-                                      monitor_callback_t *cb,
-                                      struct berval *nbase, int scope,
-                                      struct berval *filter) {
+int monitor_back_register_entry_attrs(struct berval *ndn_in, Attribute *a, monitor_callback_t *cb, struct berval *nbase,
+                                      int scope, struct berval *filter) {
   monitor_info_t *mi;
   struct berval ndn = BER_BVNULL;
   char *fname = (a == NULL ? "callback" : "attrs");
@@ -942,12 +913,11 @@ int monitor_back_register_entry_attrs(struct berval *ndn_in, Attribute *a,
   if (be_monitor == NULL) {
     char buf[SLAP_TEXT_BUFLEN];
 
-    snprintf(
-        buf, sizeof(buf),
-        "monitor_back_register_entry_%s(base=\"%s\" scope=%s filter=\"%s\"): "
-        "monitor database not configured.\n",
-        fname, BER_BVISNULL(nbase) ? "" : nbase->bv_val,
-        ldap_pvt_scope2str(scope), BER_BVISNULL(filter) ? "" : filter->bv_val);
+    snprintf(buf, sizeof(buf),
+             "monitor_back_register_entry_%s(base=\"%s\" scope=%s filter=\"%s\"): "
+             "monitor database not configured.\n",
+             fname, BER_BVISNULL(nbase) ? "" : nbase->bv_val, ldap_pvt_scope2str(scope),
+             BER_BVISNULL(filter) ? "" : filter->bv_val);
     Debug(LDAP_DEBUG_ANY, "%s\n", buf);
 
     return -1;
@@ -991,8 +961,7 @@ int monitor_back_register_entry_attrs(struct berval *ndn_in, Attribute *a,
                  "monitor_back_register_entry_%s(\"\"): "
                  "base=\"%s\" scope=%s filter=\"%s\": "
                  "unable to find entry\n",
-                 fname, nbase->bv_val ? nbase->bv_val : "\"\"",
-                 ldap_pvt_scope2str(scope), filter->bv_val);
+                 fname, nbase->bv_val ? nbase->bv_val : "\"\"", ldap_pvt_scope2str(scope), filter->bv_val);
 
         /* entry does not exist */
         Debug(LDAP_DEBUG_ANY, "%s\n", buf);
@@ -1034,8 +1003,7 @@ int monitor_back_register_entry_attrs(struct berval *ndn_in, Attribute *a,
         assert(a->a_vals != NULL);
 
         if (attr_find(e->e_attrs, a->a_desc)) {
-          attr_merge(e, a->a_desc, a->a_vals,
-                     a->a_nvals == a->a_vals ? NULL : a->a_nvals);
+          attr_merge(e, a->a_desc, a->a_vals, a->a_nvals == a->a_vals ? NULL : a->a_nvals);
 
         } else {
           *atp = attr_dup(a);
@@ -1117,9 +1085,7 @@ int monitor_back_register_entry_attrs(struct berval *ndn_in, Attribute *a,
   return 0;
 }
 
-int monitor_back_register_entry_callback(struct berval *ndn,
-                                         monitor_callback_t *cb,
-                                         struct berval *nbase, int scope,
+int monitor_back_register_entry_callback(struct berval *ndn, monitor_callback_t *cb, struct berval *nbase, int scope,
                                          struct berval *filter) {
   return monitor_back_register_entry_attrs(ndn, NULL, cb, nbase, scope, filter);
 }
@@ -1219,10 +1185,8 @@ int monitor_back_unregister_entry(struct berval *ndn) {
   return 0;
 }
 
-int monitor_back_unregister_entry_parent(struct berval *nrdn,
-                                         monitor_callback_t *target_cb,
-                                         struct berval *nbase, int scope,
-                                         struct berval *filter) {
+int monitor_back_unregister_entry_parent(struct berval *nrdn, monitor_callback_t *target_cb, struct berval *nbase,
+                                         int scope, struct berval *filter) {
   monitor_info_t *mi;
   struct berval ndn = BER_BVNULL;
 
@@ -1264,8 +1228,7 @@ int monitor_back_unregister_entry_parent(struct berval *nrdn,
             "monitor_back_unregister_entry_parent(\"\"): "
             "base=\"%s\" scope=%s filter=\"%s\": "
             "unable to find entry\n",
-            nbase->bv_val ? nbase->bv_val : "\"\"", ldap_pvt_scope2str(scope),
-            filter->bv_val);
+            nbase->bv_val ? nbase->bv_val : "\"\"", ldap_pvt_scope2str(scope), filter->bv_val);
       return -1;
     }
 
@@ -1308,10 +1271,8 @@ int monitor_back_unregister_entry_parent(struct berval *nrdn,
     for (elpp = &mi->mi_entry_limbo; *elpp; elpp = &(*elpp)->el_next) {
       entry_limbo_t *elp = *elpp;
 
-      if (elp->el_type == LIMBO_ENTRY_PARENT &&
-          dn_match(nrdn, &elp->el_e->e_nname) &&
-          dn_match(nbase, &elp->el_nbase) && scope == elp->el_scope &&
-          bvmatch(filter, &elp->el_filter)) {
+      if (elp->el_type == LIMBO_ENTRY_PARENT && dn_match(nrdn, &elp->el_e->e_nname) &&
+          dn_match(nbase, &elp->el_nbase) && scope == elp->el_scope && bvmatch(filter, &elp->el_filter)) {
         monitor_callback_t *cb, *next;
 
         for (cb = elp->el_cb; cb; cb = next) {
@@ -1347,11 +1308,8 @@ int monitor_back_unregister_entry_parent(struct berval *nrdn,
   return 0;
 }
 
-int monitor_back_unregister_entry_attrs(struct berval *ndn_in,
-                                        Attribute *target_a,
-                                        monitor_callback_t *target_cb,
-                                        struct berval *nbase, int scope,
-                                        struct berval *filter) {
+int monitor_back_unregister_entry_attrs(struct berval *ndn_in, Attribute *target_a, monitor_callback_t *target_cb,
+                                        struct berval *nbase, int scope, struct berval *filter) {
   monitor_info_t *mi;
   struct berval ndn = BER_BVNULL;
   char *fname = (target_a == NULL ? "callback" : "attrs");
@@ -1359,12 +1317,11 @@ int monitor_back_unregister_entry_attrs(struct berval *ndn_in,
   if (be_monitor == NULL) {
     char buf[SLAP_TEXT_BUFLEN];
 
-    snprintf(
-        buf, sizeof(buf),
-        "monitor_back_unregister_entry_%s(base=\"%s\" scope=%s filter=\"%s\"): "
-        "monitor database not configured.\n",
-        fname, BER_BVISNULL(nbase) ? "" : nbase->bv_val,
-        ldap_pvt_scope2str(scope), BER_BVISNULL(filter) ? "" : filter->bv_val);
+    snprintf(buf, sizeof(buf),
+             "monitor_back_unregister_entry_%s(base=\"%s\" scope=%s filter=\"%s\"): "
+             "monitor database not configured.\n",
+             fname, BER_BVISNULL(nbase) ? "" : nbase->bv_val, ldap_pvt_scope2str(scope),
+             BER_BVISNULL(filter) ? "" : filter->bv_val);
     Debug(LDAP_DEBUG_ANY, "%s\n", buf);
 
     return -1;
@@ -1411,8 +1368,7 @@ int monitor_back_unregister_entry_attrs(struct berval *ndn_in,
                  "monitor_back_unregister_entry_%s(\"\"): "
                  "base=\"%s\" scope=%d filter=\"%s\": "
                  "unable to find entry\n",
-                 fname, nbase->bv_val ? nbase->bv_val : "\"\"", scope,
-                 filter->bv_val);
+                 fname, nbase->bv_val ? nbase->bv_val : "\"\"", scope, filter->bv_val);
 
         /* entry does not exist */
         Debug(LDAP_DEBUG_ANY, "%s\n", buf);
@@ -1478,8 +1434,8 @@ int monitor_back_unregister_entry_attrs(struct berval *ndn_in,
     for (elpp = &mi->mi_entry_limbo; *elpp; elpp = &(*elpp)->el_next) {
       entry_limbo_t *elp = *elpp;
 
-      if (elp->el_type == LIMBO_ATTRS && dn_match(nbase, &elp->el_nbase) &&
-          scope == elp->el_scope && bvmatch(filter, &elp->el_filter)) {
+      if (elp->el_type == LIMBO_ATTRS && dn_match(nbase, &elp->el_nbase) && scope == elp->el_scope &&
+          bvmatch(filter, &elp->el_filter)) {
         monitor_callback_t *cb, *next;
 
         for (cb = elp->el_cb; cb; cb = next) {
@@ -1516,15 +1472,12 @@ int monitor_back_unregister_entry_attrs(struct berval *ndn_in,
   return 0;
 }
 
-int monitor_back_unregister_entry_callback(struct berval *ndn,
-                                           monitor_callback_t *cb,
-                                           struct berval *nbase, int scope,
+int monitor_back_unregister_entry_callback(struct berval *ndn, monitor_callback_t *cb, struct berval *nbase, int scope,
                                            struct berval *filter) {
   /* TODO: lookup entry (by ndn, if not NULL, and/or by callback);
    * unregister the callback; if a is not null, unregister the
    * given attrs.  In any case, call cb->cb_free */
-  return monitor_back_unregister_entry_attrs(ndn, NULL, cb, nbase, scope,
-                                             filter);
+  return monitor_back_unregister_entry_attrs(ndn, NULL, cb, nbase, scope, filter);
 }
 
 monitor_subsys_t *monitor_back_get_subsys(const char *name) {
@@ -1567,8 +1520,7 @@ monitor_subsys_t *monitor_back_get_subsys_by_dn(struct berval *ndn, int sub) {
 int monitor_back_initialize(BackendInfo *bi) {
   static const char *const controls[] = {LDAP_CONTROL_MANAGEDSAIT, NULL};
 
-  static ConfigTable monitorcfg[] = {
-      {NULL, NULL, 0, 0, 0, ARG_IGNORED, NULL, NULL, NULL, NULL}};
+  static ConfigTable monitorcfg[] = {{NULL, NULL, 0, 0, 0, ARG_IGNORED, NULL, NULL, NULL, NULL}};
 
   static ConfigOCs monitorocs[] = {{"( OLcfgDbOc:4.1 "
                                     "NAME 'olcMonitorConfig' "
@@ -1595,298 +1547,268 @@ int monitor_back_initialize(BackendInfo *bi) {
               "$ managedInfo "
               "$ monitorOverlay "
               ") )",
-              SLAP_OC_OPERATIONAL | SLAP_OC_HIDE,
-              offsetof(monitor_info_t, mi_oc_monitor)},
+              SLAP_OC_OPERATIONAL | SLAP_OC_HIDE, offsetof(monitor_info_t, mi_oc_monitor)},
              {"( 1.3.6.1.4.1.4203.666.3.16.2 "
               "NAME 'monitorServer' "
               "DESC 'Server monitoring root entry' "
               "SUP monitor STRUCTURAL )",
-              SLAP_OC_OPERATIONAL | SLAP_OC_HIDE,
-              offsetof(monitor_info_t, mi_oc_monitorServer)},
+              SLAP_OC_OPERATIONAL | SLAP_OC_HIDE, offsetof(monitor_info_t, mi_oc_monitorServer)},
              {"( 1.3.6.1.4.1.4203.666.3.16.3 "
               "NAME 'monitorContainer' "
               "DESC 'monitor container class' "
               "SUP monitor STRUCTURAL )",
-              SLAP_OC_OPERATIONAL | SLAP_OC_HIDE,
-              offsetof(monitor_info_t, mi_oc_monitorContainer)},
+              SLAP_OC_OPERATIONAL | SLAP_OC_HIDE, offsetof(monitor_info_t, mi_oc_monitorContainer)},
              {"( 1.3.6.1.4.1.4203.666.3.16.4 "
               "NAME 'monitorCounterObject' "
               "DESC 'monitor counter class' "
               "SUP monitor STRUCTURAL )",
-              SLAP_OC_OPERATIONAL | SLAP_OC_HIDE,
-              offsetof(monitor_info_t, mi_oc_monitorCounterObject)},
+              SLAP_OC_OPERATIONAL | SLAP_OC_HIDE, offsetof(monitor_info_t, mi_oc_monitorCounterObject)},
              {"( 1.3.6.1.4.1.4203.666.3.16.5 "
               "NAME 'monitorOperation' "
               "DESC 'monitor operation class' "
               "SUP monitor STRUCTURAL )",
-              SLAP_OC_OPERATIONAL | SLAP_OC_HIDE,
-              offsetof(monitor_info_t, mi_oc_monitorOperation)},
+              SLAP_OC_OPERATIONAL | SLAP_OC_HIDE, offsetof(monitor_info_t, mi_oc_monitorOperation)},
              {"( 1.3.6.1.4.1.4203.666.3.16.6 "
               "NAME 'monitorConnection' "
               "DESC 'monitor connection class' "
               "SUP monitor STRUCTURAL )",
-              SLAP_OC_OPERATIONAL | SLAP_OC_HIDE,
-              offsetof(monitor_info_t, mi_oc_monitorConnection)},
+              SLAP_OC_OPERATIONAL | SLAP_OC_HIDE, offsetof(monitor_info_t, mi_oc_monitorConnection)},
              {"( 1.3.6.1.4.1.4203.666.3.16.7 "
               "NAME 'managedObject' "
               "DESC 'monitor managed entity class' "
               "SUP monitor STRUCTURAL )",
-              SLAP_OC_OPERATIONAL | SLAP_OC_HIDE,
-              offsetof(monitor_info_t, mi_oc_managedObject)},
+              SLAP_OC_OPERATIONAL | SLAP_OC_HIDE, offsetof(monitor_info_t, mi_oc_managedObject)},
              {"( 1.3.6.1.4.1.4203.666.3.16.8 "
               "NAME 'monitoredObject' "
               "DESC 'monitor monitored entity class' "
               "SUP monitor STRUCTURAL )",
-              SLAP_OC_OPERATIONAL | SLAP_OC_HIDE,
-              offsetof(monitor_info_t, mi_oc_monitoredObject)},
+              SLAP_OC_OPERATIONAL | SLAP_OC_HIDE, offsetof(monitor_info_t, mi_oc_monitoredObject)},
              {NULL, 0, -1}},
-    mat[] = {
-        {"( 1.3.6.1.4.1.4203.666.1.55.1 "
-         "NAME 'monitoredInfo' "
-         "DESC 'monitored info' "
-         /* "SUP name " */
-         "EQUALITY caseIgnoreMatch "
-         "SUBSTR caseIgnoreSubstringsMatch "
-         "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{32768} "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitoredInfo)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.2 "
-         "NAME 'managedInfo' "
-         "DESC 'monitor managed info' "
-         "SUP name )",
-         SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_managedInfo)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.3 "
-         "NAME 'monitorCounter' "
-         "DESC 'monitor counter' "
-         "EQUALITY integerMatch "
-         "ORDERING integerOrderingMatch "
-         "SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorCounter)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.4 "
-         "NAME 'monitorOpCompleted' "
-         "DESC 'monitor completed operations' "
-         "SUP monitorCounter "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorOpCompleted)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.5 "
-         "NAME 'monitorOpInitiated' "
-         "DESC 'monitor initiated operations' "
-         "SUP monitorCounter "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorOpInitiated)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.6 "
-         "NAME 'monitorConnectionNumber' "
-         "DESC 'monitor connection number' "
-         "SUP monitorCounter "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorConnectionNumber)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.7 "
-         "NAME 'monitorConnectionAuthzDN' "
-         "DESC 'monitor connection authorization DN' "
-         /* "SUP distinguishedName " */
-         "EQUALITY distinguishedNameMatch "
-         "SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorConnectionAuthzDN)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.8 "
-         "NAME 'monitorConnectionLocalAddress' "
-         "DESC 'monitor connection local address' "
-         "SUP monitoredInfo "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorConnectionLocalAddress)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.9 "
-         "NAME 'monitorConnectionPeerAddress' "
-         "DESC 'monitor connection peer address' "
-         "SUP monitoredInfo "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorConnectionPeerAddress)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.10 "
-         "NAME 'monitorTimestamp' "
-         "DESC 'monitor timestamp' "
-         "EQUALITY generalizedTimeMatch "
-         "ORDERING generalizedTimeOrderingMatch "
-         "SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 "
-         "SINGLE-VALUE "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorTimestamp)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.11 "
-         "NAME 'monitorOverlay' "
-         "DESC 'name of overlays defined for a given database' "
-         "SUP monitoredInfo "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorOverlay)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.12 "
-         "NAME 'readOnly' "
-         "DESC 'read/write status of a given database' "
-         "EQUALITY booleanMatch "
-         "SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 "
-         "SINGLE-VALUE "
-         "USAGE dSAOperation )",
-         SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_readOnly)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.13 "
-         "NAME 'restrictedOperation' "
-         "DESC 'name of restricted operation for a given database' "
-         "SUP managedInfo )",
-         SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_restrictedOperation)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.14 "
-         "NAME 'monitorConnectionProtocol' "
-         "DESC 'monitor connection protocol' "
-         "SUP monitoredInfo "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorConnectionProtocol)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.15 "
-         "NAME 'monitorConnectionOpsReceived' "
-         "DESC 'monitor number of operations received by the connection' "
-         "SUP monitorCounter "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorConnectionOpsReceived)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.16 "
-         "NAME 'monitorConnectionOpsExecuting' "
-         "DESC 'monitor number of operations in execution within the "
-         "connection' "
-         "SUP monitorCounter "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorConnectionOpsExecuting)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.17 "
-         "NAME 'monitorConnectionOpsPending' "
-         "DESC 'monitor number of pending operations within the connection' "
-         "SUP monitorCounter "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorConnectionOpsPending)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.18 "
-         "NAME 'monitorConnectionOpsCompleted' "
-         "DESC 'monitor number of operations completed within the connection' "
-         "SUP monitorCounter "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorConnectionOpsCompleted)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.19 "
-         "NAME 'monitorConnectionGet' "
-         "DESC 'number of times connection_get() was called so far' "
-         "SUP monitorCounter "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorConnectionGet)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.20 "
-         "NAME 'monitorConnectionRead' "
-         "DESC 'number of times connection_read() was called so far' "
-         "SUP monitorCounter "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorConnectionRead)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.21 "
-         "NAME 'monitorConnectionWrite' "
-         "DESC 'number of times connection_write() was called so far' "
-         "SUP monitorCounter "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorConnectionWrite)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.22 "
-         "NAME 'monitorConnectionMask' "
-         "DESC 'monitor connection mask' "
-         "SUP monitoredInfo "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorConnectionMask)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.23 "
-         "NAME 'monitorConnectionListener' "
-         "DESC 'monitor connection listener' "
-         "SUP monitoredInfo "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorConnectionListener)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.24 "
-         "NAME 'monitorConnectionPeerDomain' "
-         "DESC 'monitor connection peer domain' "
-         "SUP monitoredInfo "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorConnectionPeerDomain)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.25 "
-         "NAME 'monitorConnectionStartTime' "
-         "DESC 'monitor connection start time' "
-         "SUP monitorTimestamp "
-         "SINGLE-VALUE "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorConnectionStartTime)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.26 "
-         "NAME 'monitorConnectionActivityTime' "
-         "DESC 'monitor connection activity time' "
-         "SUP monitorTimestamp "
-         "SINGLE-VALUE "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorConnectionActivityTime)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.27 "
-         "NAME 'monitorIsShadow' "
-         "DESC 'TRUE if the database is shadow' "
-         "EQUALITY booleanMatch "
-         "SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 "
-         "SINGLE-VALUE "
-         "USAGE dSAOperation )",
-         SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorIsShadow)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.28 "
-         "NAME 'monitorUpdateRef' "
-         "DESC 'update referral for shadow databases' "
-         "SUP monitoredInfo "
-         "SINGLE-VALUE "
-         "USAGE dSAOperation )",
-         SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorUpdateRef)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.29 "
-         "NAME 'monitorRuntimeConfig' "
-         "DESC 'TRUE if component allows runtime configuration' "
-         "EQUALITY booleanMatch "
-         "SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 "
-         "SINGLE-VALUE "
-         "USAGE dSAOperation )",
-         SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorRuntimeConfig)},
-        {"( 1.3.6.1.4.1.4203.666.1.55.30 "
-         "NAME 'monitorSuperiorDN' "
-         "DESC 'monitor superior DN' "
-         /* "SUP distinguishedName " */
-         "EQUALITY distinguishedNameMatch "
-         "SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_FINAL | SLAP_AT_HIDE,
-         offsetof(monitor_info_t, mi_ad_monitorSuperiorDN)},
-        {NULL, 0, -1}};
+    mat[] = {{"( 1.3.6.1.4.1.4203.666.1.55.1 "
+              "NAME 'monitoredInfo' "
+              "DESC 'monitored info' "
+              /* "SUP name " */
+              "EQUALITY caseIgnoreMatch "
+              "SUBSTR caseIgnoreSubstringsMatch "
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{32768} "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitoredInfo)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.2 "
+              "NAME 'managedInfo' "
+              "DESC 'monitor managed info' "
+              "SUP name )",
+              SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_managedInfo)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.3 "
+              "NAME 'monitorCounter' "
+              "DESC 'monitor counter' "
+              "EQUALITY integerMatch "
+              "ORDERING integerOrderingMatch "
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorCounter)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.4 "
+              "NAME 'monitorOpCompleted' "
+              "DESC 'monitor completed operations' "
+              "SUP monitorCounter "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorOpCompleted)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.5 "
+              "NAME 'monitorOpInitiated' "
+              "DESC 'monitor initiated operations' "
+              "SUP monitorCounter "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorOpInitiated)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.6 "
+              "NAME 'monitorConnectionNumber' "
+              "DESC 'monitor connection number' "
+              "SUP monitorCounter "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorConnectionNumber)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.7 "
+              "NAME 'monitorConnectionAuthzDN' "
+              "DESC 'monitor connection authorization DN' "
+              /* "SUP distinguishedName " */
+              "EQUALITY distinguishedNameMatch "
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorConnectionAuthzDN)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.8 "
+              "NAME 'monitorConnectionLocalAddress' "
+              "DESC 'monitor connection local address' "
+              "SUP monitoredInfo "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorConnectionLocalAddress)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.9 "
+              "NAME 'monitorConnectionPeerAddress' "
+              "DESC 'monitor connection peer address' "
+              "SUP monitoredInfo "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorConnectionPeerAddress)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.10 "
+              "NAME 'monitorTimestamp' "
+              "DESC 'monitor timestamp' "
+              "EQUALITY generalizedTimeMatch "
+              "ORDERING generalizedTimeOrderingMatch "
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 "
+              "SINGLE-VALUE "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorTimestamp)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.11 "
+              "NAME 'monitorOverlay' "
+              "DESC 'name of overlays defined for a given database' "
+              "SUP monitoredInfo "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorOverlay)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.12 "
+              "NAME 'readOnly' "
+              "DESC 'read/write status of a given database' "
+              "EQUALITY booleanMatch "
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 "
+              "SINGLE-VALUE "
+              "USAGE dSAOperation )",
+              SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_readOnly)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.13 "
+              "NAME 'restrictedOperation' "
+              "DESC 'name of restricted operation for a given database' "
+              "SUP managedInfo )",
+              SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_restrictedOperation)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.14 "
+              "NAME 'monitorConnectionProtocol' "
+              "DESC 'monitor connection protocol' "
+              "SUP monitoredInfo "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorConnectionProtocol)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.15 "
+              "NAME 'monitorConnectionOpsReceived' "
+              "DESC 'monitor number of operations received by the connection' "
+              "SUP monitorCounter "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorConnectionOpsReceived)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.16 "
+              "NAME 'monitorConnectionOpsExecuting' "
+              "DESC 'monitor number of operations in execution within the "
+              "connection' "
+              "SUP monitorCounter "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorConnectionOpsExecuting)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.17 "
+              "NAME 'monitorConnectionOpsPending' "
+              "DESC 'monitor number of pending operations within the connection' "
+              "SUP monitorCounter "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorConnectionOpsPending)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.18 "
+              "NAME 'monitorConnectionOpsCompleted' "
+              "DESC 'monitor number of operations completed within the connection' "
+              "SUP monitorCounter "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorConnectionOpsCompleted)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.19 "
+              "NAME 'monitorConnectionGet' "
+              "DESC 'number of times connection_get() was called so far' "
+              "SUP monitorCounter "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorConnectionGet)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.20 "
+              "NAME 'monitorConnectionRead' "
+              "DESC 'number of times connection_read() was called so far' "
+              "SUP monitorCounter "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorConnectionRead)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.21 "
+              "NAME 'monitorConnectionWrite' "
+              "DESC 'number of times connection_write() was called so far' "
+              "SUP monitorCounter "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorConnectionWrite)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.22 "
+              "NAME 'monitorConnectionMask' "
+              "DESC 'monitor connection mask' "
+              "SUP monitoredInfo "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorConnectionMask)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.23 "
+              "NAME 'monitorConnectionListener' "
+              "DESC 'monitor connection listener' "
+              "SUP monitoredInfo "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorConnectionListener)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.24 "
+              "NAME 'monitorConnectionPeerDomain' "
+              "DESC 'monitor connection peer domain' "
+              "SUP monitoredInfo "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorConnectionPeerDomain)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.25 "
+              "NAME 'monitorConnectionStartTime' "
+              "DESC 'monitor connection start time' "
+              "SUP monitorTimestamp "
+              "SINGLE-VALUE "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorConnectionStartTime)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.26 "
+              "NAME 'monitorConnectionActivityTime' "
+              "DESC 'monitor connection activity time' "
+              "SUP monitorTimestamp "
+              "SINGLE-VALUE "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorConnectionActivityTime)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.27 "
+              "NAME 'monitorIsShadow' "
+              "DESC 'TRUE if the database is shadow' "
+              "EQUALITY booleanMatch "
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 "
+              "SINGLE-VALUE "
+              "USAGE dSAOperation )",
+              SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorIsShadow)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.28 "
+              "NAME 'monitorUpdateRef' "
+              "DESC 'update referral for shadow databases' "
+              "SUP monitoredInfo "
+              "SINGLE-VALUE "
+              "USAGE dSAOperation )",
+              SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorUpdateRef)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.29 "
+              "NAME 'monitorRuntimeConfig' "
+              "DESC 'TRUE if component allows runtime configuration' "
+              "EQUALITY booleanMatch "
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 "
+              "SINGLE-VALUE "
+              "USAGE dSAOperation )",
+              SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorRuntimeConfig)},
+             {"( 1.3.6.1.4.1.4203.666.1.55.30 "
+              "NAME 'monitorSuperiorDN' "
+              "DESC 'monitor superior DN' "
+              /* "SUP distinguishedName " */
+              "EQUALITY distinguishedNameMatch "
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 "
+              "NO-USER-MODIFICATION "
+              "USAGE dSAOperation )",
+              SLAP_AT_FINAL | SLAP_AT_HIDE, offsetof(monitor_info_t, mi_ad_monitorSuperiorDN)},
+             {NULL, 0, -1}};
 
   static struct {
     char *name;
@@ -1941,8 +1863,7 @@ int monitor_back_initialize(BackendInfo *bi) {
   /* schema integration */
   for (i = 0; mat[i].schema; i++) {
     int code;
-    AttributeDescription **ad =
-        ((AttributeDescription **)&(((char *)mi)[mat[i].offset]));
+    AttributeDescription **ad = ((AttributeDescription **)&(((char *)mi)[mat[i].offset]));
 
     *ad = NULL;
     code = register_at(mat[i].schema, ad, 0);
@@ -2063,8 +1984,7 @@ int monitor_back_db_init(BackendDB *be, ConfigReply *c) {
 
   rc = dnPrettyNormal(NULL, &dn, &pdn, &ndn, NULL);
   if (rc != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_ANY, "unable to normalize/pretty monitor DN \"%s\" (%d)\n",
-          dn.bv_val, rc);
+    Debug(LDAP_DEBUG_ANY, "unable to normalize/pretty monitor DN \"%s\" (%d)\n", dn.bv_val, rc);
     return -1;
   }
 
@@ -2138,12 +2058,11 @@ int monitor_back_db_open(BackendDB *be, ConfigReply *cr) {
   struct berval bv, rdn = BER_BVC(SLAPD_MONITOR_DN);
   struct tm tms;
   static char tmbuf[LDAP_LUTIL_GENTIME_BUFSIZE];
-  struct berval desc[] = {
-      BER_BVC("This subtree contains monitoring/managing objects."),
-      BER_BVC("This object contains information about this server."),
-      BER_BVC("Most of the information is held in operational"
-              " attributes, which must be explicitly requested."),
-      BER_BVNULL};
+  struct berval desc[] = {BER_BVC("This subtree contains monitoring/managing objects."),
+                          BER_BVC("This object contains information about this server."),
+                          BER_BVC("Most of the information is held in operational"
+                                  " attributes, which must be explicitly requested."),
+                          BER_BVNULL};
 
   int retcode = 0;
 
@@ -2205,8 +2124,7 @@ int monitor_back_db_open(BackendDB *be, ConfigReply *cr) {
     }
 
     if (attr_merge_normalize_one(e, mi->mi_ad_monitoredInfo, &bv, NULL)) {
-      Debug(LDAP_DEBUG_ANY, "unable to add monitoredInfo to \"%s\" entry\n",
-            SLAPD_MONITOR_DN);
+      Debug(LDAP_DEBUG_ANY, "unable to add monitoredInfo to \"%s\" entry\n", SLAPD_MONITOR_DN);
       return (-1);
     }
   }
@@ -2219,8 +2137,7 @@ int monitor_back_db_open(BackendDB *be, ConfigReply *cr) {
   ep = &mp->mp_children;
 
   if (monitor_cache_add(mi, e)) {
-    Debug(LDAP_DEBUG_ANY, "unable to add entry \"%s\" to cache\n",
-          SLAPD_MONITOR_DN);
+    Debug(LDAP_DEBUG_ANY, "unable to add entry \"%s\" to cache\n", SLAPD_MONITOR_DN);
     return -1;
   }
   root = e;
@@ -2244,21 +2161,18 @@ int monitor_back_db_open(BackendDB *be, ConfigReply *cr) {
       return (-1);
     }
 
-    e = monitor_entry_stub(&root->e_name, &root->e_nname,
-                           &monitor_subsys[i]->mss_rdn,
-                           mi->mi_oc_monitorContainer, NULL, NULL);
+    e = monitor_entry_stub(&root->e_name, &root->e_nname, &monitor_subsys[i]->mss_rdn, mi->mi_oc_monitorContainer, NULL,
+                           NULL);
 
     if (e == NULL) {
-      Debug(LDAP_DEBUG_ANY, "unable to create \"%s\" entry\n",
-            monitor_subsys[i]->mss_dn.bv_val);
+      Debug(LDAP_DEBUG_ANY, "unable to create \"%s\" entry\n", monitor_subsys[i]->mss_dn.bv_val);
       return (-1);
     }
     monitor_subsys[i]->mss_dn = e->e_name;
     monitor_subsys[i]->mss_ndn = e->e_nname;
 
     if (!BER_BVISNULL(&monitor_subsys[i]->mss_desc[0])) {
-      attr_merge_normalize(e, slap_schema.si_ad_description,
-                           monitor_subsys[i]->mss_desc, NULL);
+      attr_merge_normalize(e, slap_schema.si_ad_description, monitor_subsys[i]->mss_desc, NULL);
     }
 
     mp = monitor_entrypriv_create();
@@ -2270,8 +2184,7 @@ int monitor_back_db_open(BackendDB *be, ConfigReply *cr) {
     mp->mp_flags = monitor_subsys[i]->mss_flags;
 
     if (monitor_cache_add(mi, e)) {
-      Debug(LDAP_DEBUG_ANY, "unable to add entry \"%s\" to cache\n",
-            monitor_subsys[i]->mss_dn.bv_val);
+      Debug(LDAP_DEBUG_ANY, "unable to add entry \"%s\" to cache\n", monitor_subsys[i]->mss_dn.bv_val);
       return -1;
     }
 
@@ -2304,25 +2217,21 @@ int monitor_back_db_open(BackendDB *be, ConfigReply *cr) {
 
       switch (el->el_type) {
       case LIMBO_ENTRY:
-        rc = monitor_back_register_entry(el->el_e, el->el_cb, el->el_mss,
-                                         el->el_flags);
+        rc = monitor_back_register_entry(el->el_e, el->el_cb, el->el_mss, el->el_flags);
         break;
 
       case LIMBO_ENTRY_PARENT:
-        rc = monitor_back_register_entry_parent(el->el_e, el->el_cb, el->el_mss,
-                                                el->el_flags, &el->el_nbase,
+        rc = monitor_back_register_entry_parent(el->el_e, el->el_cb, el->el_mss, el->el_flags, &el->el_nbase,
                                                 el->el_scope, &el->el_filter);
         break;
 
       case LIMBO_ATTRS:
-        rc = monitor_back_register_entry_attrs(el->el_ndn, el->el_a, el->el_cb,
-                                               &el->el_nbase, el->el_scope,
+        rc = monitor_back_register_entry_attrs(el->el_ndn, el->el_a, el->el_cb, &el->el_nbase, el->el_scope,
                                                &el->el_filter);
         break;
 
       case LIMBO_CB:
-        rc = monitor_back_register_entry_callback(
-            el->el_ndn, el->el_cb, &el->el_nbase, el->el_scope, &el->el_filter);
+        rc = monitor_back_register_entry_callback(el->el_ndn, el->el_cb, &el->el_nbase, el->el_scope, &el->el_filter);
         break;
 
       case LIMBO_BACKEND:
@@ -2365,8 +2274,7 @@ int monitor_back_db_open(BackendDB *be, ConfigReply *cr) {
   return retcode;
 }
 
-int monitor_back_config(BackendInfo *bi, const char *fname, int lineno,
-                        int argc, char **argv) {
+int monitor_back_config(BackendInfo *bi, const char *fname, int lineno, int argc, char **argv) {
   /*
    * eventually, will hold backend specific configuration parameters
    */

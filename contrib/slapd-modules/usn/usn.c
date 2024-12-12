@@ -104,8 +104,7 @@ static int usn_operational(Operation *op, SlapReply *rs) {
 
   if (rs->sr_entry && dn_match(&rs->sr_entry->e_nname, op->o_bd->be_nsuffix)) {
 
-    if (SLAP_OPATTRS(rs->sr_attr_flags) ||
-        ad_inlist(ad_usnChanged, rs->sr_attrs)) {
+    if (SLAP_OPATTRS(rs->sr_attr_flags) || ad_inlist(ad_usnChanged, rs->sr_attrs)) {
       Attribute *a, **ap = NULL;
       char intbuf[64];
       struct berval bv;
@@ -165,8 +164,7 @@ static int usn_db_open(BackendDB *be, ConfigReply *cr) {
   op->o_dn = be->be_rootdn;
   op->o_ndn = be->be_rootndn;
 
-  rc = overlay_entry_get_ov(op, be->be_nsuffix, NULL,
-                            slap_schema.si_ad_contextCSN, 0, &e, on);
+  rc = overlay_entry_get_ov(op, be->be_nsuffix, NULL, slap_schema.si_ad_contextCSN, 0, &e, on);
 
   if (e) {
     a = attr_find(e->e_attrs, ad_usnChanged);

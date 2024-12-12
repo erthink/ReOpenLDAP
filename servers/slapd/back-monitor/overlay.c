@@ -70,8 +70,7 @@ int monitor_subsys_overlay_init(BackendDB *be, monitor_subsys_t *ms) {
 
     bv.bv_len = snprintf(buf, sizeof(buf), "cn=Overlay %d", i);
     bv.bv_val = buf;
-    e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv,
-                           mi->mi_oc_monitoredObject, NULL, NULL);
+    e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv, mi->mi_oc_monitoredObject, NULL, NULL);
     if (e == NULL) {
       Debug(LDAP_DEBUG_ANY,
             "monitor_subsys_overlay_init: "
@@ -82,9 +81,7 @@ int monitor_subsys_overlay_init(BackendDB *be, monitor_subsys_t *ms) {
     ber_str2bv(on->on_bi.bi_type, 0, 0, &bv);
     attr_merge_normalize_one(e, mi->mi_ad_monitoredInfo, &bv, NULL);
     attr_merge_normalize_one(e, mi->mi_ad_monitorRuntimeConfig,
-                             on->on_bi.bi_cf_ocs
-                                 ? (struct berval *)&slap_true_bv
-                                 : (struct berval *)&slap_false_bv,
+                             on->on_bi.bi_cf_ocs ? (struct berval *)&slap_true_bv : (struct berval *)&slap_false_bv,
                              NULL);
 
     attr_merge_normalize_one(e_overlay, mi->mi_ad_monitoredInfo, &bv, NULL);
@@ -99,8 +96,7 @@ int monitor_subsys_overlay_init(BackendDB *be, monitor_subsys_t *ms) {
         continue;
       }
 
-      snprintf(buf, sizeof(buf), "cn=Database %d,%s", j,
-               ms_database->mss_dn.bv_val);
+      snprintf(buf, sizeof(buf), "cn=Database %d,%s", j, ms_database->mss_dn.bv_val);
 
       ber_str2bv(buf, 0, 0, &dn);
       attr_merge_normalize_one(e, slap_schema.si_ad_seeAlso, &dn, NULL);

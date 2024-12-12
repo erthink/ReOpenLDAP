@@ -88,32 +88,31 @@ static int relay_back_response_cb(Operation *op, SlapReply *rs) {
   return SLAP_CB_CONTINUE;
 }
 
-#define relay_back_add_cb(rcb, op)                                             \
-  {                                                                            \
-    memset((rcb), 0, sizeof(relay_callback));                                  \
-    (rcb)->rcb_sc.sc_next = (op)->o_callback;                                  \
-    (rcb)->rcb_sc.sc_response = relay_back_response_cb;                        \
-    (rcb)->rcb_sc.sc_private = (op)->o_bd;                                     \
-    (op)->o_callback = (slap_callback *)(rcb);                                 \
+#define relay_back_add_cb(rcb, op)                                                                                     \
+  {                                                                                                                    \
+    memset((rcb), 0, sizeof(relay_callback));                                                                          \
+    (rcb)->rcb_sc.sc_next = (op)->o_callback;                                                                          \
+    (rcb)->rcb_sc.sc_response = relay_back_response_cb;                                                                \
+    (rcb)->rcb_sc.sc_private = (op)->o_bd;                                                                             \
+    (op)->o_callback = (slap_callback *)(rcb);                                                                         \
   }
 
-#define relay_back_remove_cb(rcb, op)                                          \
-  {                                                                            \
-    slap_callback **sc = &(op)->o_callback;                                    \
-    for (;; sc = &(*sc)->sc_next)                                              \
-      if (*sc == (slap_callback *)(rcb)) {                                     \
-        *sc = (*sc)->sc_next;                                                  \
-        break;                                                                 \
-      } else if (*sc == NULL)                                                  \
-        break;                                                                 \
+#define relay_back_remove_cb(rcb, op)                                                                                  \
+  {                                                                                                                    \
+    slap_callback **sc = &(op)->o_callback;                                                                            \
+    for (;; sc = &(*sc)->sc_next)                                                                                      \
+      if (*sc == (slap_callback *)(rcb)) {                                                                             \
+        *sc = (*sc)->sc_next;                                                                                          \
+        break;                                                                                                         \
+      } else if (*sc == NULL)                                                                                          \
+        break;                                                                                                         \
   }
 
 /*
  * Select the backend database with the operation's DN.  On failure,
  * set/send results depending on operation type <which>'s fail_modes.
  */
-static BackendDB *relay_back_select_backend(Operation *op, SlapReply *rs,
-                                            int which) {
+static BackendDB *relay_back_select_backend(Operation *op, SlapReply *rs, int which) {
   OpExtra *oex;
   char *key = (char *)op->o_bd->be_private;
   BackendDB *bd = ((relay_back_info *)key)->ri_bd;
@@ -135,16 +134,14 @@ static BackendDB *relay_back_select_backend(Operation *op, SlapReply *rs,
       return bd;
     }
 
-    Debug(LDAP_DEBUG_ANY, "%s: back-relay for DN=\"%s\" would call self.\n",
-          op->o_log_prefix, op->o_req_dn.bv_val);
+    Debug(LDAP_DEBUG_ANY, "%s: back-relay for DN=\"%s\" would call self.\n", op->o_log_prefix, op->o_req_dn.bv_val);
 
   } else if (useDN && (fail_mode & RB_REF) && default_referral) {
     rc = LDAP_REFERRAL;
 
     /* if we set sr_err to LDAP_REFERRAL, we must provide one */
-    rs->sr_ref = referral_rewrite(
-        default_referral, NULL, &op->o_req_dn,
-        op->o_tag == LDAP_REQ_SEARCH ? op->ors_scope : LDAP_SCOPE_DEFAULT);
+    rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn,
+                                  op->o_tag == LDAP_REQ_SEARCH ? op->ors_scope : LDAP_SCOPE_DEFAULT);
     if (rs->sr_ref != NULL) {
       rs->sr_flags |= REP_REF_MUSTBEFREED;
     } else {
@@ -170,17 +167,17 @@ static BackendDB *relay_back_select_backend(Operation *op, SlapReply *rs,
  * Forward <act> on <op> to database <bd>, with <relay, op type>-specific
  * key in op->o_extra so relay_back_select_backend() can catch recursion.
  */
-#define RELAY_WRAP_OP(op, bd, which, act)                                      \
-  {                                                                            \
-    OpExtraDB wrap_oex;                                                        \
-    BackendDB *const wrap_bd = (op)->o_bd;                                     \
-    wrap_oex.oe_db = wrap_bd;                                                  \
-    wrap_oex.oe.oe_key = (char *)wrap_bd->be_private + (which);                \
-    LDAP_SLIST_INSERT_HEAD(&(op)->o_extra, &wrap_oex.oe, oe_next);             \
-    (op)->o_bd = (bd);                                                         \
-    act;                                                                       \
-    (op)->o_bd = wrap_bd;                                                      \
-    LDAP_SLIST_REMOVE(&(op)->o_extra, &wrap_oex.oe, OpExtra, oe_next);         \
+#define RELAY_WRAP_OP(op, bd, which, act)                                                                              \
+  {                                                                                                                    \
+    OpExtraDB wrap_oex;                                                                                                \
+    BackendDB *const wrap_bd = (op)->o_bd;                                                                             \
+    wrap_oex.oe_db = wrap_bd;                                                                                          \
+    wrap_oex.oe.oe_key = (char *)wrap_bd->be_private + (which);                                                        \
+    LDAP_SLIST_INSERT_HEAD(&(op)->o_extra, &wrap_oex.oe, oe_next);                                                     \
+    (op)->o_bd = (bd);                                                                                                 \
+    act;                                                                                                               \
+    (op)->o_bd = wrap_bd;                                                                                              \
+    LDAP_SLIST_REMOVE(&(op)->o_extra, &wrap_oex.oe, OpExtra, oe_next);                                                 \
   }
 
 /*
@@ -234,10 +231,8 @@ int relay_back_op_bind(Operation *op, SlapReply *rs) {
   return relay_back_op(op, rs, op_bind);
 }
 
-#define RELAY_DEFOP(func, which)                                               \
-  int func(Operation *op, SlapReply *rs) {                                     \
-    return relay_back_op(op, rs, which);                                       \
-  }
+#define RELAY_DEFOP(func, which)                                                                                       \
+  int func(Operation *op, SlapReply *rs) { return relay_back_op(op, rs, which); }
 
 RELAY_DEFOP(relay_back_op_search, op_search)
 RELAY_DEFOP(relay_back_op_compare, op_compare)
@@ -258,8 +253,7 @@ int relay_back_entry_release_rw(Operation *op, Entry *e, int rw) {
 
   bd = relay_back_select_backend(op, NULL, relay_op_entry_release);
   if (bd && bd->be_release) {
-    RELAY_WRAP_OP(op, bd, relay_op_entry_release,
-                  { rc = bd->be_release(op, e, rw); });
+    RELAY_WRAP_OP(op, bd, relay_op_entry_release, { rc = bd->be_release(op, e, rw); });
   } else if (e->e_private == NULL) {
     entry_free(e);
     rc = LDAP_SUCCESS;
@@ -268,15 +262,14 @@ int relay_back_entry_release_rw(Operation *op, Entry *e, int rw) {
   return rc;
 }
 
-int relay_back_entry_get_rw(Operation *op, struct berval *ndn, ObjectClass *oc,
-                            AttributeDescription *at, int rw, Entry **e) {
+int relay_back_entry_get_rw(Operation *op, struct berval *ndn, ObjectClass *oc, AttributeDescription *at, int rw,
+                            Entry **e) {
   BackendDB *bd;
   int rc = LDAP_NO_SUCH_OBJECT;
 
   bd = relay_back_select_backend(op, NULL, relay_op_entry_get);
   if (bd && bd->be_fetch) {
-    RELAY_WRAP_OP(op, bd, relay_op_entry_get,
-                  { rc = bd->be_fetch(op, ndn, oc, at, rw, e); });
+    RELAY_WRAP_OP(op, bd, relay_op_entry_get, { rc = bd->be_fetch(op, ndn, oc, at, rw, e); });
   }
 
   return rc;
@@ -299,8 +292,7 @@ int relay_back_has_subordinates(Operation *op, Entry *e, int *hasSubs) {
 
   bd = relay_back_select_backend(op, NULL, relay_op_has_subordinates);
   if (bd && bd->be_has_subordinates) {
-    RELAY_WRAP_OP(op, bd, relay_op_has_subordinates,
-                  { rc = bd->be_has_subordinates(op, e, hasSubs); });
+    RELAY_WRAP_OP(op, bd, relay_op_has_subordinates, { rc = bd->be_has_subordinates(op, e, hasSubs); });
   }
 
   return rc;

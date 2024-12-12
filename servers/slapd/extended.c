@@ -67,8 +67,7 @@ static struct {
     {&slap_EXOP_MODIFY_PASSWD, SLAP_EXOP_WRITES, passwd_extop},
     {NULL, 0, NULL}};
 
-static struct extop_list *find_extop(struct extop_list *list,
-                                     struct berval *oid);
+static struct extop_list *find_extop(struct extop_list *list, struct berval *oid);
 
 struct berval *get_supported_extop(int index) {
   struct extop_list *ext;
@@ -87,8 +86,7 @@ struct berval *get_supported_extop(int index) {
 }
 
 int exop_root_dse_info(Entry *e) {
-  AttributeDescription *ad_supportedExtension =
-      slap_schema.si_ad_supportedExtension;
+  AttributeDescription *ad_supportedExtension = slap_schema.si_ad_supportedExtension;
   struct berval vals[2];
   struct extop_list *ext;
 
@@ -116,16 +114,14 @@ int do_extended(Operation *op, SlapReply *rs) {
   Debug(LDAP_DEBUG_TRACE, "%s do_extended\n", op->o_log_prefix);
 
   if (op->o_protocol < LDAP_VERSION3) {
-    Debug(LDAP_DEBUG_ANY, "%s do_extended: protocol version (%d) too low\n",
-          op->o_log_prefix, op->o_protocol);
+    Debug(LDAP_DEBUG_ANY, "%s do_extended: protocol version (%d) too low\n", op->o_log_prefix, op->o_protocol);
     send_ldap_discon(op, rs, LDAP_PROTOCOL_ERROR, "requires LDAPv3");
     rs->sr_err = SLAPD_DISCONNECT;
     goto done;
   }
 
   if (ber_scanf(op->o_ber, "{m" /*}*/, &op->ore_reqoid) == LBER_ERROR) {
-    Debug(LDAP_DEBUG_ANY, "%s do_extended: ber_scanf failed\n",
-          op->o_log_prefix);
+    Debug(LDAP_DEBUG_ANY, "%s do_extended: ber_scanf failed\n", op->o_log_prefix);
     send_ldap_discon(op, rs, LDAP_PROTOCOL_ERROR, "decoding error");
     rs->sr_err = SLAPD_DISCONNECT;
     goto done;
@@ -133,8 +129,7 @@ int do_extended(Operation *op, SlapReply *rs) {
 
   if (ber_peek_tag(op->o_ber, &len) == LDAP_TAG_EXOP_REQ_VALUE) {
     if (ber_scanf(op->o_ber, "m", &reqdata) == LBER_ERROR) {
-      Debug(LDAP_DEBUG_ANY, "%s do_extended: ber_scanf failed\n",
-            op->o_log_prefix);
+      Debug(LDAP_DEBUG_ANY, "%s do_extended: ber_scanf failed\n", op->o_log_prefix);
       send_ldap_discon(op, rs, LDAP_PROTOCOL_ERROR, "decoding error");
       rs->sr_err = SLAPD_DISCONNECT;
       goto done;
@@ -142,18 +137,15 @@ int do_extended(Operation *op, SlapReply *rs) {
   }
 
   if (get_ctrls(op, rs, 1) != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_ANY, "%s do_extended: get_ctrls failed\n",
-          op->o_log_prefix);
+    Debug(LDAP_DEBUG_ANY, "%s do_extended: get_ctrls failed\n", op->o_log_prefix);
     return rs->sr_err;
   }
 
-  Statslog(LDAP_DEBUG_STATS, "%s EXT oid=%s\n", op->o_log_prefix,
-           op->ore_reqoid.bv_val);
+  Statslog(LDAP_DEBUG_STATS, "%s EXT oid=%s\n", op->o_log_prefix, op->ore_reqoid.bv_val);
 
   /* check for controls inappropriate for all extended operations */
   if (get_manageDSAit(op) == SLAP_CONTROL_CRITICAL) {
-    send_ldap_error(op, rs, LDAP_UNAVAILABLE_CRITICAL_EXTENSION,
-                    "manageDSAit control inappropriate");
+    send_ldap_error(op, rs, LDAP_UNAVAILABLE_CRITICAL_EXTENSION, "manageDSAit control inappropriate");
     goto done;
   }
 
@@ -167,8 +159,7 @@ int do_extended(Operation *op, SlapReply *rs) {
 
   /* clean up in case some overlay set them? */
   if (!BER_BVISNULL(&op->o_req_ndn)) {
-    if (!BER_BVISNULL(&op->o_req_dn) &&
-        op->o_req_ndn.bv_val != op->o_req_dn.bv_val) {
+    if (!BER_BVISNULL(&op->o_req_dn) && op->o_req_ndn.bv_val != op->o_req_dn.bv_val) {
       op->o_tmpfree(op->o_req_dn.bv_val, op->o_tmpmemctx);
     }
     op->o_tmpfree(op->o_req_ndn.bv_val, op->o_tmpmemctx);
@@ -185,10 +176,8 @@ int fe_extended(Operation *op, SlapReply *rs) {
 
   ext = find_extop(supp_exop_list, &op->ore_reqoid);
   if (ext == NULL) {
-    Debug(LDAP_DEBUG_ANY, "%s do_extended: unsupported operation \"%s\"\n",
-          op->o_log_prefix, op->ore_reqoid.bv_val);
-    send_ldap_error(op, rs, LDAP_PROTOCOL_ERROR,
-                    "unsupported extended operation");
+    Debug(LDAP_DEBUG_ANY, "%s do_extended: unsupported operation \"%s\"\n", op->o_log_prefix, op->ore_reqoid.bv_val);
+    send_ldap_error(op, rs, LDAP_PROTOCOL_ERROR, "unsupported extended operation");
     goto done;
   }
 
@@ -203,8 +192,7 @@ int fe_extended(Operation *op, SlapReply *rs) {
 
     if (rs->sr_err != SLAPD_ABANDON) {
       if (rs->sr_err == LDAP_REFERRAL && rs->sr_ref == NULL) {
-        rs->sr_ref =
-            referral_rewrite(default_referral, NULL, NULL, LDAP_SCOPE_DEFAULT);
+        rs->sr_ref = referral_rewrite(default_referral, NULL, NULL, LDAP_SCOPE_DEFAULT);
         if (!rs->sr_ref)
           rs->sr_ref = default_referral;
         else
@@ -236,8 +224,8 @@ done:;
   return rs->sr_err;
 }
 
-int extop_register_ex(const struct berval *exop_oid, slap_mask_t exop_flags,
-                      SLAP_EXTOP_MAIN_FN *exop_main, unsigned do_not_replace) {
+int extop_register_ex(const struct berval *exop_oid, slap_mask_t exop_flags, SLAP_EXTOP_MAIN_FN *exop_main,
+                      unsigned do_not_replace) {
   struct berval oidm = BER_BVNULL;
   struct extop_list *ext;
   int insertme = 0;
@@ -293,8 +281,7 @@ int extop_register_ex(const struct berval *exop_oid, slap_mask_t exop_flags,
   return 0;
 }
 
-int extop_unregister(const struct berval *exop_oid,
-                     SLAP_EXTOP_MAIN_FN *exop_main, unsigned unused_flags) {
+int extop_unregister(const struct berval *exop_oid, SLAP_EXTOP_MAIN_FN *exop_main, unsigned unused_flags) {
   struct berval oidm = BER_BVNULL;
   struct extop_list *ext, **extp;
   (void)unused_flags;
@@ -340,8 +327,7 @@ int extops_init(void) {
   int i;
 
   for (i = 0; builtin_extops[i].oid != NULL; i++) {
-    extop_register((struct berval *)builtin_extops[i].oid,
-                   builtin_extops[i].flags, builtin_extops[i].exop_main);
+    extop_register((struct berval *)builtin_extops[i].oid, builtin_extops[i].flags, builtin_extops[i].exop_main);
   }
 
   return 0;
@@ -358,8 +344,7 @@ int extops_destroy(void) {
   return 0;
 }
 
-static struct extop_list *find_extop(struct extop_list *list,
-                                     struct berval *oid) {
+static struct extop_list *find_extop(struct extop_list *list, struct berval *oid) {
   struct extop_list *ext;
 
   for (ext = list; ext; ext = ext->next) {
@@ -383,8 +368,7 @@ static int whoami_extop(Operation *op, SlapReply *rs) {
   Statslog(LDAP_DEBUG_STATS, "%s WHOAMI\n", op->o_log_prefix);
 
   op->o_bd = op->o_conn->c_authz_backend;
-  if (backend_check_restrictions(op, rs, (struct berval *)&slap_EXOP_WHOAMI) !=
-      LDAP_SUCCESS) {
+  if (backend_check_restrictions(op, rs, (struct berval *)&slap_EXOP_WHOAMI) != LDAP_SUCCESS) {
     return rs->sr_err;
   }
 

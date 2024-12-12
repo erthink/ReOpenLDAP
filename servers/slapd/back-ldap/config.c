@@ -96,8 +96,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"acl-authcDN", "DN", 2, 2, 0,
-     ARG_DN | ARG_MAGIC | LDAP_BACK_CFG_ACL_AUTHCDN, ldap_back_cf_gen,
+    {"acl-authcDN", "DN", 2, 2, 0, ARG_DN | ARG_MAGIC | LDAP_BACK_CFG_ACL_AUTHCDN, ldap_back_cf_gen,
      "( OLcfgDbAt:3.2 "
      "NAME 'olcDbACLAuthcDn' "
      "DESC 'Remote ACL administrative identity' "
@@ -107,10 +106,8 @@ static ConfigTable ldapcfg[] = {
      "SINGLE-VALUE )",
      NULL, NULL},
     /* deprecated, will be removed; aliases "acl-authcDN" */
-    {"binddn", "DN", 2, 2, 0, ARG_DN | ARG_MAGIC | LDAP_BACK_CFG_ACL_AUTHCDN,
-     ldap_back_cf_gen, NULL, NULL, NULL},
-    {"acl-passwd", "cred", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_ACL_PASSWD,
-     ldap_back_cf_gen,
+    {"binddn", "DN", 2, 2, 0, ARG_DN | ARG_MAGIC | LDAP_BACK_CFG_ACL_AUTHCDN, ldap_back_cf_gen, NULL, NULL, NULL},
+    {"acl-passwd", "cred", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_ACL_PASSWD, ldap_back_cf_gen,
      "( OLcfgDbAt:3.3 "
      "NAME 'olcDbACLPasswd' "
      "DESC 'Remote ACL administrative identity credentials' "
@@ -119,13 +116,10 @@ static ConfigTable ldapcfg[] = {
      "SINGLE-VALUE )",
      NULL, NULL},
     /* deprecated, will be removed; aliases "acl-passwd" */
-    {"bindpw", "cred", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_ACL_PASSWD,
-     ldap_back_cf_gen, NULL, NULL, NULL},
+    {"bindpw", "cred", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_ACL_PASSWD, ldap_back_cf_gen, NULL, NULL, NULL},
     /* deprecated, will be removed; aliases "acl-bind" */
-    {"acl-method", "args", 2, 0, 0, ARG_MAGIC | LDAP_BACK_CFG_ACL_METHOD,
-     ldap_back_cf_gen, NULL, NULL, NULL},
-    {"acl-bind", "args", 2, 0, 0, ARG_MAGIC | LDAP_BACK_CFG_ACL_BIND,
-     ldap_back_cf_gen,
+    {"acl-method", "args", 2, 0, 0, ARG_MAGIC | LDAP_BACK_CFG_ACL_METHOD, ldap_back_cf_gen, NULL, NULL, NULL},
+    {"acl-bind", "args", 2, 0, 0, ARG_MAGIC | LDAP_BACK_CFG_ACL_BIND, ldap_back_cf_gen,
      "( OLcfgDbAt:3.4 "
      "NAME 'olcDbACLBind' "
      "DESC 'Remote ACL administrative identity auth bind configuration' "
@@ -133,8 +127,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"idassert-authcDN", "DN", 2, 2, 0,
-     ARG_DN | ARG_MAGIC | LDAP_BACK_CFG_IDASSERT_AUTHCDN, ldap_back_cf_gen,
+    {"idassert-authcDN", "DN", 2, 2, 0, ARG_DN | ARG_MAGIC | LDAP_BACK_CFG_IDASSERT_AUTHCDN, ldap_back_cf_gen,
      "( OLcfgDbAt:3.5 "
      "NAME 'olcDbIDAssertAuthcDn' "
      "DESC 'Remote Identity Assertion administrative identity' "
@@ -144,11 +137,9 @@ static ConfigTable ldapcfg[] = {
      "SINGLE-VALUE )",
      NULL, NULL},
     /* deprecated, will be removed; partially aliases "idassert-authcDN" */
-    {"proxyauthzdn", "DN", 2, 2, 0,
-     ARG_DN | ARG_MAGIC | LDAP_BACK_CFG_IDASSERT_AUTHCDN, ldap_back_cf_gen,
-     NULL, NULL, NULL},
-    {"idassert-passwd", "cred", 2, 2, 0,
-     ARG_MAGIC | LDAP_BACK_CFG_IDASSERT_PASSWD, ldap_back_cf_gen,
+    {"proxyauthzdn", "DN", 2, 2, 0, ARG_DN | ARG_MAGIC | LDAP_BACK_CFG_IDASSERT_AUTHCDN, ldap_back_cf_gen, NULL, NULL,
+     NULL},
+    {"idassert-passwd", "cred", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_IDASSERT_PASSWD, ldap_back_cf_gen,
      "( OLcfgDbAt:3.6 "
      "NAME 'olcDbIDAssertPasswd' "
      "DESC 'Remote Identity Assertion administrative identity credentials' "
@@ -157,10 +148,8 @@ static ConfigTable ldapcfg[] = {
      "SINGLE-VALUE )",
      NULL, NULL},
     /* deprecated, will be removed; partially aliases "idassert-passwd" */
-    {"proxyauthzpw", "cred", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_IDASSERT_PASSWD,
-     ldap_back_cf_gen, NULL, NULL, NULL},
-    {"idassert-bind", "args", 2, 0, 0, ARG_MAGIC | LDAP_BACK_CFG_IDASSERT_BIND,
-     ldap_back_cf_gen,
+    {"proxyauthzpw", "cred", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_IDASSERT_PASSWD, ldap_back_cf_gen, NULL, NULL, NULL},
+    {"idassert-bind", "args", 2, 0, 0, ARG_MAGIC | LDAP_BACK_CFG_IDASSERT_BIND, ldap_back_cf_gen,
      "( OLcfgDbAt:3.7 "
      "NAME 'olcDbIDAssertBind' "
      "DESC 'Remote Identity Assertion administrative identity auth bind "
@@ -169,11 +158,9 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"idassert-method", "args", 2, 0, 0,
-     ARG_MAGIC | LDAP_BACK_CFG_IDASSERT_METHOD, ldap_back_cf_gen, NULL, NULL,
-     NULL},
-    {"idassert-mode", "mode>|u:<user>|[dn:]<DN", 2, 0, 0,
-     ARG_STRING | ARG_MAGIC | LDAP_BACK_CFG_IDASSERT_MODE, ldap_back_cf_gen,
+    {"idassert-method", "args", 2, 0, 0, ARG_MAGIC | LDAP_BACK_CFG_IDASSERT_METHOD, ldap_back_cf_gen, NULL, NULL, NULL},
+    {"idassert-mode", "mode>|u:<user>|[dn:]<DN", 2, 0, 0, ARG_STRING | ARG_MAGIC | LDAP_BACK_CFG_IDASSERT_MODE,
+     ldap_back_cf_gen,
      "( OLcfgDbAt:3.8 "
      "NAME 'olcDbIDAssertMode' "
      "DESC 'Remote Identity Assertion mode' "
@@ -181,8 +168,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE)",
      NULL, NULL},
-    {"idassert-authzFrom", "authzRule", 2, 2, 0,
-     ARG_MAGIC | LDAP_BACK_CFG_IDASSERT_AUTHZFROM, ldap_back_cf_gen,
+    {"idassert-authzFrom", "authzRule", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_IDASSERT_AUTHZFROM, ldap_back_cf_gen,
      "( OLcfgDbAt:3.9 "
      "NAME 'olcDbIDAssertAuthzFrom' "
      "DESC 'Remote Identity Assertion authz rules' "
@@ -190,8 +176,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsDirectoryString "
      "X-ORDERED 'VALUES' )",
      NULL, NULL},
-    {"rebind-as-user", "true|FALSE", 1, 2, 0,
-     ARG_MAGIC | ARG_ON_OFF | LDAP_BACK_CFG_REBIND, ldap_back_cf_gen,
+    {"rebind-as-user", "true|FALSE", 1, 2, 0, ARG_MAGIC | ARG_ON_OFF | LDAP_BACK_CFG_REBIND, ldap_back_cf_gen,
      "( OLcfgDbAt:3.10 "
      "NAME 'olcDbRebindAsUser' "
      "DESC 'Rebind as user' "
@@ -199,8 +184,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsBoolean "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"chase-referrals", "true|FALSE", 2, 2, 0,
-     ARG_MAGIC | ARG_ON_OFF | LDAP_BACK_CFG_CHASE, ldap_back_cf_gen,
+    {"chase-referrals", "true|FALSE", 2, 2, 0, ARG_MAGIC | ARG_ON_OFF | LDAP_BACK_CFG_CHASE, ldap_back_cf_gen,
      "( OLcfgDbAt:3.11 "
      "NAME 'olcDbChaseReferrals' "
      "DESC 'Chase referrals' "
@@ -208,8 +192,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsBoolean "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"t-f-support", "true|FALSE|discover", 2, 2, 0,
-     ARG_MAGIC | LDAP_BACK_CFG_T_F, ldap_back_cf_gen,
+    {"t-f-support", "true|FALSE|discover", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_T_F, ldap_back_cf_gen,
      "( OLcfgDbAt:3.12 "
      "NAME 'olcDbTFSupport' "
      "DESC 'Absolute filters support' "
@@ -217,8 +200,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"proxy-whoami", "true|FALSE", 1, 2, 0,
-     ARG_MAGIC | ARG_ON_OFF | LDAP_BACK_CFG_WHOAMI, ldap_back_cf_gen,
+    {"proxy-whoami", "true|FALSE", 1, 2, 0, ARG_MAGIC | ARG_ON_OFF | LDAP_BACK_CFG_WHOAMI, ldap_back_cf_gen,
      "( OLcfgDbAt:3.13 "
      "NAME 'olcDbProxyWhoAmI' "
      "DESC 'Proxy whoAmI exop' "
@@ -226,8 +208,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsBoolean "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"timeout", "timeout(list)", 2, 0, 0, ARG_MAGIC | LDAP_BACK_CFG_TIMEOUT,
-     ldap_back_cf_gen,
+    {"timeout", "timeout(list)", 2, 0, 0, ARG_MAGIC | LDAP_BACK_CFG_TIMEOUT, ldap_back_cf_gen,
      "( OLcfgDbAt:3.14 "
      "NAME 'olcDbTimeout' "
      "DESC 'Per-operation timeouts' "
@@ -235,8 +216,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"idle-timeout", "timeout", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_IDLE_TIMEOUT,
-     ldap_back_cf_gen,
+    {"idle-timeout", "timeout", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_IDLE_TIMEOUT, ldap_back_cf_gen,
      "( OLcfgDbAt:3.15 "
      "NAME 'olcDbIdleTimeout' "
      "DESC 'connection idle timeout' "
@@ -244,8 +224,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"conn-ttl", "ttl", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_CONN_TTL,
-     ldap_back_cf_gen,
+    {"conn-ttl", "ttl", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_CONN_TTL, ldap_back_cf_gen,
      "( OLcfgDbAt:3.16 "
      "NAME 'olcDbConnTtl' "
      "DESC 'connection ttl' "
@@ -253,8 +232,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"network-timeout", "timeout", 2, 2, 0,
-     ARG_MAGIC | LDAP_BACK_CFG_NETWORK_TIMEOUT, ldap_back_cf_gen,
+    {"network-timeout", "timeout", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_NETWORK_TIMEOUT, ldap_back_cf_gen,
      "( OLcfgDbAt:3.17 "
      "NAME 'olcDbNetworkTimeout' "
      "DESC 'connection network timeout' "
@@ -262,8 +240,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"protocol-version", "version", 2, 2, 0,
-     ARG_MAGIC | ARG_INT | LDAP_BACK_CFG_VERSION, ldap_back_cf_gen,
+    {"protocol-version", "version", 2, 2, 0, ARG_MAGIC | ARG_INT | LDAP_BACK_CFG_VERSION, ldap_back_cf_gen,
      "( OLcfgDbAt:3.18 "
      "NAME 'olcDbProtocolVersion' "
      "DESC 'protocol version' "
@@ -271,8 +248,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsInteger "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"single-conn", "true|FALSE", 2, 2, 0,
-     ARG_MAGIC | ARG_ON_OFF | LDAP_BACK_CFG_SINGLECONN, ldap_back_cf_gen,
+    {"single-conn", "true|FALSE", 2, 2, 0, ARG_MAGIC | ARG_ON_OFF | LDAP_BACK_CFG_SINGLECONN, ldap_back_cf_gen,
      "( OLcfgDbAt:3.19 "
      "NAME 'olcDbSingleConn' "
      "DESC 'cache a single connection per identity' "
@@ -280,8 +256,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsBoolean "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"cancel", "ABANDON|ignore|exop", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_CANCEL,
-     ldap_back_cf_gen,
+    {"cancel", "ABANDON|ignore|exop", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_CANCEL, ldap_back_cf_gen,
      "( OLcfgDbAt:3.20 "
      "NAME 'olcDbCancel' "
      "DESC 'abandon/ignore/exop operations when appropriate' "
@@ -289,8 +264,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"quarantine", "retrylist", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_QUARANTINE,
-     ldap_back_cf_gen,
+    {"quarantine", "retrylist", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_QUARANTINE, ldap_back_cf_gen,
      "( OLcfgDbAt:3.21 "
      "NAME 'olcDbQuarantine' "
      "DESC 'Quarantine database if connection fails and retry according to "
@@ -299,8 +273,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"use-temporary-conn", "true|FALSE", 2, 2, 0,
-     ARG_MAGIC | ARG_ON_OFF | LDAP_BACK_CFG_USETEMP, ldap_back_cf_gen,
+    {"use-temporary-conn", "true|FALSE", 2, 2, 0, ARG_MAGIC | ARG_ON_OFF | LDAP_BACK_CFG_USETEMP, ldap_back_cf_gen,
      "( OLcfgDbAt:3.22 "
      "NAME 'olcDbUseTemporaryConn' "
      "DESC 'Use temporary connections if the cached one is busy' "
@@ -308,8 +281,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsBoolean "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"conn-pool-max", "<n>", 2, 2, 0,
-     ARG_MAGIC | ARG_INT | LDAP_BACK_CFG_CONNPOOLMAX, ldap_back_cf_gen,
+    {"conn-pool-max", "<n>", 2, 2, 0, ARG_MAGIC | ARG_INT | LDAP_BACK_CFG_CONNPOOLMAX, ldap_back_cf_gen,
      "( OLcfgDbAt:3.23 "
      "NAME 'olcDbConnectionPoolMax' "
      "DESC 'Max size of privileged connections pool' "
@@ -318,8 +290,8 @@ static ConfigTable ldapcfg[] = {
      "SINGLE-VALUE )",
      NULL, NULL},
 #ifdef SLAP_CONTROL_X_SESSION_TRACKING
-    {"session-tracking-request", "true|FALSE", 2, 2, 0,
-     ARG_MAGIC | ARG_ON_OFF | LDAP_BACK_CFG_ST_REQUEST, ldap_back_cf_gen,
+    {"session-tracking-request", "true|FALSE", 2, 2, 0, ARG_MAGIC | ARG_ON_OFF | LDAP_BACK_CFG_ST_REQUEST,
+     ldap_back_cf_gen,
      "( OLcfgDbAt:3.24 "
      "NAME 'olcDbSessionTrackingRequest' "
      "DESC 'Add session tracking control to proxied requests' "
@@ -328,8 +300,7 @@ static ConfigTable ldapcfg[] = {
      "SINGLE-VALUE )",
      NULL, NULL},
 #endif /* SLAP_CONTROL_X_SESSION_TRACKING */
-    {"norefs", "true|FALSE", 2, 2, 0,
-     ARG_MAGIC | ARG_ON_OFF | LDAP_BACK_CFG_NOREFS, ldap_back_cf_gen,
+    {"norefs", "true|FALSE", 2, 2, 0, ARG_MAGIC | ARG_ON_OFF | LDAP_BACK_CFG_NOREFS, ldap_back_cf_gen,
      "( OLcfgDbAt:3.25 "
      "NAME 'olcDbNoRefs' "
      "DESC 'Do not return search reference responses' "
@@ -337,8 +308,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsBoolean "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"noundeffilter", "true|FALSE", 2, 2, 0,
-     ARG_MAGIC | ARG_ON_OFF | LDAP_BACK_CFG_NOUNDEFFILTER, ldap_back_cf_gen,
+    {"noundeffilter", "true|FALSE", 2, 2, 0, ARG_MAGIC | ARG_ON_OFF | LDAP_BACK_CFG_NOUNDEFFILTER, ldap_back_cf_gen,
      "( OLcfgDbAt:3.26 "
      "NAME 'olcDbNoUndefFilter' "
      "DESC 'Do not propagate undefined search filters' "
@@ -346,8 +316,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsBoolean "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"onerr", "CONTINUE|report|stop", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_ONERR,
-     ldap_back_cf_gen,
+    {"onerr", "CONTINUE|report|stop", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_ONERR, ldap_back_cf_gen,
      "( OLcfgDbAt:3.108 "
      "NAME 'olcDbOnErr' "
      "DESC 'error handling' "
@@ -355,8 +324,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"idassert-passThru", "authzRule", 2, 2, 0,
-     ARG_MAGIC | LDAP_BACK_CFG_IDASSERT_PASSTHRU, ldap_back_cf_gen,
+    {"idassert-passThru", "authzRule", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_IDASSERT_PASSTHRU, ldap_back_cf_gen,
      "( OLcfgDbAt:3.27 "
      "NAME 'olcDbIDAssertPassThru' "
      "DESC 'Remote Identity Assertion passthru rules' "
@@ -365,17 +333,13 @@ static ConfigTable ldapcfg[] = {
      "X-ORDERED 'VALUES' )",
      NULL, NULL},
 
-    {"suffixmassage", "[virtual]> <real", 2, 3, 0,
-     ARG_STRING | ARG_MAGIC | LDAP_BACK_CFG_REWRITE, ldap_back_cf_gen, NULL,
-     NULL, NULL},
-    {"map", "attribute|objectClass> [*|<local>] *|<remote", 3, 4, 0,
-     ARG_STRING | ARG_MAGIC | LDAP_BACK_CFG_REWRITE, ldap_back_cf_gen, NULL,
-     NULL, NULL},
-    {"rewrite", "<arglist>", 2, 4, STRLENOF("rewrite"),
-     ARG_STRING | ARG_MAGIC | LDAP_BACK_CFG_REWRITE, ldap_back_cf_gen, NULL,
-     NULL, NULL},
-    {"omit-unknown-schema", "true|FALSE", 2, 2, 0,
-     ARG_MAGIC | ARG_ON_OFF | LDAP_BACK_CFG_OMIT_UNKNOWN_SCHEMA,
+    {"suffixmassage", "[virtual]> <real", 2, 3, 0, ARG_STRING | ARG_MAGIC | LDAP_BACK_CFG_REWRITE, ldap_back_cf_gen,
+     NULL, NULL, NULL},
+    {"map", "attribute|objectClass> [*|<local>] *|<remote", 3, 4, 0, ARG_STRING | ARG_MAGIC | LDAP_BACK_CFG_REWRITE,
+     ldap_back_cf_gen, NULL, NULL, NULL},
+    {"rewrite", "<arglist>", 2, 4, STRLENOF("rewrite"), ARG_STRING | ARG_MAGIC | LDAP_BACK_CFG_REWRITE,
+     ldap_back_cf_gen, NULL, NULL, NULL},
+    {"omit-unknown-schema", "true|FALSE", 2, 2, 0, ARG_MAGIC | ARG_ON_OFF | LDAP_BACK_CFG_OMIT_UNKNOWN_SCHEMA,
      ldap_back_cf_gen,
      "( OLcfgDbAt:3.28 "
      "NAME 'olcDbRemoveUnknownSchema' "
@@ -384,8 +348,7 @@ static ConfigTable ldapcfg[] = {
      "SYNTAX OMsBoolean "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"keepalive", "keepalive", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_KEEPALIVE,
-     ldap_back_cf_gen,
+    {"keepalive", "keepalive", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_KEEPALIVE, ldap_back_cf_gen,
      "( OLcfgDbAt:3.29 "
      "NAME 'olcDbKeepalive' "
      "DESC 'TCP keepalive' "
@@ -450,16 +413,14 @@ static ConfigTable pbindcfg[] = {
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"network-timeout", "timeout", 2, 2, 0,
-     ARG_MAGIC | LDAP_BACK_CFG_NETWORK_TIMEOUT, ldap_pbind_cf_gen,
+    {"network-timeout", "timeout", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_NETWORK_TIMEOUT, ldap_pbind_cf_gen,
      "( OLcfgDbAt:3.17 "
      "NAME 'olcDbNetworkTimeout' "
      "DESC 'connection network timeout' "
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE )",
      NULL, NULL},
-    {"quarantine", "retrylist", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_QUARANTINE,
-     ldap_pbind_cf_gen,
+    {"quarantine", "retrylist", 2, 2, 0, ARG_MAGIC | LDAP_BACK_CFG_QUARANTINE, ldap_pbind_cf_gen,
      "( OLcfgDbAt:3.21 "
      "NAME 'olcDbQuarantine' "
      "DESC 'Quarantine database if connection fails and retry according to "
@@ -481,59 +442,52 @@ static ConfigOCs pbindocs[] = {{"( OLcfgOvOc:3.3 "
                                 Cft_Overlay, pbindcfg},
                                {NULL, 0, NULL}};
 
-static slap_verbmasks idassert_mode[] = {
-    {BER_BVC("self"), LDAP_BACK_IDASSERT_SELF},
-    {BER_BVC("anonymous"), LDAP_BACK_IDASSERT_ANONYMOUS},
-    {BER_BVC("none"), LDAP_BACK_IDASSERT_NOASSERT},
-    {BER_BVC("legacy"), LDAP_BACK_IDASSERT_LEGACY},
-    {BER_BVNULL, 0}};
+static slap_verbmasks idassert_mode[] = {{BER_BVC("self"), LDAP_BACK_IDASSERT_SELF},
+                                         {BER_BVC("anonymous"), LDAP_BACK_IDASSERT_ANONYMOUS},
+                                         {BER_BVC("none"), LDAP_BACK_IDASSERT_NOASSERT},
+                                         {BER_BVC("legacy"), LDAP_BACK_IDASSERT_LEGACY},
+                                         {BER_BVNULL, 0}};
 
-static slap_verbmasks tls_mode[] = {
-    {BER_BVC("propagate"), LDAP_BACK_F_TLS_PROPAGATE_MASK},
-    {BER_BVC("try-propagate"), LDAP_BACK_F_PROPAGATE_TLS},
-    {BER_BVC("start"), LDAP_BACK_F_TLS_USE_MASK},
-    {BER_BVC("try-start"), LDAP_BACK_F_USE_TLS},
-    {BER_BVC("ldaps"), LDAP_BACK_F_TLS_LDAPS},
-    {BER_BVC("none"), LDAP_BACK_F_NONE},
-    {BER_BVNULL, 0}};
+static slap_verbmasks tls_mode[] = {{BER_BVC("propagate"), LDAP_BACK_F_TLS_PROPAGATE_MASK},
+                                    {BER_BVC("try-propagate"), LDAP_BACK_F_PROPAGATE_TLS},
+                                    {BER_BVC("start"), LDAP_BACK_F_TLS_USE_MASK},
+                                    {BER_BVC("try-start"), LDAP_BACK_F_USE_TLS},
+                                    {BER_BVC("ldaps"), LDAP_BACK_F_TLS_LDAPS},
+                                    {BER_BVC("none"), LDAP_BACK_F_NONE},
+                                    {BER_BVNULL, 0}};
 
-static slap_verbmasks t_f_mode[] = {
-    {BER_BVC("yes"), LDAP_BACK_F_T_F},
-    {BER_BVC("discover"), LDAP_BACK_F_T_F_DISCOVER},
-    {BER_BVC("no"), LDAP_BACK_F_NONE},
-    {BER_BVNULL, 0}};
+static slap_verbmasks t_f_mode[] = {{BER_BVC("yes"), LDAP_BACK_F_T_F},
+                                    {BER_BVC("discover"), LDAP_BACK_F_T_F_DISCOVER},
+                                    {BER_BVC("no"), LDAP_BACK_F_NONE},
+                                    {BER_BVNULL, 0}};
 
-static slap_verbmasks cancel_mode[] = {
-    {BER_BVC("ignore"), LDAP_BACK_F_CANCEL_IGNORE},
-    {BER_BVC("exop"), LDAP_BACK_F_CANCEL_EXOP},
-    {BER_BVC("exop-discover"), LDAP_BACK_F_CANCEL_EXOP_DISCOVER},
-    {BER_BVC("abandon"), LDAP_BACK_F_CANCEL_ABANDON},
-    {BER_BVNULL, 0}};
+static slap_verbmasks cancel_mode[] = {{BER_BVC("ignore"), LDAP_BACK_F_CANCEL_IGNORE},
+                                       {BER_BVC("exop"), LDAP_BACK_F_CANCEL_EXOP},
+                                       {BER_BVC("exop-discover"), LDAP_BACK_F_CANCEL_EXOP_DISCOVER},
+                                       {BER_BVC("abandon"), LDAP_BACK_F_CANCEL_ABANDON},
+                                       {BER_BVNULL, 0}};
 
-static slap_verbmasks onerr_mode[] = {
-    {BER_BVC("stop"), LDAP_BACK_F_ONERR_STOP},
-    {BER_BVC("report"), LDAP_BACK_F_ONERR_STOP}, /* same behavior */
-    {BER_BVC("continue"), LDAP_BACK_F_NONE},
-    {BER_BVNULL, 0}};
+static slap_verbmasks onerr_mode[] = {{BER_BVC("stop"), LDAP_BACK_F_ONERR_STOP},
+                                      {BER_BVC("report"), LDAP_BACK_F_ONERR_STOP}, /* same behavior */
+                                      {BER_BVC("continue"), LDAP_BACK_F_NONE},
+                                      {BER_BVNULL, 0}};
 
 /* see enum in slap.h */
-static slap_cf_aux_table timeout_table[] = {
-    {BER_BVC("bind="), SLAP_OP_BIND * sizeof(time_t), 'u', 0, NULL},
-    /* unbind makes no sense */
-    {BER_BVC("add="), SLAP_OP_ADD * sizeof(time_t), 'u', 0, NULL},
-    {BER_BVC("delete="), SLAP_OP_DELETE * sizeof(time_t), 'u', 0, NULL},
-    {BER_BVC("modrdn="), SLAP_OP_MODRDN * sizeof(time_t), 'u', 0, NULL},
-    {BER_BVC("modify="), SLAP_OP_MODIFY * sizeof(time_t), 'u', 0, NULL},
-    {BER_BVC("compare="), SLAP_OP_COMPARE * sizeof(time_t), 'u', 0, NULL},
-    {BER_BVC("search="), SLAP_OP_SEARCH * sizeof(time_t), 'u', 0, NULL},
+static slap_cf_aux_table timeout_table[] = {{BER_BVC("bind="), SLAP_OP_BIND * sizeof(time_t), 'u', 0, NULL},
+                                            /* unbind makes no sense */
+                                            {BER_BVC("add="), SLAP_OP_ADD * sizeof(time_t), 'u', 0, NULL},
+                                            {BER_BVC("delete="), SLAP_OP_DELETE * sizeof(time_t), 'u', 0, NULL},
+                                            {BER_BVC("modrdn="), SLAP_OP_MODRDN * sizeof(time_t), 'u', 0, NULL},
+                                            {BER_BVC("modify="), SLAP_OP_MODIFY * sizeof(time_t), 'u', 0, NULL},
+                                            {BER_BVC("compare="), SLAP_OP_COMPARE * sizeof(time_t), 'u', 0, NULL},
+                                            {BER_BVC("search="), SLAP_OP_SEARCH * sizeof(time_t), 'u', 0, NULL},
 /* abandon makes little sense */
 #if 0 /* not implemented yet */
 	{ BER_BVC("extended="),	SLAP_OP_EXTENDED * sizeof( time_t ),	'u', 0, NULL },
 #endif
-    {BER_BVNULL, 0, 0, 0, NULL}};
+                                            {BER_BVNULL, 0, 0, 0, NULL}};
 
-int slap_retry_info_parse(char *in, slap_retry_info_t *ri, char *buf,
-                          ber_len_t buflen) {
+int slap_retry_info_parse(char *in, slap_retry_info_t *ri, char *buf, ber_len_t buflen) {
   char **retrylist = NULL;
   int rc = 0;
   int i;
@@ -554,8 +508,7 @@ int slap_retry_info_parse(char *in, slap_retry_info_t *ri, char *buf,
     char *sep = strchr(retrylist[i], ',');
 
     if (sep == NULL) {
-      snprintf(buf, buflen, "missing comma in retry pattern #%d \"%s\"", i,
-               retrylist[i]);
+      snprintf(buf, buflen, "missing comma in retry pattern #%d \"%s\"", i, retrylist[i]);
       rc = 1;
       goto done;
     }
@@ -563,8 +516,7 @@ int slap_retry_info_parse(char *in, slap_retry_info_t *ri, char *buf,
     *sep++ = '\0';
 
     if (lutil_parse_time(retrylist[i], &t)) {
-      snprintf(buf, buflen, "unable to parse interval #%d \"%s\"", i,
-               retrylist[i]);
+      snprintf(buf, buflen, "unable to parse interval #%d \"%s\"", i, retrylist[i]);
       rc = 1;
       goto done;
     }
@@ -671,8 +623,7 @@ int slap_idassert_authzfrom_parse(ConfigArgs *c, slap_idassert_t *si) {
   struct berval in;
   int rc;
 
-  if (strcmp(c->argv[1], "*") == 0 || strcmp(c->argv[1], "dn:*") == 0 ||
-      strcasecmp(c->argv[1], "dn.regex:.*") == 0) {
+  if (strcmp(c->argv[1], "*") == 0 || strcmp(c->argv[1], "dn:*") == 0 || strcasecmp(c->argv[1], "dn.regex:.*") == 0) {
     if (si->si_authz != NULL) {
       snprintf(c->cr_msg, sizeof(c->cr_msg),
                "\"%s <authz>\": "
@@ -720,8 +671,7 @@ int slap_idassert_authzfrom_parse(ConfigArgs *c, slap_idassert_t *si) {
       ber_bvarray_add(&si->si_authz, &bv);
 
     } else {
-      BerVarray tmp =
-          ber_memrealloc(si->si_authz, sizeof(struct berval) * (i + 2));
+      BerVarray tmp = ber_memrealloc(si->si_authz, sizeof(struct berval) * (i + 2));
       if (tmp == NULL) {
         return -1;
       }
@@ -766,8 +716,7 @@ static int slap_idassert_passthru_parse(ConfigArgs *c, slap_idassert_t *si) {
       ber_bvarray_add(&si->si_passthru, &bv);
 
     } else {
-      BerVarray tmp =
-          ber_memrealloc(si->si_passthru, sizeof(struct berval) * (i + 2));
+      BerVarray tmp = ber_memrealloc(si->si_passthru, sizeof(struct berval) * (i + 2));
       if (tmp == NULL) {
         return -1;
       }
@@ -930,8 +879,7 @@ int slap_idassert_parse(ConfigArgs *c, slap_idassert_t *si) {
   }
 
   if (si->si_bc.sb_method == LDAP_AUTH_SIMPLE) {
-    if (BER_BVISNULL(&si->si_bc.sb_binddn) ||
-        BER_BVISNULL(&si->si_bc.sb_cred)) {
+    if (BER_BVISNULL(&si->si_bc.sb_binddn) || BER_BVISNULL(&si->si_bc.sb_cred)) {
       snprintf(c->cr_msg, sizeof(c->cr_msg),
                "\"%s <args>\": "
                "SIMPLE needs \"binddn\" and \"credentials\"",
@@ -941,8 +889,7 @@ int slap_idassert_parse(ConfigArgs *c, slap_idassert_t *si) {
     }
 
   } else if (si->si_bc.sb_method == LDAP_AUTH_SASL) {
-    if (BER_BVISNULL(&si->si_bc.sb_binddn) &&
-        !(si->si_flags & LDAP_BACK_AUTH_DN_MASK)) {
+    if (BER_BVISNULL(&si->si_bc.sb_binddn) && !(si->si_flags & LDAP_BACK_AUTH_DN_MASK)) {
       static struct berval authid = BER_BVC("cn=auth");
       ber_dupbv(&si->si_bc.sb_binddn, &authid);
     }
@@ -954,8 +901,7 @@ int slap_idassert_parse(ConfigArgs *c, slap_idassert_t *si) {
 }
 
 /* NOTE: temporary, until back-meta is ported to back-config */
-int slap_idassert_passthru_parse_cf(const char *fname, int lineno,
-                                    const char *arg, slap_idassert_t *si) {
+int slap_idassert_passthru_parse_cf(const char *fname, int lineno, const char *arg, slap_idassert_t *si) {
   ConfigArgs c = {0};
   char *argv[3];
 
@@ -1073,8 +1019,7 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
       }
 
       if (*bvp == NULL) {
-        if (bvp == &li->li_idassert_authz &&
-            (li->li_idassert_flags & LDAP_BACK_AUTH_AUTHZ_ALL)) {
+        if (bvp == &li->li_idassert_authz && (li->li_idassert_flags & LDAP_BACK_AUTH_AUTHZ_ALL)) {
           BER_BVSTR(&bv, "*");
           value_add_one(&c->rvalue_vals, &bv);
 
@@ -1155,9 +1100,8 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
           (void)lutil_strcopy(ptr, "authz=native");
         }
 
-        len = bv.bv_len +
-              STRLENOF("flags=non-prescriptive,override,obsolete-encoding-"
-                       "workaround,proxy-authz-non-critical,dn-authzid");
+        len = bv.bv_len + STRLENOF("flags=non-prescriptive,override,obsolete-encoding-"
+                                   "workaround,proxy-authz-non-critical,dn-authzid");
         /* flags */
         if (!BER_BVISEMPTY(&bv)) {
           len += STRLENOF(" ");
@@ -1186,8 +1130,7 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
         if (li->li_idassert_flags & LDAP_BACK_AUTH_OBSOLETE_PROXY_AUTHZ) {
           ptr = lutil_strcopy(ptr, ",obsolete-proxy-authz");
 
-        } else if (li->li_idassert_flags &
-                   LDAP_BACK_AUTH_OBSOLETE_ENCODING_WORKAROUND) {
+        } else if (li->li_idassert_flags & LDAP_BACK_AUTH_OBSOLETE_ENCODING_WORKAROUND) {
           ptr = lutil_strcopy(ptr, ",obsolete-encoding-workaround");
         }
 
@@ -1631,8 +1574,7 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
     }
 
     /* PARANOID: DN and more are not required nor allowed */
-    urlrc = ldap_url_parselist_ext(&lud, c->argv[1], ", \t",
-                                   LDAP_PVT_URL_PARSE_NONE);
+    urlrc = ldap_url_parselist_ext(&lud, c->argv[1], ", \t", LDAP_PVT_URL_PARSE_NONE);
     if (urlrc != LDAP_URL_SUCCESS) {
       char *why;
 
@@ -1845,18 +1787,14 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
 
         rc = dnNormalize(0, NULL, NULL, &id, &ndn, NULL);
         if (rc != LDAP_SUCCESS) {
-          Debug(LDAP_DEBUG_ANY,
-                "%s: line %d: idassert ID \"%s\" is not a valid DN\n", c->fname,
-                c->lineno, c->argv[1]);
+          Debug(LDAP_DEBUG_ANY, "%s: line %d: idassert ID \"%s\" is not a valid DN\n", c->fname, c->lineno, c->argv[1]);
           return 1;
         }
 
         li->li_idassert_authzID.bv_len = STRLENOF("dn:") + ndn.bv_len;
-        li->li_idassert_authzID.bv_val =
-            ch_malloc(li->li_idassert_authzID.bv_len + 1);
+        li->li_idassert_authzID.bv_val = ch_malloc(li->li_idassert_authzID.bv_len + 1);
         memcpy(li->li_idassert_authzID.bv_val, "dn:", STRLENOF("dn:"));
-        memcpy(&li->li_idassert_authzID.bv_val[STRLENOF("dn:")], ndn.bv_val,
-               ndn.bv_len + 1);
+        memcpy(&li->li_idassert_authzID.bv_val[STRLENOF("dn:")], ndn.bv_val, ndn.bv_len + 1);
         ch_free(ndn.bv_val);
 
         li->li_idassert_mode = LDAP_BACK_IDASSERT_OTHERDN;
@@ -1880,8 +1818,7 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
           li->li_idassert_flags &= (~LDAP_BACK_AUTH_PRESCRIPTIVE);
 
         } else if (strcasecmp(c->argv[i], "obsolete-proxy-authz") == 0) {
-          if (li->li_idassert_flags &
-              LDAP_BACK_AUTH_OBSOLETE_ENCODING_WORKAROUND) {
+          if (li->li_idassert_flags & LDAP_BACK_AUTH_OBSOLETE_ENCODING_WORKAROUND) {
             Debug(LDAP_DEBUG_ANY,
                   "%s: line %d: \"obsolete-proxy-authz\" flag "
                   "in \"idassert-mode <args>\" "
@@ -1892,8 +1829,7 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
           }
           li->li_idassert_flags |= LDAP_BACK_AUTH_OBSOLETE_PROXY_AUTHZ;
 
-        } else if (strcasecmp(c->argv[i], "obsolete-encoding-workaround") ==
-                   0) {
+        } else if (strcasecmp(c->argv[i], "obsolete-encoding-workaround") == 0) {
           if (li->li_idassert_flags & LDAP_BACK_AUTH_OBSOLETE_PROXY_AUTHZ) {
             Debug(LDAP_DEBUG_ANY,
                   "%s: line %d: \"obsolete-encoding-workaround\" flag "
@@ -2014,8 +1950,7 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
 
     mask = t_f_mode[i].mask;
 
-    if (LDAP_BACK_ISOPEN(li) && mask == LDAP_BACK_F_T_F_DISCOVER &&
-        !LDAP_BACK_T_F(li)) {
+    if (LDAP_BACK_ISOPEN(li) && mask == LDAP_BACK_F_T_F_DISCOVER && !LDAP_BACK_T_F(li)) {
       slap_bindconf sb = {BER_BVNULL};
       int rc;
 
@@ -2032,9 +1967,8 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
       sb.sb_method = LDAP_AUTH_SIMPLE;
       BER_BVSTR(&sb.sb_binddn, "");
 
-      rc = slap_discover_feature(
-          &sb, slap_schema.si_ad_supportedFeatures->ad_cname.bv_val,
-          LDAP_FEATURE_ABSOLUTE_FILTERS);
+      rc = slap_discover_feature(&sb, slap_schema.si_ad_supportedFeatures->ad_cname.bv_val,
+                                 LDAP_FEATURE_ABSOLUTE_FILTERS);
       if (rc == LDAP_COMPARE_TRUE) {
         mask |= LDAP_BACK_F_T_F;
       }
@@ -2047,8 +1981,7 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
   case LDAP_BACK_CFG_WHOAMI:
     if (c->argc == 1 || c->value_int) {
       li->li_flags |= LDAP_BACK_F_PROXY_WHOAMI;
-      extop_register((struct berval *)&slap_EXOP_WHOAMI, 0,
-                     ldap_back_exop_whoami);
+      extop_register((struct berval *)&slap_EXOP_WHOAMI, 0, ldap_back_exop_whoami);
 
     } else {
       li->li_flags &= ~LDAP_BACK_F_PROXY_WHOAMI;
@@ -2062,8 +1995,7 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
         unsigned u;
 
         if (lutil_atoux(&u, c->argv[i], 0) != 0) {
-          snprintf(c->cr_msg, sizeof(c->cr_msg),
-                   "unable to parse timeout \"%s\"", c->argv[i]);
+          snprintf(c->cr_msg, sizeof(c->cr_msg), "unable to parse timeout \"%s\"", c->argv[i]);
           Debug(LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg);
           return 1;
         }
@@ -2075,10 +2007,8 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
         continue;
       }
 
-      if (slap_cf_aux_table_parse(c->argv[i], li->li_timeout, timeout_table,
-                                  "slapd-ldap timeout")) {
-        snprintf(c->cr_msg, sizeof(c->cr_msg), "unable to parse timeout \"%s\"",
-                 c->argv[i]);
+      if (slap_cf_aux_table_parse(c->argv[i], li->li_timeout, timeout_table, "slapd-ldap timeout")) {
+        snprintf(c->cr_msg, sizeof(c->cr_msg), "unable to parse timeout \"%s\"", c->argv[i]);
         Debug(LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg);
         return 1;
       }
@@ -2089,8 +2019,7 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
     unsigned long t;
 
     if (lutil_parse_time(c->argv[1], &t) != 0) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "unable to parse idle timeout \"%s\"", c->argv[1]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "unable to parse idle timeout \"%s\"", c->argv[1]);
       Debug(LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg);
       return 1;
     }
@@ -2101,8 +2030,7 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
     unsigned long t;
 
     if (lutil_parse_time(c->argv[1], &t) != 0) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg), "unable to parse conn ttl\"%s\"",
-               c->argv[1]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "unable to parse conn ttl\"%s\"", c->argv[1]);
       Debug(LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg);
       return 1;
     }
@@ -2113,8 +2041,7 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
     unsigned long t;
 
     if (lutil_parse_time(c->argv[1], &t) != 0) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "unable to parse network timeout \"%s\"", c->argv[1]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "unable to parse network timeout \"%s\"", c->argv[1]);
       Debug(LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg);
       return 1;
     }
@@ -2122,8 +2049,7 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
   } break;
 
   case LDAP_BACK_CFG_VERSION:
-    if (c->value_int != 0 &&
-        (c->value_int < LDAP_VERSION_MIN || c->value_int > LDAP_VERSION_MAX)) {
+    if (c->value_int != 0 && (c->value_int < LDAP_VERSION_MIN || c->value_int > LDAP_VERSION_MAX)) {
       snprintf(c->cr_msg, sizeof(c->cr_msg),
                "unsupported version \"%s\" "
                "in \"protocol-version <version>\"",
@@ -2154,8 +2080,7 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
     break;
 
   case LDAP_BACK_CFG_CONNPOOLMAX:
-    if (c->value_int < LDAP_BACK_CONN_PRIV_MIN ||
-        c->value_int > LDAP_BACK_CONN_PRIV_MAX) {
+    if (c->value_int < LDAP_BACK_CONN_PRIV_MIN || c->value_int > LDAP_BACK_CONN_PRIV_MAX) {
       snprintf(c->cr_msg, sizeof(c->cr_msg),
                "invalid max size "
                "of privileged "
@@ -2179,8 +2104,7 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
 
     mask = cancel_mode[i].mask;
 
-    if (LDAP_BACK_ISOPEN(li) && mask == LDAP_BACK_F_CANCEL_EXOP_DISCOVER &&
-        !LDAP_BACK_CANCEL(li)) {
+    if (LDAP_BACK_ISOPEN(li) && mask == LDAP_BACK_F_CANCEL_EXOP_DISCOVER && !LDAP_BACK_CANCEL(li)) {
       slap_bindconf sb = {BER_BVNULL};
       int rc;
 
@@ -2197,9 +2121,7 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
       sb.sb_method = LDAP_AUTH_SIMPLE;
       BER_BVSTR(&sb.sb_binddn, "");
 
-      rc = slap_discover_feature(
-          &sb, slap_schema.si_ad_supportedExtension->ad_cname.bv_val,
-          LDAP_EXOP_CANCEL);
+      rc = slap_discover_feature(&sb, slap_schema.si_ad_supportedExtension->ad_cname.bv_val, LDAP_EXOP_CANCEL);
       if (rc == LDAP_COMPARE_TRUE) {
         mask |= LDAP_BACK_F_CANCEL_EXOP;
       }
@@ -2215,8 +2137,7 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
       Debug(LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg);
       return 1;
     }
-    rc = slap_retry_info_parse(c->argv[1], &li->li_quarantine, c->cr_msg,
-                               sizeof(c->cr_msg));
+    rc = slap_retry_info_parse(c->argv[1], &li->li_quarantine, c->cr_msg, sizeof(c->cr_msg));
     if (rc) {
       Debug(LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg);
 
@@ -2262,8 +2183,7 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
     /* onerr? */
     i = verb_to_mask(c->argv[1], onerr_mode);
     if (BER_BVISNULL(&onerr_mode[i].word)) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg), "%s unknown argument \"%s\"",
-               c->argv[0], c->argv[1]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "%s unknown argument \"%s\"", c->argv[0], c->argv[1]);
       Debug(LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg);
       return 1;
     }
@@ -2290,8 +2210,7 @@ static int ldap_back_cf_gen(ConfigArgs *c) {
     break;
 
   case LDAP_BACK_CFG_KEEPALIVE:
-    slap_keepalive_parse(ber_bvstrdup(c->argv[1]), &li->li_tls.sb_keepalive, 0,
-                         0, 0);
+    slap_keepalive_parse(ber_bvstrdup(c->argv[1]), &li->li_tls.sb_keepalive, 0, 0, 0);
     break;
 
   default:
@@ -2329,8 +2248,7 @@ int ldap_back_init_cf(BackendInfo *bi) {
           "attribute description: %d: %s\n",
           rc, text);
   } else {
-    (void)ldif_must_b64_encode_register(ad->ad_cname.bv_val,
-                                        ad->ad_type->sat_oid);
+    (void)ldif_must_b64_encode_register(ad->ad_cname.bv_val, ad->ad_type->sat_oid);
   }
 
   ad = NULL;
@@ -2342,8 +2260,7 @@ int ldap_back_init_cf(BackendInfo *bi) {
           "attribute description: %d: %s\n",
           rc, text);
   } else {
-    (void)ldif_must_b64_encode_register(ad->ad_cname.bv_val,
-                                        ad->ad_type->sat_oid);
+    (void)ldif_must_b64_encode_register(ad->ad_cname.bv_val, ad->ad_type->sat_oid);
   }
 
   return 0;
@@ -2377,14 +2294,12 @@ static int ldap_back_exop_whoami(Operation *op, SlapReply *rs) {
 
   Statslog(LDAP_DEBUG_STATS, "%s WHOAMI\n", op->o_log_prefix);
 
-  rs->sr_err =
-      backend_check_restrictions(op, rs, (struct berval *)&slap_EXOP_WHOAMI);
+  rs->sr_err = backend_check_restrictions(op, rs, (struct berval *)&slap_EXOP_WHOAMI);
   if (rs->sr_err != LDAP_SUCCESS)
     return rs->sr_err;
 
   /* if auth'd by back-ldap and request is proxied, forward it */
-  if (op->o_conn->c_authz_backend &&
-      !strcmp(op->o_conn->c_authz_backend->be_type, "ldap") &&
+  if (op->o_conn->c_authz_backend && !strcmp(op->o_conn->c_authz_backend->be_type, "ldap") &&
       !dn_match(&op->o_ndn, &op->o_conn->c_ndn)) {
     ldapconn_t *lc = NULL;
     LDAPControl c, *ctrls[2] = {NULL, NULL};
@@ -2401,8 +2316,7 @@ static int ldap_back_exop_whoami(Operation *op, SlapReply *rs) {
     }
     c.ldctl_oid = LDAP_CONTROL_PROXY_AUTHZ;
     c.ldctl_iscritical = 1;
-    c.ldctl_value.bv_val =
-        op->o_tmpalloc(op->o_ndn.bv_len + STRLENOF("dn:") + 1, op->o_tmpmemctx);
+    c.ldctl_value.bv_val = op->o_tmpalloc(op->o_ndn.bv_len + STRLENOF("dn:") + 1, op->o_tmpmemctx);
     c.ldctl_value.bv_len = op->o_ndn.bv_len + 3;
     ptr = c.ldctl_value.bv_val;
     ptr = lutil_strcopy(ptr, "dn:");

@@ -38,9 +38,8 @@
 #include <stdio.h> */
 
 #if !defined(UNALIGNED_OK) /* FIXME: detection by configure/cmake */
-#if defined(__i386) || defined(__x86_64__) || defined(_M_IX86) ||              \
-    defined(_M_X64) || defined(i386) || defined(_X86_) || defined(__i386__) || \
-    defined(_X86_64_)
+#if defined(__i386) || defined(__x86_64__) || defined(_M_IX86) || defined(_M_X64) || defined(i386) ||                  \
+    defined(_X86_) || defined(__i386__) || defined(_X86_64_)
 #define UNALIGNED_OK 1
 #else
 #define UNALIGNED_OK 0
@@ -68,8 +67,7 @@ static __inline
 #endif /* arch selector */
 }
 
-static __forceinline __maybe_unused uint64_t
-unaligned_load(const volatile void *ptr) {
+static __forceinline __maybe_unused uint64_t unaligned_load(const volatile void *ptr) {
 #if UNALIGNED_OK
   return *(const volatile uint64_t *)ptr;
 #else
@@ -83,8 +81,7 @@ unaligned_load(const volatile void *ptr) {
 #endif /* arch selector */
 }
 
-static __forceinline __maybe_unused void unaligned_store(volatile void *ptr,
-                                                         uint64_t value) {
+static __forceinline __maybe_unused void unaligned_store(volatile void *ptr, uint64_t value) {
 #if UNALIGNED_OK
   *(volatile uint64_t *)ptr = value;
 #else
@@ -200,9 +197,7 @@ static __forceinline unsigned canary() {
 unsigned lber_hug_nasty_disabled;
 #endif /* LDAP_MEMORY_DEBUG == 1 */
 
-static __forceinline uint32_t linear_congruential(uint32_t value) {
-  return value * 1664525u + 1013904223u;
-}
+static __forceinline uint32_t linear_congruential(uint32_t value) { return value * 1664525u + 1013904223u; }
 
 /*! Calculate magic mesh from a variable chirp and the constant salt n42 */
 static __inline uint32_t mixup(unsigned chirp, const unsigned n42) {
@@ -213,10 +208,7 @@ static __inline uint32_t mixup(unsigned chirp, const unsigned n42) {
     caramba = 1445174711lu * (unsigned long)(chirp + n42);
   else {
 #if (defined(__GNUC__) || defined(__clang__)) && defined(__i386__)
-    __asm("mull %2"
-          : "=A"(caramba)
-          : "a"(1445174711u), "r"(chirp + n42)
-          : "cc");
+    __asm("mull %2" : "=A"(caramba) : "a"(1445174711u), "r"(chirp + n42) : "cc");
 #else
     caramba = ((uint64_t)chirp + n42) * 1445174711u;
 #endif
@@ -251,8 +243,7 @@ __hot __flatten void lber_hug_setup(lber_hug_t *self, const unsigned n42) {
   }
 }
 
-__hot __flatten ATTRIBUTE_NO_SANITIZE_ADDRESS int
-lber_hug_probe(const lber_hug_t *self, const unsigned n42) {
+__hot __flatten ATTRIBUTE_NO_SANITIZE_ADDRESS int lber_hug_probe(const lber_hug_t *self, const unsigned n42) {
   if (unlikely(lber_hug_nasty_disabled == LBER_HUG_DISABLED))
     return 0;
 
@@ -262,9 +253,7 @@ lber_hug_probe(const lber_hug_t *self, const unsigned n42) {
   /* fprintf(stderr, "hipagut_probe: ptr %p | n42 %08x, "
                   "tale %016lx, chirp %08x, sign %08x ? %08x\n",
                   self, n42, tale, chirp, sign, mixup(chirp, n42)); */
-  return likely(fairly(chirp) && fairly(sign) && sign == mixup(chirp, n42))
-             ? 0
-             : -1;
+  return likely(fairly(chirp) && fairly(sign) && sign == mixup(chirp, n42)) ? 0 : -1;
 }
 
 __hot __flatten void lber_hug_drown(lber_hug_t *gizmo) {
@@ -277,9 +266,7 @@ void lber_hug_setup_link(lber_hug_t *slave, const lber_hug_t *master) {
   lber_hug_setup(slave, unaligned_load(master->opaque) >> 32);
 }
 
-void lber_hug_drown_link(lber_hug_t *slave, const lber_hug_t *master) {
-  lber_hug_drown(slave);
-}
+void lber_hug_drown_link(lber_hug_t *slave, const lber_hug_t *master) { lber_hug_drown(slave); }
 
 int lber_hug_probe_link(const lber_hug_t *slave, const lber_hug_t *master) {
   return lber_hug_probe(slave, unaligned_load(master->opaque) >> 32);
@@ -335,55 +322,44 @@ __hot __flatten size_t lber_hug_memchk_size(const void *payload, unsigned tag) {
   return size;
 }
 
-#define VALGRIND_CLOSE(memchunk)                                               \
-  do {                                                                         \
-    VALGRIND_MAKE_MEM_NOACCESS((char *)memchunk + sizeof(*memchunk) +          \
-                                   memchunk->hm_length,                        \
-                               sizeof(struct lber_hipagut));                   \
-    VALGRIND_MAKE_MEM_NOACCESS(memchunk, sizeof(*memchunk));                   \
-    ASAN_POISON_MEMORY_REGION((char *)memchunk + sizeof(*memchunk) +           \
-                                  memchunk->hm_length,                         \
-                              sizeof(struct lber_hipagut));                    \
-    ASAN_POISON_MEMORY_REGION(memchunk, sizeof(*memchunk));                    \
+#define VALGRIND_CLOSE(memchunk)                                                                                       \
+  do {                                                                                                                 \
+    VALGRIND_MAKE_MEM_NOACCESS((char *)memchunk + sizeof(*memchunk) + memchunk->hm_length,                             \
+                               sizeof(struct lber_hipagut));                                                           \
+    VALGRIND_MAKE_MEM_NOACCESS(memchunk, sizeof(*memchunk));                                                           \
+    ASAN_POISON_MEMORY_REGION((char *)memchunk + sizeof(*memchunk) + memchunk->hm_length,                              \
+                              sizeof(struct lber_hipagut));                                                            \
+    ASAN_POISON_MEMORY_REGION(memchunk, sizeof(*memchunk));                                                            \
   } while (0)
 
-#define VALGRIND_OPEN(memchunk)                                                \
-  do {                                                                         \
-    ASAN_UNPOISON_MEMORY_REGION(memchunk, sizeof(*memchunk));                  \
-    ASAN_UNPOISON_MEMORY_REGION((char *)memchunk + sizeof(*memchunk) +         \
-                                    memchunk->hm_length,                       \
-                                sizeof(struct lber_hipagut));                  \
-    VALGRIND_MAKE_MEM_DEFINED(memchunk, sizeof(*memchunk));                    \
-    VALGRIND_MAKE_MEM_DEFINED((char *)memchunk + sizeof(*memchunk) +           \
-                                  memchunk->hm_length,                         \
-                              sizeof(struct lber_hipagut));                    \
+#define VALGRIND_OPEN(memchunk)                                                                                        \
+  do {                                                                                                                 \
+    ASAN_UNPOISON_MEMORY_REGION(memchunk, sizeof(*memchunk));                                                          \
+    ASAN_UNPOISON_MEMORY_REGION((char *)memchunk + sizeof(*memchunk) + memchunk->hm_length,                            \
+                                sizeof(struct lber_hipagut));                                                          \
+    VALGRIND_MAKE_MEM_DEFINED(memchunk, sizeof(*memchunk));                                                            \
+    VALGRIND_MAKE_MEM_DEFINED((char *)memchunk + sizeof(*memchunk) + memchunk->hm_length,                              \
+                              sizeof(struct lber_hipagut));                                                            \
   } while (0)
 
-__hot __flatten ATTRIBUTE_NO_SANITIZE_ADDRESS int
-lber_hug_memchk_probe(const void *payload, unsigned tag, size_t *length,
-                      size_t *sequence) {
+__hot __flatten ATTRIBUTE_NO_SANITIZE_ADDRESS int lber_hug_memchk_probe(const void *payload, unsigned tag,
+                                                                        size_t *length, size_t *sequence) {
   struct lber_hug_memchk *memchunk = LBER_HUG_CHUNK(payload);
   unsigned bits = 0;
 
   if (likely(lber_hug_nasty_disabled != LBER_HUG_DISABLED)) {
-#if defined(HAVE_VALGRIND) || defined(USE_VALGRIND) ||                         \
-    defined(__SANITIZE_ADDRESS__)
+#if defined(HAVE_VALGRIND) || defined(USE_VALGRIND) || defined(__SANITIZE_ADDRESS__)
 #define N_ASAN_MUTEX 7
     static pthread_mutex_t asan_mutex[N_ASAN_MUTEX] = {
-        PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
-        PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
-        PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
-        PTHREAD_MUTEX_INITIALIZER};
-    pthread_mutex_t *mutex =
-        asan_mutex + ((unsigned)(uintptr_t)payload) % N_ASAN_MUTEX;
+        PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
+        PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER};
+    pthread_mutex_t *mutex = asan_mutex + ((unsigned)(uintptr_t)payload) % N_ASAN_MUTEX;
     LDAP_ENSURE(pthread_mutex_lock(mutex) == 0);
     VALGRIND_OPEN(memchunk);
 #endif
-    if (tag && unlikely(LBER_HUG_PROBE(memchunk->hm_guard_head,
-                                       MEMCHK_TAG_HEADER, tag)))
+    if (tag && unlikely(LBER_HUG_PROBE(memchunk->hm_guard_head, MEMCHK_TAG_HEADER, tag)))
       bits |= 1;
-    if (unlikely(
-            LBER_HUG_PROBE(memchunk->hm_guard_bottom, MEMCHK_TAG_BOTTOM, 0)))
+    if (unlikely(LBER_HUG_PROBE(memchunk->hm_guard_bottom, MEMCHK_TAG_BOTTOM, 0)))
       bits |= 2;
     if (likely(bits == 0)) {
       if (length)
@@ -391,20 +367,15 @@ lber_hug_memchk_probe(const void *payload, unsigned tag, size_t *length,
       if (sequence)
         *sequence = memchunk->hm_sequence;
       if (unlikely(LBER_HUG_PROBE_ASIDE(memchunk, MEMCHK_TAG_COVER, 0,
-                                        memchunk->hm_length +
-                                            sizeof(struct lber_hug_memchk))))
+                                        memchunk->hm_length + sizeof(struct lber_hug_memchk))))
         bits |= 4;
       else {
-        LDAP_ENSURE(
-            VALGRIND_CHECK_MEM_IS_ADDRESSABLE(
-                memchunk, memchunk->hm_length + LBER_HUG_MEMCHK_OVERHEAD) == 0);
+        LDAP_ENSURE(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(memchunk, memchunk->hm_length + LBER_HUG_MEMCHK_OVERHEAD) == 0);
 #ifdef __SANITIZE_ADDRESS__
-        char *bug = ASAN_REGION_IS_POISONED(
-            memchunk, memchunk->hm_length + LBER_HUG_MEMCHK_OVERHEAD);
+        char *bug = ASAN_REGION_IS_POISONED(memchunk, memchunk->hm_length + LBER_HUG_MEMCHK_OVERHEAD);
         if (unlikely(bug)) {
           __asan_report_error(
-              /* PC */ __builtin_extract_return_addr(
-                  __builtin_return_address(0)),
+              /* PC */ __builtin_extract_return_addr(__builtin_return_address(0)),
               /* BP */ __builtin_frame_address(0),
               /* SP */ __builtin_frame_address(0), bug, 0, 0);
           bits |= 8;
@@ -412,8 +383,7 @@ lber_hug_memchk_probe(const void *payload, unsigned tag, size_t *length,
 #endif
       }
     }
-#if defined(HAVE_VALGRIND) || defined(USE_VALGRIND) ||                         \
-    defined(__SANITIZE_ADDRESS__)
+#if defined(HAVE_VALGRIND) || defined(USE_VALGRIND) || defined(__SANITIZE_ADDRESS__)
     VALGRIND_CLOSE(memchunk);
     LDAP_ENSURE(pthread_mutex_unlock(mutex) == 0);
 #endif
@@ -428,8 +398,7 @@ __hot __flatten void lber_hug_memchk_ensure(const void *payload, unsigned tag) {
     lber_hug_memchk_throw(payload, bits);
 }
 
-__hot __flatten void *lber_hug_memchk_setup(struct lber_hug_memchk *memchunk,
-                                            size_t payload_size, unsigned tag,
+__hot __flatten void *lber_hug_memchk_setup(struct lber_hug_memchk *memchunk, size_t payload_size, unsigned tag,
                                             unsigned poison_mode) {
   void *payload = LBER_HUG_PAYLOAD(memchunk);
 
@@ -445,8 +414,7 @@ __hot __flatten void *lber_hug_memchk_setup(struct lber_hug_memchk *memchunk,
   memchunk->hm_length = payload_size;
   memchunk->hm_sequence = sequence;
   LBER_HUG_SETUP(memchunk->hm_guard_bottom, MEMCHK_TAG_BOTTOM, 0);
-  LBER_HUG_SETUP_ASIDE(memchunk, MEMCHK_TAG_COVER, 0,
-                       payload_size + sizeof(struct lber_hug_memchk));
+  LBER_HUG_SETUP_ASIDE(memchunk, MEMCHK_TAG_COVER, 0, payload_size + sizeof(struct lber_hug_memchk));
   VALGRIND_CLOSE(memchunk);
 
   if (poison_mode == LBER_HUG_POISON_DEFAULT)
@@ -493,8 +461,7 @@ __hot __flatten void *lber_hug_memchk_drown(void *payload, unsigned tag) {
   return memchunk;
 }
 
-static ATTRIBUTE_NO_SANITIZE_ADDRESS int
-lber_hug_memchk_probe_realloc(struct lber_hug_memchk *memchunk, unsigned key) {
+static ATTRIBUTE_NO_SANITIZE_ADDRESS int lber_hug_memchk_probe_realloc(struct lber_hug_memchk *memchunk, unsigned key) {
   unsigned bits = 0;
 
   if (likely(lber_hug_nasty_disabled != LBER_HUG_DISABLED)) {
@@ -503,22 +470,16 @@ lber_hug_memchk_probe_realloc(struct lber_hug_memchk *memchunk, unsigned key) {
     if (unlikely(lber_hug_probe(&memchunk->hm_guard_bottom, key + 1)))
       bits |= 2;
     if (likely(bits == 0)) {
-      if (unlikely(lber_hug_probe(
-              LBER_HUG_ASIDE(memchunk, memchunk->hm_length +
-                                           sizeof(struct lber_hug_memchk)),
-              key + 2)))
+      if (unlikely(
+              lber_hug_probe(LBER_HUG_ASIDE(memchunk, memchunk->hm_length + sizeof(struct lber_hug_memchk)), key + 2)))
         bits |= 4;
       else {
-        LDAP_ENSURE(
-            VALGRIND_CHECK_MEM_IS_ADDRESSABLE(
-                memchunk, memchunk->hm_length + LBER_HUG_MEMCHK_OVERHEAD) == 0);
+        LDAP_ENSURE(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(memchunk, memchunk->hm_length + LBER_HUG_MEMCHK_OVERHEAD) == 0);
 #ifdef __SANITIZE_ADDRESS__
-        char *bug = ASAN_REGION_IS_POISONED(
-            memchunk, memchunk->hm_length + LBER_HUG_MEMCHK_OVERHEAD);
+        char *bug = ASAN_REGION_IS_POISONED(memchunk, memchunk->hm_length + LBER_HUG_MEMCHK_OVERHEAD);
         if (unlikely(bug)) {
           __asan_report_error(
-              /* PC */ __builtin_extract_return_addr(
-                  __builtin_return_address(0)),
+              /* PC */ __builtin_extract_return_addr(__builtin_return_address(0)),
               /* BP */ __builtin_frame_address(0),
               /* SP */ __builtin_frame_address(0), bug, 0, 0);
           bits |= 8;
@@ -530,8 +491,7 @@ lber_hug_memchk_probe_realloc(struct lber_hug_memchk *memchunk, unsigned key) {
   return bits;
 }
 
-unsigned lber_hug_realloc_begin(const void *payload, unsigned tag,
-                                size_t *old_size) {
+unsigned lber_hug_realloc_begin(const void *payload, unsigned tag, size_t *old_size) {
   struct lber_hug_memchk *memchunk;
   unsigned key = canary();
 
@@ -541,16 +501,13 @@ unsigned lber_hug_realloc_begin(const void *payload, unsigned tag,
   *old_size = memchunk->hm_length;
   lber_hug_setup(&memchunk->hm_guard_head, key);
   lber_hug_setup(&memchunk->hm_guard_bottom, key + 1);
-  lber_hug_setup(LBER_HUG_ASIDE(memchunk, memchunk->hm_length +
-                                              sizeof(struct lber_hug_memchk)),
-                 key + 2);
+  lber_hug_setup(LBER_HUG_ASIDE(memchunk, memchunk->hm_length + sizeof(struct lber_hug_memchk)), key + 2);
 
   assert(lber_hug_memchk_probe_realloc(memchunk, key) == 0);
   return key;
 }
 
-void *lber_hug_realloc_undo(struct lber_hug_memchk *memchunk, unsigned tag,
-                            unsigned key) {
+void *lber_hug_realloc_undo(struct lber_hug_memchk *memchunk, unsigned tag, unsigned key) {
   unsigned bits = lber_hug_memchk_probe_realloc(memchunk, key);
 
   if (unlikely(bits != 0)) {
@@ -560,44 +517,35 @@ void *lber_hug_realloc_undo(struct lber_hug_memchk *memchunk, unsigned tag,
 
   LBER_HUG_SETUP(memchunk->hm_guard_head, MEMCHK_TAG_HEADER, tag);
   LBER_HUG_SETUP(memchunk->hm_guard_bottom, MEMCHK_TAG_BOTTOM, 0);
-  LBER_HUG_SETUP_ASIDE(memchunk, MEMCHK_TAG_COVER, 0,
-                       memchunk->hm_length + sizeof(struct lber_hug_memchk));
+  LBER_HUG_SETUP_ASIDE(memchunk, MEMCHK_TAG_COVER, 0, memchunk->hm_length + sizeof(struct lber_hug_memchk));
   VALGRIND_CLOSE(memchunk);
 
   return LBER_HUG_PAYLOAD(memchunk);
 }
 
-void *lber_hug_realloc_commit(size_t old_size,
-                              struct lber_hug_memchk *new_memchunk,
-                              unsigned tag, size_t new_size) {
+void *lber_hug_realloc_commit(size_t old_size, struct lber_hug_memchk *new_memchunk, unsigned tag, size_t new_size) {
   void *new_payload = LBER_HUG_PAYLOAD(new_memchunk);
 
-  LDAP_ENSURE(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(
-                  new_memchunk, new_size + LBER_HUG_MEMCHK_OVERHEAD) == 0);
-  LDAP_ENSURE(ASAN_REGION_IS_POISONED(
-                  new_memchunk, new_size + LBER_HUG_MEMCHK_OVERHEAD) == 0);
+  LDAP_ENSURE(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(new_memchunk, new_size + LBER_HUG_MEMCHK_OVERHEAD) == 0);
+  LDAP_ENSURE(ASAN_REGION_IS_POISONED(new_memchunk, new_size + LBER_HUG_MEMCHK_OVERHEAD) == 0);
 
   size_t sequence = LBER_HUG_DISABLED;
 #if LDAP_MEMORY_DEBUG > 2
   sequence = __sync_fetch_and_add(&lber_hug_memchk_info.mi_sequence, 1);
-  __sync_fetch_and_add(&lber_hug_memchk_info.mi_inuse_bytes,
-                       new_size - old_size);
+  __sync_fetch_and_add(&lber_hug_memchk_info.mi_inuse_bytes, new_size - old_size);
 #endif /* LDAP_MEMORY_DEBUG > 2 */
 
   LBER_HUG_SETUP(new_memchunk->hm_guard_head, MEMCHK_TAG_HEADER, tag);
   new_memchunk->hm_length = new_size;
   new_memchunk->hm_sequence = sequence;
   LBER_HUG_SETUP(new_memchunk->hm_guard_bottom, MEMCHK_TAG_BOTTOM, 0);
-  LBER_HUG_SETUP_ASIDE(new_memchunk, MEMCHK_TAG_COVER, 0,
-                       new_size + sizeof(struct lber_hug_memchk));
+  LBER_HUG_SETUP_ASIDE(new_memchunk, MEMCHK_TAG_COVER, 0, new_size + sizeof(struct lber_hug_memchk));
   VALGRIND_CLOSE(new_memchunk);
 
   if (new_size > old_size) {
     if (lber_hug_memchk_poison_alloc != LBER_HUG_POISON_DISABLED)
-      memset((char *)new_payload + old_size, (char)lber_hug_memchk_poison_alloc,
-             new_size - old_size);
-    VALGRIND_MAKE_MEM_UNDEFINED((char *)new_payload + old_size,
-                                new_size - old_size);
+      memset((char *)new_payload + old_size, (char)lber_hug_memchk_poison_alloc, new_size - old_size);
+    VALGRIND_MAKE_MEM_UNDEFINED((char *)new_payload + old_size, new_size - old_size);
   }
 
   assert(lber_hug_memchk_probe(new_payload, tag, NULL, NULL) == 0);
@@ -626,8 +574,8 @@ void __attribute__((constructor)) reopenldap_flags_init() {
 }
 
 __cold void reopenldap_flags_setup(int flags) {
-  reopenldap_flags = flags & (REOPENLDAP_FLAG_IDDQD | REOPENLDAP_FLAG_IDKFA |
-                              REOPENLDAP_FLAG_IDCLIP | REOPENLDAP_FLAG_JITTER);
+  reopenldap_flags =
+      flags & (REOPENLDAP_FLAG_IDDQD | REOPENLDAP_FLAG_IDKFA | REOPENLDAP_FLAG_IDCLIP | REOPENLDAP_FLAG_JITTER);
 
 #if LDAP_MEMORY_DEBUG > 0
 
@@ -636,9 +584,7 @@ __cold void reopenldap_flags_setup(int flags) {
 #endif /* LDAP_MEMORY_DEBUG == 1 */
 
   const char *poison_alloc = getenv("REOPENLDAP_POISON_ALLOC");
-  lber_hug_memchk_poison_alloc = (lber_hug_nasty_disabled == LBER_HUG_DISABLED)
-                                     ? LBER_HUG_POISON_DISABLED
-                                     : 0xCC;
+  lber_hug_memchk_poison_alloc = (lber_hug_nasty_disabled == LBER_HUG_DISABLED) ? LBER_HUG_POISON_DISABLED : 0xCC;
   if (poison_alloc) {
     if (*poison_alloc == 0 || strcasecmp(poison_alloc, "disabled") == 0)
       lber_hug_memchk_poison_alloc = LBER_HUG_POISON_DISABLED;
@@ -651,9 +597,7 @@ __cold void reopenldap_flags_setup(int flags) {
   }
 
   const char *poison_free = getenv("REOPENLDAP_POISON_FREE");
-  lber_hug_memchk_poison_free = (lber_hug_nasty_disabled == LBER_HUG_DISABLED)
-                                    ? LBER_HUG_POISON_DISABLED
-                                    : 0xDD;
+  lber_hug_memchk_poison_free = (lber_hug_nasty_disabled == LBER_HUG_DISABLED) ? LBER_HUG_POISON_DISABLED : 0xDD;
   if (poison_free) {
     if (*poison_free == 0 || strcasecmp(poison_free, "disabled") == 0)
       lber_hug_memchk_poison_free = LBER_HUG_POISON_DISABLED;
@@ -710,8 +654,7 @@ __cold static int64_t clock_mono2real_delta() {
   if (!clock_mono_id) {
     struct timespec ts;
 
-    clock_mono_id = (clock_gettime(CLOCK_BOOTTIME, &ts) == 0) ? CLOCK_BOOTTIME
-                                                              : CLOCK_MONOTONIC;
+    clock_mono_id = (clock_gettime(CLOCK_BOOTTIME, &ts) == 0) ? CLOCK_BOOTTIME : CLOCK_MONOTONIC;
   }
 #endif /* CLOCK_BOOTTIME */
 
@@ -724,8 +667,7 @@ __cold static int64_t clock_mono2real_delta() {
     delta_a = real_a - mono_a;
     delta_b = real_b - mono_b;
 
-    dist = sqr(real_b - real_a) + sqr(mono_b - mono_a) +
-           sqr(delta_b - delta_a) * 2;
+    dist = sqr(real_b - real_a) + sqr(mono_b - mono_a) + sqr(delta_b - delta_a) * 2;
 
     if (i == 0 || best_dist > dist) {
       best_dist = dist;
@@ -749,12 +691,10 @@ __hot uint64_t ldap_now_steady_ns(void) {
   uint64_t ns = clock_ns(clock_mono_id) + clock_mono2real_ns;
   static uint64_t previous_clock, previous_returned;
   if (unlikely(ns < previous_clock)) {
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERROR,
-        "Detected system steady-time adjusted backwards %e seconds\n",
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERROR, "Detected system steady-time adjusted backwards %e seconds\n",
         (previous_clock - ns) * 1e-9);
     if (reopenldap_mode_strict()) {
-      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_CRIT,
-          "Bailing out due %s-clock backwards in the strict mode.\n", "steady");
+      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_CRIT, "Bailing out due %s-clock backwards in the strict mode.\n", "steady");
       abort();
     }
   }
@@ -787,13 +727,10 @@ __hot unsigned ldap_timeval_realtime(struct timeval *tv) {
   static uint64_t previous;
   static unsigned previous_subtick;
   if (unlikely(us < previous)) {
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_WARNING,
-        "Detected system real-time adjusted backwards %e seconds\n",
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_WARNING, "Detected system real-time adjusted backwards %e seconds\n",
         (previous - us) * 1e-6);
     if (reopenldap_mode_strict()) {
-      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_CRIT,
-          "Bailing out due %s-clock backwards in the strict mode.\n",
-          "realtime");
+      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_CRIT, "Bailing out due %s-clock backwards in the strict mode.\n", "realtime");
       abort();
     }
     us = previous;

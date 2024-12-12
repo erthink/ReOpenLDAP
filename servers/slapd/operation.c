@@ -105,22 +105,19 @@ void slap_op_free(Operation *op, void *ctx) {
   BER_BVZERO(&op->o_req_ndn);
   memset(op->o_hdr, 0, sizeof(*op->o_hdr));
   memset(&op->o_request, 0, sizeof(op->o_request));
-  memset(&op->o_do_not_cache, 0,
-         sizeof(Operation) - offsetof(Operation, o_do_not_cache));
+  memset(&op->o_do_not_cache, 0, sizeof(Operation) - offsetof(Operation, o_do_not_cache));
   memset(opbuf->ob_controls, 0, sizeof(opbuf->ob_controls));
   op->o_controls = opbuf->ob_controls;
 
   if (ctx) {
     Operation *op2 = NULL;
-    ldap_pvt_thread_pool_setkey(ctx, (void *)slap_op_free, op,
-                                slap_op_q_destroy, (void **)&op2, NULL);
+    ldap_pvt_thread_pool_setkey(ctx, (void *)slap_op_free, op, slap_op_q_destroy, (void **)&op2, NULL);
     LDAP_STAILQ_NEXT(op, o_next) = op2;
     if (op2) {
       op->o_tincr = op2->o_tincr + 1;
       /* No more than 10 ops on per-thread free list */
       if (op->o_tincr > 10) {
-        ldap_pvt_thread_pool_setkey(ctx, (void *)slap_op_free, op2,
-                                    slap_op_q_destroy, NULL, NULL);
+        ldap_pvt_thread_pool_setkey(ctx, (void *)slap_op_free, op2, slap_op_q_destroy, NULL, NULL);
         ber_memfree_x(op, NULL);
       }
     } else {
@@ -140,8 +137,7 @@ void slap_op_time(time_t *t, int *nop) {
   *nop = tv.tv_usec + sametick;
 }
 
-Operation *slap_op_alloc(BerElement *ber, ber_int_t msgid, ber_tag_t tag,
-                         ber_int_t id, void *ctx) {
+Operation *slap_op_alloc(BerElement *ber, ber_int_t msgid, ber_tag_t tag, ber_int_t id, void *ctx) {
   Operation *op = NULL;
 
   if (ctx) {
@@ -150,8 +146,7 @@ Operation *slap_op_alloc(BerElement *ber, ber_int_t msgid, ber_tag_t tag,
     if (otmp) {
       op = otmp;
       otmp = LDAP_STAILQ_NEXT(op, o_next);
-      ldap_pvt_thread_pool_setkey(ctx, (void *)slap_op_free, otmp,
-                                  slap_op_q_destroy, NULL, NULL);
+      ldap_pvt_thread_pool_setkey(ctx, (void *)slap_op_free, otmp, slap_op_q_destroy, NULL, NULL);
       slap_set_op_abandon(op, 0);
       slap_set_op_cancel(op, 0);
     }

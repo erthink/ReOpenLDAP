@@ -55,12 +55,10 @@ static int cloak_cfgen(ConfigArgs *c) {
         assert(ci->ci_ad != NULL);
 
         if (ci->ci_oc != NULL)
-          len = snprintf(
-              c->cr_msg, sizeof(c->cr_msg), SLAP_X_ORDERED_FMT "%s %s", i,
-              ci->ci_ad->ad_cname.bv_val, ci->ci_oc->soc_cname.bv_val);
+          len = snprintf(c->cr_msg, sizeof(c->cr_msg), SLAP_X_ORDERED_FMT "%s %s", i, ci->ci_ad->ad_cname.bv_val,
+                         ci->ci_oc->soc_cname.bv_val);
         else
-          len = snprintf(c->cr_msg, sizeof(c->cr_msg), SLAP_X_ORDERED_FMT "%s",
-                         i, ci->ci_ad->ad_cname.bv_val);
+          len = snprintf(c->cr_msg, sizeof(c->cr_msg), SLAP_X_ORDERED_FMT "%s", i, ci->ci_ad->ad_cname.bv_val);
 
         bv.bv_val = c->cr_msg;
         bv.bv_len = len;
@@ -80,8 +78,7 @@ static int cloak_cfgen(ConfigArgs *c) {
 
     switch (c->type) {
     case CLOAK_ATTR:
-      for (ci_next = ci, i = 0; ci_next && (c->valx < 0 || i < c->valx);
-           ci = ci_next, i++) {
+      for (ci_next = ci, i = 0; ci_next && (c->valx < 0 || i < c->valx); ci = ci_next, i++) {
 
         ci_next = ci->ci_next;
 
@@ -113,8 +110,7 @@ static int cloak_cfgen(ConfigArgs *c) {
     if (c->argc == 3) {
       oc = oc_find(c->argv[2]);
       if (oc == NULL) {
-        snprintf(c->cr_msg, sizeof(c->cr_msg),
-                 CLOAK_USAGE "unable to find ObjectClass \"%s\"", c->argv[2]);
+        snprintf(c->cr_msg, sizeof(c->cr_msg), CLOAK_USAGE "unable to find ObjectClass \"%s\"", c->argv[2]);
         Debug(LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg);
         return 1;
       }
@@ -122,18 +118,15 @@ static int cloak_cfgen(ConfigArgs *c) {
 
     rc = slap_str2ad(c->argv[1], &ad, &text);
     if (rc != LDAP_SUCCESS) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               CLOAK_USAGE "unable to find AttributeDescription \"%s\"",
-               c->argv[1]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), CLOAK_USAGE "unable to find AttributeDescription \"%s\"", c->argv[1]);
       Debug(LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg);
       return 1;
     }
 
-    for (i = 0, cip = (cloak_info_t **)&on->on_bi.bi_private;
-         (c->valx < 0 || i < c->valx) && *cip; i++, cip = &(*cip)->ci_next) {
+    for (i = 0, cip = (cloak_info_t **)&on->on_bi.bi_private; (c->valx < 0 || i < c->valx) && *cip;
+         i++, cip = &(*cip)->ci_next) {
       if (c->valx >= 0 && *cip == NULL) {
-        snprintf(c->cr_msg, sizeof(c->cr_msg),
-                 CLOAK_USAGE "invalid index {%d}\n", c->valx);
+        snprintf(c->cr_msg, sizeof(c->cr_msg), CLOAK_USAGE "invalid index {%d}\n", c->valx);
         Debug(LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg);
         return 1;
       }
@@ -210,8 +203,7 @@ static int cloak_search_response_cb(Operation *op, SlapReply *rs) {
       if (a->a_desc != ci->ci_ad)
         continue;
 
-      Debug(LDAP_DEBUG_TRACE, "cloak_search_response_cb: cloak %s\n",
-            a->a_desc->ad_cname.bv_val);
+      Debug(LDAP_DEBUG_TRACE, "cloak_search_response_cb: cloak %s\n", a->a_desc->ad_cname.bv_val);
 
       if (pa != NULL)
         pa->a_next = a->a_next;
@@ -253,8 +245,7 @@ static int cloak_search(Operation *op, SlapReply *rs) {
 
 static slap_overinst cloak_ovl;
 
-static ConfigTable cloakcfg[] = {{"cloak-attr", "attribute [class]", 2, 3, 0,
-                                  ARG_MAGIC | CLOAK_ATTR, cloak_cfgen,
+static ConfigTable cloakcfg[] = {{"cloak-attr", "attribute [class]", 2, 3, 0, ARG_MAGIC | CLOAK_ATTR, cloak_cfgen,
                                   "( OLcfgCtAt:4.1 NAME 'olcCloakAttribute' "
                                   "DESC 'Cloaked attribute: attribute [class]' "
                                   "EQUALITY caseIgnoreMatch "
@@ -300,6 +291,4 @@ static int cloak_initialize(void) {
   return overlay_register(&cloak_ovl);
 }
 
-SLAP_MODULE_ENTRY(cloak, modinit)(int argc, char *argv[]) {
-  return cloak_initialize();
-}
+SLAP_MODULE_ENTRY(cloak, modinit)(int argc, char *argv[]) { return cloak_initialize(); }

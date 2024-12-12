@@ -27,8 +27,7 @@
 #include "idl.h"
 
 /* read a key */
-int wt_key_read(Backend *be, WT_CURSOR *cursor, struct berval *k, ID *ids,
-                WT_CURSOR **saved_cursor, int get_flag) {
+int wt_key_read(Backend *be, WT_CURSOR *cursor, struct berval *k, ID *ids, WT_CURSOR **saved_cursor, int get_flag) {
   int rc;
   WT_ITEM key;
   int exact;
@@ -45,9 +44,7 @@ int wt_key_read(Backend *be, WT_CURSOR *cursor, struct berval *k, ID *ids,
   cursor->set_key(cursor, &key, 0);
   rc = cursor->search_near(cursor, &exact);
   if (rc) {
-    Debug(LDAP_DEBUG_ANY,
-          LDAP_XSTRING(wt_key_read) ": search_near failed: %s (%d)\n",
-          wiredtiger_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(wt_key_read) ": search_near failed: %s (%d)\n", wiredtiger_strerror(rc), rc);
     goto done;
   }
 
@@ -55,14 +52,11 @@ int wt_key_read(Backend *be, WT_CURSOR *cursor, struct berval *k, ID *ids,
     scanned++;
     rc = cursor->get_key(cursor, &key2, &id);
     if (rc) {
-      Debug(LDAP_DEBUG_ANY,
-            LDAP_XSTRING(wt_key_read) ": get_key failed: %s (%d)\n",
-            wiredtiger_strerror(rc), rc);
+      Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(wt_key_read) ": get_key failed: %s (%d)\n", wiredtiger_strerror(rc), rc);
       break;
     }
     comp = 0;
-    if (key.size != key2.size ||
-        (comp = memcmp(key2.data, key.data, key.size))) {
+    if (key.size != key2.size || (comp = memcmp(key2.data, key.data, key.size))) {
       if (comp > 0) {
         break;
       }
@@ -87,24 +81,20 @@ int wt_key_read(Backend *be, WT_CURSOR *cursor, struct berval *k, ID *ids,
 
 done:
   if (rc != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_TRACE, "<= wt_key_read: failed (%d) %ld scanned\n", rc,
-          scanned);
+    Debug(LDAP_DEBUG_TRACE, "<= wt_key_read: failed (%d) %ld scanned\n", rc, scanned);
   } else {
-    Debug(LDAP_DEBUG_TRACE, "<= wt_key_read %ld candidates %ld scanned\n",
-          (long)WT_IDL_N(ids), scanned);
+    Debug(LDAP_DEBUG_TRACE, "<= wt_key_read %ld candidates %ld scanned\n", (long)WT_IDL_N(ids), scanned);
   }
 
   return rc;
 }
 
 /* Add or remove stuff from index files */
-int wt_key_change(Backend *be, WT_CURSOR *cursor, struct berval *k, ID id,
-                  int op) {
+int wt_key_change(Backend *be, WT_CURSOR *cursor, struct berval *k, ID id, int op) {
   int rc;
   WT_ITEM item;
 
-  Debug(LDAP_DEBUG_TRACE, "=> key_change(%s,%lx)\n",
-        op == SLAP_INDEX_ADD_OP ? "ADD" : "DELETE", (long)id);
+  Debug(LDAP_DEBUG_TRACE, "=> key_change(%s,%lx)\n", op == SLAP_INDEX_ADD_OP ? "ADD" : "DELETE", (long)id);
 
   bv2ITEM(k, &item);
   cursor->set_key(cursor, &item, id);
@@ -122,8 +112,7 @@ int wt_key_change(Backend *be, WT_CURSOR *cursor, struct berval *k, ID id,
       rc = 0;
   }
   if (rc) {
-    Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(wt_key_change) ": error: %s (%d)\n",
-          wiredtiger_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(wt_key_change) ": error: %s (%d)\n", wiredtiger_strerror(rc), rc);
     return rc;
   }
 

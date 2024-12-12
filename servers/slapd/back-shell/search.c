@@ -34,8 +34,7 @@ int shell_back_search(Operation *op, SlapReply *rs) {
   AttributeName *an;
 
   if (si->si_search == NULL) {
-    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                    "search not implemented");
+    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "search not implemented");
     return (-1);
   }
 

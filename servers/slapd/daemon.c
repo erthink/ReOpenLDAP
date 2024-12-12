@@ -42,8 +42,7 @@
 
 #if defined(HAVE_SYS_EPOLL_H) && defined(HAVE_EPOLL)
 #include <sys/epoll.h>
-#elif defined(SLAP_X_DEVPOLL) && defined(HAVE_SYS_DEVPOLL_H) &&                \
-    defined(HAVE_DEVPOLL)
+#elif defined(SLAP_X_DEVPOLL) && defined(HAVE_SYS_DEVPOLL_H) && defined(HAVE_DEVPOLL)
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -107,18 +106,18 @@ static slap_time_t chk_writetime;
 
 static volatile int waking;
 #ifdef NO_THREADS
-#define WAKE_LISTENER(l, w)                                                    \
-  do {                                                                         \
-    if ((w) && ++waking < 5) {                                                 \
-      int ignore __maybe_unused = tcp_write(wake_sds[l][1], "0", 1);           \
-    }                                                                          \
+#define WAKE_LISTENER(l, w)                                                                                            \
+  do {                                                                                                                 \
+    if ((w) && ++waking < 5) {                                                                                         \
+      int ignore __maybe_unused = tcp_write(wake_sds[l][1], "0", 1);                                                   \
+    }                                                                                                                  \
   } while (0)
 #else /* ! NO_THREADS */
-#define WAKE_LISTENER(l, w)                                                    \
-  do {                                                                         \
-    if (w) {                                                                   \
-      int ignore __maybe_unused = tcp_write(wake_sds[l][1], "0", 1);           \
-    }                                                                          \
+#define WAKE_LISTENER(l, w)                                                                                            \
+  do {                                                                                                                 \
+    if (w) {                                                                                                           \
+      int ignore __maybe_unused = tcp_write(wake_sds[l][1], "0", 1);                                                   \
+    }                                                                                                                  \
   } while (0)
 #endif /* ! NO_THREADS */
 
@@ -206,8 +205,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 #define SLAP_EVENT_FNAME "epoll"
 #define SLAP_EVENTS_ARE_INDEXED 0
 #define SLAP_EPOLL_SOCK_IX(t, s) (slap_daemon[t].sd_index[(s)])
-#define SLAP_EPOLL_SOCK_EP(t, s)                                               \
-  (slap_daemon[t].sd_epolls[SLAP_EPOLL_SOCK_IX(t, s)])
+#define SLAP_EPOLL_SOCK_EP(t, s) (slap_daemon[t].sd_epolls[SLAP_EPOLL_SOCK_IX(t, s)])
 #define SLAP_EPOLL_SOCK_EV(t, s) (SLAP_EPOLL_SOCK_EP(t, s).events)
 #define SLAP_SOCK_IS_ACTIVE(t, s) (SLAP_EPOLL_SOCK_IX(t, s) != -1)
 #define SLAP_SOCK_NOT_ACTIVE(t, s) (SLAP_EPOLL_SOCK_IX(t, s) == -1)
@@ -216,22 +214,20 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 #define SLAP_SOCK_IS_READ(t, s) SLAP_EPOLL_SOCK_IS_SET(t, (s), EPOLLIN)
 #define SLAP_SOCK_IS_WRITE(t, s) SLAP_EPOLL_SOCK_IS_SET(t, (s), EPOLLOUT)
 
-#define SLAP_EPOLL_SOCK_SET(t, s, mode)                                        \
-  do {                                                                         \
-    if ((SLAP_EPOLL_SOCK_EV(t, s) & (mode)) != (mode)) {                       \
-      SLAP_EPOLL_SOCK_EV(t, s) |= (mode);                                      \
-      epoll_ctl(slap_daemon[t].sd_epfd, EPOLL_CTL_MOD, (s),                    \
-                &SLAP_EPOLL_SOCK_EP(t, s));                                    \
-    }                                                                          \
+#define SLAP_EPOLL_SOCK_SET(t, s, mode)                                                                                \
+  do {                                                                                                                 \
+    if ((SLAP_EPOLL_SOCK_EV(t, s) & (mode)) != (mode)) {                                                               \
+      SLAP_EPOLL_SOCK_EV(t, s) |= (mode);                                                                              \
+      epoll_ctl(slap_daemon[t].sd_epfd, EPOLL_CTL_MOD, (s), &SLAP_EPOLL_SOCK_EP(t, s));                                \
+    }                                                                                                                  \
   } while (0)
 
-#define SLAP_EPOLL_SOCK_CLR(t, s, mode)                                        \
-  do {                                                                         \
-    if ((SLAP_EPOLL_SOCK_EV(t, s) & (mode))) {                                 \
-      SLAP_EPOLL_SOCK_EV(t, s) &= ~(mode);                                     \
-      epoll_ctl(slap_daemon[t].sd_epfd, EPOLL_CTL_MOD, s,                      \
-                &SLAP_EPOLL_SOCK_EP(t, s));                                    \
-    }                                                                          \
+#define SLAP_EPOLL_SOCK_CLR(t, s, mode)                                                                                \
+  do {                                                                                                                 \
+    if ((SLAP_EPOLL_SOCK_EV(t, s) & (mode))) {                                                                         \
+      SLAP_EPOLL_SOCK_EV(t, s) &= ~(mode);                                                                             \
+      epoll_ctl(slap_daemon[t].sd_epfd, EPOLL_CTL_MOD, s, &SLAP_EPOLL_SOCK_EP(t, s));                                  \
+    }                                                                                                                  \
   } while (0)
 
 #define SLAP_SOCK_SET_READ(t, s) SLAP_EPOLL_SOCK_SET(t, s, EPOLLIN)
@@ -240,12 +236,9 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 #define SLAP_SOCK_CLR_READ(t, s) SLAP_EPOLL_SOCK_CLR(t, (s), EPOLLIN)
 #define SLAP_SOCK_CLR_WRITE(t, s) SLAP_EPOLL_SOCK_CLR(t, (s), EPOLLOUT)
 
-#define SLAP_SOCK_SET_SUSPEND(t, s)                                            \
-  (slap_daemon[t].sd_suspend[SLAP_EPOLL_SOCK_IX(t, s)] = 1)
-#define SLAP_SOCK_CLR_SUSPEND(t, s)                                            \
-  (slap_daemon[t].sd_suspend[SLAP_EPOLL_SOCK_IX(t, s)] = 0)
-#define SLAP_SOCK_IS_SUSPEND(t, s)                                             \
-  (slap_daemon[t].sd_suspend[SLAP_EPOLL_SOCK_IX(t, s)] == 1)
+#define SLAP_SOCK_SET_SUSPEND(t, s) (slap_daemon[t].sd_suspend[SLAP_EPOLL_SOCK_IX(t, s)] = 1)
+#define SLAP_SOCK_CLR_SUSPEND(t, s) (slap_daemon[t].sd_suspend[SLAP_EPOLL_SOCK_IX(t, s)] = 0)
+#define SLAP_SOCK_IS_SUSPEND(t, s) (slap_daemon[t].sd_suspend[SLAP_EPOLL_SOCK_IX(t, s)] == 1)
 
 #define SLAP_EPOLL_EVENT_CLR(i, mode) (revents[(i)].events &= ~(mode))
 
@@ -256,57 +249,46 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
  * index array. If we can't do this add, the system is out of
  * resources and we need to shutdown.
  */
-#define SLAP_SOCK_ADD(t, s, l)                                                 \
-  do {                                                                         \
-    int rc;                                                                    \
-    SLAP_EPOLL_SOCK_IX(t, (s)) = slap_daemon[t].sd_nfds;                       \
-    SLAP_EPOLL_SOCK_EP(t, (s)).data.ptr =                                      \
-        (l) ? (l) : (void *)(&SLAP_EPOLL_SOCK_IX(t, s));                       \
-    SLAP_EPOLL_SOCK_EV(t, (s)) = EPOLLIN;                                      \
-    rc = epoll_ctl(slap_daemon[t].sd_epfd, EPOLL_CTL_ADD, (s),                 \
-                   &SLAP_EPOLL_SOCK_EP(t, (s)));                               \
-    if (rc == 0) {                                                             \
-      slap_daemon[t].sd_nfds++;                                                \
-    } else {                                                                   \
-      Debug(LDAP_DEBUG_ANY,                                                    \
-            "daemon: epoll_ctl(ADD,fd=%d) failed, errno=%d, shutting down\n",  \
-            s, errno);                                                         \
-      set_shutdown(SHUT_RDWR);                                                 \
-    }                                                                          \
+#define SLAP_SOCK_ADD(t, s, l)                                                                                         \
+  do {                                                                                                                 \
+    int rc;                                                                                                            \
+    SLAP_EPOLL_SOCK_IX(t, (s)) = slap_daemon[t].sd_nfds;                                                               \
+    SLAP_EPOLL_SOCK_EP(t, (s)).data.ptr = (l) ? (l) : (void *)(&SLAP_EPOLL_SOCK_IX(t, s));                             \
+    SLAP_EPOLL_SOCK_EV(t, (s)) = EPOLLIN;                                                                              \
+    rc = epoll_ctl(slap_daemon[t].sd_epfd, EPOLL_CTL_ADD, (s), &SLAP_EPOLL_SOCK_EP(t, (s)));                           \
+    if (rc == 0) {                                                                                                     \
+      slap_daemon[t].sd_nfds++;                                                                                        \
+    } else {                                                                                                           \
+      Debug(LDAP_DEBUG_ANY, "daemon: epoll_ctl(ADD,fd=%d) failed, errno=%d, shutting down\n", s, errno);               \
+      set_shutdown(SHUT_RDWR);                                                                                         \
+    }                                                                                                                  \
   } while (0)
 
-#define SLAP_EPOLL_EV_LISTENER(t, ptr)                                         \
-  (((int *)(ptr) >= slap_daemon[t].sd_index &&                                 \
-    (int *)(ptr) <= &slap_daemon[t].sd_index[dtblsize])                        \
-       ? 0                                                                     \
-       : 1)
+#define SLAP_EPOLL_EV_LISTENER(t, ptr)                                                                                 \
+  (((int *)(ptr) >= slap_daemon[t].sd_index && (int *)(ptr) <= &slap_daemon[t].sd_index[dtblsize]) ? 0 : 1)
 
-#define SLAP_EPOLL_EV_PTRFD(t, ptr)                                            \
-  (SLAP_EPOLL_EV_LISTENER(t, ptr)                                              \
-       ? ((Listener *)ptr)->sl_sd                                              \
-       : (ber_socket_t)((int *)(ptr) - slap_daemon[t].sd_index))
+#define SLAP_EPOLL_EV_PTRFD(t, ptr)                                                                                    \
+  (SLAP_EPOLL_EV_LISTENER(t, ptr) ? ((Listener *)ptr)->sl_sd : (ber_socket_t)((int *)(ptr) - slap_daemon[t].sd_index))
 
-#define SLAP_SOCK_DEL(t, s)                                                    \
-  do {                                                                         \
-    int fd, rc, index = SLAP_EPOLL_SOCK_IX(t, (s));                            \
-    if (index < 0)                                                             \
-      break;                                                                   \
-    rc = epoll_ctl(slap_daemon[t].sd_epfd, EPOLL_CTL_DEL, (s),                 \
-                   &SLAP_EPOLL_SOCK_EP(t, (s)));                               \
-    if (rc) {                                                                  \
-      Debug(LDAP_DEBUG_ANY,                                                    \
-            "daemon: epoll_ctl(epfd=%d,DEL,fd=%d) failed, errno=%d, shutting " \
-            "down\n",                                                          \
-            slap_daemon[t].sd_epfd, s, errno);                                 \
-      if (errno != EBADF)                                                      \
-        set_shutdown(SHUT_RDWR);                                               \
-    }                                                                          \
-    slap_daemon[t].sd_epolls[index] =                                          \
-        slap_daemon[t].sd_epolls[slap_daemon[t].sd_nfds - 1];                  \
-    fd = SLAP_EPOLL_EV_PTRFD(t, slap_daemon[t].sd_epolls[index].data.ptr);     \
-    slap_daemon[t].sd_index[fd] = index;                                       \
-    slap_daemon[t].sd_index[(s)] = -1;                                         \
-    slap_daemon[t].sd_nfds--;                                                  \
+#define SLAP_SOCK_DEL(t, s)                                                                                            \
+  do {                                                                                                                 \
+    int fd, rc, index = SLAP_EPOLL_SOCK_IX(t, (s));                                                                    \
+    if (index < 0)                                                                                                     \
+      break;                                                                                                           \
+    rc = epoll_ctl(slap_daemon[t].sd_epfd, EPOLL_CTL_DEL, (s), &SLAP_EPOLL_SOCK_EP(t, (s)));                           \
+    if (rc) {                                                                                                          \
+      Debug(LDAP_DEBUG_ANY,                                                                                            \
+            "daemon: epoll_ctl(epfd=%d,DEL,fd=%d) failed, errno=%d, shutting "                                         \
+            "down\n",                                                                                                  \
+            slap_daemon[t].sd_epfd, s, errno);                                                                         \
+      if (errno != EBADF)                                                                                              \
+        set_shutdown(SHUT_RDWR);                                                                                       \
+    }                                                                                                                  \
+    slap_daemon[t].sd_epolls[index] = slap_daemon[t].sd_epolls[slap_daemon[t].sd_nfds - 1];                            \
+    fd = SLAP_EPOLL_EV_PTRFD(t, slap_daemon[t].sd_epolls[index].data.ptr);                                             \
+    slap_daemon[t].sd_index[fd] = index;                                                                               \
+    slap_daemon[t].sd_index[(s)] = -1;                                                                                 \
+    slap_daemon[t].sd_nfds--;                                                                                          \
   } while (0)
 
 #define SLAP_EVENT_CLR_READ(i) SLAP_EPOLL_EVENT_CLR((i), EPOLLIN)
@@ -317,44 +299,41 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 #define SLAP_EVENT_IS_READ(i) SLAP_EPOLL_EVENT_CHK((i), EPOLLIN)
 #define SLAP_EVENT_IS_WRITE(i) SLAP_EPOLL_EVENT_CHK((i), EPOLLOUT)
 #define SLAP_EVENT_IS_ERROR(i) SLAP_EPOLL_EVENT_CHK((i), (EPOLLERR | EPOLLHUP))
-#define SLAP_EVENT_IS_LISTENER(t, i)                                           \
-  SLAP_EPOLL_EV_LISTENER(t, revents[(i)].data.ptr)
+#define SLAP_EVENT_IS_LISTENER(t, i) SLAP_EPOLL_EV_LISTENER(t, revents[(i)].data.ptr)
 #define SLAP_EVENT_LISTENER(t, i) ((Listener *)(revents[(i)].data.ptr))
 
 #define SLAP_EVENT_FD(t, i) SLAP_EPOLL_EV_PTRFD(t, revents[(i)].data.ptr)
 
-#define SLAP_SOCK_INIT(t)                                                      \
-  do {                                                                         \
-    int j;                                                                     \
-    slap_daemon[t].sd_epolls = ch_calloc(                                      \
-        1, (sizeof(struct epoll_event) * 2 + sizeof(int)) * dtblsize * 2);     \
-    slap_daemon[t].sd_index = (int *)&slap_daemon[t].sd_epolls[2 * dtblsize];  \
-    slap_daemon[t].sd_epfd = epoll_create(dtblsize / slapd_daemon_threads);    \
-    for (j = 0; j < dtblsize; j++)                                             \
-      slap_daemon[t].sd_index[j] = -1;                                         \
+#define SLAP_SOCK_INIT(t)                                                                                              \
+  do {                                                                                                                 \
+    int j;                                                                                                             \
+    slap_daemon[t].sd_epolls = ch_calloc(1, (sizeof(struct epoll_event) * 2 + sizeof(int)) * dtblsize * 2);            \
+    slap_daemon[t].sd_index = (int *)&slap_daemon[t].sd_epolls[2 * dtblsize];                                          \
+    slap_daemon[t].sd_epfd = epoll_create(dtblsize / slapd_daemon_threads);                                            \
+    for (j = 0; j < dtblsize; j++)                                                                                     \
+      slap_daemon[t].sd_index[j] = -1;                                                                                 \
   } while (0)
 
-#define SLAP_SOCK_DESTROY(t)                                                   \
-  do {                                                                         \
-    if (slap_daemon[t].sd_epolls != NULL) {                                    \
-      ch_free(slap_daemon[t].sd_epolls);                                       \
-      slap_daemon[t].sd_epolls = NULL;                                         \
-      slap_daemon[t].sd_index = NULL;                                          \
-      close(slap_daemon[t].sd_epfd);                                           \
-    }                                                                          \
+#define SLAP_SOCK_DESTROY(t)                                                                                           \
+  do {                                                                                                                 \
+    if (slap_daemon[t].sd_epolls != NULL) {                                                                            \
+      ch_free(slap_daemon[t].sd_epolls);                                                                               \
+      slap_daemon[t].sd_epolls = NULL;                                                                                 \
+      slap_daemon[t].sd_index = NULL;                                                                                  \
+      close(slap_daemon[t].sd_epfd);                                                                                   \
+    }                                                                                                                  \
   } while (0)
 
 #define SLAP_EVENT_DECL struct epoll_event *revents
 
-#define SLAP_EVENT_INIT(t)                                                     \
-  do {                                                                         \
-    revents = slap_daemon[t].sd_epolls + dtblsize;                             \
+#define SLAP_EVENT_INIT(t)                                                                                             \
+  do {                                                                                                                 \
+    revents = slap_daemon[t].sd_epolls + dtblsize;                                                                     \
   } while (0)
 
-#define SLAP_EVENT_WAIT(t, tvp, nsp)                                           \
-  do {                                                                         \
-    *(nsp) = epoll_wait(slap_daemon[t].sd_epfd, revents, dtblsize,             \
-                        (tvp) ? ldap_to_milliseconds(*tvp) : -1);              \
+#define SLAP_EVENT_WAIT(t, tvp, nsp)                                                                                   \
+  do {                                                                                                                 \
+    *(nsp) = epoll_wait(slap_daemon[t].sd_epfd, revents, dtblsize, (tvp) ? ldap_to_milliseconds(*tvp) : -1);           \
   } while (0)
 
 #elif defined(SLAP_X_DEVPOLL) && defined(HAVE_DEVPOLL)
@@ -373,8 +352,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
  */
 #define SLAP_DEVPOLL_SOCK_IX(t, s) (slap_daemon[t].sd_index[(s)])
 #define SLAP_DEVPOLL_SOCK_LX(t, s) (slap_daemon[t].sd_l[(s)])
-#define SLAP_DEVPOLL_SOCK_EP(t, s)                                             \
-  (slap_daemon[t].sd_pollfd[SLAP_DEVPOLL_SOCK_IX(t, (s))])
+#define SLAP_DEVPOLL_SOCK_EP(t, s) (slap_daemon[t].sd_pollfd[SLAP_DEVPOLL_SOCK_IX(t, (s))])
 #define SLAP_DEVPOLL_SOCK_FD(t, s) (SLAP_DEVPOLL_SOCK_EP(t, (s)).fd)
 #define SLAP_DEVPOLL_SOCK_EV(t, s) (SLAP_DEVPOLL_SOCK_EP(t, (s)).events)
 #define SLAP_SOCK_IS_ACTIVE(t, s) (SLAP_DEVPOLL_SOCK_IX(t, (s)) != -1)
@@ -388,50 +366,48 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 /* as far as I understand, any time we need to communicate with the kernel
  * about the number and/or properties of a file descriptor we need it to
  * wait for, we have to rewrite the whole set */
-#define SLAP_DEVPOLL_WRITE_POLLFD(t, s, pfd, n, what, shdn)                    \
-  do {                                                                         \
-    int rc;                                                                    \
-    size_t size = (n) * sizeof(struct pollfd);                                 \
-    /* FIXME: use pwrite? */                                                   \
-    rc = write(slap_daemon[t].sd_dpfd, (pfd), size);                           \
-    if (rc != size) {                                                          \
-      Debug(LDAP_DEBUG_ANY,                                                    \
-            "daemon: " SLAP_EVENT_FNAME ": "                                   \
-            "%s fd=%d failed errno=%d\n",                                      \
-            (what), (s), errno);                                               \
-      if ((shdn)) {                                                            \
-        slapd_shutdown = 2;                                                    \
-      }                                                                        \
-    }                                                                          \
+#define SLAP_DEVPOLL_WRITE_POLLFD(t, s, pfd, n, what, shdn)                                                            \
+  do {                                                                                                                 \
+    int rc;                                                                                                            \
+    size_t size = (n) * sizeof(struct pollfd);                                                                         \
+    /* FIXME: use pwrite? */                                                                                           \
+    rc = write(slap_daemon[t].sd_dpfd, (pfd), size);                                                                   \
+    if (rc != size) {                                                                                                  \
+      Debug(LDAP_DEBUG_ANY,                                                                                            \
+            "daemon: " SLAP_EVENT_FNAME ": "                                                                           \
+            "%s fd=%d failed errno=%d\n",                                                                              \
+            (what), (s), errno);                                                                                       \
+      if ((shdn)) {                                                                                                    \
+        slapd_shutdown = 2;                                                                                            \
+      }                                                                                                                \
+    }                                                                                                                  \
   } while (0)
 
-#define SLAP_DEVPOLL_SOCK_SET(t, s, mode)                                      \
-  do {                                                                         \
-    Debug(LDAP_DEBUG_CONNS, "SLAP_SOCK_SET_%s(%d)=%d\n",                       \
-          (mode) == POLLIN ? "READ" : "WRITE", (s),                            \
-          ((SLAP_DEVPOLL_SOCK_EV(t, (s)) & (mode)) != (mode)));                \
-    if ((SLAP_DEVPOLL_SOCK_EV(t, (s)) & (mode)) != (mode)) {                   \
-      struct pollfd pfd;                                                       \
-      SLAP_DEVPOLL_SOCK_EV(t, (s)) |= (mode);                                  \
-      pfd.fd = SLAP_DEVPOLL_SOCK_FD(t, (s));                                   \
-      pfd.events = /* (mode) */ SLAP_DEVPOLL_SOCK_EV(t, (s));                  \
-      SLAP_DEVPOLL_WRITE_POLLFD(t, (s), &pfd, 1, "SET", 0);                    \
-    }                                                                          \
+#define SLAP_DEVPOLL_SOCK_SET(t, s, mode)                                                                              \
+  do {                                                                                                                 \
+    Debug(LDAP_DEBUG_CONNS, "SLAP_SOCK_SET_%s(%d)=%d\n", (mode) == POLLIN ? "READ" : "WRITE", (s),                     \
+          ((SLAP_DEVPOLL_SOCK_EV(t, (s)) & (mode)) != (mode)));                                                        \
+    if ((SLAP_DEVPOLL_SOCK_EV(t, (s)) & (mode)) != (mode)) {                                                           \
+      struct pollfd pfd;                                                                                               \
+      SLAP_DEVPOLL_SOCK_EV(t, (s)) |= (mode);                                                                          \
+      pfd.fd = SLAP_DEVPOLL_SOCK_FD(t, (s));                                                                           \
+      pfd.events = /* (mode) */ SLAP_DEVPOLL_SOCK_EV(t, (s));                                                          \
+      SLAP_DEVPOLL_WRITE_POLLFD(t, (s), &pfd, 1, "SET", 0);                                                            \
+    }                                                                                                                  \
   } while (0)
 
-#define SLAP_DEVPOLL_SOCK_CLR(t, s, mode)                                      \
-  do {                                                                         \
-    Debug(LDAP_DEBUG_CONNS, "SLAP_SOCK_CLR_%s(%d)=%d\n",                       \
-          (mode) == POLLIN ? "READ" : "WRITE", (s),                            \
-          ((SLAP_DEVPOLL_SOCK_EV(t, (s)) & (mode)) == (mode)));                \
-    if ((SLAP_DEVPOLL_SOCK_EV(t, (s)) & (mode)) == (mode)) {                   \
-      struct pollfd pfd[2];                                                    \
-      SLAP_DEVPOLL_SOCK_EV(t, (s)) &= ~(mode);                                 \
-      pfd[0].fd = SLAP_DEVPOLL_SOCK_FD(t, (s));                                \
-      pfd[0].events = POLLREMOVE;                                              \
-      pfd[1] = SLAP_DEVPOLL_SOCK_EP(t, (s));                                   \
-      SLAP_DEVPOLL_WRITE_POLLFD(t, (s), &pfd[0], 2, "CLR", 0);                 \
-    }                                                                          \
+#define SLAP_DEVPOLL_SOCK_CLR(t, s, mode)                                                                              \
+  do {                                                                                                                 \
+    Debug(LDAP_DEBUG_CONNS, "SLAP_SOCK_CLR_%s(%d)=%d\n", (mode) == POLLIN ? "READ" : "WRITE", (s),                     \
+          ((SLAP_DEVPOLL_SOCK_EV(t, (s)) & (mode)) == (mode)));                                                        \
+    if ((SLAP_DEVPOLL_SOCK_EV(t, (s)) & (mode)) == (mode)) {                                                           \
+      struct pollfd pfd[2];                                                                                            \
+      SLAP_DEVPOLL_SOCK_EV(t, (s)) &= ~(mode);                                                                         \
+      pfd[0].fd = SLAP_DEVPOLL_SOCK_FD(t, (s));                                                                        \
+      pfd[0].events = POLLREMOVE;                                                                                      \
+      pfd[1] = SLAP_DEVPOLL_SOCK_EP(t, (s));                                                                           \
+      SLAP_DEVPOLL_WRITE_POLLFD(t, (s), &pfd[0], 2, "CLR", 0);                                                         \
+    }                                                                                                                  \
   } while (0)
 
 #define SLAP_SOCK_SET_READ(t, s) SLAP_DEVPOLL_SOCK_SET(t, s, POLLIN)
@@ -440,12 +416,9 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 #define SLAP_SOCK_CLR_READ(t, s) SLAP_DEVPOLL_SOCK_CLR(t, (s), POLLIN)
 #define SLAP_SOCK_CLR_WRITE(t, s) SLAP_DEVPOLL_SOCK_CLR(t, (s), POLLOUT)
 
-#define SLAP_SOCK_SET_SUSPEND(t, s)                                            \
-  (slap_daemon[t].sd_suspend[SLAP_DEVPOLL_SOCK_IX(t, (s))] = 1)
-#define SLAP_SOCK_CLR_SUSPEND(t, s)                                            \
-  (slap_daemon[t].sd_suspend[SLAP_DEVPOLL_SOCK_IX(t, (s))] = 0)
-#define SLAP_SOCK_IS_SUSPEND(t, s)                                             \
-  (slap_daemon[t].sd_suspend[SLAP_DEVPOLL_SOCK_IX(t, (s))] == 1)
+#define SLAP_SOCK_SET_SUSPEND(t, s) (slap_daemon[t].sd_suspend[SLAP_DEVPOLL_SOCK_IX(t, (s))] = 1)
+#define SLAP_SOCK_CLR_SUSPEND(t, s) (slap_daemon[t].sd_suspend[SLAP_DEVPOLL_SOCK_IX(t, (s))] = 0)
+#define SLAP_SOCK_IS_SUSPEND(t, s) (slap_daemon[t].sd_suspend[SLAP_DEVPOLL_SOCK_IX(t, (s))] == 1)
 
 #define SLAP_DEVPOLL_EVENT_CLR(i, mode) (revents[(i)].events &= ~(mode))
 
@@ -455,41 +428,37 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
  * If we can't do this add, the system is out of resources and we
  * need to shutdown.
  */
-#define SLAP_SOCK_ADD(t, s, l)                                                 \
-  do {                                                                         \
-    Debug(LDAP_DEBUG_CONNS, "SLAP_SOCK_ADD(%d, %p)\n", (s), (l));              \
-    SLAP_DEVPOLL_SOCK_IX(t, (s)) = slap_daemon[t].sd_nfds;                     \
-    SLAP_DEVPOLL_SOCK_LX(t, (s)) = (l);                                        \
-    SLAP_DEVPOLL_SOCK_FD(t, (s)) = (s);                                        \
-    SLAP_DEVPOLL_SOCK_EV(t, (s)) = POLLIN;                                     \
-    SLAP_DEVPOLL_WRITE_POLLFD(t, (s), &SLAP_DEVPOLL_SOCK_EP(t, (s)), 1, "ADD", \
-                              1);                                              \
-    slap_daemon[t].sd_nfds++;                                                  \
+#define SLAP_SOCK_ADD(t, s, l)                                                                                         \
+  do {                                                                                                                 \
+    Debug(LDAP_DEBUG_CONNS, "SLAP_SOCK_ADD(%d, %p)\n", (s), (l));                                                      \
+    SLAP_DEVPOLL_SOCK_IX(t, (s)) = slap_daemon[t].sd_nfds;                                                             \
+    SLAP_DEVPOLL_SOCK_LX(t, (s)) = (l);                                                                                \
+    SLAP_DEVPOLL_SOCK_FD(t, (s)) = (s);                                                                                \
+    SLAP_DEVPOLL_SOCK_EV(t, (s)) = POLLIN;                                                                             \
+    SLAP_DEVPOLL_WRITE_POLLFD(t, (s), &SLAP_DEVPOLL_SOCK_EP(t, (s)), 1, "ADD", 1);                                     \
+    slap_daemon[t].sd_nfds++;                                                                                          \
   } while (0)
 
 #define SLAP_DEVPOLL_EV_LISTENER(ptr) ((ptr) != NULL)
 
-#define SLAP_SOCK_DEL(t, s)                                                    \
-  do {                                                                         \
-    int fd, index = SLAP_DEVPOLL_SOCK_IX(t, (s));                              \
-    Debug(LDAP_DEBUG_CONNS, "SLAP_SOCK_DEL(%d)\n", (s));                       \
-    if (index < 0)                                                             \
-      break;                                                                   \
-    if (index < slap_daemon[t].sd_nfds - 1) {                                  \
-      struct pollfd pfd = slap_daemon[t].sd_pollfd[index];                     \
-      fd = slap_daemon[t].sd_pollfd[slap_daemon[t].sd_nfds - 1].fd;            \
-      slap_daemon[t].sd_pollfd[index] =                                        \
-          slap_daemon[t].sd_pollfd[slap_daemon[t].sd_nfds - 1];                \
-      slap_daemon[t].sd_pollfd[slap_daemon[t].sd_nfds - 1] = pfd;              \
-      slap_daemon[t].sd_index[fd] = index;                                     \
-    }                                                                          \
-    slap_daemon[t].sd_index[(s)] = -1;                                         \
-    slap_daemon[t].sd_pollfd[slap_daemon[t].sd_nfds - 1].events = POLLREMOVE;  \
-    SLAP_DEVPOLL_WRITE_POLLFD(                                                 \
-        t, (s), &slap_daemon[t].sd_pollfd[slap_daemon[t].sd_nfds - 1], 1,      \
-        "DEL", 0);                                                             \
-    slap_daemon[t].sd_pollfd[slap_daemon[t].sd_nfds - 1].events = 0;           \
-    slap_daemon[t].sd_nfds--;                                                  \
+#define SLAP_SOCK_DEL(t, s)                                                                                            \
+  do {                                                                                                                 \
+    int fd, index = SLAP_DEVPOLL_SOCK_IX(t, (s));                                                                      \
+    Debug(LDAP_DEBUG_CONNS, "SLAP_SOCK_DEL(%d)\n", (s));                                                               \
+    if (index < 0)                                                                                                     \
+      break;                                                                                                           \
+    if (index < slap_daemon[t].sd_nfds - 1) {                                                                          \
+      struct pollfd pfd = slap_daemon[t].sd_pollfd[index];                                                             \
+      fd = slap_daemon[t].sd_pollfd[slap_daemon[t].sd_nfds - 1].fd;                                                    \
+      slap_daemon[t].sd_pollfd[index] = slap_daemon[t].sd_pollfd[slap_daemon[t].sd_nfds - 1];                          \
+      slap_daemon[t].sd_pollfd[slap_daemon[t].sd_nfds - 1] = pfd;                                                      \
+      slap_daemon[t].sd_index[fd] = index;                                                                             \
+    }                                                                                                                  \
+    slap_daemon[t].sd_index[(s)] = -1;                                                                                 \
+    slap_daemon[t].sd_pollfd[slap_daemon[t].sd_nfds - 1].events = POLLREMOVE;                                          \
+    SLAP_DEVPOLL_WRITE_POLLFD(t, (s), &slap_daemon[t].sd_pollfd[slap_daemon[t].sd_nfds - 1], 1, "DEL", 0);             \
+    slap_daemon[t].sd_pollfd[slap_daemon[t].sd_nfds - 1].events = 0;                                                   \
+    slap_daemon[t].sd_nfds--;                                                                                          \
   } while (0)
 
 #define SLAP_EVENT_CLR_READ(i) SLAP_DEVPOLL_EVENT_CLR((i), POLLIN)
@@ -503,57 +472,55 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 #define SLAP_EVENT_IS_WRITE(i) SLAP_DEVPOLL_EVENT_CHK((i), POLLOUT)
 #define SLAP_EVENT_IS_ERROR(i) SLAP_DEVPOLL_EVENT_CHK((i), (POLLERR | POLLHUP))
 
-#define SLAP_EVENT_IS_LISTENER(t, i)                                           \
-  SLAP_DEVPOLL_EV_LISTENER(SLAP_DEVPOLL_SOCK_LX(t, SLAP_EVENT_FD(t, (i))))
+#define SLAP_EVENT_IS_LISTENER(t, i) SLAP_DEVPOLL_EV_LISTENER(SLAP_DEVPOLL_SOCK_LX(t, SLAP_EVENT_FD(t, (i))))
 #define SLAP_EVENT_LISTENER(t, i) SLAP_DEVPOLL_SOCK_LX(t, SLAP_EVENT_FD(t, (i)))
 
-#define SLAP_SOCK_DESTROY(t)                                                   \
-  do {                                                                         \
-    if (slap_daemon[t].sd_pollfd != NULL) {                                    \
-      ch_free(slap_daemon[t].sd_pollfd);                                       \
-      slap_daemon[t].sd_pollfd = NULL;                                         \
-      slap_daemon[t].sd_index = NULL;                                          \
-      slap_daemon[t].sd_l = NULL;                                              \
-      close(slap_daemon[t].sd_dpfd);                                           \
-    }                                                                          \
+#define SLAP_SOCK_DESTROY(t)                                                                                           \
+  do {                                                                                                                 \
+    if (slap_daemon[t].sd_pollfd != NULL) {                                                                            \
+      ch_free(slap_daemon[t].sd_pollfd);                                                                               \
+      slap_daemon[t].sd_pollfd = NULL;                                                                                 \
+      slap_daemon[t].sd_index = NULL;                                                                                  \
+      slap_daemon[t].sd_l = NULL;                                                                                      \
+      close(slap_daemon[t].sd_dpfd);                                                                                   \
+    }                                                                                                                  \
   } while (0)
 
-#define SLAP_SOCK_INIT(t)                                                      \
-  do {                                                                         \
-    slap_daemon[t].sd_pollfd = ch_calloc(                                      \
-        1, (sizeof(struct pollfd) * 2 + sizeof(int) + sizeof(Listener *)) *    \
-               dtblsize);                                                      \
-    slap_daemon[t].sd_index = (int *)&slap_daemon[t].sd_pollfd[2 * dtblsize];  \
-    slap_daemon[t].sd_l = (Listener **)&slap_daemon[t].sd_index[dtblsize];     \
-    slap_daemon[t].sd_dpfd = open(SLAP_EVENT_FNAME, O_RDWR);                   \
-    if (slap_daemon[t].sd_dpfd == -1) {                                        \
-      Debug(LDAP_DEBUG_ANY,                                                    \
-            "daemon: " SLAP_EVENT_FNAME ": "                                   \
-            "open(\"" SLAP_EVENT_FNAME "\") failed errno=%d\n",                \
-            errno);                                                            \
-      SLAP_SOCK_DESTROY(t);                                                    \
-      return -1;                                                               \
-    }                                                                          \
-    for (i = 0; i < dtblsize; i++) {                                           \
-      slap_daemon[t].sd_pollfd[i].fd = -1;                                     \
-      slap_daemon[t].sd_index[i] = -1;                                         \
-    }                                                                          \
+#define SLAP_SOCK_INIT(t)                                                                                              \
+  do {                                                                                                                 \
+    slap_daemon[t].sd_pollfd =                                                                                         \
+        ch_calloc(1, (sizeof(struct pollfd) * 2 + sizeof(int) + sizeof(Listener *)) * dtblsize);                       \
+    slap_daemon[t].sd_index = (int *)&slap_daemon[t].sd_pollfd[2 * dtblsize];                                          \
+    slap_daemon[t].sd_l = (Listener **)&slap_daemon[t].sd_index[dtblsize];                                             \
+    slap_daemon[t].sd_dpfd = open(SLAP_EVENT_FNAME, O_RDWR);                                                           \
+    if (slap_daemon[t].sd_dpfd == -1) {                                                                                \
+      Debug(LDAP_DEBUG_ANY,                                                                                            \
+            "daemon: " SLAP_EVENT_FNAME ": "                                                                           \
+            "open(\"" SLAP_EVENT_FNAME "\") failed errno=%d\n",                                                        \
+            errno);                                                                                                    \
+      SLAP_SOCK_DESTROY(t);                                                                                            \
+      return -1;                                                                                                       \
+    }                                                                                                                  \
+    for (i = 0; i < dtblsize; i++) {                                                                                   \
+      slap_daemon[t].sd_pollfd[i].fd = -1;                                                                             \
+      slap_daemon[t].sd_index[i] = -1;                                                                                 \
+    }                                                                                                                  \
   } while (0)
 
 #define SLAP_EVENT_DECL struct pollfd *revents
 
-#define SLAP_EVENT_INIT(t)                                                     \
-  do {                                                                         \
-    revents = &slap_daemon[t].sd_pollfd[dtblsize];                             \
+#define SLAP_EVENT_INIT(t)                                                                                             \
+  do {                                                                                                                 \
+    revents = &slap_daemon[t].sd_pollfd[dtblsize];                                                                     \
   } while (0)
 
-#define SLAP_EVENT_WAIT(t, tvp, nsp)                                           \
-  do {                                                                         \
-    struct dvpoll sd_dvpoll;                                                   \
-    sd_dvpoll.dp_timeout = (tvp) ? (tvp)->tv_sec * 1000 : -1;                  \
-    sd_dvpoll.dp_nfds = dtblsize;                                              \
-    sd_dvpoll.dp_fds = revents;                                                \
-    *(nsp) = ioctl(slap_daemon[t].sd_dpfd, DP_POLL, &sd_dvpoll);               \
+#define SLAP_EVENT_WAIT(t, tvp, nsp)                                                                                   \
+  do {                                                                                                                 \
+    struct dvpoll sd_dvpoll;                                                                                           \
+    sd_dvpoll.dp_timeout = (tvp) ? (tvp)->tv_sec * 1000 : -1;                                                          \
+    sd_dvpoll.dp_nfds = dtblsize;                                                                                      \
+    sd_dvpoll.dp_fds = revents;                                                                                        \
+    *(nsp) = ioctl(slap_daemon[t].sd_dpfd, DP_POLL, &sd_dvpoll);                                                       \
   } while (0)
 
 #else /* ! epoll && ! /dev/poll */
@@ -567,35 +534,35 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 #define SLAP_EVENTS_ARE_INDEXED 1
 #define SLAP_EVENT_DECL fd_set readfds, writefds
 
-#define SLAP_EVENT_INIT(t)                                                     \
-  do {                                                                         \
-    memcpy(&readfds, &slap_daemon[t].sd_readers, sizeof(fd_set));              \
-    if (nwriters) {                                                            \
-      memcpy(&writefds, &slap_daemon[t].sd_writers, sizeof(fd_set));           \
-    } else {                                                                   \
-      FD_ZERO(&writefds);                                                      \
-    }                                                                          \
+#define SLAP_EVENT_INIT(t)                                                                                             \
+  do {                                                                                                                 \
+    memcpy(&readfds, &slap_daemon[t].sd_readers, sizeof(fd_set));                                                      \
+    if (nwriters) {                                                                                                    \
+      memcpy(&writefds, &slap_daemon[t].sd_writers, sizeof(fd_set));                                                   \
+    } else {                                                                                                           \
+      FD_ZERO(&writefds);                                                                                              \
+    }                                                                                                                  \
   } while (0)
 
 #ifdef FD_SETSIZE
-#define SLAP_SELECT_CHK_SETSIZE                                                \
-  do {                                                                         \
-    if (dtblsize > FD_SETSIZE)                                                 \
-      dtblsize = FD_SETSIZE;                                                   \
+#define SLAP_SELECT_CHK_SETSIZE                                                                                        \
+  do {                                                                                                                 \
+    if (dtblsize > FD_SETSIZE)                                                                                         \
+      dtblsize = FD_SETSIZE;                                                                                           \
   } while (0)
 #else /* ! FD_SETSIZE */
-#define SLAP_SELECT_CHK_SETSIZE                                                \
-  do {                                                                         \
-    ;                                                                          \
+#define SLAP_SELECT_CHK_SETSIZE                                                                                        \
+  do {                                                                                                                 \
+    ;                                                                                                                  \
   } while (0)
 #endif /* ! FD_SETSIZE */
 
-#define SLAP_SOCK_INIT(t)                                                      \
-  do {                                                                         \
-    SLAP_SELECT_CHK_SETSIZE;                                                   \
-    FD_ZERO(&slap_daemon[t].sd_actives);                                       \
-    FD_ZERO(&slap_daemon[t].sd_readers);                                       \
-    FD_ZERO(&slap_daemon[t].sd_writers);                                       \
+#define SLAP_SOCK_INIT(t)                                                                                              \
+  do {                                                                                                                 \
+    SLAP_SELECT_CHK_SETSIZE;                                                                                           \
+    FD_ZERO(&slap_daemon[t].sd_actives);                                                                               \
+    FD_ZERO(&slap_daemon[t].sd_readers);                                                                               \
+    FD_ZERO(&slap_daemon[t].sd_writers);                                                                               \
   } while (0)
 
 #define SLAP_SOCK_DESTROY(t)
@@ -604,35 +571,34 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 #define SLAP_SOCK_IS_READ(t, fd) FD_ISSET((fd), &slap_daemon[t].sd_readers)
 #define SLAP_SOCK_IS_WRITE(t, fd) FD_ISSET((fd), &slap_daemon[t].sd_writers)
 
-#define SLAP_SOCK_NOT_ACTIVE(t, fd)                                            \
-  (!SLAP_SOCK_IS_ACTIVE(t, fd) && !SLAP_SOCK_IS_READ(t, fd) &&                 \
-   !SLAP_SOCK_IS_WRITE(t, fd))
+#define SLAP_SOCK_NOT_ACTIVE(t, fd)                                                                                    \
+  (!SLAP_SOCK_IS_ACTIVE(t, fd) && !SLAP_SOCK_IS_READ(t, fd) && !SLAP_SOCK_IS_WRITE(t, fd))
 
 #define SLAP_SOCK_SET_READ(t, fd) FD_SET((fd), &slap_daemon[t].sd_readers)
 #define SLAP_SOCK_SET_WRITE(t, fd) FD_SET((fd), &slap_daemon[t].sd_writers)
 
 #define SLAP_EVENT_MAX(t) slap_daemon[t].sd_nfds
-#define SLAP_SELECT_ADDTEST(t, s)                                              \
-  do {                                                                         \
-    if ((s) >= slap_daemon[t].sd_nfds)                                         \
-      slap_daemon[t].sd_nfds = (s) + 1;                                        \
+#define SLAP_SELECT_ADDTEST(t, s)                                                                                      \
+  do {                                                                                                                 \
+    if ((s) >= slap_daemon[t].sd_nfds)                                                                                 \
+      slap_daemon[t].sd_nfds = (s) + 1;                                                                                \
   } while (0)
 
 #define SLAP_SOCK_CLR_READ(t, fd) FD_CLR((fd), &slap_daemon[t].sd_readers)
 #define SLAP_SOCK_CLR_WRITE(t, fd) FD_CLR((fd), &slap_daemon[t].sd_writers)
 
-#define SLAP_SOCK_ADD(t, s, l)                                                 \
-  do {                                                                         \
-    SLAP_SELECT_ADDTEST(t, (s));                                               \
-    FD_SET((s), &slap_daemon[t].sd_actives);                                   \
-    FD_SET((s), &slap_daemon[t].sd_readers);                                   \
+#define SLAP_SOCK_ADD(t, s, l)                                                                                         \
+  do {                                                                                                                 \
+    SLAP_SELECT_ADDTEST(t, (s));                                                                                       \
+    FD_SET((s), &slap_daemon[t].sd_actives);                                                                           \
+    FD_SET((s), &slap_daemon[t].sd_readers);                                                                           \
   } while (0)
 
-#define SLAP_SOCK_DEL(t, s)                                                    \
-  do {                                                                         \
-    FD_CLR((s), &slap_daemon[t].sd_actives);                                   \
-    FD_CLR((s), &slap_daemon[t].sd_readers);                                   \
-    FD_CLR((s), &slap_daemon[t].sd_writers);                                   \
+#define SLAP_SOCK_DEL(t, s)                                                                                            \
+  do {                                                                                                                 \
+    FD_CLR((s), &slap_daemon[t].sd_actives);                                                                           \
+    FD_CLR((s), &slap_daemon[t].sd_readers);                                                                           \
+    FD_CLR((s), &slap_daemon[t].sd_writers);                                                                           \
   } while (0)
 
 #define SLAP_EVENT_IS_READ(fd) FD_ISSET((fd), &readfds)
@@ -641,10 +607,9 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 #define SLAP_EVENT_CLR_READ(fd) FD_CLR((fd), &readfds)
 #define SLAP_EVENT_CLR_WRITE(fd) FD_CLR((fd), &writefds)
 
-#define SLAP_EVENT_WAIT(t, tvp, nsp)                                           \
-  do {                                                                         \
-    *(nsp) = select(SLAP_EVENT_MAX(t), &readfds,                               \
-                    nwriters > 0 ? &writefds : NULL, NULL, /* FIXME */ (tvp)); \
+#define SLAP_EVENT_WAIT(t, tvp, nsp)                                                                                   \
+  do {                                                                                                                 \
+    *(nsp) = select(SLAP_EVENT_MAX(t), &readfds, nwriters > 0 ? &writefds : NULL, NULL, /* FIXME */ (tvp));            \
   } while (0)
 #endif /* ! epoll && ! /dev/poll */
 
@@ -675,17 +640,11 @@ static void slapd_slp_init(const char *urls) {
   /* find and expand INADDR_ANY URLs */
   for (i = 0; slapd_srvurls[i] != NULL; i++) {
     if (strcmp(slapd_srvurls[i], "ldap:///") == 0) {
-      slapd_srvurls[i] =
-          (char *)ch_realloc(slapd_srvurls[i], global_host_bv.bv_len +
-                                                   sizeof(LDAP_SRVTYPE_PREFIX));
-      strcpy(lutil_strcopy(slapd_srvurls[i], LDAP_SRVTYPE_PREFIX),
-             global_host_bv.bv_val);
+      slapd_srvurls[i] = (char *)ch_realloc(slapd_srvurls[i], global_host_bv.bv_len + sizeof(LDAP_SRVTYPE_PREFIX));
+      strcpy(lutil_strcopy(slapd_srvurls[i], LDAP_SRVTYPE_PREFIX), global_host_bv.bv_val);
     } else if (strcmp(slapd_srvurls[i], "ldaps:///") == 0) {
-      slapd_srvurls[i] = (char *)ch_realloc(slapd_srvurls[i],
-                                            global_host_bv.bv_len +
-                                                sizeof(LDAPS_SRVTYPE_PREFIX));
-      strcpy(lutil_strcopy(slapd_srvurls[i], LDAPS_SRVTYPE_PREFIX),
-             global_host_bv.bv_val);
+      slapd_srvurls[i] = (char *)ch_realloc(slapd_srvurls[i], global_host_bv.bv_len + sizeof(LDAPS_SRVTYPE_PREFIX));
+      strcpy(lutil_strcopy(slapd_srvurls[i], LDAPS_SRVTYPE_PREFIX), global_host_bv.bv_val);
     }
   }
 
@@ -708,8 +667,7 @@ static void slapd_slp_deinit(void) {
   SLPClose(slapd_hslp);
 }
 
-static void slapd_slp_regreport(SLPHandle hslp, SLPError errcode,
-                                void *cookie) {
+static void slapd_slp_regreport(SLPHandle hslp, SLPError errcode, void *cookie) {
   /* return the error code in the cookie */
   *(SLPError *)cookie = errcode;
 }
@@ -722,18 +680,14 @@ static void slapd_slp_reg() {
     return;
 
   for (i = 0; slapd_srvurls[i] != NULL; i++) {
-    if (strncmp(slapd_srvurls[i], LDAP_SRVTYPE_PREFIX,
-                sizeof(LDAP_SRVTYPE_PREFIX) - 1) == 0 ||
-        strncmp(slapd_srvurls[i], LDAPS_SRVTYPE_PREFIX,
-                sizeof(LDAPS_SRVTYPE_PREFIX) - 1) == 0) {
-      err = SLPReg(slapd_hslp, slapd_srvurls[i], SLP_LIFETIME_MAXIMUM, "ldap",
-                   (slapd_slp_attrs) ? slapd_slp_attrs : "", SLP_TRUE,
-                   slapd_slp_regreport, &slapd_slp_cookie);
+    if (strncmp(slapd_srvurls[i], LDAP_SRVTYPE_PREFIX, sizeof(LDAP_SRVTYPE_PREFIX) - 1) == 0 ||
+        strncmp(slapd_srvurls[i], LDAPS_SRVTYPE_PREFIX, sizeof(LDAPS_SRVTYPE_PREFIX) - 1) == 0) {
+      err = SLPReg(slapd_hslp, slapd_srvurls[i], SLP_LIFETIME_MAXIMUM, "ldap", (slapd_slp_attrs) ? slapd_slp_attrs : "",
+                   SLP_TRUE, slapd_slp_regreport, &slapd_slp_cookie);
 
       if (err != SLP_OK || slapd_slp_cookie != SLP_OK) {
-        Debug(LDAP_DEBUG_CONNS,
-              "daemon: SLPReg(%s) failed with %ld, cookie = %ld\n",
-              slapd_srvurls[i], (long)err, (long)slapd_slp_cookie);
+        Debug(LDAP_DEBUG_CONNS, "daemon: SLPReg(%s) failed with %ld, cookie = %ld\n", slapd_srvurls[i], (long)err,
+              (long)slapd_slp_cookie);
       }
     }
   }
@@ -747,13 +701,11 @@ static void slapd_slp_dereg(void) {
     return;
 
   for (i = 0; slapd_srvurls[i] != NULL; i++) {
-    err = SLPDereg(slapd_hslp, slapd_srvurls[i], slapd_slp_regreport,
-                   &slapd_slp_cookie);
+    err = SLPDereg(slapd_hslp, slapd_srvurls[i], slapd_slp_regreport, &slapd_slp_cookie);
 
     if (err != SLP_OK || slapd_slp_cookie != SLP_OK) {
-      Debug(LDAP_DEBUG_CONNS,
-            "daemon: SLPDereg(%s) failed with %ld, cookie = %ld\n",
-            slapd_srvurls[i], (long)err, (long)slapd_slp_cookie);
+      Debug(LDAP_DEBUG_CONNS, "daemon: SLPDereg(%s) failed with %ld, cookie = %ld\n", slapd_srvurls[i], (long)err,
+            (long)slapd_slp_cookie);
     }
   }
 }
@@ -786,8 +738,7 @@ static void slapd_add(ber_socket_t s, int isactive, Listener *sl, int id) {
   ldap_pvt_thread_mutex_unlock(&tsan_mutex);
 #endif
 
-  Debug(LDAP_DEBUG_CONNS, "daemon: added %ldr%s listener=%p\n", (long)s,
-        isactive ? " (active)" : "", (void *)sl);
+  Debug(LDAP_DEBUG_CONNS, "daemon: added %ldr%s listener=%p\n", (long)s, isactive ? " (active)" : "", (void *)sl);
 
   ldap_pvt_thread_mutex_unlock(&slap_daemon[id].sd_mutex);
 
@@ -797,8 +748,7 @@ static void slapd_add(ber_socket_t s, int isactive, Listener *sl, int id) {
 /*
  * Remove the descriptor from daemon control
  */
-void slapd_remove(ber_socket_t s, Sockbuf *sb, int wasactive, int wake,
-                  int locked) {
+void slapd_remove(ber_socket_t s, Sockbuf *sb, int wasactive, int wake, int locked) {
   int waswriter;
   int wasreader;
   int id = DAEMON_ID(s);
@@ -817,8 +767,7 @@ void slapd_remove(ber_socket_t s, Sockbuf *sb, int wasactive, int wake,
   waswriter = SLAP_SOCK_IS_WRITE(id, s);
   wasreader = SLAP_SOCK_IS_READ(id, s);
 
-  Debug(LDAP_DEBUG_CONNS, "daemon: removing %ld%s%s\n", (long)s,
-        wasreader ? "r" : "", waswriter ? "w" : "");
+  Debug(LDAP_DEBUG_CONNS, "daemon: removing %ld%s%s\n", (long)s, wasreader ? "r" : "", waswriter ? "w" : "");
 
   if (waswriter)
     slap_daemon[id].sd_nwriters--;
@@ -987,8 +936,7 @@ static int get_url_perms(char **exts, mode_t *perms, int *crit) {
       type++;
     }
 
-    if (strncasecmp(type, LDAPI_MOD_URLEXT "=",
-                    sizeof(LDAPI_MOD_URLEXT "=") - 1) == 0) {
+    if (strncasecmp(type, LDAPI_MOD_URLEXT "=", sizeof(LDAPI_MOD_URLEXT "=") - 1) == 0) {
       char *value = type + (sizeof(LDAPI_MOD_URLEXT "=") - 1);
       mode_t p = 0;
       int j;
@@ -1015,8 +963,7 @@ static int get_url_perms(char **exts, mode_t *perms, int *crit) {
 
       case 10:
         for (j = 1; j < 10; j++) {
-          static mode_t m[] = {0,       S_IRUSR, S_IWUSR, S_IXUSR, S_IRGRP,
-                               S_IWGRP, S_IXGRP, S_IROTH, S_IWOTH, S_IXOTH};
+          static mode_t m[] = {0, S_IRUSR, S_IWUSR, S_IXUSR, S_IRGRP, S_IWGRP, S_IXGRP, S_IROTH, S_IWOTH, S_IXOTH};
           static const char c[] = "-rwxrwxrwx";
 
           if (value[j] == c[j]) {
@@ -1044,8 +991,7 @@ static int get_url_perms(char **exts, mode_t *perms, int *crit) {
 #endif /* LDAP_PF_LOCAL || SLAP_X_LISTENER_MOD */
 
 /* port = 0 indicates AF_LOCAL */
-static int slap_get_listener_addresses(const char *host, unsigned short port,
-                                       struct sockaddr ***sal) {
+static int slap_get_listener_addresses(const char *host, unsigned short port, struct sockaddr ***sal) {
   struct sockaddr **sap;
 
 #ifdef LDAP_PF_LOCAL
@@ -1061,8 +1007,7 @@ static int slap_get_listener_addresses(const char *host, unsigned short port,
     sap[1] = NULL;
 
     if (strlen(host) > (sizeof(((struct sockaddr_un *)*sap)->sun_path) - 1)) {
-      Debug(LDAP_DEBUG_ANY, "daemon: domain socket path (%s) too long in URL",
-            host);
+      Debug(LDAP_DEBUG_ANY, "daemon: domain socket path (%s) too long in URL", host);
       goto errexit;
     }
 
@@ -1084,8 +1029,7 @@ static int slap_get_listener_addresses(const char *host, unsigned short port,
     snprintf(serv, sizeof serv, "%d", port);
 
     if ((err = getaddrinfo(host, serv, &hints, &res))) {
-      Debug(LDAP_DEBUG_ANY, "daemon: getaddrinfo() failed: %s\n",
-            AC_GAI_STRERROR(err));
+      Debug(LDAP_DEBUG_ANY, "daemon: getaddrinfo() failed: %s\n", AC_GAI_STRERROR(err));
       return -1;
     }
 
@@ -1172,8 +1116,7 @@ static int slap_get_listener_addresses(const char *host, unsigned short port,
       (void)memset((void *)sap[i], '\0', sizeof(struct sockaddr_in));
       sap[i]->sa_family = AF_INET;
       ((struct sockaddr_in *)sap[i])->sin_port = htons(port);
-      memcpy(&((struct sockaddr_in *)sap[i])->sin_addr,
-             he ? (struct in_addr *)he->h_addr_list[i] : &in,
+      memcpy(&((struct sockaddr_in *)sap[i])->sin_addr, he ? (struct in_addr *)he->h_addr_list[i] : &in,
              sizeof(struct in_addr));
     }
     sap[i] = NULL;
@@ -1210,8 +1153,7 @@ static int slap_open_listener(const char *url, int *listeners, int *cur) {
   rc = ldap_url_parse(url, &lud);
 
   if (rc != LDAP_URL_SUCCESS) {
-    Debug(LDAP_DEBUG_ANY, "daemon: listen URL \"%s\" parse error=%d\n", url,
-          rc);
+    Debug(LDAP_DEBUG_ANY, "daemon: listen URL \"%s\" parse error=%d\n", url, rc);
     return rc;
   }
 
@@ -1259,8 +1201,7 @@ static int slap_open_listener(const char *url, int *listeners, int *cur) {
     return -1;
 #endif /* ! LDAP_PF_LOCAL */
   } else {
-    if (lud->lud_host == NULL || lud->lud_host[0] == '\0' ||
-        strcmp(lud->lud_host, "*") == 0) {
+    if (lud->lud_host == NULL || lud->lud_host[0] == '\0' || strcmp(lud->lud_host, "*") == 0) {
       err = slap_get_listener_addresses(NULL, port, &sal);
     } else {
       err = slap_get_listener_addresses(lud->lud_host, port, &sal);
@@ -1315,17 +1256,14 @@ static int slap_open_listener(const char *url, int *listeners, int *cur) {
     s = socket((*sal)->sa_family, socktype, 0);
     if (s == AC_SOCKET_INVALID) {
       int err = sock_errno();
-      Debug(LDAP_DEBUG_ANY, "daemon: %s socket() failed errno=%d (%s)\n", af,
-            err, sock_errstr(err));
+      Debug(LDAP_DEBUG_ANY, "daemon: %s socket() failed errno=%d (%s)\n", af, err, sock_errstr(err));
       sal++;
       continue;
     }
     l.sl_sd = s;
 
     if (l.sl_sd >= dtblsize) {
-      Debug(LDAP_DEBUG_ANY,
-            "daemon: listener descriptor %ld is too great %ld\n", (long)l.sl_sd,
-            (long)dtblsize);
+      Debug(LDAP_DEBUG_ANY, "daemon: listener descriptor %ld is too great %ld\n", (long)l.sl_sd, (long)dtblsize);
       tcp_close(s);
       sal++;
       continue;
@@ -1411,8 +1349,7 @@ static int slap_open_listener(const char *url, int *listeners, int *cur) {
 #endif /* LDAP_PF_LOCAL */
     if (rc) {
       err = sock_errno();
-      Debug(LDAP_DEBUG_ANY, "daemon: bind(%ld) failed errno=%d (%s)\n",
-            (long)l.sl_sd, err, sock_errstr(err));
+      Debug(LDAP_DEBUG_ANY, "daemon: bind(%ld) failed errno=%d (%s)\n", (long)l.sl_sd, err, sock_errstr(err));
       tcp_close(s);
       sal++;
       continue;
@@ -1432,8 +1369,7 @@ static int slap_open_listener(const char *url, int *listeners, int *cur) {
       char addr[INET_ADDRSTRLEN];
       const char *s;
 #if defined(HAVE_GETADDRINFO) && defined(HAVE_INET_NTOP)
-      s = inet_ntop(AF_INET, &((struct sockaddr_in *)*sal)->sin_addr, addr,
-                    sizeof(addr));
+      s = inet_ntop(AF_INET, &((struct sockaddr_in *)*sal)->sin_addr, addr, sizeof(addr));
 #else  /* ! HAVE_GETADDRINFO || ! HAVE_INET_NTOP */
       s = inet_ntoa(((struct sockaddr_in *)*sal)->sin_addr);
 #endif /* ! HAVE_GETADDRINFO || ! HAVE_INET_NTOP */
@@ -1441,8 +1377,7 @@ static int slap_open_listener(const char *url, int *listeners, int *cur) {
         s = SLAP_STRING_UNKNOWN;
       port = ntohs(((struct sockaddr_in *)*sal)->sin_port);
       l.sl_name.bv_val = ber_memalloc(sizeof("IP=255.255.255.255:65535"));
-      snprintf(l.sl_name.bv_val, sizeof("IP=255.255.255.255:65535"), "IP=%s:%d",
-               s, port);
+      snprintf(l.sl_name.bv_val, sizeof("IP=255.255.255.255:65535"), "IP=%s:%d", s, port);
       l.sl_name.bv_len = strlen(l.sl_name.bv_val);
     } break;
 
@@ -1450,8 +1385,7 @@ static int slap_open_listener(const char *url, int *listeners, int *cur) {
     case AF_INET6: {
       char addr[INET6_ADDRSTRLEN];
       const char *s;
-      s = inet_ntop(AF_INET6, &((struct sockaddr_in6 *)*sal)->sin6_addr, addr,
-                    sizeof addr);
+      s = inet_ntop(AF_INET6, &((struct sockaddr_in6 *)*sal)->sin6_addr, addr, sizeof addr);
       if (!s)
         s = SLAP_STRING_UNKNOWN;
       port = ntohs(((struct sockaddr_in6 *)*sal)->sin6_port);
@@ -1463,16 +1397,14 @@ static int slap_open_listener(const char *url, int *listeners, int *cur) {
 #endif /* LDAP_PF_INET6 */
 
     default:
-      Debug(LDAP_DEBUG_ANY, "daemon: unsupported address family (%d)\n",
-            (int)(*sal)->sa_family);
+      Debug(LDAP_DEBUG_ANY, "daemon: unsupported address family (%d)\n", (int)(*sal)->sa_family);
       break;
     }
 
     /* If we got more, we need to make space the slap_listeners array. */
     if (*cur == *listeners) {
       *listeners += 1;
-      slap_listeners =
-          ch_realloc(slap_listeners, (*listeners + 1) * sizeof(Listener *));
+      slap_listeners = ch_realloc(slap_listeners, (*listeners + 1) * sizeof(Listener *));
       if (!slap_listeners)
         return ENOMEM;
     }
@@ -1491,8 +1423,7 @@ static int slap_open_listener(const char *url, int *listeners, int *cur) {
   if (li == NULL) {
     Debug(LDAP_DEBUG_TRACE, "slap_open_listener: failed on %s\n", url);
   } else {
-    Debug(LDAP_DEBUG_TRACE, "daemon: listener initialized %s\n",
-          l.sl_url.bv_val);
+    Debug(LDAP_DEBUG_TRACE, "daemon: listener initialized %s\n", l.sl_url.bv_val);
   }
   return 0;
 }
@@ -1572,8 +1503,7 @@ int slapd_daemon_init(const char *urls) {
   slap_listeners[j] = NULL;
 
   if (j == 0) {
-    Debug(LDAP_DEBUG_TRACE,
-          "daemon_init: no listeners opened (see previous errors)\n");
+    Debug(LDAP_DEBUG_TRACE, "daemon_init: no listeners opened (see previous errors)\n");
     ldap_charray_free(u);
     return -1;
   }
@@ -1620,8 +1550,8 @@ int slapd_daemon_destroy(void) {
     int i;
 
     for (i = 0; i < slapd_daemon_threads; i++) {
-      Debug(LDAP_DEBUG_CONNS, "daemon: closing [1] %d/fd %d, [0] %d/fd %d\n",
-            wake_sds[i][1], wake_sds[i][1], wake_sds[i][0], wake_sds[i][0]);
+      Debug(LDAP_DEBUG_CONNS, "daemon: closing [1] %d/fd %d, [0] %d/fd %d\n", wake_sds[i][1], wake_sds[i][1],
+            wake_sds[i][0], wake_sds[i][0]);
       tcp_close(wake_sds[i][1]);
       tcp_close(wake_sds[i][0]);
       ldap_pvt_thread_mutex_destroy(&slap_daemon[i].sd_mutex);
@@ -1747,16 +1677,14 @@ static int slap_listener(Listener *sl) {
       ldap_pvt_thread_mutex_unlock(&slap_daemon[0].sd_mutex);
     }
 
-    Debug(LDAP_DEBUG_ANY, "daemon: accept(%ld) failed errno=%d (%s)\n",
-          (long)sl->sl_sd, err, sock_errstr(err));
+    Debug(LDAP_DEBUG_ANY, "daemon: accept(%ld) failed errno=%d (%s)\n", (long)sl->sl_sd, err, sock_errstr(err));
     ldap_pvt_thread_yield();
     return 0;
   }
 
   /* make sure descriptor number isn't too great */
   if (s >= dtblsize) {
-    Debug(LDAP_DEBUG_ANY, "daemon: %ld beyond descriptor table size %ld\n",
-          (long)s, (long)dtblsize);
+    Debug(LDAP_DEBUG_ANY, "daemon: %ld beyond descriptor table size %ld\n", (long)s, (long)dtblsize);
 
     tcp_close(s);
     ldap_pvt_thread_yield();
@@ -1778,9 +1706,7 @@ static int slap_listener(Listener *sl) {
   if (from.sa_addr.sa_family != AF_LOCAL)
 #endif /* LDAP_PF_LOCAL */
   {
-    int rc = ldap_pvt_tcpkeepalive(s, slapd_tcpkeepalive.idle,
-                                   slapd_tcpkeepalive.probes,
-                                   slapd_tcpkeepalive.interval);
+    int rc = ldap_pvt_tcpkeepalive(s, slapd_tcpkeepalive.idle, slapd_tcpkeepalive.probes, slapd_tcpkeepalive.interval);
     if (rc) {
       int err = sock_errno();
       Debug(LDAP_DEBUG_ANY,
@@ -1802,8 +1728,7 @@ static int slap_listener(Listener *sl) {
 #endif /* TCP_NODELAY */
   }
 
-  Debug(LDAP_DEBUG_CONNS, "daemon: listen=%ld, new connection on %ld\n",
-        (long)sl->sl_sd, (long)s);
+  Debug(LDAP_DEBUG_CONNS, "daemon: listen=%ld, new connection on %ld\n", (long)sl->sl_sd, (long)s);
 
   cflag = 0;
   switch (from.sa_addr.sa_family) {
@@ -1814,8 +1739,7 @@ static int slap_listener(Listener *sl) {
     /* FIXME: apparently accept doesn't fill
      * the sun_path sun_path member */
     if (from.sa_un_addr.sun_path[0] == '\0') {
-      memcpy(from.sa_un_addr.sun_path, sl->sl_sa.sa_un_addr.sun_path,
-             sizeof(from.sa_un_addr.sun_path));
+      memcpy(from.sa_un_addr.sun_path, sl->sl_sa.sa_un_addr.sun_path, sizeof(from.sa_un_addr.sun_path));
     }
 
     sprintf(peername, "PATH=%s", from.sa_un_addr.sun_path);
@@ -1829,17 +1753,15 @@ static int slap_listener(Listener *sl) {
       peerbv.bv_len = sizeof(peerbuf);
 #endif
       if (LUTIL_GETPEEREID(s, &uid, &gid, &peerbv) == 0) {
-        authid.bv_val =
-            ch_malloc(STRLENOF("gidNumber=4294967295+uidNumber=4294967295,"
-                               "cn=peercred,cn=external,cn=auth") +
-                      1);
+        authid.bv_val = ch_malloc(STRLENOF("gidNumber=4294967295+uidNumber=4294967295,"
+                                           "cn=peercred,cn=external,cn=auth") +
+                                  1);
         authid.bv_len = sprintf(authid.bv_val,
                                 "gidNumber=%d+uidNumber=%d,"
                                 "cn=peercred,cn=external,cn=auth",
                                 (int)gid, (int)uid);
-        assert(authid.bv_len <=
-               STRLENOF("gidNumber=4294967295+uidNumber=4294967295,"
-                        "cn=peercred,cn=external,cn=auth"));
+        assert(authid.bv_len <= STRLENOF("gidNumber=4294967295+uidNumber=4294967295,"
+                                         "cn=peercred,cn=external,cn=auth"));
       }
     }
     dnsname = "local";
@@ -1850,39 +1772,31 @@ static int slap_listener(Listener *sl) {
   case AF_INET6:
     if (IN6_IS_ADDR_V4MAPPED(&from.sa_in6_addr.sin6_addr)) {
 #if defined(HAVE_GETADDRINFO) && defined(HAVE_INET_NTOP)
-      peeraddr = inet_ntop(
-          AF_INET, ((struct in_addr *)&from.sa_in6_addr.sin6_addr.s6_addr[12]),
-          addr, sizeof(addr));
+      peeraddr = inet_ntop(AF_INET, ((struct in_addr *)&from.sa_in6_addr.sin6_addr.s6_addr[12]), addr, sizeof(addr));
 #else  /* ! HAVE_GETADDRINFO || ! HAVE_INET_NTOP */
-      peeraddr = inet_ntoa(
-          *((struct in_addr *)&from.sa_in6_addr.sin6_addr.s6_addr[12]));
+      peeraddr = inet_ntoa(*((struct in_addr *)&from.sa_in6_addr.sin6_addr.s6_addr[12]));
 #endif /* ! HAVE_GETADDRINFO || ! HAVE_INET_NTOP */
       if (!peeraddr)
         peeraddr = SLAP_STRING_UNKNOWN;
-      sprintf(peername, "IP=%s:%d", peeraddr,
-              (unsigned)ntohs(from.sa_in6_addr.sin6_port));
+      sprintf(peername, "IP=%s:%d", peeraddr, (unsigned)ntohs(from.sa_in6_addr.sin6_port));
     } else {
-      peeraddr =
-          inet_ntop(AF_INET6, &from.sa_in6_addr.sin6_addr, addr, sizeof addr);
+      peeraddr = inet_ntop(AF_INET6, &from.sa_in6_addr.sin6_addr, addr, sizeof addr);
       if (!peeraddr)
         peeraddr = SLAP_STRING_UNKNOWN;
-      sprintf(peername, "IP=[%s]:%d", peeraddr,
-              (unsigned)ntohs(from.sa_in6_addr.sin6_port));
+      sprintf(peername, "IP=[%s]:%d", peeraddr, (unsigned)ntohs(from.sa_in6_addr.sin6_port));
     }
     break;
 #endif /* LDAP_PF_INET6 */
 
   case AF_INET: {
 #if defined(HAVE_GETADDRINFO) && defined(HAVE_INET_NTOP)
-    peeraddr =
-        inet_ntop(AF_INET, &from.sa_in_addr.sin_addr, addr, sizeof(addr));
+    peeraddr = inet_ntop(AF_INET, &from.sa_in_addr.sin_addr, addr, sizeof(addr));
 #else  /* ! HAVE_GETADDRINFO || ! HAVE_INET_NTOP */
     peeraddr = inet_ntoa(from.sa_in_addr.sin_addr);
 #endif /* ! HAVE_GETADDRINFO || ! HAVE_INET_NTOP */
     if (!peeraddr)
       peeraddr = SLAP_STRING_UNKNOWN;
-    sprintf(peername, "IP=%s:%d", peeraddr,
-            (unsigned)ntohs(from.sa_in_addr.sin_port));
+    sprintf(peername, "IP=%s:%d", peeraddr, (unsigned)ntohs(from.sa_in_addr.sin_port));
   } break;
 
   default:
@@ -1899,8 +1813,7 @@ static int slap_listener(Listener *sl) {
 #ifdef SLAPD_RLOOKUPS
     if (use_reverse_lookup) {
       char *herr;
-      if (ldap_pvt_get_hname((const struct sockaddr *)&from, len, hbuf,
-                             sizeof(hbuf), &herr) == 0) {
+      if (ldap_pvt_get_hname((const struct sockaddr *)&from, len, hbuf, sizeof(hbuf), &herr) == 0) {
         ldap_pvt_str2lower(hbuf);
         dnsname = hbuf;
       }
@@ -1911,8 +1824,7 @@ static int slap_listener(Listener *sl) {
     {
       int rc;
       ldap_pvt_thread_mutex_lock(&sd_tcpd_mutex);
-      rc = hosts_ctl("slapd", dnsname != NULL ? dnsname : SLAP_STRING_UNKNOWN,
-                     (char *)peeraddr, SLAP_STRING_UNKNOWN);
+      rc = hosts_ctl("slapd", dnsname != NULL ? dnsname : SLAP_STRING_UNKNOWN, (char *)peeraddr, SLAP_STRING_UNKNOWN);
       ldap_pvt_thread_mutex_unlock(&sd_tcpd_mutex);
       if (!rc) {
         /* DENY ACCESS */
@@ -1929,16 +1841,14 @@ static int slap_listener(Listener *sl) {
   if (sl->sl_is_tls)
     cflag |= CONN_IS_TLS;
 #endif
-  c = connection_init(
-      s, sl, dnsname != NULL ? dnsname : SLAP_STRING_UNKNOWN, peername, cflag,
-      ssf, authid.bv_val ? &authid : NULL LDAP_PF_LOCAL_SENDMSG_ARG(&peerbv));
+  c = connection_init(s, sl, dnsname != NULL ? dnsname : SLAP_STRING_UNKNOWN, peername, cflag, ssf,
+                      authid.bv_val ? &authid : NULL LDAP_PF_LOCAL_SENDMSG_ARG(&peerbv));
 
   if (authid.bv_val)
     ch_free(authid.bv_val);
 
   if (!c) {
-    Debug(LDAP_DEBUG_ANY, "daemon: connection_init(%ld, %s, %s) failed.\n",
-          (long)s, peername, sl->sl_name.bv_val);
+    Debug(LDAP_DEBUG_ANY, "daemon: connection_init(%ld, %s, %s) failed.\n", (long)s, peername, sl->sl_name.bv_val);
     slapd_close(s);
   }
 
@@ -1952,8 +1862,7 @@ static void *slap_listener_thread(void *ctx, void *ptr) {
   rc = slap_listener(sl);
 
   if (rc != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_ANY, "slap_listener_thread(%s): failed err=%d",
-          sl->sl_url.bv_val, rc);
+    Debug(LDAP_DEBUG_ANY, "slap_listener_thread(%s): failed err=%d", sl->sl_url.bv_val, rc);
   }
 
   return (void *)NULL;
@@ -1965,17 +1874,15 @@ static int slap_listener_activate(Listener *sl) {
 #ifdef __SANITIZE_THREAD__
   ldap_pvt_thread_mutex_lock(&tsan_mutex);
 #endif
-  Debug(LDAP_DEBUG_TRACE, "slap_listener_activate(%d): %s%s\n", sl->sl_sd,
-        sl->sl_mute ? " muted" : "", sl->sl_busy ? " busy" : "");
+  Debug(LDAP_DEBUG_TRACE, "slap_listener_activate(%d): %s%s\n", sl->sl_sd, sl->sl_mute ? " muted" : "",
+        sl->sl_busy ? " busy" : "");
 
   sl->sl_busy = 1;
 
-  rc = ldap_pvt_thread_pool_submit(&connection_pool, slap_listener_thread,
-                                   (void *)sl);
+  rc = ldap_pvt_thread_pool_submit(&connection_pool, slap_listener_thread, (void *)sl);
 
   if (rc != 0) {
-    Debug(LDAP_DEBUG_ANY, "slap_listener_activate(%d): submit failed (%d)\n",
-          sl->sl_sd, rc);
+    Debug(LDAP_DEBUG_ANY, "slap_listener_activate(%d): submit failed (%d)\n", sl->sl_sd, rc);
 
     sl->sl_busy = 0; /* LY: ?! */
   }
@@ -2030,39 +1937,30 @@ static void *slapd_daemon_task(void *ptr) {
 
       if (size > 0) {
         optlen = sizeof(origsize);
-        rc = getsockopt(slap_listeners[l]->sl_sd, SOL_SOCKET, SO_RCVBUF,
-                        (void *)&origsize, &optlen);
+        rc = getsockopt(slap_listeners[l]->sl_sd, SOL_SOCKET, SO_RCVBUF, (void *)&origsize, &optlen);
 
         if (rc) {
           int err = sock_errno();
-          Debug(
-              LDAP_DEBUG_ANY,
-              "slapd_daemon_task: getsockopt(SO_RCVBUF) failed errno=%d (%s)\n",
-              err, sock_errstr(err));
+          Debug(LDAP_DEBUG_ANY, "slapd_daemon_task: getsockopt(SO_RCVBUF) failed errno=%d (%s)\n", err,
+                sock_errstr(err));
         }
 
         optlen = sizeof(size);
-        rc = setsockopt(slap_listeners[l]->sl_sd, SOL_SOCKET, SO_RCVBUF,
-                        (const void *)&size, optlen);
+        rc = setsockopt(slap_listeners[l]->sl_sd, SOL_SOCKET, SO_RCVBUF, (const void *)&size, optlen);
 
         if (rc) {
           int err = sock_errno();
-          Debug(
-              LDAP_DEBUG_ANY,
-              "slapd_daemon_task: setsockopt(SO_RCVBUF) failed errno=%d (%s)\n",
-              err, sock_errstr(err));
+          Debug(LDAP_DEBUG_ANY, "slapd_daemon_task: setsockopt(SO_RCVBUF) failed errno=%d (%s)\n", err,
+                sock_errstr(err));
         }
 
         optlen = sizeof(realsize);
-        rc = getsockopt(slap_listeners[l]->sl_sd, SOL_SOCKET, SO_RCVBUF,
-                        (void *)&realsize, &optlen);
+        rc = getsockopt(slap_listeners[l]->sl_sd, SOL_SOCKET, SO_RCVBUF, (void *)&realsize, &optlen);
 
         if (rc) {
           int err = sock_errno();
-          Debug(
-              LDAP_DEBUG_ANY,
-              "slapd_daemon_task: getsockopt(SO_RCVBUF) failed errno=%d (%s)\n",
-              err, sock_errstr(err));
+          Debug(LDAP_DEBUG_ANY, "slapd_daemon_task: getsockopt(SO_RCVBUF) failed errno=%d (%s)\n", err,
+                sock_errstr(err));
         }
 
         snprintf(buf, sizeof(buf),
@@ -2081,38 +1979,29 @@ static void *slapd_daemon_task(void *ptr) {
 
       if (size > 0) {
         optlen = sizeof(origsize);
-        rc = getsockopt(slap_listeners[l]->sl_sd, SOL_SOCKET, SO_SNDBUF,
-                        (void *)&origsize, &optlen);
+        rc = getsockopt(slap_listeners[l]->sl_sd, SOL_SOCKET, SO_SNDBUF, (void *)&origsize, &optlen);
 
         if (rc) {
           int err = sock_errno();
-          Debug(
-              LDAP_DEBUG_ANY,
-              "slapd_daemon_task: getsockopt(SO_SNDBUF) failed errno=%d (%s)\n",
-              err, sock_errstr(err));
+          Debug(LDAP_DEBUG_ANY, "slapd_daemon_task: getsockopt(SO_SNDBUF) failed errno=%d (%s)\n", err,
+                sock_errstr(err));
         }
 
         optlen = sizeof(size);
-        rc = setsockopt(slap_listeners[l]->sl_sd, SOL_SOCKET, SO_SNDBUF,
-                        (const void *)&size, optlen);
+        rc = setsockopt(slap_listeners[l]->sl_sd, SOL_SOCKET, SO_SNDBUF, (const void *)&size, optlen);
 
         if (rc) {
           int err = sock_errno();
-          Debug(LDAP_DEBUG_ANY,
-                "slapd_daemon_task: setsockopt(SO_SNDBUF) failed errno=%d (%s)",
-                err, sock_errstr(err));
+          Debug(LDAP_DEBUG_ANY, "slapd_daemon_task: setsockopt(SO_SNDBUF) failed errno=%d (%s)", err, sock_errstr(err));
         }
 
         optlen = sizeof(realsize);
-        rc = getsockopt(slap_listeners[l]->sl_sd, SOL_SOCKET, SO_SNDBUF,
-                        (void *)&realsize, &optlen);
+        rc = getsockopt(slap_listeners[l]->sl_sd, SOL_SOCKET, SO_SNDBUF, (void *)&realsize, &optlen);
 
         if (rc) {
           int err = sock_errno();
-          Debug(
-              LDAP_DEBUG_ANY,
-              "slapd_daemon_task: getsockopt(SO_SNDBUF) failed errno=%d (%s)\n",
-              err, sock_errstr(err));
+          Debug(LDAP_DEBUG_ANY, "slapd_daemon_task: getsockopt(SO_SNDBUF) failed errno=%d (%s)\n", err,
+                sock_errstr(err));
         }
 
         snprintf(buf, sizeof(buf),
@@ -2124,8 +2013,8 @@ static void *slapd_daemon_task(void *ptr) {
     }
 #endif /* LDAP_TCP_BUFFER */
 
-    Debug(LDAP_DEBUG_TRACE, "daemon: listener %d, %s, socked %d\n", l,
-          slap_listeners[l]->sl_url.bv_val, slap_listeners[l]->sl_sd);
+    Debug(LDAP_DEBUG_TRACE, "daemon: listener %d, %s, socked %d\n", l, slap_listeners[l]->sl_url.bv_val,
+          slap_listeners[l]->sl_sd);
 
     if (listen(slap_listeners[l]->sl_sd, SLAPD_LISTEN_BACKLOG) == -1) {
       int err = sock_errno();
@@ -2139,23 +2028,19 @@ static void *slapd_daemon_task(void *ptr) {
         struct sockaddr_in sa = slap_listeners[l]->sl_sa.sa_in_addr;
         struct sockaddr_in6 sa6;
 
-        if (sa.sin_family == AF_INET &&
-            sa.sin_addr.s_addr == htonl(INADDR_ANY)) {
+        if (sa.sin_family == AF_INET && sa.sin_addr.s_addr == htonl(INADDR_ANY)) {
           int i;
           for (i = 0; i < l; i++) {
             sa6 = slap_listeners[i]->sl_sa.sa_in6_addr;
-            if (sa6.sin6_family == AF_INET6 &&
-                !memcmp(&sa6.sin6_addr, &in6addr_any,
-                        sizeof(struct in6_addr))) {
+            if (sa6.sin6_family == AF_INET6 && !memcmp(&sa6.sin6_addr, &in6addr_any, sizeof(struct in6_addr))) {
               break;
             }
           }
 
           if (i < l) {
             /* We are already listening to in6addr_any */
-            Debug(LDAP_DEBUG_CONNS,
-                  "daemon: Attempt to listen to 0.0.0.0 failed, "
-                  "already listening on ::, assuming IPv4 included\n");
+            Debug(LDAP_DEBUG_CONNS, "daemon: Attempt to listen to 0.0.0.0 failed, "
+                                    "already listening on ::, assuming IPv4 included\n");
             slapd_close(slap_listeners[l]->sl_sd);
             slap_listeners[l]->sl_sd = AC_SOCKET_INVALID;
             slap_listeners[l]->sl_mute = 1;
@@ -2164,9 +2049,8 @@ static void *slapd_daemon_task(void *ptr) {
         }
       }
 #endif /* LDAP_PF_INET6 */
-      Debug(LDAP_DEBUG_ANY, "daemon: listen(%s, %i) failed errno=%d (%s)\n",
-            slap_listeners[l]->sl_url.bv_val, SLAPD_LISTEN_BACKLOG, err,
-            sock_errstr(err));
+      Debug(LDAP_DEBUG_ANY, "daemon: listen(%s, %i) failed errno=%d (%s)\n", slap_listeners[l]->sl_url.bv_val,
+            SLAPD_LISTEN_BACKLOG, err, sock_errstr(err));
       return (void *)-1;
     }
     slap_listeners[l]->sl_mute = 0;
@@ -2196,10 +2080,7 @@ loop:
       int check = 0;
       /* Set the select timeout. */
       if (global_idletimeout > 0 &&
-          now.ns >
-              last_idle_check.ns +
-                  ldap_from_seconds(global_idletimeout / SLAPD_IDLE_CHECK_LIMIT)
-                      .ns) {
+          now.ns > last_idle_check.ns + ldap_from_seconds(global_idletimeout / SLAPD_IDLE_CHECK_LIMIT).ns) {
         check = 1;
         tv = ldap_from_seconds(global_idletimeout / SLAPD_IDLE_CHECK_LIMIT);
       }
@@ -2224,9 +2105,7 @@ loop:
         Debug(LDAP_DEBUG_ANY, "slapd gentle shutdown\n");
         close_listeners(1);
         frontendDB->be_restrictops |= SLAP_RESTRICT_OP_WRITES;
-        LDAP_STAILQ_FOREACH(be, &backendDB, be_next) {
-          be->be_restrictops |= SLAP_RESTRICT_OP_WRITES;
-        }
+        LDAP_STAILQ_FOREACH(be, &backendDB, be_next) { be->be_restrictops |= SLAP_RESTRICT_OP_WRITES; }
         connections_shutdown(SHUT_WR);
         if (reopenldap_mode_righteous() && !global_gentlehup) {
           if (!global_idletimeout)
@@ -2302,8 +2181,7 @@ loop:
           ldap_pvt_runqueue_runtask(&slapd_rq, rtask);
           ldap_pvt_runqueue_resched(&slapd_rq, rtask, 0);
           ldap_pvt_thread_mutex_unlock(&slapd_rq.rq_mutex);
-          ldap_pvt_thread_pool_submit2(&connection_pool, rtask->routine,
-                                       (void *)rtask, &rtask->pool_cookie);
+          ldap_pvt_thread_pool_submit2(&connection_pool, rtask->routine, (void *)rtask, &rtask->pool_cookie);
           ldap_pvt_thread_mutex_lock(&slapd_rq.rq_mutex);
         }
         rtask = ldap_pvt_runqueue_next_sched(&slapd_rq, &cat);
@@ -2336,8 +2214,7 @@ loop:
       }
 
       if (lr->sl_mute || lr->sl_busy) {
-        Debug(LDAP_DEBUG_CONNS, "daemon: " SLAP_EVENT_FNAME ": listen=%d%s%s\n",
-              lr->sl_sd, lr->sl_mute ? " muted" : "",
+        Debug(LDAP_DEBUG_CONNS, "daemon: " SLAP_EVENT_FNAME ": listen=%d%s%s\n", lr->sl_sd, lr->sl_mute ? " muted" : "",
               lr->sl_busy ? " busy" : "");
         continue;
       }
@@ -2377,8 +2254,7 @@ loop:
     case 0: /* timeout - let threads run */
       ebadf = 0;
 #ifndef HAVE_YIELDING_SELECT
-      Debug(LDAP_DEBUG_CONNS,
-            "daemon: " SLAP_EVENT_FNAME "timeout - yielding\n");
+      Debug(LDAP_DEBUG_CONNS, "daemon: " SLAP_EVENT_FNAME "timeout - yielding\n");
 
       ldap_pvt_thread_yield();
 #endif /* ! HAVE_YIELDING_SELECT */
@@ -2389,8 +2265,7 @@ loop:
         continue;
 
       ebadf = 0;
-      Debug(LDAP_DEBUG_CONNS, "daemon: activity on %d descriptor%s\n", ns,
-            ns != 1 ? "s" : "");
+      Debug(LDAP_DEBUG_CONNS, "daemon: activity on %d descriptor%s\n", ns, ns != 1 ? "s" : "");
       /* FALL THRU */
     }
 
@@ -2651,8 +2526,7 @@ loop:
 
   if (DebugTest(LDAP_DEBUG_ANY)) {
     int t = ldap_pvt_thread_pool_backload(&connection_pool);
-    Debug(LDAP_DEBUG_ANY,
-          "slapd shutdown: waiting for %d operations/tasks to finish\n", t);
+    Debug(LDAP_DEBUG_ANY, "slapd shutdown: waiting for %d operations/tasks to finish\n", t);
   }
   ldap_pvt_thread_pool_close(&connection_pool, 1);
 
@@ -2671,12 +2545,10 @@ static int connectionless_init(void) {
       continue;
     }
 
-    c = connection_init(lr->sl_sd, lr, "", "", CONN_IS_UDP, (slap_ssf_t)0,
-                        NULL LDAP_PF_LOCAL_SENDMSG_ARG(NULL));
+    c = connection_init(lr->sl_sd, lr, "", "", CONN_IS_UDP, (slap_ssf_t)0, NULL LDAP_PF_LOCAL_SENDMSG_ARG(NULL));
 
     if (!c) {
-      Debug(LDAP_DEBUG_TRACE, "connectionless_init: failed on %s (%d)\n",
-            lr->sl_url.bv_val, lr->sl_sd);
+      Debug(LDAP_DEBUG_TRACE, "connectionless_init: failed on %s (%d)\n", lr->sl_url.bv_val, lr->sl_sd);
       return -1;
     }
     lr->sl_is_udp++;
@@ -2715,12 +2587,10 @@ int slapd_daemon(void) {
 
   for (i = 0; i < slapd_daemon_threads; i++) {
     /* listener as a separate THREAD */
-    rc = ldap_pvt_thread_create(&listener_tid[i], 0, slapd_daemon_task,
-                                &listener_tid[i]);
+    rc = ldap_pvt_thread_create(&listener_tid[i], 0, slapd_daemon_task, &listener_tid[i]);
 
     if (rc != 0) {
-      Debug(LDAP_DEBUG_ANY, "listener ldap_pvt_thread_create failed (%d)\n",
-            rc);
+      Debug(LDAP_DEBUG_ANY, "listener ldap_pvt_thread_create failed (%d)\n", rc);
       return rc;
     }
   }
@@ -2824,9 +2694,7 @@ int slap_unpause_server(void) {
   return rc;
 }
 
-void slapd_add_internal(ber_socket_t s, int isactive) {
-  slapd_add(s, isactive, NULL, -1);
-}
+void slapd_add_internal(ber_socket_t s, int isactive) { slapd_add(s, isactive, NULL, -1); }
 
 Listener **slapd_get_listeners(void) {
   /* Could return array with no listeners if !listening, but current
@@ -2843,11 +2711,10 @@ void slap_suspend_listeners(void) {
   ldap_pvt_thread_mutex_lock(&tsan_mutex);
 #endif
   for (i = 0; slap_listeners[i]; i++) {
-    if (slap_listeners[i]->sl_mute ||
-        slap_listeners[i]->sl_sd == AC_SOCKET_INVALID)
+    if (slap_listeners[i]->sl_mute || slap_listeners[i]->sl_sd == AC_SOCKET_INVALID)
       continue;
-    Debug(LDAP_DEBUG_TRACE, "daemon: suspend listener %d, %s, socked %d\n", i,
-          slap_listeners[i]->sl_url.bv_val, slap_listeners[i]->sl_sd);
+    Debug(LDAP_DEBUG_TRACE, "daemon: suspend listener %d, %s, socked %d\n", i, slap_listeners[i]->sl_url.bv_val,
+          slap_listeners[i]->sl_sd);
     slap_listeners[i]->sl_mute = 1;
     listen(slap_listeners[i]->sl_sd, 0);
   }
@@ -2863,11 +2730,10 @@ void slap_resume_listeners(void) {
   ldap_pvt_thread_mutex_lock(&tsan_mutex);
 #endif
   for (i = 0; slap_listeners[i]; i++) {
-    if (slap_listeners[i]->sl_mute == 0 ||
-        slap_listeners[i]->sl_sd == AC_SOCKET_INVALID)
+    if (slap_listeners[i]->sl_mute == 0 || slap_listeners[i]->sl_sd == AC_SOCKET_INVALID)
       continue;
-    Debug(LDAP_DEBUG_TRACE, "daemon: resume listener %d, %s, socked %d\n", i,
-          slap_listeners[i]->sl_url.bv_val, slap_listeners[i]->sl_sd);
+    Debug(LDAP_DEBUG_TRACE, "daemon: resume listener %d, %s, socked %d\n", i, slap_listeners[i]->sl_url.bv_val,
+          slap_listeners[i]->sl_sd);
     slap_listeners[i]->sl_mute = 0;
     listen(slap_listeners[i]->sl_sd, SLAPD_LISTEN_BACKLOG);
   }
@@ -2893,11 +2759,9 @@ int slapd_wait_writer(ber_socket_t sd) {
 
 int config_keepalive(ConfigArgs *c) {
   if (c->op == SLAP_CONFIG_EMIT) {
-    if (slapd_tcpkeepalive.idle < 0 && slapd_tcpkeepalive.probes < 0 &&
-        slapd_tcpkeepalive.interval < 0) {
+    if (slapd_tcpkeepalive.idle < 0 && slapd_tcpkeepalive.probes < 0 && slapd_tcpkeepalive.interval < 0) {
       c->value_string = ch_strdup("default");
-    } else if (slapd_tcpkeepalive.idle == 0 && slapd_tcpkeepalive.probes == 0 &&
-               slapd_tcpkeepalive.interval == 0) {
+    } else if (slapd_tcpkeepalive.idle == 0 && slapd_tcpkeepalive.probes == 0 && slapd_tcpkeepalive.interval == 0) {
       c->value_string = ch_strdup("disable");
     } else {
       char buf[64], *s = buf;
@@ -2905,17 +2769,14 @@ int config_keepalive(ConfigArgs *c) {
         s += snprintf(s, buf + sizeof(buf) - s, "%d", slapd_tcpkeepalive.idle);
       *s++ = ':';
       if (slapd_tcpkeepalive.probes >= 0)
-        s +=
-            snprintf(s, buf + sizeof(buf) - s, "%d", slapd_tcpkeepalive.probes);
+        s += snprintf(s, buf + sizeof(buf) - s, "%d", slapd_tcpkeepalive.probes);
       *s++ = ':';
       if (slapd_tcpkeepalive.interval >= 0)
-        s += snprintf(s, buf + sizeof(buf) - s, "%d",
-                      slapd_tcpkeepalive.interval);
+        s += snprintf(s, buf + sizeof(buf) - s, "%d", slapd_tcpkeepalive.interval);
       *s = '\0';
     }
     return 0;
-  } else if (c->op == LDAP_MOD_DELETE ||
-             strcasecmp(c->value_string, "default") == 0) {
+  } else if (c->op == LDAP_MOD_DELETE || strcasecmp(c->value_string, "default") == 0) {
     slapd_tcpkeepalive.idle = -1;
     slapd_tcpkeepalive.probes = -1;
     slapd_tcpkeepalive.interval = -1;
@@ -2966,8 +2827,7 @@ int config_keepalive(ConfigArgs *c) {
     }
 
   bailout:
-    snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> invalid specification",
-             c->argv[0]);
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> invalid specification", c->argv[0]);
     Debug(LDAP_DEBUG_ANY, "%s: %s '%s'\n", c->log, c->cr_msg, c->value_string);
     return 1;
   }

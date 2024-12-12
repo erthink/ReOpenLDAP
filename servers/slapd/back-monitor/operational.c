@@ -44,11 +44,8 @@ int monitor_back_operational(Operation *op, SlapReply *rs) {
     }
   }
 
-  if (*ap == NULL &&
-      attr_find(rs->sr_entry->e_attrs, slap_schema.si_ad_hasSubordinates) ==
-          NULL &&
-      (SLAP_OPATTRS(rs->sr_attr_flags) ||
-       ad_inlist(slap_schema.si_ad_hasSubordinates, rs->sr_attrs))) {
+  if (*ap == NULL && attr_find(rs->sr_entry->e_attrs, slap_schema.si_ad_hasSubordinates) == NULL &&
+      (SLAP_OPATTRS(rs->sr_attr_flags) || ad_inlist(slap_schema.si_ad_hasSubordinates, rs->sr_attrs))) {
     int hs;
     monitor_entry_t *mp;
 

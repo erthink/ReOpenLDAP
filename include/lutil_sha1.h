@@ -45,8 +45,7 @@ LDAP_LUTIL_F(void)
 lutil_SHA1Init(lutil_SHA1_CTX *context);
 
 LDAP_LUTIL_F(void)
-lutil_SHA1Update(lutil_SHA1_CTX *context, const unsigned char *data,
-                 uint32_t len);
+lutil_SHA1Update(lutil_SHA1_CTX *context, const unsigned char *data, uint32_t len);
 
 LDAP_LUTIL_F(void)
 lutil_SHA1Final(unsigned char digest[20], lutil_SHA1_CTX *context);

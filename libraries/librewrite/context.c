@@ -61,8 +61,7 @@ static int rewrite_context_dup(void *c1, void *c2) {
 /*
  * Finds the context named rewriteContext in the context tree
  */
-struct rewrite_context *rewrite_context_find(struct rewrite_info *info,
-                                             const char *rewriteContext) {
+struct rewrite_context *rewrite_context_find(struct rewrite_info *info, const char *rewriteContext) {
   struct rewrite_context *context, c;
 
   assert(info != NULL);
@@ -72,8 +71,7 @@ struct rewrite_context *rewrite_context_find(struct rewrite_info *info,
    * Fetches the required rewrite context
    */
   c.lc_name = (char *)rewriteContext;
-  context = (struct rewrite_context *)avl_find(info->li_context, (caddr_t)&c,
-                                               rewrite_context_cmp);
+  context = (struct rewrite_context *)avl_find(info->li_context, (caddr_t)&c, rewrite_context_cmp);
   if (context == NULL) {
     return NULL;
   }
@@ -91,8 +89,7 @@ struct rewrite_context *rewrite_context_find(struct rewrite_info *info,
 /*
  * Creates a new context called rewriteContext and stores in into the tree
  */
-struct rewrite_context *rewrite_context_create(struct rewrite_info *info,
-                                               const char *rewriteContext) {
+struct rewrite_context *rewrite_context_create(struct rewrite_info *info, const char *rewriteContext) {
   struct rewrite_context *context;
   int rc;
 
@@ -127,8 +124,7 @@ struct rewrite_context *rewrite_context_create(struct rewrite_info *info,
   /*
    * Add context to tree
    */
-  rc = avl_insert(&info->li_context, (caddr_t)context, rewrite_context_cmp,
-                  rewrite_context_dup);
+  rc = avl_insert(&info->li_context, (caddr_t)context, rewrite_context_cmp, rewrite_context_dup);
   if (rc == -1) {
     free(context->lc_rule);
     free(context->lc_name);
@@ -144,8 +140,7 @@ struct rewrite_context *rewrite_context_create(struct rewrite_info *info,
  * or null in case of error.
  * Helper for rewrite_context_apply.
  */
-static struct rewrite_rule *rewrite_action_goto(struct rewrite_action *action,
-                                                struct rewrite_rule *rule) {
+static struct rewrite_rule *rewrite_action_goto(struct rewrite_action *action, struct rewrite_rule *rule) {
   int n;
 
   assert(action != NULL);
@@ -173,9 +168,8 @@ static struct rewrite_rule *rewrite_action_goto(struct rewrite_action *action,
  *      STOP:   fine, rule matched; stop processing following rules
  *      UNWILL: rule matched; force 'unwilling to perform'
  */
-int rewrite_context_apply(struct rewrite_info *info, struct rewrite_op *op,
-                          struct rewrite_context *context, const char *string,
-                          char **result) {
+int rewrite_context_apply(struct rewrite_info *info, struct rewrite_op *op, struct rewrite_context *context,
+                          const char *string, char **result) {
   struct rewrite_rule *rule;
   char *s, *res = NULL;
   int return_code = REWRITE_REGEXEC_OK;
@@ -197,8 +191,7 @@ int rewrite_context_apply(struct rewrite_info *info, struct rewrite_op *op,
 
   s = (char *)string;
 
-  for (rule = context->lc_rule->lr_next;
-       rule != NULL && op->lo_num_passes < info->li_max_passes;
+  for (rule = context->lc_rule->lr_next; rule != NULL && op->lo_num_passes < info->li_max_passes;
        rule = rule->lr_next, op->lo_num_passes++) {
     int rc;
 
@@ -230,8 +223,7 @@ int rewrite_context_apply(struct rewrite_info *info, struct rewrite_op *op,
         struct rewrite_action *action;
         int do_continue = 0;
 
-        for (action = rule->lr_action; action != NULL;
-             action = action->la_next) {
+        for (action = rule->lr_action; action != NULL; action = action->la_next) {
           switch (action->la_type) {
 
           /*
@@ -298,8 +290,7 @@ int rewrite_context_apply(struct rewrite_info *info, struct rewrite_op *op,
         }
         s = res;
 
-        for (action = rule->lr_action; action != NULL;
-             action = action->la_next) {
+        for (action = rule->lr_action; action != NULL; action = action->la_next) {
 
           switch (action->la_type) {
 

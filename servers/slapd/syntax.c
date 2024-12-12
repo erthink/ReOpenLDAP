@@ -31,8 +31,7 @@ struct sindexrec {
 };
 
 static Avlnode *syn_index = NULL;
-static LDAP_STAILQ_HEAD(SyntaxList, Syntax) syn_list =
-    LDAP_STAILQ_HEAD_INITIALIZER(syn_list);
+static LDAP_STAILQ_HEAD(SyntaxList, Syntax) syn_list = LDAP_STAILQ_HEAD_INITIALIZER(syn_list);
 
 /* Last hardcoded attribute registered */
 Syntax *syn_sys_tail;
@@ -142,8 +141,7 @@ static int syn_insert(Syntax *ssyn, Syntax *prev, const char **err) {
   return 0;
 }
 
-int syn_add(LDAPSyntax *syn, int user, slap_syntax_defs_rec *def,
-            Syntax **ssynp, Syntax *prev, const char **err) {
+int syn_add(LDAPSyntax *syn, int user, slap_syntax_defs_rec *def, Syntax **ssynp, Syntax *prev, const char **err) {
   Syntax *ssyn;
   int code = 0;
 
@@ -178,8 +176,7 @@ int syn_add(LDAPSyntax *syn, int user, slap_syntax_defs_rec *def,
   ssyn->ssyn_str2ber = def->sd_str2ber;
 #endif
 
-  if (def->sd_validate == NULL && def->sd_pretty == NULL &&
-      syn->syn_extensions != NULL) {
+  if (def->sd_validate == NULL && def->sd_pretty == NULL && syn->syn_extensions != NULL) {
     LDAPSchemaExtensionItem **lsei;
     Syntax *subst = NULL;
 
@@ -190,17 +187,15 @@ int syn_add(LDAPSyntax *syn, int user, slap_syntax_defs_rec *def,
 
       assert((*lsei)->lsei_values != NULL);
       if ((*lsei)->lsei_values[0] == NULL || (*lsei)->lsei_values[1] != NULL) {
-        Debug(LDAP_DEBUG_ANY,
-              "syn_add(%s): exactly one substitute syntax must be present\n",
-              ssyn->ssyn_syn.syn_oid);
+        Debug(LDAP_DEBUG_ANY, "syn_add(%s): exactly one substitute syntax must be present\n", ssyn->ssyn_syn.syn_oid);
         SLAP_FREE(ssyn);
         return SLAP_SCHERR_SYN_SUBST_NOT_SPECIFIED;
       }
 
       subst = syn_find((*lsei)->lsei_values[0]);
       if (subst == NULL) {
-        Debug(LDAP_DEBUG_ANY, "syn_add(%s): substitute syntax %s not found\n",
-              ssyn->ssyn_syn.syn_oid, (*lsei)->lsei_values[0]);
+        Debug(LDAP_DEBUG_ANY, "syn_add(%s): substitute syntax %s not found\n", ssyn->ssyn_syn.syn_oid,
+              (*lsei)->lsei_values[0]);
         SLAP_FREE(ssyn);
         return SLAP_SCHERR_SYN_SUBST_NOT_FOUND;
       }
@@ -272,8 +267,7 @@ int register_syntax(slap_syntax_defs_rec *def) {
 
   syn = ldap_str2syntax(def->sd_desc, &code, &err, LDAP_SCHEMA_ALLOW_ALL);
   if (!syn) {
-    Debug(LDAP_DEBUG_ANY, "Error in register_syntax: %s before %s in %s\n",
-          ldap_scherr2str(code), err, def->sd_desc);
+    Debug(LDAP_DEBUG_ANY, "Error in register_syntax: %s before %s in %s\n", ldap_scherr2str(code), err, def->sd_desc);
 
     return (-1);
   }
@@ -281,8 +275,7 @@ int register_syntax(slap_syntax_defs_rec *def) {
   code = syn_add(syn, 0, def, NULL, NULL, &err);
 
   if (code) {
-    Debug(LDAP_DEBUG_ANY, "Error in register_syntax: %s %s in %s\n",
-          scherr2str(code), err, def->sd_desc);
+    Debug(LDAP_DEBUG_ANY, "Error in register_syntax: %s %s in %s\n", scherr2str(code), err, def->sd_desc);
     ldap_syntax_free(syn);
 
     return (-1);
@@ -328,9 +321,7 @@ int syn_schema_info(Entry *e) {
   return 0;
 }
 
-void syn_delete(Syntax *syn) {
-  LDAP_STAILQ_REMOVE(&syn_list, syn, Syntax, ssyn_next);
-}
+void syn_delete(Syntax *syn) { LDAP_STAILQ_REMOVE(&syn_list, syn, Syntax, ssyn_next); }
 
 int syn_start(Syntax **syn) {
   assert(syn != NULL);

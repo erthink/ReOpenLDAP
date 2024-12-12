@@ -44,9 +44,8 @@ static char *hash[] = {
 #endif
     NULL};
 
-static struct berval pw[] = {{sizeof("secret") - 1, "secret"},
-                             {sizeof("binary\0secret") - 1, "binary\0secret"},
-                             {0, NULL}};
+static struct berval pw[] = {
+    {sizeof("secret") - 1, "secret"}, {sizeof("binary\0secret") - 1, "binary\0secret"}, {0, NULL}};
 
 int main(int argc, char *argv[]) {
   int i, j, rc;
@@ -70,8 +69,7 @@ int main(int argc, char *argv[]) {
       if (passwd == NULL)
 #endif
       {
-        printf("%s generate fail: %s (%d)\n", hash[i], pw[j].bv_val,
-               pw[j].bv_len);
+        printf("%s generate fail: %s (%d)\n", hash[i], pw[j].bv_val, pw[j].bv_len);
         continue;
       }
 
@@ -81,8 +79,8 @@ int main(int argc, char *argv[]) {
       rc = lutil_passwd(passwd, &pw[j], NULL);
 #endif
 
-      printf("%s (%d): %s (%d)\t(%d) %s\n", pw[j].bv_val, pw[j].bv_len,
-             passwd->bv_val, passwd->bv_len, rc, rc == 0 ? "OKAY" : "BAD");
+      printf("%s (%d): %s (%d)\t(%d) %s\n", pw[j].bv_val, pw[j].bv_len, passwd->bv_val, passwd->bv_len, rc,
+             rc == 0 ? "OKAY" : "BAD");
 
 #ifdef SLAP_AUTHPASSWD
       rc = lutil_authpasswd(passwd, salt, &bad, NULL);
@@ -90,8 +88,8 @@ int main(int argc, char *argv[]) {
       rc = lutil_passwd(passwd, &bad, NULL);
 #endif
 
-      printf("%s (%d): %s (%d)\t(%d) %s\n", bad.bv_val, bad.bv_len,
-             passwd->bv_val, passwd->bv_len, rc, rc != 0 ? "OKAY" : "BAD");
+      printf("%s (%d): %s (%d)\t(%d) %s\n", bad.bv_val, bad.bv_len, passwd->bv_val, passwd->bv_len, rc,
+             rc != 0 ? "OKAY" : "BAD");
     }
 
     printf("\n");

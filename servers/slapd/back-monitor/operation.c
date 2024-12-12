@@ -85,8 +85,7 @@ int monitor_subsys_ops_init(BackendDB *be, monitor_subsys_t *ms) {
     /*
      * Initiated ops
      */
-    e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &monitor_op[i].rdn,
-                           mi->mi_oc_monitorOperation, NULL, NULL);
+    e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &monitor_op[i].rdn, mi->mi_oc_monitorOperation, NULL, NULL);
 
     if (e == NULL) {
       Debug(LDAP_DEBUG_ANY,

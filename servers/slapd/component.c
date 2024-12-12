@@ -51,28 +51,19 @@ static int strip_cav_str(ComponentAssertionValue *cav, char *str);
 
 static int peek_cav_str(ComponentAssertionValue *cav, char *str);
 
-static int parse_comp_filter(Operation *op, ComponentAssertionValue *cav,
-                             ComponentFilter **filt, const char **text);
+static int parse_comp_filter(Operation *op, ComponentAssertionValue *cav, ComponentFilter **filt, const char **text);
 
 static void free_comp_filter(ComponentFilter *f);
 
-static int test_comp_filter(Syntax *syn, ComponentSyntaxInfo *a,
-                            ComponentFilter *f);
+static int test_comp_filter(Syntax *syn, ComponentSyntaxInfo *a, ComponentFilter *f);
 
-int componentCertificateValidate(Syntax *syntax, struct berval *val) {
-  return LDAP_SUCCESS;
-}
+int componentCertificateValidate(Syntax *syntax, struct berval *val) { return LDAP_SUCCESS; }
 
-int componentFilterValidate(Syntax *syntax, struct berval *val) {
-  return LDAP_SUCCESS;
-}
+int componentFilterValidate(Syntax *syntax, struct berval *val) { return LDAP_SUCCESS; }
 
-int allComponentsValidate(Syntax *syntax, struct berval *val) {
-  return LDAP_SUCCESS;
-}
+int allComponentsValidate(Syntax *syntax, struct berval *val) { return LDAP_SUCCESS; }
 
-int componentFilterMatch(int *matchp, slap_mask_t flags, Syntax *syntax,
-                         MatchingRule *mr, struct berval *value,
+int componentFilterMatch(int *matchp, slap_mask_t flags, Syntax *syntax, MatchingRule *mr, struct berval *value,
                          void *assertedValue) {
   ComponentSyntaxInfo *csi_attr = (ComponentSyntaxInfo *)value;
   MatchingRuleAssertion *ma = (MatchingRuleAssertion *)assertedValue;
@@ -99,16 +90,14 @@ int componentFilterMatch(int *matchp, slap_mask_t flags, Syntax *syntax,
   }
 }
 
-int directoryComponentsMatch(int *matchp, slap_mask_t flags, Syntax *syntax,
-                             MatchingRule *mr, struct berval *value,
+int directoryComponentsMatch(int *matchp, slap_mask_t flags, Syntax *syntax, MatchingRule *mr, struct berval *value,
                              void *assertedValue) {
   /* Only for registration */
   *matchp = 0;
   return LDAP_SUCCESS;
 }
 
-int allComponentsMatch(int *matchp, slap_mask_t flags, Syntax *syntax,
-                       MatchingRule *mr, struct berval *value,
+int allComponentsMatch(int *matchp, slap_mask_t flags, Syntax *syntax, MatchingRule *mr, struct berval *value,
                        void *assertedValue) {
   /* Only for registration */
   *matchp = 0;
@@ -135,8 +124,7 @@ ComponentReference *dup_comp_ref(Operation *op, ComponentReference *cr) {
   ci_temp = &dup_cr->cr_list;
   ci_curr = cr->cr_list;
 
-  for (; ci_curr != NULL;
-       ci_curr = ci_curr->ci_next, ci_temp = &(*ci_temp)->ci_next) {
+  for (; ci_curr != NULL; ci_curr = ci_curr->ci_next, ci_temp = &(*ci_temp)->ci_next) {
     *ci_temp = op->o_tmpalloc(sizeof(ComponentId), op->o_tmpmemctx);
     if (!*ci_temp)
       return NULL;
@@ -148,9 +136,7 @@ ComponentReference *dup_comp_ref(Operation *op, ComponentReference *cr) {
   return dup_cr;
 }
 
-static int dup_comp_filter_list(Operation *op, struct berval *bv,
-                                ComponentFilter *in_f,
-                                ComponentFilter **out_f) {
+static int dup_comp_filter_list(Operation *op, struct berval *bv, ComponentFilter *in_f, ComponentFilter **out_f) {
   ComponentFilter **new, *f;
   int rc;
 
@@ -177,8 +163,7 @@ int get_len_of_next_assert_value(struct berval *bv, char separator) {
   return i;
 }
 
-int dup_comp_filter_item(Operation *op, struct berval *assert_bv,
-                         ComponentAssertion *in_ca,
+int dup_comp_filter_item(Operation *op, struct berval *assert_bv, ComponentAssertion *in_ca,
                          ComponentAssertion **out_ca) {
   int len;
 
@@ -205,8 +190,7 @@ int dup_comp_filter_item(Operation *op, struct berval *assert_bv,
   return LDAP_SUCCESS;
 }
 
-int dup_comp_filter(Operation *op, struct berval *bv, ComponentFilter *in_f,
-                    ComponentFilter **out_f) {
+int dup_comp_filter(Operation *op, struct berval *bv, ComponentFilter *in_f, ComponentFilter **out_f) {
   int rc;
   ComponentFilter dup_f = {0};
 
@@ -242,8 +226,7 @@ int dup_comp_filter(Operation *op, struct berval *bv, ComponentFilter *in_f,
   return (rc);
 }
 
-int get_aliased_filter_aa(Operation *op, AttributeAssertion *a_assert,
-                          AttributeAliasing *aa, const char **text) {
+int get_aliased_filter_aa(Operation *op, AttributeAssertion *a_assert, AttributeAliasing *aa, const char **text) {
   struct berval assert_bv;
 
   Debug(LDAP_DEBUG_FILTER, "get_aliased_filter\n");
@@ -260,8 +243,7 @@ int get_aliased_filter_aa(Operation *op, AttributeAssertion *a_assert,
   return dup_comp_filter(op, &assert_bv, aa->aa_cf, &a_assert->aa_cf);
 }
 
-int get_aliased_filter(Operation *op, MatchingRuleAssertion *ma,
-                       AttributeAliasing *aa, const char **text) {
+int get_aliased_filter(Operation *op, MatchingRuleAssertion *ma, AttributeAliasing *aa, const char **text) {
   struct berval assert_bv;
 
   Debug(LDAP_DEBUG_FILTER, "get_aliased_filter\n");
@@ -281,8 +263,7 @@ int get_aliased_filter(Operation *op, MatchingRuleAssertion *ma,
   return dup_comp_filter(op, &assert_bv, aa->aa_cf, &ma->ma_cf);
 }
 
-int get_comp_filter(Operation *op, struct berval *bv, ComponentFilter **filt,
-                    const char **text) {
+int get_comp_filter(Operation *op, struct berval *bv, ComponentFilter **filt, const char **text) {
   ComponentAssertionValue cav;
   int rc;
 
@@ -302,9 +283,7 @@ static void eat_whsp(ComponentAssertionValue *cav) {
   }
 }
 
-static int cav_cur_len(ComponentAssertionValue *cav) {
-  return cav->cav_end - cav->cav_ptr;
-}
+static int cav_cur_len(ComponentAssertionValue *cav) { return cav->cav_end - cav->cav_ptr; }
 
 static ber_tag_t comp_first_element(ComponentAssertionValue *cav) {
   eat_whsp(cav);
@@ -335,16 +314,14 @@ static ber_tag_t comp_next_element(ComponentAssertionValue *cav) {
     return LDAP_COMP_FILTER_UNDEFINED;
 }
 
-static int get_comp_filter_list(Operation *op, ComponentAssertionValue *cav,
-                                ComponentFilter **f, const char **text) {
+static int get_comp_filter_list(Operation *op, ComponentAssertionValue *cav, ComponentFilter **f, const char **text) {
   ComponentFilter **new;
   int err;
   ber_tag_t tag;
 
   Debug(LDAP_DEBUG_FILTER, "get_comp_filter_list\n");
   new = f;
-  for (tag = comp_first_element(cav); tag != LDAP_COMP_FILTER_UNDEFINED;
-       tag = comp_next_element(cav)) {
+  for (tag = comp_first_element(cav); tag != LDAP_COMP_FILTER_UNDEFINED; tag = comp_next_element(cav)) {
     err = parse_comp_filter(op, cav, new, text);
     if (err != LDAP_SUCCESS)
       return (err);
@@ -355,8 +332,7 @@ static int get_comp_filter_list(Operation *op, ComponentAssertionValue *cav,
   return (LDAP_SUCCESS);
 }
 
-static int get_componentId(Operation *op, ComponentAssertionValue *cav,
-                           ComponentId **cid, const char **text) {
+static int get_componentId(Operation *op, ComponentAssertionValue *cav, ComponentId **cid, const char **text) {
   ber_tag_t type;
   ComponentId _cid;
   int len;
@@ -370,24 +346,24 @@ static int get_componentId(Operation *op, ComponentAssertionValue *cav,
   switch (type) {
   case LDAP_COMPREF_IDENTIFIER:
     _cid.ci_val.ci_identifier.bv_val = cav->cav_ptr;
-    for (; cav->cav_ptr[len] != ' ' && cav->cav_ptr[len] != '\0' &&
-           cav->cav_ptr[len] != '.' && cav->cav_ptr[len] != '\"';
+    for (;
+         cav->cav_ptr[len] != ' ' && cav->cav_ptr[len] != '\0' && cav->cav_ptr[len] != '.' && cav->cav_ptr[len] != '\"';
          len++)
       ;
     _cid.ci_val.ci_identifier.bv_len = len;
     cav->cav_ptr += len;
     break;
   case LDAP_COMPREF_FROM_BEGINNING:
-    for (; cav->cav_ptr[len] != ' ' && cav->cav_ptr[len] != '\0' &&
-           cav->cav_ptr[len] != '.' && cav->cav_ptr[len] != '\"';
+    for (;
+         cav->cav_ptr[len] != ' ' && cav->cav_ptr[len] != '\0' && cav->cav_ptr[len] != '.' && cav->cav_ptr[len] != '\"';
          len++)
       ;
     _cid.ci_val.ci_from_beginning = strtol(cav->cav_ptr, NULL, 0);
     cav->cav_ptr += len;
     break;
   case LDAP_COMPREF_FROM_END:
-    for (; cav->cav_ptr[len] != ' ' && cav->cav_ptr[len] != '\0' &&
-           cav->cav_ptr[len] != '.' && cav->cav_ptr[len] != '\"';
+    for (;
+         cav->cav_ptr[len] != ' ' && cav->cav_ptr[len] != '\0' && cav->cav_ptr[len] != '.' && cav->cav_ptr[len] != '\"';
          len++)
       ;
     _cid.ci_val.ci_from_end = strtol(cav->cav_ptr, NULL, 0);
@@ -404,8 +380,8 @@ static int get_componentId(Operation *op, ComponentAssertionValue *cav,
   case LDAP_COMPREF_SELECT:
     if (cav->cav_ptr[len] != '(')
       return LDAP_COMPREF_UNDEFINED;
-    for (; cav->cav_ptr[len] != ' ' && cav->cav_ptr[len] != '\0' &&
-           cav->cav_ptr[len] != '\"' && cav->cav_ptr[len] != ')';
+    for (;
+         cav->cav_ptr[len] != ' ' && cav->cav_ptr[len] != '\0' && cav->cav_ptr[len] != '\"' && cav->cav_ptr[len] != ')';
          len++)
       ;
     _cid.ci_val.ci_select_value.bv_val = cav->cav_ptr + 1;
@@ -450,11 +426,9 @@ static int peek_componentId_type(ComponentAssertionValue *cav) {
   } else if (cav->cav_ptr[0] > '0' && cav->cav_ptr[0] <= '9') {
     return LDAP_COMPREF_FROM_BEGINNING;
 
-  } else if ((cav->cav_end - cav->cav_ptr) >= 7 &&
-             strncmp(cav->cav_ptr, "content", 7) == 0) {
+  } else if ((cav->cav_end - cav->cav_ptr) >= 7 && strncmp(cav->cav_ptr, "content", 7) == 0) {
     return LDAP_COMPREF_CONTENT;
-  } else if ((cav->cav_ptr[0] >= 'a' && cav->cav_ptr[0] <= 'z') ||
-             (cav->cav_ptr[0] >= 'A' && cav->cav_ptr[0] <= 'Z')) {
+  } else if ((cav->cav_ptr[0] >= 'a' && cav->cav_ptr[0] <= 'z') || (cav->cav_ptr[0] >= 'A' && cav->cav_ptr[0] <= 'Z')) {
     return LDAP_COMPREF_IDENTIFIER;
   }
 
@@ -470,8 +444,8 @@ static ber_tag_t comp_next_id(ComponentAssertionValue *cav) {
   return LDAP_COMPREF_UNDEFINED;
 }
 
-static int get_component_reference(Operation *op, ComponentAssertionValue *cav,
-                                   ComponentReference **cr, const char **text) {
+static int get_component_reference(Operation *op, ComponentAssertionValue *cav, ComponentReference **cr,
+                                   const char **text) {
   int rc, count = 0;
   ber_int_t type;
   ComponentReference *ca_comp_ref;
@@ -494,8 +468,7 @@ static int get_component_reference(Operation *op, ComponentAssertionValue *cav,
 
   cr_list = &ca_comp_ref->cr_list;
 
-  for (type = peek_componentId_type(cav); type != LDAP_COMPREF_UNDEFINED;
-       type = comp_next_id(cav), count++) {
+  for (type = peek_componentId_type(cav); type != LDAP_COMPREF_UNDEFINED; type = comp_next_id(cav), count++) {
     rc = get_componentId(op, cav, cr_list, text);
     if (rc == LDAP_SUCCESS) {
       if (count == 0)
@@ -531,8 +504,7 @@ static int get_component_reference(Operation *op, ComponentAssertionValue *cav,
   return rc;
 }
 
-int insert_component_reference(ComponentReference *cr,
-                               ComponentReference **cr_list) {
+int insert_component_reference(ComponentReference *cr, ComponentReference **cr_list) {
   if (!cr)
     return LDAP_PARAM_ERROR;
 
@@ -600,8 +572,7 @@ int extract_component_reference(char *attr, ComponentReference **cr) {
   return LDAP_SUCCESS;
 }
 
-static int get_ca_use_default(Operation *op, ComponentAssertionValue *cav,
-                              int *ca_use_def, const char **text) {
+static int get_ca_use_default(Operation *op, ComponentAssertionValue *cav, int *ca_use_def, const char **text) {
   strip_cav_str(cav, "useDefaultValues");
 
   if (peek_cav_str(cav, "TRUE") == LDAP_SUCCESS) {
@@ -619,17 +590,15 @@ static int get_ca_use_default(Operation *op, ComponentAssertionValue *cav,
   return LDAP_SUCCESS;
 }
 
-static int get_matching_rule(Operation *op, ComponentAssertionValue *cav,
-                             MatchingRule **mr, const char **text) {
+static int get_matching_rule(Operation *op, ComponentAssertionValue *cav, MatchingRule **mr, const char **text) {
   int count = 0;
   struct berval rule_text = {0L, NULL};
 
   eat_whsp(cav);
 
   for (;; count++) {
-    if (cav->cav_ptr[count] == ' ' || cav->cav_ptr[count] == ',' ||
-        cav->cav_ptr[count] == '\0' || cav->cav_ptr[count] == '{' ||
-        cav->cav_ptr[count] == '}' || cav->cav_ptr[count] == '\n') {
+    if (cav->cav_ptr[count] == ' ' || cav->cav_ptr[count] == ',' || cav->cav_ptr[count] == '\0' ||
+        cav->cav_ptr[count] == '{' || cav->cav_ptr[count] == '}' || cav->cav_ptr[count] == '\n') {
       break;
     }
   }
@@ -676,8 +645,7 @@ static int get_GSER_value(ComponentAssertionValue *cav, struct berval *bv) {
       else
         sequent_dquote = 0;
 
-      if (cav->cav_ptr[count] == '\0' ||
-          (cav->cav_ptr + count) > cav->cav_end) {
+      if (cav->cav_ptr[count] == '\0' || (cav->cav_ptr + count) > cav->cav_end) {
         break;
       }
 
@@ -697,8 +665,7 @@ static int get_GSER_value(ComponentAssertionValue *cav, struct berval *bv) {
 
   } else if (cav->cav_ptr[0] == '\'') {
     for (count = 1;; count++) {
-      if (cav->cav_ptr[count] == '\0' ||
-          (cav->cav_ptr + count) > cav->cav_end) {
+      if (cav->cav_ptr[count] == '\0' || (cav->cav_ptr + count) > cav->cav_end) {
         break;
       }
       if ((cav->cav_ptr[count - 1] == '\'' && cav->cav_ptr[count] == 'B') ||
@@ -708,8 +675,7 @@ static int get_GSER_value(ComponentAssertionValue *cav, struct berval *bv) {
       }
     }
 
-    if (!succeed ||
-        !(cav->cav_ptr[count] == 'H' || cav->cav_ptr[count] == 'B')) {
+    if (!succeed || !(cav->cav_ptr[count] == 'H' || cav->cav_ptr[count] == 'B')) {
       return LDAP_FILTER_ERROR;
     }
 
@@ -723,8 +689,7 @@ static int get_GSER_value(ComponentAssertionValue *cav, struct berval *bv) {
       if (cav->cav_ptr[count] == '}')
         unclosed_brace--;
 
-      if (cav->cav_ptr[count] == '\0' ||
-          (cav->cav_ptr + count) > cav->cav_end) {
+      if (cav->cav_ptr[count] == '\0' || (cav->cav_ptr + count) > cav->cav_end) {
         break;
       }
       if (unclosed_brace == 0) {
@@ -743,9 +708,8 @@ static int get_GSER_value(ComponentAssertionValue *cav, struct berval *bv) {
     succeed = 1;
     /*Find  following white space where the value is ended*/
     for (count = 1;; count++) {
-      if (cav->cav_ptr[count] == '\0' || cav->cav_ptr[count] == ' ' ||
-          cav->cav_ptr[count] == '}' || cav->cav_ptr[count] == '{' ||
-          (cav->cav_ptr + count) > cav->cav_end) {
+      if (cav->cav_ptr[count] == '\0' || cav->cav_ptr[count] == ' ' || cav->cav_ptr[count] == '}' ||
+          cav->cav_ptr[count] == '{' || (cav->cav_ptr + count) > cav->cav_end) {
         break;
       }
     }
@@ -757,8 +721,7 @@ static int get_GSER_value(ComponentAssertionValue *cav, struct berval *bv) {
   return LDAP_SUCCESS;
 }
 
-static int get_matching_value(Operation *op, ComponentAssertion *ca,
-                              ComponentAssertionValue *cav, struct berval *bv,
+static int get_matching_value(Operation *op, ComponentAssertion *ca, ComponentAssertionValue *cav, struct berval *bv,
                               const char **text) {
   if (!(ca->ca_ma_rule->smr_usage & (SLAP_MR_COMPONENT))) {
     if (get_GSER_value(cav, bv) != LDAP_SUCCESS) {
@@ -777,8 +740,7 @@ static int get_matching_value(Operation *op, ComponentAssertion *ca,
 /* Don't move the position pointer, just peek given string */
 static int peek_cav_str(ComponentAssertionValue *cav, char *str) {
   eat_whsp(cav);
-  if (cav_cur_len(cav) >= strlen(str) &&
-      strncmp(cav->cav_ptr, str, strlen(str)) == 0) {
+  if (cav_cur_len(cav) >= strlen(str) && strncmp(cav->cav_ptr, str, strlen(str)) == 0) {
     return LDAP_SUCCESS;
   }
 
@@ -787,8 +749,7 @@ static int peek_cav_str(ComponentAssertionValue *cav, char *str) {
 
 static int strip_cav_str(ComponentAssertionValue *cav, char *str) {
   eat_whsp(cav);
-  if (cav_cur_len(cav) >= strlen(str) &&
-      strncmp(cav->cav_ptr, str, strlen(str)) == 0) {
+  if (cav_cur_len(cav) >= strlen(str) && strncmp(cav->cav_ptr, str, strlen(str)) == 0) {
     cav->cav_ptr += strlen(str);
     return LDAP_SUCCESS;
   }
@@ -830,8 +791,7 @@ static ber_tag_t strip_cav_tag(ComponentAssertionValue *cav) {
  *	rule			MATCHING-RULE.&id,
  *	value			MATCHING-RULE.&AssertionType }
  */
-static int get_item(Operation *op, ComponentAssertionValue *cav,
-                    ComponentAssertion **ca, const char **text) {
+static int get_item(Operation *op, ComponentAssertionValue *cav, ComponentAssertion **ca, const char **text) {
   int rc, freeval = 0;
   ComponentAssertion *_ca;
   struct berval value;
@@ -905,8 +865,7 @@ static int get_item(Operation *op, ComponentAssertionValue *cav,
   if (op && !(mr->smr_usage & (SLAP_MR_COMPONENT)) && mr->smr_normalize) {
 
     value.bv_val[value.bv_len] = '\0';
-    rc = mr->smr_normalize(SLAP_MR_VALUE_OF_ASSERTION_SYNTAX, NULL, mr, &value,
-                           &_ca->ca_ma_value, op->o_tmpmemctx);
+    rc = mr->smr_normalize(SLAP_MR_VALUE_OF_ASSERTION_SYNTAX, NULL, mr, &value, &_ca->ca_ma_value, op->o_tmpmemctx);
     if (rc != LDAP_SUCCESS)
       goto fail;
     freeval = 1;
@@ -915,8 +874,7 @@ static int get_item(Operation *op, ComponentAssertionValue *cav,
   /*
    * Validate the value of this component assertion
    */
-  if (op && mr->smr_syntax->ssyn_validate(mr->smr_syntax, &_ca->ca_ma_value) !=
-                LDAP_SUCCESS) {
+  if (op && mr->smr_syntax->ssyn_validate(mr->smr_syntax, &_ca->ca_ma_value) != LDAP_SUCCESS) {
     rc = LDAP_INVALID_SYNTAX;
     goto fail;
   }
@@ -937,8 +895,7 @@ static int get_item(Operation *op, ComponentAssertionValue *cav,
   return LDAP_SUCCESS;
 }
 
-static int parse_comp_filter(Operation *op, ComponentAssertionValue *cav,
-                             ComponentFilter **filt, const char **text) {
+static int parse_comp_filter(Operation *op, ComponentAssertionValue *cav, ComponentFilter **filt, const char **text) {
   /*
    * A component filter looks like this coming in:
    *	Filter ::= CHOICE {
@@ -1060,8 +1017,7 @@ static int parse_comp_filter(Operation *op, ComponentAssertionValue *cav,
   return (err);
 }
 
-static int test_comp_filter_and(Syntax *syn, ComponentSyntaxInfo *a,
-                                ComponentFilter *flist) {
+static int test_comp_filter_and(Syntax *syn, ComponentSyntaxInfo *a, ComponentFilter *flist) {
   ComponentFilter *f;
   int rtn = LDAP_COMPARE_TRUE;
 
@@ -1080,8 +1036,7 @@ static int test_comp_filter_and(Syntax *syn, ComponentSyntaxInfo *a,
   return rtn;
 }
 
-static int test_comp_filter_or(Syntax *syn, ComponentSyntaxInfo *a,
-                               ComponentFilter *flist) {
+static int test_comp_filter_or(Syntax *syn, ComponentSyntaxInfo *a, ComponentFilter *flist) {
   ComponentFilter *f;
   int rtn = LDAP_COMPARE_TRUE;
 
@@ -1100,8 +1055,7 @@ static int test_comp_filter_or(Syntax *syn, ComponentSyntaxInfo *a,
   return rtn;
 }
 
-int csi_value_match(MatchingRule *mr, struct berval *bv_attr,
-                    struct berval *bv_assert) {
+int csi_value_match(MatchingRule *mr, struct berval *bv_attr, struct berval *bv_assert) {
   int rc;
   int match;
 
@@ -1111,8 +1065,7 @@ int csi_value_match(MatchingRule *mr, struct berval *bv_attr,
   if (!mr->smr_match)
     return LDAP_INAPPROPRIATE_MATCHING;
 
-  rc = (mr->smr_match)(&match, 0, NULL /*ad->ad_type->sat_syntax*/, mr, bv_attr,
-                       bv_assert);
+  rc = (mr->smr_match)(&match, 0, NULL /*ad->ad_type->sat_syntax*/, mr, bv_attr, bv_assert);
 
   if (rc != LDAP_SUCCESS)
     return rc;
@@ -1123,13 +1076,11 @@ int csi_value_match(MatchingRule *mr, struct berval *bv_attr,
 /*
  * return codes : LDAP_COMPARE_TRUE, LDAP_COMPARE_FALSE
  */
-static int test_comp_filter_item(Syntax *syn, ComponentSyntaxInfo *csi_attr,
-                                 ComponentAssertion *ca) {
+static int test_comp_filter_item(Syntax *syn, ComponentSyntaxInfo *csi_attr, ComponentAssertion *ca) {
   int rc;
   void *attr_nm, *assert_nm;
 
-  if (strcmp(ca->ca_ma_rule->smr_mrule.mr_oid, OID_COMP_FILTER_MATCH) == 0 &&
-      ca->ca_cf) {
+  if (strcmp(ca->ca_ma_rule->smr_mrule.mr_oid, OID_COMP_FILTER_MATCH) == 0 && ca->ca_cf) {
     /* componentFilterMatch inside of componentFilterMatch */
     rc = test_comp_filter(syn, csi_attr, ca->ca_cf);
     return rc;
@@ -1164,8 +1115,7 @@ static int test_comp_filter_item(Syntax *syn, ComponentSyntaxInfo *csi_attr,
   return rc;
 }
 
-static int test_comp_filter(Syntax *syn, ComponentSyntaxInfo *a,
-                            ComponentFilter *f) {
+static int test_comp_filter(Syntax *syn, ComponentSyntaxInfo *a, ComponentFilter *f) {
   int rc;
 
   if (!f)
@@ -1213,8 +1163,7 @@ static void free_comp_filter_list(ComponentFilter *f) {
 
 static void free_comp_filter(ComponentFilter *f) {
   if (!f) {
-    Debug(LDAP_DEBUG_FILTER,
-          "free_comp_filter: Invalid filter so failed to release memory\n");
+    Debug(LDAP_DEBUG_FILTER, "free_comp_filter: Invalid filter so failed to release memory\n");
     return;
   }
   switch (f->cf_choice) {

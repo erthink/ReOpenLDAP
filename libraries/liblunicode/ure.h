@@ -131,8 +131,8 @@ LDAP_LUNICODE_F(void) ure_dfa_free(ure_dfa_t dfa);
 LDAP_LUNICODE_F(void) ure_write_dfa(ure_dfa_t dfa, FILE *out);
 
 LDAP_LUNICODE_F(int)
-ure_exec(ure_dfa_t dfa, int flags, ucs2_t *text, unsigned long textlen,
-         unsigned long *match_start, unsigned long *match_end);
+ure_exec(ure_dfa_t dfa, int flags, ucs2_t *text, unsigned long textlen, unsigned long *match_start,
+         unsigned long *match_end);
 
 /*************************************************************************
  *

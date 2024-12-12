@@ -33,9 +33,7 @@
 
 #include "lber.h"
 
-static void usage(const char *name) {
-  fprintf(stderr, "usage: %s fmtstring\n", name);
-}
+static void usage(const char *name) { fprintf(stderr, "usage: %s fmtstring\n", name); }
 
 static char *getbuf(void) {
   char *p;
@@ -81,8 +79,7 @@ int main(int argc, char **argv) {
 #endif
 
   sb = ber_sockbuf_alloc();
-  ber_sockbuf_add_io(sb, &ber_sockbuf_io_fd, LBER_SBIOD_LEVEL_PROVIDER,
-                     (void *)&fd);
+  ber_sockbuf_add_io(sb, &ber_sockbuf_io_fd, LBER_SBIOD_LEVEL_PROVIDER, (void *)&fd);
 
   if (sb == NULL) {
     perror("ber_sockbuf_alloc_fd");

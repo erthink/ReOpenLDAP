@@ -33,8 +33,8 @@ static BackendInfo slap_frontendInfo;
 static BackendDB slap_frontendDB;
 BackendDB *frontendDB;
 
-static int fe_entry_get_rw(Operation *op, struct berval *ndn, ObjectClass *oc,
-                           AttributeDescription *at, int rw, Entry **e) {
+static int fe_entry_get_rw(Operation *op, struct berval *ndn, ObjectClass *oc, AttributeDescription *at, int rw,
+                           Entry **e) {
   BackendDB *bd;
   int rc = LDAP_NO_SUCH_OBJECT;
 
@@ -78,20 +78,15 @@ int frontend_init(void) {
   frontendDB->be_dfltaccess = ACL_READ;
 
   /* limits */
-  frontendDB->be_def_limit.lms_t_soft =
-      SLAPD_DEFAULT_TIMELIMIT; /* backward compatible limits */
+  frontendDB->be_def_limit.lms_t_soft = SLAPD_DEFAULT_TIMELIMIT; /* backward compatible limits */
   frontendDB->be_def_limit.lms_t_hard = 0;
-  frontendDB->be_def_limit.lms_s_soft =
-      SLAPD_DEFAULT_SIZELIMIT; /* backward compatible limits */
+  frontendDB->be_def_limit.lms_s_soft = SLAPD_DEFAULT_SIZELIMIT; /* backward compatible limits */
   frontendDB->be_def_limit.lms_s_hard = 0;
-  frontendDB->be_def_limit.lms_s_unchecked =
-      -1;                                /* no limit on unchecked size */
-  frontendDB->be_def_limit.lms_s_pr = 0; /* page limit */
-  frontendDB->be_def_limit.lms_s_pr_hide =
-      0; /* don't hide number of entries left */
-  frontendDB->be_def_limit.lms_s_pr_total =
-      0; /* number of total entries returned by pagedResults equal to hard limit
-          */
+  frontendDB->be_def_limit.lms_s_unchecked = -1; /* no limit on unchecked size */
+  frontendDB->be_def_limit.lms_s_pr = 0;         /* page limit */
+  frontendDB->be_def_limit.lms_s_pr_hide = 0;    /* don't hide number of entries left */
+  frontendDB->be_def_limit.lms_s_pr_total = 0;   /* number of total entries returned by pagedResults equal to hard limit
+                                                  */
 
   ldap_pvt_thread_mutex_init(&frontendDB->be_pcl_mutex);
 
@@ -120,8 +115,7 @@ int frontend_init(void) {
     for (i = 0; slap_known_controls[i]; i++) {
       int cid;
 
-      if (slap_find_control_id(slap_known_controls[i], &cid) ==
-          LDAP_CONTROL_NOT_FOUND) {
+      if (slap_find_control_id(slap_known_controls[i], &cid) == LDAP_CONTROL_NOT_FOUND) {
         LDAP_BUG();
         return -1;
       }

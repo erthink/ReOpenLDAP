@@ -39,8 +39,7 @@
 #define LOOPS 100
 #define RETRIES 0
 
-static void do_modrdn(struct tester_conn_args *config, char *entry,
-                      int friendly);
+static void do_modrdn(struct tester_conn_args *config, char *entry, int friendly);
 
 static void usage(char *name, char opt) {
   if (opt) {
@@ -103,8 +102,7 @@ int main(int argc, char **argv) {
   exit(EXIT_SUCCESS);
 }
 
-static void do_modrdn(struct tester_conn_args *config, char *entry,
-                      int friendly) {
+static void do_modrdn(struct tester_conn_args *config, char *entry, int friendly) {
   LDAP *ld = NULL;
   int i, do_retry = config->retries;
   char *DNs[2];
@@ -136,8 +134,7 @@ retry:;
   tester_init_ld(&ld, config, 0);
 
   if (do_retry == config->retries) {
-    fprintf(stderr, "PID=%ld - Modrdn(%d): entry=\"%s\".\n", (long)pid,
-            config->loops, entry);
+    fprintf(stderr, "PID=%ld - Modrdn(%d): entry=\"%s\".\n", (long)pid, config->loops, entry);
   }
 
   for (; i < config->loops; i++) {

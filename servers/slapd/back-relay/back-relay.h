@@ -39,9 +39,8 @@ typedef struct relay_back_info {
 } relay_back_info;
 
 /* Pad relay_back_info if needed to create valid OpExtra key addresses */
-#define RELAY_INFO_SIZE                                                        \
-  (sizeof(relay_back_info) > (size_t)relay_op_last ? sizeof(relay_back_info)   \
-                                                   : (size_t)relay_op_last)
+#define RELAY_INFO_SIZE                                                                                                \
+  (sizeof(relay_back_info) > (size_t)relay_op_last ? sizeof(relay_back_info) : (size_t)relay_op_last)
 
 LDAP_END_DECL
 

@@ -37,22 +37,16 @@
 static int *slap_csns_parse_sids(BerVarray csns, int *sids, void *memctx);
 
 pthread_mutex_t slap_sync_cookie_mutex = PTHREAD_MUTEX_INITIALIZER;
-struct slap_sync_cookie_s slap_sync_cookie =
-    LDAP_STAILQ_HEAD_INITIALIZER(slap_sync_cookie);
+struct slap_sync_cookie_s slap_sync_cookie = LDAP_STAILQ_HEAD_INITIALIZER(slap_sync_cookie);
 
 int slap_check_same_server(BackendDB *bd, int sid) {
-  return (sid == slap_serverID && reopenldap_mode_strict() &&
-          SLAP_MULTIMASTER(bd))
-             ? -1
-             : 0;
+  return (sid == slap_serverID && reopenldap_mode_strict() && SLAP_MULTIMASTER(bd)) ? -1 : 0;
 }
 
-void slap_insert_csn_sids(struct sync_cookie *ck, int pos, int sid,
-                          struct berval *csn) {
+void slap_insert_csn_sids(struct sync_cookie *ck, int pos, int sid, struct berval *csn) {
   int i;
   ck->numcsns++;
-  ck->ctxcsn =
-      ch_realloc(ck->ctxcsn, (ck->numcsns + 1) * sizeof(struct berval));
+  ck->ctxcsn = ch_realloc(ck->ctxcsn, (ck->numcsns + 1) * sizeof(struct berval));
   BER_BVZERO(&ck->ctxcsn[ck->numcsns]);
   ck->sids = ch_realloc(ck->sids, ck->numcsns * sizeof(int));
   for (i = ck->numcsns - 1; i > pos; i--) {
@@ -159,8 +153,7 @@ void slap_cookie_move(struct sync_cookie *dst, struct sync_cookie *src) {
   slap_cookie_init(src);
 }
 
-static void slap_cookie_free_x(struct sync_cookie *cookie, int free_cookie,
-                               void *memctx) {
+static void slap_cookie_free_x(struct sync_cookie *cookie, int free_cookie, void *memctx) {
   if (cookie) {
 
     cookie->rid = -1;
@@ -182,12 +175,9 @@ static void slap_cookie_free_x(struct sync_cookie *cookie, int free_cookie,
   }
 }
 
-void slap_cookie_free(struct sync_cookie *cookie, int free_cookie) {
-  slap_cookie_free_x(cookie, free_cookie, NULL);
-}
+void slap_cookie_free(struct sync_cookie *cookie, int free_cookie) { slap_cookie_free_x(cookie, free_cookie, NULL); }
 
-int slap_cookie_merge(BackendDB *bd, struct sync_cookie *dst,
-                      const struct sync_cookie *src) {
+int slap_cookie_merge(BackendDB *bd, struct sync_cookie *dst, const struct sync_cookie *src) {
   int i, j, lead = -1;
 
   if (reopenldap_mode_check()) {
@@ -203,11 +193,9 @@ int slap_cookie_merge(BackendDB *bd, struct sync_cookie *dst,
       if (src->sids[i] != dst->sids[j])
         continue;
       if (slap_csn_compare_ts(&src->ctxcsn[i], &dst->ctxcsn[j]) > 0) {
-        Debug(LDAP_DEBUG_SYNC, "cookie_merge: forward %s => %s\n",
-              dst->ctxcsn[j].bv_val, src->ctxcsn[i].bv_val);
+        Debug(LDAP_DEBUG_SYNC, "cookie_merge: forward %s => %s\n", dst->ctxcsn[j].bv_val, src->ctxcsn[i].bv_val);
         ber_bvreplace(&dst->ctxcsn[j], &src->ctxcsn[i]);
-        if (lead < 0 ||
-            slap_csn_compare_ts(&dst->ctxcsn[j], &dst->ctxcsn[lead]) > 0) {
+        if (lead < 0 || slap_csn_compare_ts(&dst->ctxcsn[j], &dst->ctxcsn[lead]) > 0) {
           lead = j;
         }
       }
@@ -216,14 +204,12 @@ int slap_cookie_merge(BackendDB *bd, struct sync_cookie *dst,
 
     /* there was no match for this SID, it's a new CSN */
     if (j == dst->numcsns || src->sids[i] != dst->sids[j]) {
-      Debug(LDAP_DEBUG_SYNC, "cookie_merge: append %s\n",
-            src->ctxcsn[i].bv_val);
+      Debug(LDAP_DEBUG_SYNC, "cookie_merge: append %s\n", src->ctxcsn[i].bv_val);
       slap_insert_csn_sids(dst, j, src->sids[i], &src->ctxcsn[i]);
       if (bd) {
         quorum_notify_csn(bd, src->sids[i]);
       }
-      if (lead < 0 ||
-          slap_csn_compare_ts(&dst->ctxcsn[j], &dst->ctxcsn[lead]) > 0) {
+      if (lead < 0 || slap_csn_compare_ts(&dst->ctxcsn[j], &dst->ctxcsn[lead]) > 0) {
         lead = j;
       }
     }
@@ -272,8 +258,7 @@ int slap_cookie_pull(struct sync_cookie *dst, BerVarray src, int consume) {
   return vector;
 }
 
-int slap_cookie_merge_csn(BackendDB *bd, struct sync_cookie *dst, int sid,
-                          BerValue *src) {
+int slap_cookie_merge_csn(BackendDB *bd, struct sync_cookie *dst, int sid, BerValue *src) {
   int i;
 
   if (!slap_csn_verify_full(src))
@@ -358,8 +343,7 @@ static int strntoi(char *str, int n, char **end, int base) {
   return r;
 }
 
-int slap_cookie_parse(struct sync_cookie *dst, const BerValue *src,
-                      void *memctx) {
+int slap_cookie_parse(struct sync_cookie *dst, const BerValue *src, void *memctx) {
   char *next, *end, *anchor;
   AttributeDescription *ad = slap_schema.si_ad_entryCSN;
 
@@ -377,8 +361,7 @@ int slap_cookie_parse(struct sync_cookie *dst, const BerValue *src,
     if (strncmp(next, "rid=", STRLENOF("rid=")) == 0) {
       anchor = next + STRLENOF("rid=");
       dst->rid = strntoi(anchor, end - anchor, &next, 10);
-      if (unlikely(next == anchor || (*next && *next != ',') || dst->rid < 0 ||
-                   dst->rid > SLAP_SYNC_RID_MAX))
+      if (unlikely(next == anchor || (*next && *next != ',') || dst->rid < 0 || dst->rid > SLAP_SYNC_RID_MAX))
         goto bailout;
 
       if (*next == ',')
@@ -387,8 +370,7 @@ int slap_cookie_parse(struct sync_cookie *dst, const BerValue *src,
     } else if (strncmp(next, "sid=", STRLENOF("sid=")) == 0) {
       anchor = next + STRLENOF("sid=");
       dst->sid = strntoi(anchor, end - anchor, &next, 16);
-      if (unlikely(next == anchor || (*next && *next != ',') || dst->sid < 0 ||
-                   dst->sid > SLAP_SYNC_SID_MAX))
+      if (unlikely(next == anchor || (*next && *next != ',') || dst->sid < 0 || dst->sid > SLAP_SYNC_SID_MAX))
         goto bailout;
 
       if (*next == ',')
@@ -408,13 +390,10 @@ int slap_cookie_parse(struct sync_cookie *dst, const BerValue *src,
 
         if (ad) {
           BerValue bv;
-          if (LDAP_SUCCESS == ad->ad_type->sat_syntax->ssyn_validate(
-                                  ad->ad_type->sat_syntax, &csn) &&
-              LDAP_SUCCESS == ad->ad_type->sat_equality->smr_normalize(
-                                  SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX,
-                                  ad->ad_type->sat_syntax,
-                                  ad->ad_type->sat_equality, &csn, &bv,
-                                  memctx)) {
+          if (LDAP_SUCCESS == ad->ad_type->sat_syntax->ssyn_validate(ad->ad_type->sat_syntax, &csn) &&
+              LDAP_SUCCESS == ad->ad_type->sat_equality->smr_normalize(SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX,
+                                                                       ad->ad_type->sat_syntax,
+                                                                       ad->ad_type->sat_equality, &csn, &bv, memctx)) {
             csn = bv;
           }
         }
@@ -424,8 +403,7 @@ int slap_cookie_parse(struct sync_cookie *dst, const BerValue *src,
             ber_memfree_x(csn.bv_val, memctx);
           if (reopenldap_mode_strict())
             goto bailout;
-          csn.bv_val =
-              ber_strdup_x("19000101000000.000000Z#000000#000#000000", memctx);
+          csn.bv_val = ber_strdup_x("19000101000000.000000Z#000000#000#000000", memctx);
           csn.bv_len = 40;
         }
 
@@ -470,15 +448,13 @@ int slap_cookie_stubself(struct sync_cookie *dst) {
       return 0;
 
   csn.bv_val = buf;
-  csn.bv_len =
-      snprintf(buf, sizeof(buf), "%4d%02d%02d%02d%02d%02d.%06dZ#%06x#%03x#%06x",
-               1900, 1, 1, 0, 0, 0, 0, 0, slap_serverID, 0);
+  csn.bv_len = snprintf(buf, sizeof(buf), "%4d%02d%02d%02d%02d%02d.%06dZ#%06x#%03x#%06x", 1900, 1, 1, 0, 0, 0, 0, 0,
+                        slap_serverID, 0);
 
   return slap_cookie_merge_csn(NULL, dst, slap_serverID, &csn);
 }
 
-void slap_cookie_compose(BerValue *dst, BerVarray csns, int rid, int sid,
-                         void *memctx) {
+void slap_cookie_compose(BerValue *dst, BerVarray csns, int rid, int sid, void *memctx) {
   char buf[32], *p;
   BerValue *csn;
   int len;
@@ -487,8 +463,7 @@ void slap_cookie_compose(BerValue *dst, BerVarray csns, int rid, int sid,
   if (rid >= 0)
     len += snprintf(buf + len, sizeof(buf) - len, "rid=%03d", rid);
   if (sid >= 0)
-    len += snprintf(buf + len, sizeof(buf) - len, "%ssid=%03x", len ? "," : "",
-                    sid);
+    len += snprintf(buf + len, sizeof(buf) - len, "%ssid=%03x", len ? "," : "", sid);
 
   if (csns && !BER_BVISNULL(csns)) {
     len += snprintf(buf + len, sizeof(buf) - len, "%scsn=", len ? "," : "") - 1;
@@ -518,26 +493,20 @@ void slap_cookie_debug(const char *prefix, const struct sync_cookie *sc) {
 
   ldap_debug_print("%s %p: rid=%d, sid=%d\n", prefix, sc, sc->rid, sc->sid);
   for (i = 0; i < sc->numcsns; ++i)
-    ldap_debug_print("%s: %d) %ssid=%d %s\n", prefix, i,
-                     slap_csn_verify_full(&sc->ctxcsn[i]) ? "" : "INVALID ",
+    ldap_debug_print("%s: %d) %ssid=%d %s\n", prefix, i, slap_csn_verify_full(&sc->ctxcsn[i]) ? "" : "INVALID ",
                      sc->sids[i], sc->ctxcsn[i].bv_val);
 }
 
-void slap_cookie_debug_pair(const char *prefix, const char *x_name,
-                            const struct sync_cookie *x_cookie,
-                            const char *y_name,
-                            const struct sync_cookie *y_cookie, int y_marker) {
-  ldap_debug_print("%s: %s[rid=%d, sid=%d]#%d | %s[rid=%d, sid=%d]#%d\n",
-                   prefix, x_name, x_cookie->rid, x_cookie->sid,
-                   x_cookie->numcsns, y_name, y_cookie->rid, y_cookie->sid,
-                   y_cookie->numcsns);
+void slap_cookie_debug_pair(const char *prefix, const char *x_name, const struct sync_cookie *x_cookie,
+                            const char *y_name, const struct sync_cookie *y_cookie, int y_marker) {
+  ldap_debug_print("%s: %s[rid=%d, sid=%d]#%d | %s[rid=%d, sid=%d]#%d\n", prefix, x_name, x_cookie->rid, x_cookie->sid,
+                   x_cookie->numcsns, y_name, y_cookie->rid, y_cookie->sid, y_cookie->numcsns);
 
   int x, y;
   for (x = y = 0;;) {
     int sid;
     if (x < x_cookie->numcsns && y < y_cookie->numcsns)
-      sid = (x_cookie->sids[x] < y_cookie->sids[y]) ? x_cookie->sids[x]
-                                                    : y_cookie->sids[y];
+      sid = (x_cookie->sids[x] < y_cookie->sids[y]) ? x_cookie->sids[x] : y_cookie->sids[y];
     else if (x < x_cookie->numcsns)
       sid = x_cookie->sids[x];
     else if (y < y_cookie->numcsns)
@@ -545,12 +514,8 @@ void slap_cookie_debug_pair(const char *prefix, const char *x_name,
     else
       break;
 
-    BerValue *x_csn = (x < x_cookie->numcsns && sid == x_cookie->sids[x])
-                          ? &x_cookie->ctxcsn[x]
-                          : NULL;
-    BerValue *y_csn = (y < y_cookie->numcsns && sid == y_cookie->sids[y])
-                          ? &y_cookie->ctxcsn[y]
-                          : NULL;
+    BerValue *x_csn = (x < x_cookie->numcsns && sid == x_cookie->sids[x]) ? &x_cookie->ctxcsn[x] : NULL;
+    BerValue *y_csn = (y < y_cookie->numcsns && sid == y_cookie->sids[y]) ? &y_cookie->ctxcsn[y] : NULL;
 
     int sign = 0;
     if (x_csn && y_csn)
@@ -558,12 +523,9 @@ void slap_cookie_debug_pair(const char *prefix, const char *x_name,
     else if (x_csn || y_csn)
       sign = x_csn ? 1 : -1;
 
-    ldap_debug_print("%s: %s %s %40s %c %s %s %s\n", prefix,
-                     (x_csn && sid == slap_serverID) ? "~>" : "  ", x_name,
-                     x_csn ? x_csn->bv_val : "lack",
-                     sign ? ((sign > 0) ? '>' : '<') : '=', y_name,
-                     y_csn ? y_csn->bv_val : "lack",
-                     (y_csn && y_marker == y) ? "<~" : "");
+    ldap_debug_print("%s: %s %s %40s %c %s %s %s\n", prefix, (x_csn && sid == slap_serverID) ? "~>" : "  ", x_name,
+                     x_csn ? x_csn->bv_val : "lack", sign ? ((sign > 0) ? '>' : '<') : '=', y_name,
+                     y_csn ? y_csn->bv_val : "lack", (y_csn && y_marker == y) ? "<~" : "");
 
     if (x_csn)
       x++;
@@ -572,8 +534,7 @@ void slap_cookie_debug_pair(const char *prefix, const char *x_name,
   }
 }
 
-int slap_cookie_merge_csnset(BackendDB *bd, struct sync_cookie *dst,
-                             BerVarray src) {
+int slap_cookie_merge_csnset(BackendDB *bd, struct sync_cookie *dst, BerVarray src) {
   int rc;
 
   if (reopenldap_mode_check())
@@ -625,10 +586,8 @@ int slap_cookie_compare_csnset(struct sync_cookie *base, BerVarray next) {
 /*----------------------------------------------------------------------------*/
 
 int slap_csn_verify_lite(const BerValue *csn) {
-  if (unlikely(csn->bv_len != 40 || csn->bv_val[0] < '0' ||
-               csn->bv_val[14] != '.' || csn->bv_val[21] != 'Z' ||
-               csn->bv_val[22] != '#' || csn->bv_val[29] != '#' ||
-               csn->bv_val[33] != '#' || csn->bv_val[40] != 0))
+  if (unlikely(csn->bv_len != 40 || csn->bv_val[0] < '0' || csn->bv_val[14] != '.' || csn->bv_val[21] != 'Z' ||
+               csn->bv_val[22] != '#' || csn->bv_val[29] != '#' || csn->bv_val[33] != '#' || csn->bv_val[40] != 0))
     return 0;
 
   return 1;
@@ -751,8 +710,7 @@ int slap_csn_match(const BerValue *a, const BerValue *b) {
 
 int slap_csn_compare_sr(const BerValue *a, const BerValue *b) {
   assert(slap_csn_verify_lite(a) && slap_csn_verify_lite(b));
-  return memcmp(a->bv_val + 30, b->bv_val + 30,
-                4 /* LY: 3 is enough, but +1 allows one 32-bits ops */);
+  return memcmp(a->bv_val + 30, b->bv_val + 30, 4 /* LY: 3 is enough, but +1 allows one 32-bits ops */);
 }
 
 int slap_csn_compare_ts(const BerValue *a, const BerValue *b) {
@@ -771,8 +729,7 @@ int slap_csn_get_sid(const BerValue *csn) {
     goto bailout;
 
   sid = strtol(csn->bv_val + 30, &endptr, 16);
-  if (unlikely(endptr != csn->bv_val + 33 || sid < 0 ||
-               sid > SLAP_SYNC_SID_MAX /* LY: paranoia ;) */))
+  if (unlikely(endptr != csn->bv_val + 33 || sid < 0 || sid > SLAP_SYNC_SID_MAX /* LY: paranoia ;) */))
     goto bailout;
 
   return sid;
@@ -902,15 +859,12 @@ void slap_csns_debug(const char *prefix, const BerVarray csns) {
 
   ldap_debug_print("%s: CSNs %p\n", prefix, csns);
   for (i = 0; csns && !BER_BVISEMPTY(&csns[i]); ++i) {
-    ldap_debug_print("%s: %d) %s%s\n", prefix, i,
-                     slap_csn_verify_full(&csns[i]) ? "" : "INVALID ",
-                     csns[i].bv_val);
+    ldap_debug_print("%s: %d) %s%s\n", prefix, i, slap_csn_verify_full(&csns[i]) ? "" : "INVALID ", csns[i].bv_val);
     assert(strlen(csns[i].bv_val) == csns[i].bv_len);
   }
 }
 
-void slap_csns_backward_debug(const char *prefix, const BerVarray current,
-                              const BerVarray next) {
+void slap_csns_backward_debug(const char *prefix, const BerVarray current, const BerVarray next) {
   if (DebugTest(LDAP_DEBUG_SYNC)) {
     ldap_debug_print("%s: %s > %s\n", prefix, "current", "next");
     slap_csns_debug("current", current);
@@ -919,12 +873,9 @@ void slap_csns_backward_debug(const char *prefix, const BerVarray current,
   }
 }
 
-void slap_cookie_backward_debug(const char *prefix,
-                                const struct sync_cookie *current,
-                                const struct sync_cookie *next) {
+void slap_cookie_backward_debug(const char *prefix, const struct sync_cookie *current, const struct sync_cookie *next) {
   if (DebugTest(LDAP_DEBUG_SYNC)) {
-    ldap_debug_print("%s (COOKIE BACKWARD): %s > %s\n", prefix, "current",
-                     "next");
+    ldap_debug_print("%s (COOKIE BACKWARD): %s > %s\n", prefix, "current", "next");
     slap_cookie_debug_pair(prefix, "current", current, "next", next, -1);
     slap_backtrace_debug();
   }

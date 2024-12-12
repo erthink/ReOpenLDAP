@@ -33,8 +33,7 @@ int perl_back_modrdn(Operation *op, SlapReply *rs) {
     XPUSHs(sv_2mortal(newSVpv(op->orr_newrdn.bv_val, op->orr_newrdn.bv_len)));
     XPUSHs(sv_2mortal(newSViv(op->orr_deleteoldrdn)));
     if (op->orr_newSup != NULL) {
-      XPUSHs(
-          sv_2mortal(newSVpv(op->orr_newSup->bv_val, op->orr_newSup->bv_len)));
+      XPUSHs(sv_2mortal(newSVpv(op->orr_newSup->bv_val, op->orr_newSup->bv_len)));
     }
     PUTBACK;
 

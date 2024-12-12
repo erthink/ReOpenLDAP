@@ -34,22 +34,17 @@
 #include "ldap_log.h"
 
 #ifdef LDAP_X_TXN
-int ldap_txn_start(LDAP *ld, LDAPControl **sctrls, LDAPControl **cctrls,
-                   int *msgidp) {
-  return ldap_extended_operation(ld, LDAP_EXOP_X_TXN_START, NULL, sctrls,
-                                 cctrls, msgidp);
+int ldap_txn_start(LDAP *ld, LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
+  return ldap_extended_operation(ld, LDAP_EXOP_X_TXN_START, NULL, sctrls, cctrls, msgidp);
 }
 
-int ldap_txn_start_s(LDAP *ld, LDAPControl **sctrls, LDAPControl **cctrls,
-                     struct berval **txnid) {
+int ldap_txn_start_s(LDAP *ld, LDAPControl **sctrls, LDAPControl **cctrls, struct berval **txnid) {
   assert(txnid != NULL);
 
-  return ldap_extended_operation_s(ld, LDAP_EXOP_X_TXN_START, NULL, sctrls,
-                                   cctrls, NULL, txnid);
+  return ldap_extended_operation_s(ld, LDAP_EXOP_X_TXN_START, NULL, sctrls, cctrls, NULL, txnid);
 }
 
-int ldap_txn_end(LDAP *ld, int commit, struct berval *txnid,
-                 LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
+int ldap_txn_end(LDAP *ld, int commit, struct berval *txnid, LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
   int rc;
   BerElement *txnber = NULL;
   struct berval *txnval = NULL;
@@ -66,15 +61,14 @@ int ldap_txn_end(LDAP *ld, int commit, struct berval *txnid,
 
   ber_flatten(txnber, &txnval);
 
-  rc = ldap_extended_operation(ld, LDAP_EXOP_X_TXN_END, txnval, sctrls, cctrls,
-                               msgidp);
+  rc = ldap_extended_operation(ld, LDAP_EXOP_X_TXN_END, txnval, sctrls, cctrls, msgidp);
 
   ber_free(txnber, 1);
   return rc;
 }
 
-int ldap_txn_end_s(LDAP *ld, int commit, struct berval *txnid,
-                   LDAPControl **sctrls, LDAPControl **cctrls, int *retidp) {
+int ldap_txn_end_s(LDAP *ld, int commit, struct berval *txnid, LDAPControl **sctrls, LDAPControl **cctrls,
+                   int *retidp) {
   int rc;
   BerElement *txnber = NULL;
   struct berval *txnval = NULL;
@@ -93,8 +87,7 @@ int ldap_txn_end_s(LDAP *ld, int commit, struct berval *txnid,
 
   ber_flatten(txnber, &txnval);
 
-  rc = ldap_extended_operation_s(ld, LDAP_EXOP_X_TXN_END, txnval, sctrls,
-                                 cctrls, NULL, &retdata);
+  rc = ldap_extended_operation_s(ld, LDAP_EXOP_X_TXN_END, txnval, sctrls, cctrls, NULL, &retdata);
 
   ber_free(txnber, 1);
 

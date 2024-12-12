@@ -38,15 +38,14 @@ typedef struct auditlog_data {
   char *ad_logfile;
 } auditlog_data;
 
-static ConfigTable auditlogcfg[] = {
-    {"auditlog", "filename", 2, 2, 0, ARG_STRING | ARG_OFFSET,
-     (void *)offsetof(auditlog_data, ad_logfile),
-     "( OLcfgOvAt:15.1 NAME 'olcAuditlogFile' "
-     "DESC 'Filename for auditlogging' "
-     "EQUALITY caseExactMatch "
-     "SYNTAX OMsDirectoryString )",
-     NULL, NULL},
-    {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
+static ConfigTable auditlogcfg[] = {{"auditlog", "filename", 2, 2, 0, ARG_STRING | ARG_OFFSET,
+                                     (void *)offsetof(auditlog_data, ad_logfile),
+                                     "( OLcfgOvAt:15.1 NAME 'olcAuditlogFile' "
+                                     "DESC 'Filename for auditlogging' "
+                                     "EQUALITY caseExactMatch "
+                                     "SYNTAX OMsDirectoryString )",
+                                     NULL, NULL},
+                                    {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
 
 static ConfigOCs auditlogocs[] = {{"( OLcfgOvOc:15.1 "
                                    "NAME 'olcAuditlogConfig' "
@@ -114,8 +113,7 @@ static int auditlog_response(Operation *op, SlapReply *rs) {
     return SLAP_CB_CONTINUE;
   }
 
-  suffix =
-      op->o_bd->be_suffix[0].bv_len ? op->o_bd->be_suffix[0].bv_val : "global";
+  suffix = op->o_bd->be_suffix[0].bv_len ? op->o_bd->be_suffix[0].bv_val : "global";
 
   /*
   ** note: this means requestor's dn when modifiersName is null
@@ -131,12 +129,10 @@ static int auditlog_response(Operation *op, SlapReply *rs) {
   }
 
   stamp = ldap_time_steady();
-  fprintf(f, "# %s %ld %s%s%s %s conn=%ld\n", what, (long)stamp, suffix,
-          who ? " " : "", who ? who->bv_val : "",
+  fprintf(f, "# %s %ld %s%s%s %s conn=%ld\n", what, (long)stamp, suffix, who ? " " : "", who ? who->bv_val : "",
           peername.bv_val ? peername.bv_val : "", op->o_conn->c_connid);
 
-  if (!BER_BVISEMPTY(&op->o_conn->c_dn) &&
-      (!who || !dn_match(who, &op->o_conn->c_dn)))
+  if (!BER_BVISEMPTY(&op->o_conn->c_dn) && (!who || !dn_match(who, &op->o_conn->c_dn)))
     fprintf(f, "# realdn: %s\n", op->o_conn->c_dn.bv_val);
 
   fprintf(f, "dn: %s\nchangetype: %s\n", op->o_req_dn.bv_val, what);
@@ -171,15 +167,13 @@ static int auditlog_response(Operation *op, SlapReply *rs) {
       fprintf(f, "%s: %s\n", whatm, m->sml_desc->ad_cname.bv_val);
       if ((b = m->sml_values) != NULL)
         for (i = 0; b[i].bv_val; i++)
-          fprint_ldif(f, m->sml_desc->ad_cname.bv_val, b[i].bv_val,
-                      b[i].bv_len);
+          fprint_ldif(f, m->sml_desc->ad_cname.bv_val, b[i].bv_val, b[i].bv_len);
       fprintf(f, "-\n");
     }
     break;
 
   case LDAP_REQ_MODRDN:
-    fprintf(f, "newrdn: %s\ndeleteoldrdn: %s\n", op->orr_newrdn.bv_val,
-            op->orr_deleteoldrdn ? "1" : "0");
+    fprintf(f, "newrdn: %s\ndeleteoldrdn: %s\n", op->orr_newrdn.bv_val, op->orr_deleteoldrdn ? "1" : "0");
     if (op->orr_newSup)
       fprintf(f, "newsuperior: %s\n", op->orr_newSup->bv_val);
     break;

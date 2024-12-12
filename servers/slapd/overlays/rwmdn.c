@@ -40,8 +40,7 @@
  *
  * "ndn" may be untouched if no massaging occurred and its value was not null
  */
-int rwm_dn_massage_normalize(dncookie *dc, struct berval *in,
-                             struct berval *ndn) {
+int rwm_dn_massage_normalize(dncookie *dc, struct berval *in, struct berval *ndn) {
   int rc;
   struct berval mdn = BER_BVNULL;
 
@@ -100,8 +99,7 @@ int rwm_dn_massage_pretty(dncookie *dc, struct berval *in, struct berval *pdn) {
  * if no massage occurred and "ndn" value was not null, it is filled
  * with the normalized value of "pdn", much like ndn = dnNormalize( pdn )
  */
-int rwm_dn_massage_pretty_normalize(dncookie *dc, struct berval *in,
-                                    struct berval *pdn, struct berval *ndn) {
+int rwm_dn_massage_pretty_normalize(dncookie *dc, struct berval *in, struct berval *pdn, struct berval *ndn) {
   int rc;
   struct berval mdn = BER_BVNULL;
 
@@ -145,8 +143,7 @@ int rwm_dn_massage(dncookie *dc, struct berval *in, struct berval *dn) {
   /* protect from NULL berval */
   in_val = in->bv_val ? in->bv_val : dmy;
 
-  rc = rewrite_session(dc->rwmap->rwm_rw, dc->ctx, in_val, dc->conn,
-                       &mdn.bv_val);
+  rc = rewrite_session(dc->rwmap->rwm_rw, dc->ctx, in_val, dc->conn, &mdn.bv_val);
   switch (rc) {
   case REWRITE_REGEXEC_OK:
     if (!BER_BVISNULL(&mdn) && mdn.bv_val != in_val) {
@@ -158,8 +155,7 @@ int rwm_dn_massage(dncookie *dc, struct berval *in, struct berval *dn) {
     }
     rc = LDAP_SUCCESS;
 
-    Debug(LDAP_DEBUG_ARGS, "[rw] %s: \"%s\" -> \"%s\"\n", dc->ctx, in_val,
-          dn->bv_val);
+    Debug(LDAP_DEBUG_ARGS, "[rw] %s: \"%s\" -> \"%s\"\n", dc->ctx, in_val, dn->bv_val);
     break;
 
   case REWRITE_REGEXEC_UNWILLING:

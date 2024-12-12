@@ -31,29 +31,27 @@
 #define BDB_IDL_IS_RANGE(ids) ((ids)[0] == NOID)
 #define BDB_IDL_RANGE_SIZE (3)
 #define BDB_IDL_RANGE_SIZEOF (BDB_IDL_RANGE_SIZE * sizeof(ID))
-#define BDB_IDL_SIZEOF(ids)                                                    \
-  ((BDB_IDL_IS_RANGE(ids) ? BDB_IDL_RANGE_SIZE : ((ids)[0] + 1)) * sizeof(ID))
+#define BDB_IDL_SIZEOF(ids) ((BDB_IDL_IS_RANGE(ids) ? BDB_IDL_RANGE_SIZE : ((ids)[0] + 1)) * sizeof(ID))
 
 #define BDB_IDL_RANGE_FIRST(ids) ((ids)[1])
 #define BDB_IDL_RANGE_LAST(ids) ((ids)[2])
 
-#define BDB_IDL_RANGE(ids, f, l)                                               \
-  do {                                                                         \
-    (ids)[0] = NOID;                                                           \
-    (ids)[1] = (f);                                                            \
-    (ids)[2] = (l);                                                            \
+#define BDB_IDL_RANGE(ids, f, l)                                                                                       \
+  do {                                                                                                                 \
+    (ids)[0] = NOID;                                                                                                   \
+    (ids)[1] = (f);                                                                                                    \
+    (ids)[2] = (l);                                                                                                    \
   } while (0)
 
-#define BDB_IDL_ZERO(ids)                                                      \
-  do {                                                                         \
-    (ids)[0] = 0;                                                              \
-    (ids)[1] = 0;                                                              \
-    (ids)[2] = 0;                                                              \
+#define BDB_IDL_ZERO(ids)                                                                                              \
+  do {                                                                                                                 \
+    (ids)[0] = 0;                                                                                                      \
+    (ids)[1] = 0;                                                                                                      \
+    (ids)[2] = 0;                                                                                                      \
   } while (0)
 
 #define BDB_IDL_IS_ZERO(ids) ((ids)[0] == 0)
-#define BDB_IDL_IS_ALL(range, ids)                                             \
-  ((ids)[0] == NOID && (ids)[1] <= (range)[1] && (range)[2] <= (ids)[2])
+#define BDB_IDL_IS_ALL(range, ids) ((ids)[0] == NOID && (ids)[1] <= (range)[1] && (range)[2] <= (ids)[2])
 
 #define BDB_IDL_CPY(dst, src) (memcpy(dst, src, BDB_IDL_SIZEOF(src)))
 
@@ -64,8 +62,7 @@
 #define BDB_IDL_LLAST(ids) ((ids)[(ids)[0]])
 #define BDB_IDL_LAST(ids) (BDB_IDL_IS_RANGE(ids) ? (ids)[2] : (ids)[(ids)[0]])
 
-#define BDB_IDL_N(ids)                                                         \
-  (BDB_IDL_IS_RANGE(ids) ? ((ids)[2] - (ids)[1]) + 1 : (ids)[0])
+#define BDB_IDL_N(ids) (BDB_IDL_IS_RANGE(ids) ? ((ids)[2] - (ids)[1]) + 1 : (ids)[0])
 
 LDAP_BEGIN_DECL
 LDAP_END_DECL

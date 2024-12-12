@@ -25,25 +25,25 @@
 #define IDL_MIN(x, y) ((x) < (y) ? (x) : (y))
 #define IDL_CMP(x, y) ((x) < (y) ? -1 : (x) > (y))
 
-#define IDL_LRU_DELETE(bdb, e)                                                 \
-  do {                                                                         \
-    if ((e) == (bdb)->bi_idl_lru_head) {                                       \
-      if ((e)->idl_lru_next == (bdb)->bi_idl_lru_head) {                       \
-        (bdb)->bi_idl_lru_head = NULL;                                         \
-      } else {                                                                 \
-        (bdb)->bi_idl_lru_head = (e)->idl_lru_next;                            \
-      }                                                                        \
-    }                                                                          \
-    if ((e) == (bdb)->bi_idl_lru_tail) {                                       \
-      if ((e)->idl_lru_prev == (bdb)->bi_idl_lru_tail) {                       \
-        assert((bdb)->bi_idl_lru_head == NULL);                                \
-        (bdb)->bi_idl_lru_tail = NULL;                                         \
-      } else {                                                                 \
-        (bdb)->bi_idl_lru_tail = (e)->idl_lru_prev;                            \
-      }                                                                        \
-    }                                                                          \
-    (e)->idl_lru_next->idl_lru_prev = (e)->idl_lru_prev;                       \
-    (e)->idl_lru_prev->idl_lru_next = (e)->idl_lru_next;                       \
+#define IDL_LRU_DELETE(bdb, e)                                                                                         \
+  do {                                                                                                                 \
+    if ((e) == (bdb)->bi_idl_lru_head) {                                                                               \
+      if ((e)->idl_lru_next == (bdb)->bi_idl_lru_head) {                                                               \
+        (bdb)->bi_idl_lru_head = NULL;                                                                                 \
+      } else {                                                                                                         \
+        (bdb)->bi_idl_lru_head = (e)->idl_lru_next;                                                                    \
+      }                                                                                                                \
+    }                                                                                                                  \
+    if ((e) == (bdb)->bi_idl_lru_tail) {                                                                               \
+      if ((e)->idl_lru_prev == (bdb)->bi_idl_lru_tail) {                                                               \
+        assert((bdb)->bi_idl_lru_head == NULL);                                                                        \
+        (bdb)->bi_idl_lru_tail = NULL;                                                                                 \
+      } else {                                                                                                         \
+        (bdb)->bi_idl_lru_tail = (e)->idl_lru_prev;                                                                    \
+      }                                                                                                                \
+    }                                                                                                                  \
+    (e)->idl_lru_next->idl_lru_prev = (e)->idl_lru_prev;                                                               \
+    (e)->idl_lru_prev->idl_lru_next = (e)->idl_lru_next;                                                               \
   } while (0)
 
 static int bdb_idl_entry_cmp(const void *v_idl1, const void *v_idl2) {
@@ -71,8 +71,7 @@ static void idl_check(ID *ids) {
 #if IDL_DEBUG
 static void idl_dump(ID *ids) {
   if (BDB_IDL_IS_RANGE(ids)) {
-    Debug(LDAP_DEBUG_ANY, "IDL: range ( %ld - %ld )\n",
-          (long)BDB_IDL_RANGE_FIRST(ids), (long)BDB_IDL_RANGE_LAST(ids));
+    Debug(LDAP_DEBUG_ANY, "IDL: range ( %ld - %ld )\n", (long)BDB_IDL_RANGE_FIRST(ids), (long)BDB_IDL_RANGE_LAST(ids));
 
   } else {
     ID i;
@@ -303,8 +302,7 @@ int bdb_idl_cache_get(struct bdb_info *bdb, DB *db, DBT *key, ID *ids) {
   return rc;
 }
 
-void bdb_idl_cache_put(struct bdb_info *bdb, DB *db, DBT *key, ID *ids,
-                       int rc) {
+void bdb_idl_cache_put(struct bdb_info *bdb, DB *db, DBT *key, ID *ids, int rc) {
   bdb_idl_cache_entry_t idl_tmp;
   bdb_idl_cache_entry_t *ee, *eprev;
 
@@ -323,8 +321,7 @@ void bdb_idl_cache_put(struct bdb_info *bdb, DB *db, DBT *key, ID *ids,
   ee->idl_flags = 0;
   ber_dupbv(&ee->kstr, &idl_tmp.kstr);
   ldap_pvt_thread_rdwr_wlock(&bdb->bi_idl_tree_rwlock);
-  if (avl_insert(&bdb->bi_idl_tree, (caddr_t)ee, bdb_idl_entry_cmp,
-                 avl_dup_error)) {
+  if (avl_insert(&bdb->bi_idl_tree, (caddr_t)ee, bdb_idl_entry_cmp, avl_dup_error)) {
     ch_free(ee->kstr.bv_val);
     ch_free(ee->idl);
     ch_free(ee);
@@ -360,8 +357,7 @@ void bdb_idl_cache_put(struct bdb_info *bdb, DB *db, DBT *key, ID *ids,
         ee->idl_flags ^= CACHE_ENTRY_REFERENCED;
         continue;
       }
-      if (avl_delete(&bdb->bi_idl_tree, (caddr_t)ee, bdb_idl_entry_cmp) ==
-          NULL) {
+      if (avl_delete(&bdb->bi_idl_tree, (caddr_t)ee, bdb_idl_entry_cmp) == NULL) {
         Debug(LDAP_DEBUG_ANY, "=> bdb_idl_cache_put: "
                               "AVL delete failed\n");
       }
@@ -387,8 +383,7 @@ void bdb_idl_cache_del(struct bdb_info *bdb, DB *db, DBT *key) {
   ldap_pvt_thread_rdwr_wlock(&bdb->bi_idl_tree_rwlock);
   matched_idl_entry = avl_find(bdb->bi_idl_tree, &idl_tmp, bdb_idl_entry_cmp);
   if (matched_idl_entry != NULL) {
-    if (avl_delete(&bdb->bi_idl_tree, (caddr_t)matched_idl_entry,
-                   bdb_idl_entry_cmp) == NULL) {
+    if (avl_delete(&bdb->bi_idl_tree, (caddr_t)matched_idl_entry, bdb_idl_entry_cmp) == NULL) {
       Debug(LDAP_DEBUG_ANY, "=> bdb_idl_cache_del: "
                             "AVL delete failed\n");
     }
@@ -411,8 +406,7 @@ void bdb_idl_cache_add_id(struct bdb_info *bdb, DB *db, DBT *key, ID id) {
   ldap_pvt_thread_rdwr_wlock(&bdb->bi_idl_tree_rwlock);
   cache_entry = avl_find(bdb->bi_idl_tree, &idl_tmp, bdb_idl_entry_cmp);
   if (cache_entry != NULL) {
-    if (!BDB_IDL_IS_RANGE(cache_entry->idl) &&
-        cache_entry->idl[0] < BDB_IDL_DB_MAX) {
+    if (!BDB_IDL_IS_RANGE(cache_entry->idl) && cache_entry->idl[0] < BDB_IDL_DB_MAX) {
       size_t s = BDB_IDL_SIZEOF(cache_entry->idl) + sizeof(ID);
       cache_entry->idl = ch_realloc(cache_entry->idl, s);
     }
@@ -430,8 +424,7 @@ void bdb_idl_cache_del_id(struct bdb_info *bdb, DB *db, DBT *key, ID id) {
   if (cache_entry != NULL) {
     bdb_idl_delete(cache_entry->idl, id);
     if (cache_entry->idl[0] == 0) {
-      if (avl_delete(&bdb->bi_idl_tree, (caddr_t)cache_entry,
-                     bdb_idl_entry_cmp) == NULL) {
+      if (avl_delete(&bdb->bi_idl_tree, (caddr_t)cache_entry, bdb_idl_entry_cmp) == NULL) {
         Debug(LDAP_DEBUG_ANY, "=> bdb_idl_cache_del: "
                               "AVL delete failed\n");
       }
@@ -447,8 +440,7 @@ void bdb_idl_cache_del_id(struct bdb_info *bdb, DB *db, DBT *key, ID id) {
   ldap_pvt_thread_rdwr_wunlock(&bdb->bi_idl_tree_rwlock);
 }
 
-int bdb_idl_fetch_key(BackendDB *be, DB *db, DB_TXN *txn, DBT *key, ID *ids,
-                      DBC **saved_cursor, int get_flag) {
+int bdb_idl_fetch_key(BackendDB *be, DB *db, DB_TXN *txn, DBT *key, ID *ids, DBC **saved_cursor, int get_flag) {
   struct bdb_info *bdb = (struct bdb_info *)be->be_private;
   int rc;
   DBT data, key2, *kptr;
@@ -552,8 +544,7 @@ int bdb_idl_fetch_key(BackendDB *be, DB *db, DB_TXN *txn, DBT *key, ID *ids,
   /* If we're doing a LE compare and the new key is greater than
    * our search key, we're done
    */
-  if (rc == 0 && get_flag == LDAP_FILTER_LE &&
-      memcmp(kptr->data, key->data, key->size) > 0) {
+  if (rc == 0 && get_flag == LDAP_FILTER_LE && memcmp(kptr->data, key->data, key->size) > 0) {
     rc = DB_NOTFOUND;
   }
   if (rc == 0) {
@@ -647,8 +638,7 @@ int bdb_idl_insert_key(BackendDB *be, DB *db, DB_TXN *tid, DBT *key, ID id) {
 
   {
     char buf[16];
-    Debug(LDAP_DEBUG_ARGS, "bdb_idl_insert_key: %lx %s\n", (long)id,
-          bdb_show_key(key, buf));
+    Debug(LDAP_DEBUG_ARGS, "bdb_idl_insert_key: %lx %s\n", (long)id, bdb_show_key(key, buf));
   }
 
   assert(id != NOID);
@@ -856,8 +846,7 @@ int bdb_idl_delete_key(BackendDB *be, DB *db, DB_TXN *tid, DBT *key, ID id) {
 
   {
     char buf[16];
-    Debug(LDAP_DEBUG_ARGS, "bdb_idl_delete_key: %lx %s\n", (long)id,
-          bdb_show_key(key, buf));
+    Debug(LDAP_DEBUG_ARGS, "bdb_idl_delete_key: %lx %s\n", (long)id, bdb_show_key(key, buf));
   }
   assert(id != NOID);
 
@@ -973,8 +962,7 @@ int bdb_idl_delete_key(BackendDB *be, DB *db, DB_TXN *tid, DBT *key, ID id) {
   }
   rc = cursor->c_close(cursor);
   if (rc != 0) {
-    Debug(LDAP_DEBUG_ANY, "=> bdb_idl_delete_key: c_close failed: %s (%d)\n",
-          db_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "=> bdb_idl_delete_key: c_close failed: %s (%d)\n", db_strerror(rc), rc);
   }
 
   return rc;
@@ -1023,8 +1011,7 @@ int bdb_idl_intersection(ID *a, ID *b) {
   /* If a range completely covers the list, the result is
    * just the list.
    */
-  if (BDB_IDL_IS_RANGE(b) && BDB_IDL_RANGE_FIRST(b) <= BDB_IDL_FIRST(a) &&
-      BDB_IDL_RANGE_LAST(b) >= BDB_IDL_LLAST(a)) {
+  if (BDB_IDL_IS_RANGE(b) && BDB_IDL_RANGE_FIRST(b) <= BDB_IDL_FIRST(a) && BDB_IDL_RANGE_LAST(b) >= BDB_IDL_LLAST(a)) {
     goto done;
   }
 
@@ -1282,8 +1269,7 @@ int bdb_idl_append(ID *a, ID *b) {
 
   ida = BDB_IDL_LAST(a);
   idb = BDB_IDL_LAST(b);
-  if (BDB_IDL_IS_RANGE(a) || BDB_IDL_IS_RANGE(b) ||
-      a[0] + b[0] >= BDB_IDL_UM_MAX) {
+  if (BDB_IDL_IS_RANGE(a) || BDB_IDL_IS_RANGE(b) || a[0] + b[0] >= BDB_IDL_UM_MAX) {
     a[2] = IDL_MAX(ida, idb);
     a[1] = IDL_MIN(a[1], b[1]);
     a[0] = NOID;
@@ -1321,9 +1307,9 @@ int bdb_idl_append(ID *a, ID *b) {
 /* Quicksort + Insertion sort for small arrays */
 
 #define SMALL 8
-#define SWAP(a, b)                                                             \
-  itmp = (a);                                                                  \
-  (a) = (b);                                                                   \
+#define SWAP(a, b)                                                                                                     \
+  itmp = (a);                                                                                                          \
+  (a) = (b);                                                                                                           \
   (b) = itmp
 
 void bdb_idl_sort(ID *ids, ID *tmp) {

@@ -65,99 +65,87 @@ lber_hug_probe_link(const lber_hug_t *slave, const lber_hug_t *master);
 
 #define LBER_HUG_TETRAD(a, b, c, d) ((a) << 24 | (b) << 16 | (c) << 8 | (d))
 
-#define LBER_HUG_N42(label, tag)                                               \
-  ((tag) + LBER_HUG_TETRAD(#label[0], #label[1], #label[2], #label[3]))
+#define LBER_HUG_N42(label, tag) ((tag) + LBER_HUG_TETRAD(#label[0], #label[1], #label[2], #label[3]))
 
 #define LBER_HUG_DECLARE(gizmo) struct lber_hipagut gizmo
 
 /* -------------------------------------------------------------------------- */
 
-#define LBER_HUG_SETUP(gizmo, label, tag)                                      \
-  lber_hug_setup(&(gizmo), LBER_HUG_N42(label, tag))
+#define LBER_HUG_SETUP(gizmo, label, tag) lber_hug_setup(&(gizmo), LBER_HUG_N42(label, tag))
 
 #define LBER_HUG_DROWN(gizmo) lber_hug_drown(&(gizmo))
 
-#define LBER_HUG_PROBE(gizmo, label, tag)                                      \
-  lber_hug_probe(&(gizmo), LBER_HUG_N42(label, tag))
+#define LBER_HUG_PROBE(gizmo, label, tag) lber_hug_probe(&(gizmo), LBER_HUG_N42(label, tag))
 
-#define LBER_HUG_SETUP_LINK(slave, master)                                     \
-  lber_hug_setup_link(&(slave), &(master))
+#define LBER_HUG_SETUP_LINK(slave, master) lber_hug_setup_link(&(slave), &(master))
 
-#define LBER_HUG_PROBE_LINK(slave, master)                                     \
-  lber_hug_probe_link(&(slave), &(master))
+#define LBER_HUG_PROBE_LINK(slave, master) lber_hug_probe_link(&(slave), &(master))
 
 /* -------------------------------------------------------------------------- */
 
 #define LBER_HUG_SPACE ((ptrdiff_t)sizeof(lber_hug_t))
 
-#define LBER_HUG_ASIDE(base, offset)                                           \
-  ((lber_hug_t *)(((char *)(base)) + (offset)))
+#define LBER_HUG_ASIDE(base, offset) ((lber_hug_t *)(((char *)(base)) + (offset)))
 
 #define LBER_HUG_BEFORE(address) LBER_HUG_ASIDE(address, -LBER_HUG_SPACE)
 
 /* -------------------------------------------------------------------------- */
 
-#define LBER_HUG_SETUP_ASIDE(base, label, tag, offset)                         \
+#define LBER_HUG_SETUP_ASIDE(base, label, tag, offset)                                                                 \
   lber_hug_setup(LBER_HUG_ASIDE(base, offset), LBER_HUG_N42(label, tag))
 
-#define LBER_HUG_DROWN_ASIDE(base, offset)                                     \
-  lber_hug_drown(LBER_HUG_ASIDE(base, offset))
+#define LBER_HUG_DROWN_ASIDE(base, offset) lber_hug_drown(LBER_HUG_ASIDE(base, offset))
 
-#define LBER_HUG_PROBE_ASIDE(base, label, tag, offset)                         \
+#define LBER_HUG_PROBE_ASIDE(base, label, tag, offset)                                                                 \
   lber_hug_probe(LBER_HUG_ASIDE(base, offset), LBER_HUG_N42(label, tag))
 
-#define LBER_HUG_SETUP_LINK_ASIDE(base, master, offset)                        \
-  lber_hug_setup_link(LBER_HUG_ASIDE(base, offset), &(master))
+#define LBER_HUG_SETUP_LINK_ASIDE(base, master, offset) lber_hug_setup_link(LBER_HUG_ASIDE(base, offset), &(master))
 
-#define LBER_HUG_PROBE_LINK_ASIDE(base, master, offset)                        \
-  lber_hug_probe_link(LBER_HUG_ASIDE(base, offset), &(master))
+#define LBER_HUG_PROBE_LINK_ASIDE(base, master, offset) lber_hug_probe_link(LBER_HUG_ASIDE(base, offset), &(master))
 
 /* -------------------------------------------------------------------------- */
 
-#define lber_hug_throw(info)                                                   \
-  __assert_fail("hipagut: guard " info, __FILE__, __LINE__, __FUNCTION__)
+#define lber_hug_throw(info) __assert_fail("hipagut: guard " info, __FILE__, __LINE__, __FUNCTION__)
 
-#define LBER_HUG_ENSURE(gizmo, label, tag)                                     \
-  do                                                                           \
-    if (unlikely(!LBER_HUG_PROBE(gizmo, label, tag)))                          \
-      lber_hug_throw(#label "." #tag "@" #gizmo);                              \
+#define LBER_HUG_ENSURE(gizmo, label, tag)                                                                             \
+  do                                                                                                                   \
+    if (unlikely(!LBER_HUG_PROBE(gizmo, label, tag)))                                                                  \
+      lber_hug_throw(#label "." #tag "@" #gizmo);                                                                      \
   while (0)
 
-#define LBER_HUG_ENSURE_ASIDE(base, label, tag, offset)                        \
-  if (unlikely(!LBER_HUG_PROBE_ASIDE(base, label, tag, offset)))               \
-    lber_hug_throw(#label "." #tag "@" #base "[" #offset "]");                 \
+#define LBER_HUG_ENSURE_ASIDE(base, label, tag, offset)                                                                \
+  if (unlikely(!LBER_HUG_PROBE_ASIDE(base, label, tag, offset)))                                                       \
+    lber_hug_throw(#label "." #tag "@" #base "[" #offset "]");                                                         \
   while (0)
 
-#define LBER_HUG_ENSURE_LINK(slave, master)                                    \
-  do                                                                           \
-    if (unlikely(!LBER_HUG_PROBE_LINK(slave, master)))                         \
-      lber_hug_throw(#master "~" #slave);                                      \
+#define LBER_HUG_ENSURE_LINK(slave, master)                                                                            \
+  do                                                                                                                   \
+    if (unlikely(!LBER_HUG_PROBE_LINK(slave, master)))                                                                 \
+      lber_hug_throw(#master "~" #slave);                                                                              \
   while (0)
 
-#define LBER_HUG_ENSURE_LINK_ASIDE(base, master, offset)                       \
-  if (unlikely(!LBER_HUG_PROBE_LINK_ASIDE(base, master, offset)))              \
-    lber_hug_throw(#master "~" #base "[" #offset "]");                         \
+#define LBER_HUG_ENSURE_LINK_ASIDE(base, master, offset)                                                               \
+  if (unlikely(!LBER_HUG_PROBE_LINK_ASIDE(base, master, offset)))                                                      \
+    lber_hug_throw(#master "~" #base "[" #offset "]");                                                                 \
   while (0)
 
 #if LDAP_MEMORY_DEBUG > 0
 #define LBER_HUG_ASSERT(gizmo, label, tag) LBER_HUG_ENSURE(gizmo, label, tag)
-#define LBER_HUG_ASSERT_ASIDE(base, label, tag, offset)                        \
-  LBER_HUG_ENSURE_ASIDE(base, label, tag, offset)
+#define LBER_HUG_ASSERT_ASIDE(base, label, tag, offset) LBER_HUG_ENSURE_ASIDE(base, label, tag, offset)
 #define LBER_HUG_ASSERT_LINK(slave, maser) LBER_HUG_ENSURE_LINK(slave, master)
-#define LBER_HUG_ASSERT_LINK_ASIDE(base, master, offset)                       \
-  LBER_HUG_ENSURE_LINK_ASIDE(base, master, offset)
+#define LBER_HUG_ASSERT_LINK_ASIDE(base, master, offset) LBER_HUG_ENSURE_LINK_ASIDE(base, master, offset)
 #else
-#define LBER_HUG_ASSERT(gizmo, label, tag)                                     \
-  do {                                                                         \
+#define LBER_HUG_ASSERT(gizmo, label, tag)                                                                             \
+  do {                                                                                                                 \
   } while (0)
-#define LBER_HUG_ASSERT_ASIDE(base, label, tag, offset)                        \
-  do {                                                                         \
+#define LBER_HUG_ASSERT_ASIDE(base, label, tag, offset)                                                                \
+  do {                                                                                                                 \
   } while (0)
-#define LBER_HUG_ASSERT_LINK(slave, master)                                    \
-  do {                                                                         \
+#define LBER_HUG_ASSERT_LINK(slave, master)                                                                            \
+  do {                                                                                                                 \
   } while (0)
-#define LBER_HUG_ASSERT_LINK_ASIDE(base, master, offset)                       \
-  do {                                                                         \
+#define LBER_HUG_ASSERT_LINK_ASIDE(base, master, offset)                                                               \
+  do {                                                                                                                 \
   } while (0)
 #endif /* LDAP_MEMORY_DEBUG > 0 */
 
@@ -192,14 +180,11 @@ struct lber_hug_memchk {
   LBER_HUG_DECLARE(hm_guard_bottom);
 };
 
-#define LBER_HUG_MEMCHK_OVERHEAD                                               \
-  (sizeof(struct lber_hug_memchk) + sizeof(struct lber_hipagut))
+#define LBER_HUG_MEMCHK_OVERHEAD (sizeof(struct lber_hug_memchk) + sizeof(struct lber_hipagut))
 
-#define LBER_HUG_CHUNK(ptr)                                                    \
-  ((struct lber_hug_memchk *)(((char *)(ptr)) - sizeof(struct lber_hug_memchk)))
+#define LBER_HUG_CHUNK(ptr) ((struct lber_hug_memchk *)(((char *)(ptr)) - sizeof(struct lber_hug_memchk)))
 
-#define LBER_HUG_PAYLOAD(memchunk)                                             \
-  ((void *)(((char *)(memchunk)) + sizeof(struct lber_hug_memchk)))
+#define LBER_HUG_PAYLOAD(memchunk) ((void *)(((char *)(memchunk)) + sizeof(struct lber_hug_memchk)))
 
 /* Defines for 'poison_mode' of lber_hug_memchk_setup() */
 #define LBER_HUG_POISON_DEFAULT 0xDEFA0178u
@@ -208,8 +193,7 @@ struct lber_hug_memchk {
 #define LBER_HUG_POISON_DISABLED LBER_HUG_DISABLED
 
 LBER_F(void *)
-lber_hug_memchk_setup(struct lber_hug_memchk *memchunk, size_t payload_size,
-                      unsigned tag, unsigned poison_mode);
+lber_hug_memchk_setup(struct lber_hug_memchk *memchunk, size_t payload_size, unsigned tag, unsigned poison_mode);
 
 LBER_F(void *) lber_hug_memchk_drown(void *payload, unsigned tag);
 LBER_F(void) lber_hug_memchk_ensure(const void *payload, unsigned tag);
@@ -218,17 +202,14 @@ LBER_F(size_t) lber_hug_memchk_size(const void *payload, unsigned tag);
 LBER_F(unsigned)
 lber_hug_realloc_begin(const void *payload, unsigned tag, size_t *old_size);
 LBER_F(void *)
-lber_hug_realloc_undo(struct lber_hug_memchk *old_memchunk, unsigned tag,
-                      unsigned undo_key);
+lber_hug_realloc_undo(struct lber_hug_memchk *old_memchunk, unsigned tag, unsigned undo_key);
 LBER_F(void *)
-lber_hug_realloc_commit(size_t old_size, struct lber_hug_memchk *new_memchunk,
-                        unsigned tag, size_t new_size);
+lber_hug_realloc_commit(size_t old_size, struct lber_hug_memchk *new_memchunk, unsigned tag, size_t new_size);
 
 /* Return zero when no corruption detected,
  * otherwise returns combination of OR'ed bits: 1, 2, 3. */
 LBER_F(int)
-lber_hug_memchk_probe(const void *payload, unsigned tag, size_t *length,
-                      size_t *sequence);
+lber_hug_memchk_probe(const void *payload, unsigned tag, size_t *length, size_t *sequence);
 
 #endif /* LDAP_MEMORY_DEBUG > 0 */
 

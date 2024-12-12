@@ -49,10 +49,7 @@
  */
 int _utbm_isspace(ucs4_t c, int compress) {
   if (compress)
-    return (c == 0x09 || c == 0x0a || c == 0x0d || c == 0x2028 || c == 0x2029 ||
-            _platform_isspace(c))
-               ? 1
-               : 0;
+    return (c == 0x09 || c == 0x0a || c == 0x0d || c == 0x2028 || c == 0x2029 || _platform_isspace(c)) ? 1 : 0;
 
   return _platform_isspace(c);
 }

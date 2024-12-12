@@ -49,8 +49,7 @@ void *module_resolve(const module_t *module, const char *item) {
 
   int len = strcspn(modname, ".<>?;:'\"[]{}`~!@#%^&*()=\\|		");
   if (len < 1 || len > 32) {
-    Debug(LDAP_DEBUG_ANY, "module_resolve: (%s) invalid module name\n",
-          modname);
+    Debug(LDAP_DEBUG_ANY, "module_resolve: (%s) invalid module name\n", modname);
     return NULL;
   }
 
@@ -121,8 +120,7 @@ static lt_dlhandle slapd_lt_dlopenext_global(const char *filename) {
   lt_dlhandle handle = 0;
   lt_dladvise advise;
 
-  if (!lt_dladvise_init(&advise) && !lt_dladvise_ext(&advise) &&
-      !lt_dladvise_global(&advise))
+  if (!lt_dladvise_init(&advise) && !lt_dladvise_ext(&advise) && !lt_dladvise_global(&advise))
     handle = lt_dlopenadvise(filename, advise);
 
   lt_dladvise_destroy(&advise);
@@ -156,8 +154,7 @@ int module_load(const char *filename, int argc, char *argv[]) {
     if (dot)
       *dot = '.';
     if (rc) {
-      Debug(LDAP_DEBUG_CONFIG, "module_load: (%s) already present (static)\n",
-            filename);
+      Debug(LDAP_DEBUG_CONFIG, "module_load: (%s) already present (static)\n", filename);
       return 0;
     }
   } else {
@@ -169,8 +166,7 @@ int module_load(const char *filename, int argc, char *argv[]) {
     if (dot)
       *dot = '.';
     if (rc) {
-      Debug(LDAP_DEBUG_CONFIG, "module_load: (%s) already present (static)\n",
-            filename);
+      Debug(LDAP_DEBUG_CONFIG, "module_load: (%s) already present (static)\n", filename);
       return 0;
     }
   }
@@ -199,8 +195,7 @@ int module_load(const char *filename, int argc, char *argv[]) {
 
   initialize = module_resolve(module, "modinit");
   if (initialize == NULL) {
-    Debug(LDAP_DEBUG_ANY, "module %s: no %s() function found\n", filename,
-          "modinit");
+    Debug(LDAP_DEBUG_ANY, "module %s: no %s() function found\n", filename, "modinit");
 
     lt_dlclose(module->lib);
     ch_free(module);
@@ -211,8 +206,7 @@ int module_load(const char *filename, int argc, char *argv[]) {
    * non-zero of which indicates an error. */
   rc = initialize(argc, argv);
   if (rc == -1) {
-    Debug(LDAP_DEBUG_ANY, "module %s: modinit() failed, error code %d\n",
-          filename, rc);
+    Debug(LDAP_DEBUG_ANY, "module %s: modinit() failed, error code %d\n", filename, rc);
 
     lt_dlclose(module->lib);
     ch_free(module);
@@ -237,8 +231,7 @@ static int module_int_unload(module_t *module) {
     rc = terminate ? terminate() : 0;
 
     if (rc != 0) {
-      Debug(LDAP_DEBUG_ANY, "module %s: could not be unloaded, error code %d\n",
-            module->name, rc);
+      Debug(LDAP_DEBUG_ANY, "module %s: could not be unloaded, error code %d\n", module->name, rc);
     } else {
       /* remove module from tracking list */
       if (module_list == module) {

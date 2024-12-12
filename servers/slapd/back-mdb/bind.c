@@ -31,8 +31,7 @@ int mdb_bind(Operation *op, SlapReply *rs) {
   MDBX_txn *rtxn;
   mdb_op_info opinfo = {{{0}}}, *moi = &opinfo;
 
-  Debug(LDAP_DEBUG_ARGS, "==> " LDAP_XSTRING(mdb_bind) ": dn: %s\n",
-        op->o_req_dn.bv_val);
+  Debug(LDAP_DEBUG_ARGS, "==> " LDAP_XSTRING(mdb_bind) ": dn: %s\n", op->o_req_dn.bv_val);
 
   /* allow noauth binds */
   switch (be_rootdn_bind(op, NULL)) {

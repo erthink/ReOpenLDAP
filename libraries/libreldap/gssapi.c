@@ -39,8 +39,7 @@
 #include <gssapi.h>
 #endif
 
-static char *gsserrstr(char *buf, size_t buf_len, gss_OID mech, int gss_rc,
-                       OM_uint32 minor_status) {
+static char *gsserrstr(char *buf, size_t buf_len, gss_OID mech, int gss_rc, OM_uint32 minor_status) {
   OM_uint32 min2;
   gss_buffer_desc mech_msg = GSS_C_EMPTY_BUFFER;
   gss_buffer_desc gss_msg = GSS_C_EMPTY_BUFFER;
@@ -54,15 +53,11 @@ static char *gsserrstr(char *buf, size_t buf_len, gss_OID mech, int gss_rc,
   gss_oid_to_str(&min2, mech, &mech_msg);
 #endif
   gss_display_status(&min2, gss_rc, GSS_C_GSS_CODE, mech, &msg_ctx, &gss_msg);
-  gss_display_status(&min2, minor_status, GSS_C_MECH_CODE, mech, &msg_ctx,
-                     &minor_msg);
+  gss_display_status(&min2, minor_status, GSS_C_MECH_CODE, mech, &msg_ctx, &minor_msg);
 
-  snprintf(buf, buf_len, "gss_rc[%d:%*s] mech[%*s] minor[%u:%*s]", gss_rc,
-           (int)gss_msg.length,
-           (const char *)(gss_msg.value ? gss_msg.value : ""),
-           (int)mech_msg.length,
-           (const char *)(mech_msg.value ? mech_msg.value : ""), minor_status,
-           (int)minor_msg.length,
+  snprintf(buf, buf_len, "gss_rc[%d:%*s] mech[%*s] minor[%u:%*s]", gss_rc, (int)gss_msg.length,
+           (const char *)(gss_msg.value ? gss_msg.value : ""), (int)mech_msg.length,
+           (const char *)(mech_msg.value ? mech_msg.value : ""), minor_status, (int)minor_msg.length,
            (const char *)(minor_msg.value ? minor_msg.value : ""));
 
   gss_release_buffer(&min2, &mech_msg);
@@ -73,8 +68,7 @@ static char *gsserrstr(char *buf, size_t buf_len, gss_OID mech, int gss_rc,
   return buf;
 }
 
-static void sb_sasl_gssapi_init(struct sb_sasl_generic_data *p,
-                                ber_len_t *min_send, ber_len_t *max_send,
+static void sb_sasl_gssapi_init(struct sb_sasl_generic_data *p, ber_len_t *min_send, ber_len_t *max_send,
                                 ber_len_t *max_recv) {
   gss_ctx_id_t gss_ctx = (gss_ctx_id_t)p->ops_private;
   int gss_rc;
@@ -84,8 +78,7 @@ static void sb_sasl_gssapi_init(struct sb_sasl_generic_data *p,
   int conf_req_flag = 0;
   OM_uint32 max_input_size;
 
-  gss_inquire_context(&minor_status, gss_ctx, NULL, NULL, NULL, &ctx_mech,
-                      &ctx_flags, NULL, NULL);
+  gss_inquire_context(&minor_status, gss_ctx, NULL, NULL, NULL, &ctx_mech, &ctx_flags, NULL, NULL);
 
   if (ctx_flags & (GSS_C_CONF_FLAG)) {
     conf_req_flag = 1;
@@ -100,17 +93,14 @@ static void sb_sasl_gssapi_init(struct sb_sasl_generic_data *p,
 #define RECV_MAX_WIRE_SIZE 0x0FFFFFFF
 #define FALLBACK_SEND_MAX_SIZE 0x009FFFB8 /* from MIT 1.5.x */
 
-  gss_rc = gss_wrap_size_limit(&minor_status, gss_ctx, conf_req_flag,
-                               GSS_C_QOP_DEFAULT, SEND_MAX_WIRE_SIZE,
+  gss_rc = gss_wrap_size_limit(&minor_status, gss_ctx, conf_req_flag, GSS_C_QOP_DEFAULT, SEND_MAX_WIRE_SIZE,
                                &max_input_size);
   if (gss_rc != GSS_S_COMPLETE) {
     char msg[256];
-    ber_log_printf(LDAP_DEBUG_ANY, p->sbiod->sbiod_sb->sb_debug,
-                   "sb_sasl_gssapi_init: failed to wrap size limit: %s\n",
+    ber_log_printf(LDAP_DEBUG_ANY, p->sbiod->sbiod_sb->sb_debug, "sb_sasl_gssapi_init: failed to wrap size limit: %s\n",
                    gsserrstr(msg, sizeof(msg), ctx_mech, gss_rc, minor_status));
-    ber_log_printf(
-        LDAP_DEBUG_ANY, p->sbiod->sbiod_sb->sb_debug,
-        "sb_sasl_gssapi_init: fallback to default wrap size limit\n");
+    ber_log_printf(LDAP_DEBUG_ANY, p->sbiod->sbiod_sb->sb_debug,
+                   "sb_sasl_gssapi_init: fallback to default wrap size limit\n");
     /*
      * some libgssglue/libgssapi versions
      * have a broken gss_wrap_size_limit()
@@ -124,8 +114,7 @@ static void sb_sasl_gssapi_init(struct sb_sasl_generic_data *p,
   *max_recv = RECV_MAX_WIRE_SIZE;
 }
 
-static ber_int_t sb_sasl_gssapi_encode(struct sb_sasl_generic_data *p,
-                                       unsigned char *buf, ber_len_t len,
+static ber_int_t sb_sasl_gssapi_encode(struct sb_sasl_generic_data *p, unsigned char *buf, ber_len_t len,
                                        Sockbuf_Buf *dst) {
   gss_ctx_id_t gss_ctx = (gss_ctx_id_t)p->ops_private;
   int gss_rc;
@@ -141,19 +130,16 @@ static ber_int_t sb_sasl_gssapi_encode(struct sb_sasl_generic_data *p,
   unwrapped.value = buf;
   unwrapped.length = len;
 
-  gss_inquire_context(&minor_status, gss_ctx, NULL, NULL, NULL, &ctx_mech,
-                      &ctx_flags, NULL, NULL);
+  gss_inquire_context(&minor_status, gss_ctx, NULL, NULL, NULL, &ctx_mech, &ctx_flags, NULL, NULL);
 
   if (ctx_flags & (GSS_C_CONF_FLAG)) {
     conf_req_flag = 1;
   }
 
-  gss_rc = gss_wrap(&minor_status, gss_ctx, conf_req_flag, GSS_C_QOP_DEFAULT,
-                    &unwrapped, &conf_state, &wrapped);
+  gss_rc = gss_wrap(&minor_status, gss_ctx, conf_req_flag, GSS_C_QOP_DEFAULT, &unwrapped, &conf_state, &wrapped);
   if (gss_rc != GSS_S_COMPLETE) {
     char msg[256];
-    ber_log_printf(LDAP_DEBUG_ANY, p->sbiod->sbiod_sb->sb_debug,
-                   "sb_sasl_gssapi_encode: failed to encode packet: %s\n",
+    ber_log_printf(LDAP_DEBUG_ANY, p->sbiod->sbiod_sb->sb_debug, "sb_sasl_gssapi_encode: failed to encode packet: %s\n",
                    gsserrstr(msg, sizeof(msg), ctx_mech, gss_rc, minor_status));
     return -1;
   }
@@ -169,10 +155,8 @@ static ber_int_t sb_sasl_gssapi_encode(struct sb_sasl_generic_data *p,
 
   /* Grow the packet buffer if necessary */
   if (dst->buf_size < pkt_len && ber_pvt_sb_grow_buffer(dst, pkt_len) < 0) {
-    ber_log_printf(
-        LDAP_DEBUG_ANY, p->sbiod->sbiod_sb->sb_debug,
-        "sb_sasl_gssapi_encode: failed to grow the buffer to %lu bytes\n",
-        pkt_len);
+    ber_log_printf(LDAP_DEBUG_ANY, p->sbiod->sbiod_sb->sb_debug,
+                   "sb_sasl_gssapi_encode: failed to grow the buffer to %lu bytes\n", pkt_len);
     return -1;
   }
 
@@ -193,9 +177,7 @@ static ber_int_t sb_sasl_gssapi_encode(struct sb_sasl_generic_data *p,
   return 0;
 }
 
-static ber_int_t sb_sasl_gssapi_decode(struct sb_sasl_generic_data *p,
-                                       const Sockbuf_Buf *src,
-                                       Sockbuf_Buf *dst) {
+static ber_int_t sb_sasl_gssapi_decode(struct sb_sasl_generic_data *p, const Sockbuf_Buf *src, Sockbuf_Buf *dst) {
   gss_ctx_id_t gss_ctx = (gss_ctx_id_t)p->ops_private;
   int gss_rc;
   OM_uint32 minor_status;
@@ -209,37 +191,30 @@ static ber_int_t sb_sasl_gssapi_decode(struct sb_sasl_generic_data *p,
   wrapped.value = src->buf_base + 4;
   wrapped.length = src->buf_end - 4;
 
-  gss_inquire_context(&minor_status, gss_ctx, NULL, NULL, NULL, &ctx_mech,
-                      &ctx_flags, NULL, NULL);
+  gss_inquire_context(&minor_status, gss_ctx, NULL, NULL, NULL, &ctx_mech, &ctx_flags, NULL, NULL);
 
   if (ctx_flags & (GSS_C_CONF_FLAG)) {
     conf_req_flag = 1;
   }
 
-  gss_rc = gss_unwrap(&minor_status, gss_ctx, &wrapped, &unwrapped, &conf_state,
-                      GSS_C_QOP_DEFAULT);
+  gss_rc = gss_unwrap(&minor_status, gss_ctx, &wrapped, &unwrapped, &conf_state, GSS_C_QOP_DEFAULT);
   if (gss_rc != GSS_S_COMPLETE) {
     char msg[256];
-    ber_log_printf(LDAP_DEBUG_ANY, p->sbiod->sbiod_sb->sb_debug,
-                   "sb_sasl_gssapi_decode: failed to decode packet: %s\n",
+    ber_log_printf(LDAP_DEBUG_ANY, p->sbiod->sbiod_sb->sb_debug, "sb_sasl_gssapi_decode: failed to decode packet: %s\n",
                    gsserrstr(msg, sizeof(msg), ctx_mech, gss_rc, minor_status));
     return -1;
   }
 
   if (conf_req_flag && conf_state == 0) {
-    ber_log_printf(
-        LDAP_DEBUG_ANY, p->sbiod->sbiod_sb->sb_debug,
-        "sb_sasl_gssapi_encode: GSS_C_CONF_FLAG was ignored by our peer\n");
+    ber_log_printf(LDAP_DEBUG_ANY, p->sbiod->sbiod_sb->sb_debug,
+                   "sb_sasl_gssapi_encode: GSS_C_CONF_FLAG was ignored by our peer\n");
     return -1;
   }
 
   /* Grow the packet buffer if necessary */
-  if (dst->buf_size < unwrapped.length &&
-      ber_pvt_sb_grow_buffer(dst, unwrapped.length) < 0) {
-    ber_log_printf(
-        LDAP_DEBUG_ANY, p->sbiod->sbiod_sb->sb_debug,
-        "sb_sasl_gssapi_decode: failed to grow the buffer to %lu bytes\n",
-        unwrapped.length);
+  if (dst->buf_size < unwrapped.length && ber_pvt_sb_grow_buffer(dst, unwrapped.length) < 0) {
+    ber_log_printf(LDAP_DEBUG_ANY, p->sbiod->sbiod_sb->sb_debug,
+                   "sb_sasl_gssapi_decode: failed to grow the buffer to %lu bytes\n", unwrapped.length);
     return -1;
   }
 
@@ -255,16 +230,12 @@ static ber_int_t sb_sasl_gssapi_decode(struct sb_sasl_generic_data *p,
   return 0;
 }
 
-static void sb_sasl_gssapi_reset_buf(struct sb_sasl_generic_data *p,
-                                     Sockbuf_Buf *buf) {
-  ber_pvt_sb_buf_destroy(buf);
-}
+static void sb_sasl_gssapi_reset_buf(struct sb_sasl_generic_data *p, Sockbuf_Buf *buf) { ber_pvt_sb_buf_destroy(buf); }
 
 static void sb_sasl_gssapi_fini(struct sb_sasl_generic_data *p) {}
 
 static const struct sb_sasl_generic_ops sb_sasl_gssapi_ops = {
-    sb_sasl_gssapi_init, sb_sasl_gssapi_encode, sb_sasl_gssapi_decode,
-    sb_sasl_gssapi_reset_buf, sb_sasl_gssapi_fini};
+    sb_sasl_gssapi_init, sb_sasl_gssapi_encode, sb_sasl_gssapi_decode, sb_sasl_gssapi_reset_buf, sb_sasl_gssapi_fini};
 
 static int sb_sasl_gssapi_install(Sockbuf *sb, gss_ctx_id_t gss_ctx) {
   struct sb_sasl_generic_install install_arg;
@@ -275,16 +246,12 @@ static int sb_sasl_gssapi_install(Sockbuf *sb, gss_ctx_id_t gss_ctx) {
   return ldap_pvt_sasl_generic_install(sb, &install_arg);
 }
 
-static void sb_sasl_gssapi_remove(Sockbuf *sb) {
-  ldap_pvt_sasl_generic_remove(sb);
-}
+static void sb_sasl_gssapi_remove(Sockbuf *sb) { ldap_pvt_sasl_generic_remove(sb); }
 
-static int map_gsserr2ldap(LDAP *ld, gss_OID mech, int gss_rc,
-                           OM_uint32 minor_status) {
+static int map_gsserr2ldap(LDAP *ld, gss_OID mech, int gss_rc, OM_uint32 minor_status) {
   char msg[256];
 
-  Debug(LDAP_DEBUG_ANY, "%s\n",
-        gsserrstr(msg, sizeof(msg), mech, gss_rc, minor_status));
+  Debug(LDAP_DEBUG_ANY, "%s\n", gsserrstr(msg, sizeof(msg), mech, gss_rc, minor_status));
 
   if (gss_rc == GSS_S_COMPLETE) {
     ld->ld_errno = LDAP_SUCCESS;
@@ -305,13 +272,10 @@ static int map_gsserr2ldap(LDAP *ld, gss_OID mech, int gss_rc,
   return ld->ld_errno;
 }
 
-static int ldap_gssapi_get_rootdse_infos(LDAP *ld, char **pmechlist,
-                                         char **pldapServiceName,
-                                         char **pdnsHostName) {
+static int ldap_gssapi_get_rootdse_infos(LDAP *ld, char **pmechlist, char **pldapServiceName, char **pdnsHostName) {
   /* we need to query the server for supported mechs anyway */
   LDAPMessage *res, *e;
-  char *attrs[] = {"supportedSASLMechanisms", "ldapServiceName", "dnsHostName",
-                   NULL};
+  char *attrs[] = {"supportedSASLMechanisms", "ldapServiceName", "dnsHostName", NULL};
   char **values, *mechlist;
   char *ldapServiceName = NULL;
   char *dnsHostName = NULL;
@@ -322,8 +286,7 @@ static int ldap_gssapi_get_rootdse_infos(LDAP *ld, char **pmechlist,
   /* rc = ldap_search_s( ld, "", LDAP_SCOPE_BASE,
           NULL, attrs, 0, &res ); */
 
-  rc = ldap_search_ext_s(ld, "", LDAP_SCOPE_BASE, NULL, attrs, 0, NULL, NULL,
-                         NULL, 0, &res);
+  rc = ldap_search_ext_s(ld, "", LDAP_SCOPE_BASE, NULL, attrs, 0, NULL, NULL, NULL, 0, &res);
 
   if (rc != LDAP_SUCCESS) {
     return ld->ld_errno;
@@ -418,8 +381,7 @@ static int check_for_gss_spnego_support(LDAP *ld, const char *mechs_str) {
   return LDAP_SUCCESS;
 }
 
-static int guess_service_principal(LDAP *ld, const char *ldapServiceName,
-                                   const char *dnsHostName,
+static int guess_service_principal(LDAP *ld, const char *ldapServiceName, const char *dnsHostName,
                                    gss_name_t *principal) {
   gss_buffer_desc input_name;
   /* GSS_KRB5_NT_PRINCIPAL_NAME */
@@ -448,8 +410,7 @@ static int guess_service_principal(LDAP *ld, const char *ldapServiceName,
     }
   }
 
-  if (ld->ld_options.ldo_gssapi_options &
-      LDAP_GSSAPI_OPT_ALLOW_REMOTE_PRINCIPAL) {
+  if (ld->ld_options.ldo_gssapi_options & LDAP_GSSAPI_OPT_ALLOW_REMOTE_PRINCIPAL) {
     allow_remote = 1;
   }
 
@@ -481,14 +442,12 @@ static int guess_service_principal(LDAP *ld, const char *ldapServiceName,
     return ld->ld_errno;
   }
 
-  Debug(LDAP_DEBUG_TRACE, "principal for host[%s]: '%s'\n", host,
-        svc_principal);
+  Debug(LDAP_DEBUG_TRACE, "principal for host[%s]: '%s'\n", host, svc_principal);
 
   input_name.value = svc_principal;
   input_name.length = (size_t)ret;
 
-  gss_rc =
-      gss_import_name(&minor_status, &input_name, &nt_principal, principal);
+  gss_rc = gss_import_name(&minor_status, &input_name, &nt_principal, principal);
   ldap_memfree(svc_principal);
   if (gss_rc != GSS_S_COMPLETE) {
     return map_gsserr2ldap(ld, GSS_C_NO_OID, gss_rc, minor_status);
@@ -504,11 +463,9 @@ void ldap_int_gssapi_close(LDAP *ld, LDAPConn *lc) {
     gss_ctx_id_t old_gss_ctx = GSS_C_NO_CONTEXT;
     old_gss_ctx = (gss_ctx_id_t)lc->lconn_gss_ctx;
 
-    gss_inquire_context(&minor_status, old_gss_ctx, NULL, NULL, NULL, NULL,
-                        &ctx_flags, NULL, NULL);
+    gss_inquire_context(&minor_status, old_gss_ctx, NULL, NULL, NULL, NULL, &ctx_flags, NULL, NULL);
 
-    if (!(ld->ld_options.ldo_gssapi_options &
-          LDAP_GSSAPI_OPT_DO_NOT_FREE_GSS_CONTEXT)) {
+    if (!(ld->ld_options.ldo_gssapi_options & LDAP_GSSAPI_OPT_DO_NOT_FREE_GSS_CONTEXT)) {
       gss_delete_sec_context(&minor_status, &old_gss_ctx, GSS_C_NO_BUFFER);
     }
     lc->lconn_gss_ctx = GSS_C_NO_CONTEXT;
@@ -520,15 +477,13 @@ void ldap_int_gssapi_close(LDAP *ld, LDAPConn *lc) {
   }
 }
 
-static void ldap_int_gssapi_setup(LDAP *ld, LDAPConn *lc,
-                                  gss_ctx_id_t gss_ctx) {
+static void ldap_int_gssapi_setup(LDAP *ld, LDAPConn *lc, gss_ctx_id_t gss_ctx) {
   OM_uint32 minor_status;
   OM_uint32 ctx_flags = 0;
 
   ldap_int_gssapi_close(ld, lc);
 
-  gss_inquire_context(&minor_status, gss_ctx, NULL, NULL, NULL, NULL,
-                      &ctx_flags, NULL, NULL);
+  gss_inquire_context(&minor_status, gss_ctx, NULL, NULL, NULL, NULL, &ctx_flags, NULL, NULL);
 
   lc->lconn_gss_ctx = gss_ctx;
 
@@ -566,8 +521,7 @@ static int ldap_int_gss_spnego_bind_s(LDAP *ld) {
   LDAP_MUTEX_LOCK(&ldap_int_gssapi_mutex);
 
   /* get information from RootDSE entry */
-  rc = ldap_gssapi_get_rootdse_infos(ld, &mechlist, &ldapServiceName,
-                                     &dnsHostName);
+  rc = ldap_gssapi_get_rootdse_infos(ld, &mechlist, &ldapServiceName, &dnsHostName);
   if (rc != LDAP_SUCCESS) {
     return rc;
   }
@@ -589,8 +543,7 @@ static int ldap_int_gss_spnego_bind_s(LDAP *ld) {
   if (gss_rc != GSS_S_COMPLETE) {
     goto gss_error;
   }
-  gss_rc = gss_test_oid_set_member(&minor_status, &spnego_oid, supported_mechs,
-                                   &spnego_support);
+  gss_rc = gss_test_oid_set_member(&minor_status, &spnego_oid, supported_mechs, &spnego_support);
   gss_release_oid_set(&minor_status, &supported_mechs);
   if (gss_rc != GSS_S_COMPLETE) {
     goto gss_error;
@@ -607,10 +560,8 @@ static int ldap_int_gss_spnego_bind_s(LDAP *ld) {
    */
   input_token.value = NULL;
   input_token.length = 0;
-  gss_rc = gss_init_sec_context(&minor_status, GSS_C_NO_CREDENTIAL, &gss_ctx,
-                                principal, req_mech, req_flags, 0, NULL,
-                                &input_token, &ret_mech, &output_token,
-                                &ret_flags, NULL);
+  gss_rc = gss_init_sec_context(&minor_status, GSS_C_NO_CREDENTIAL, &gss_ctx, principal, req_mech, req_flags, 0, NULL,
+                                &input_token, &ret_mech, &output_token, &ret_flags, NULL);
   if (gss_rc == GSS_S_COMPLETE) {
     rc = LDAP_INAPPROPRIATE_AUTH;
     goto rc_error;
@@ -635,10 +586,8 @@ static int ldap_int_gss_spnego_bind_s(LDAP *ld) {
       input_token.length = 0;
     }
 
-    gss_rc = gss_init_sec_context(&minor_status, GSS_C_NO_CREDENTIAL, &gss_ctx,
-                                  principal, req_mech, req_flags, 0, NULL,
-                                  &input_token, &ret_mech, &output_token,
-                                  &ret_flags, NULL);
+    gss_rc = gss_init_sec_context(&minor_status, GSS_C_NO_CREDENTIAL, &gss_ctx, principal, req_mech, req_flags, 0, NULL,
+                                  &input_token, &ret_mech, &output_token, &ret_flags, NULL);
     if (scred) {
       ber_bvfree(scred);
     }
@@ -659,8 +608,7 @@ static int ldap_int_gss_spnego_bind_s(LDAP *ld) {
   goto rc_error;
 
 gss_error:
-  rc = map_gsserr2ldap(ld, (ret_mech != GSS_C_NO_OID ? ret_mech : req_mech),
-                       gss_rc, minor_status);
+  rc = map_gsserr2ldap(ld, (ret_mech != GSS_C_NO_OID ? ret_mech : req_mech), gss_rc, minor_status);
 rc_error:
   LDAP_MUTEX_UNLOCK(&ldap_int_gssapi_mutex);
   LDAP_FREE(mechlist);
@@ -676,8 +624,7 @@ rc_error:
   return rc;
 }
 
-int ldap_int_gssapi_config(struct ldapoptions *lo, int option,
-                           const char *arg) {
+int ldap_int_gssapi_config(struct ldapoptions *lo, int option, const char *arg) {
   int ok = 0;
 
   switch (option) {
@@ -773,8 +720,7 @@ int ldap_int_gssapi_get_option(LDAP *ld, int option, void *arg) {
     break;
 
   case LDAP_OPT_X_GSSAPI_DO_NOT_FREE_CONTEXT:
-    if (ld->ld_options.ldo_gssapi_options &
-        LDAP_GSSAPI_OPT_DO_NOT_FREE_GSS_CONTEXT) {
+    if (ld->ld_options.ldo_gssapi_options & LDAP_GSSAPI_OPT_DO_NOT_FREE_GSS_CONTEXT) {
       *(int *)arg = (int)-1;
     } else {
       *(int *)arg = (int)0;
@@ -782,8 +728,7 @@ int ldap_int_gssapi_get_option(LDAP *ld, int option, void *arg) {
     break;
 
   case LDAP_OPT_X_GSSAPI_ALLOW_REMOTE_PRINCIPAL:
-    if (ld->ld_options.ldo_gssapi_options &
-        LDAP_GSSAPI_OPT_ALLOW_REMOTE_PRINCIPAL) {
+    if (ld->ld_options.ldo_gssapi_options & LDAP_GSSAPI_OPT_ALLOW_REMOTE_PRINCIPAL) {
       *(int *)arg = (int)-1;
     } else {
       *(int *)arg = (int)0;
@@ -838,15 +783,13 @@ int ldap_int_gssapi_set_option(LDAP *ld, int option, void *arg) {
 
   case LDAP_OPT_X_GSSAPI_DO_NOT_FREE_CONTEXT:
     if (arg != LDAP_OPT_OFF) {
-      ld->ld_options.ldo_gssapi_options |=
-          LDAP_GSSAPI_OPT_DO_NOT_FREE_GSS_CONTEXT;
+      ld->ld_options.ldo_gssapi_options |= LDAP_GSSAPI_OPT_DO_NOT_FREE_GSS_CONTEXT;
     }
     break;
 
   case LDAP_OPT_X_GSSAPI_ALLOW_REMOTE_PRINCIPAL:
     if (arg != LDAP_OPT_OFF) {
-      ld->ld_options.ldo_gssapi_options |=
-          LDAP_GSSAPI_OPT_ALLOW_REMOTE_PRINCIPAL;
+      ld->ld_options.ldo_gssapi_options |= LDAP_GSSAPI_OPT_ALLOW_REMOTE_PRINCIPAL;
     }
     break;
 
@@ -861,9 +804,7 @@ int ldap_int_gssapi_set_option(LDAP *ld, int option, void *arg) {
 #define ldap_int_gss_spnego_bind_s(ld) LDAP_NOT_SUPPORTED
 #endif /* HAVE_GSSAPI */
 
-int ldap_gssapi_bind(LDAP *ld, const char *dn, const char *creds) {
-  return LDAP_NOT_SUPPORTED;
-}
+int ldap_gssapi_bind(LDAP *ld, const char *dn, const char *creds) { return LDAP_NOT_SUPPORTED; }
 
 int ldap_gssapi_bind_s(LDAP *ld, const char *dn, const char *creds) {
   if (dn != NULL) {

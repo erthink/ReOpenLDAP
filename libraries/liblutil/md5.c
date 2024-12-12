@@ -59,8 +59,7 @@
    surprised if they were a performance bottleneck for MD5.  */
 
 static ber_uint_t getu32(const unsigned char *addr) {
-  return (((((unsigned long)addr[3] << 8) | addr[2]) << 8) | addr[1]) << 8 |
-         addr[0];
+  return (((((unsigned long)addr[3] << 8) | addr[2]) << 8) | addr[1]) << 8 | addr[0];
 }
 
 static void putu32(ber_uint_t data, unsigned char *addr) {
@@ -88,8 +87,7 @@ void lutil_MD5Init(struct lutil_MD5Context *ctx) {
  * Update context to reflect the concatenation of another buffer full
  * of bytes.
  */
-void lutil_MD5Update(struct lutil_MD5Context *ctx, const unsigned char *buf,
-                     ber_len_t len) {
+void lutil_MD5Update(struct lutil_MD5Context *ctx, const unsigned char *buf, ber_len_t len) {
   ber_uint_t t;
 
   /* Update bitcount */
@@ -186,8 +184,7 @@ void lutil_MD5Final(unsigned char *digest, struct lutil_MD5Context *ctx) {
 #define F4(x, y, z) (y ^ (x | ~z))
 
 /* This is the central step in the MD5 algorithm. */
-#define MD5STEP(f, w, x, y, z, data, s)                                        \
-  (w += f(x, y, z) + data, w &= 0xffffffff, w = w << s | w >> (32 - s), w += x)
+#define MD5STEP(f, w, x, y, z, data, s) (w += f(x, y, z) + data, w &= 0xffffffff, w = w << s | w >> (32 - s), w += x)
 
 /*
  * The core of the MD5 algorithm, this alters an existing MD5 hash to

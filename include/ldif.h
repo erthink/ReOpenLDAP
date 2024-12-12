@@ -24,8 +24,9 @@ LDAP_BEGIN_DECL
 LDAP_LDIF_V(int) ldif_debug;
 
 #define LDIF_LINE_WIDTH 76 /* default maximum length of LDIF lines */
-#define LDIF_LINE_WIDTH_MAX ((ber_len_t) - 1) /* maximum length of LDIF lines  \
-                                               */
+#define LDIF_LINE_WIDTH_MAX                                                                                            \
+  ((ber_len_t) - 1) /* maximum length of LDIF lines                                                                    \
+                     */
 #define LDIF_LINE_WIDTH_WRAP(wrap) ((wrap) == 0 ? LDIF_LINE_WIDTH : (wrap))
 
 /*
@@ -41,24 +42,19 @@ LDAP_LDIF_V(int) ldif_debug;
  * first newline + base64 value + continued lines.  Each continued line
  * needs room for a newline and a leading space character.
  */
-#define LDIF_SIZE_NEEDED(nlen, vlen)                                           \
-  ((nlen) + 4 + LDIF_BASE64_LEN(vlen) +                                        \
-   ((LDIF_BASE64_LEN(vlen) + (nlen) + 3) / (LDIF_LINE_WIDTH - 1) * 2))
+#define LDIF_SIZE_NEEDED(nlen, vlen)                                                                                   \
+  ((nlen) + 4 + LDIF_BASE64_LEN(vlen) + ((LDIF_BASE64_LEN(vlen) + (nlen) + 3) / (LDIF_LINE_WIDTH - 1) * 2))
 
-#define LDIF_SIZE_NEEDED_WRAP(nlen, vlen, wrap)                                \
-  ((nlen) + 4 + LDIF_BASE64_LEN(vlen) +                                        \
-   ((wrap) == 0                                                                \
-        ? ((LDIF_BASE64_LEN(vlen) + (nlen) + 3) / (LDIF_LINE_WIDTH - 1) * 2)   \
-        : ((wrap) == LDIF_LINE_WIDTH_MAX                                       \
-               ? 0                                                             \
-               : ((LDIF_BASE64_LEN(vlen) + (nlen) + 3) / (wrap - 1) * 2))))
+#define LDIF_SIZE_NEEDED_WRAP(nlen, vlen, wrap)                                                                        \
+  ((nlen) + 4 + LDIF_BASE64_LEN(vlen) +                                                                                \
+   ((wrap) == 0 ? ((LDIF_BASE64_LEN(vlen) + (nlen) + 3) / (LDIF_LINE_WIDTH - 1) * 2)                                   \
+                : ((wrap) == LDIF_LINE_WIDTH_MAX ? 0 : ((LDIF_BASE64_LEN(vlen) + (nlen) + 3) / (wrap - 1) * 2))))
 
 LDAP_LDIF_F(int)
 ldif_parse_line(const char *line, char **name, char **value, ber_len_t *vlen);
 
 LDAP_LDIF_F(int)
-ldif_parse_line2(char *line, struct berval *type, struct berval *value,
-                 int *freeval);
+ldif_parse_line2(char *line, struct berval *type, struct berval *value, int *freeval);
 
 LDAP_LDIF_F(FILE *)
 ldif_open_url(const char *urlstr);
@@ -111,19 +107,16 @@ ldif_must_b64_encode_release(void);
 #define LDIF_PUT_SEP 0x0040     /* separator */
 
 LDAP_LDIF_F(void)
-ldif_sput(char **out, int type, const char *name, const char *val,
-          ber_len_t vlen);
+ldif_sput(char **out, int type, const char *name, const char *val, ber_len_t vlen);
 
 LDAP_LDIF_F(void)
-ldif_sput_wrap(char **out, int type, const char *name, const char *val,
-               ber_len_t vlen, ber_len_t wrap);
+ldif_sput_wrap(char **out, int type, const char *name, const char *val, ber_len_t vlen, ber_len_t wrap);
 
 LDAP_LDIF_F(char *)
 ldif_put(int type, const char *name, const char *val, ber_len_t vlen);
 
 LDAP_LDIF_F(char *)
-ldif_put_wrap(int type, const char *name, const char *val, ber_len_t vlen,
-              ber_len_t wrap);
+ldif_put_wrap(int type, const char *name, const char *val, ber_len_t vlen, ber_len_t wrap);
 
 LDAP_LDIF_F(int)
 ldif_is_not_printable(const char *val, ber_len_t vlen);

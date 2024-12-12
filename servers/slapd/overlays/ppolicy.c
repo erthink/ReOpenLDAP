@@ -67,40 +67,39 @@ static int ppolicy_cid;
 static int ov_count;
 
 typedef struct pass_policy {
-  AttributeDescription *ad; /* attribute to which the policy applies */
-  int pwdMinAge;            /* minimum time (seconds) until passwd can change */
-  int pwdMaxAge;        /* time in seconds until pwd will expire after change */
-  int pwdInHistory;     /* number of previous passwords kept */
-  int pwdCheckQuality;  /* 0 = don't check quality, 1 = check if possible,
-                                              2 = check mandatory; fail if not
-                           possible */
-  int pwdMinLength;     /* minimum number of chars in password */
-  int pwdExpireWarning; /* number of seconds that warning controls are
-                                                  sent before a password expires
-                         */
-  int pwdGraceAuthNLimit; /* number of times you can log in with an
-                                                  expired password */
-  int pwdLockout;         /* 0 = do not lockout passwords, 1 = lock them out */
-  int pwdLockoutDuration; /* time in seconds a password is locked out for */
-  int pwdMaxFailure;      /* number of failed binds allowed before lockout */
-  int pwdMaxRecordedFailure;   /* number of failed binds to store */
-  int pwdFailureCountInterval; /* number of seconds before failure
-                                                                  counts are
-                                  zeroed */
-  int pwdMustChange;           /* 0 = users can use admin set password
-                                                            1 = users must change password
-                                  after admin set */
-  int pwdAllowUserChange;      /* 0 = users cannot change their passwords
-                                                               1 = users can change
-                                  them */
-  int pwdSafeModify;           /* 0 = old password doesn't need to come
-                                                                    with password change
-                                  request           1 = password change must supply
-                                  existing pwd */
-  char pwdCheckModule
-      [MODULE_NAME_SZ]; /* name of module to dynamically
-                                                               load
-                           to check password */
+  AttributeDescription *ad;            /* attribute to which the policy applies */
+  int pwdMinAge;                       /* minimum time (seconds) until passwd can change */
+  int pwdMaxAge;                       /* time in seconds until pwd will expire after change */
+  int pwdInHistory;                    /* number of previous passwords kept */
+  int pwdCheckQuality;                 /* 0 = don't check quality, 1 = check if possible,
+                                                             2 = check mandatory; fail if not
+                                          possible */
+  int pwdMinLength;                    /* minimum number of chars in password */
+  int pwdExpireWarning;                /* number of seconds that warning controls are
+                                                                 sent before a password expires
+                                        */
+  int pwdGraceAuthNLimit;              /* number of times you can log in with an
+                                                               expired password */
+  int pwdLockout;                      /* 0 = do not lockout passwords, 1 = lock them out */
+  int pwdLockoutDuration;              /* time in seconds a password is locked out for */
+  int pwdMaxFailure;                   /* number of failed binds allowed before lockout */
+  int pwdMaxRecordedFailure;           /* number of failed binds to store */
+  int pwdFailureCountInterval;         /* number of seconds before failure
+                                                                          counts are
+                                          zeroed */
+  int pwdMustChange;                   /* 0 = users can use admin set password
+                                                                    1 = users must change password
+                                          after admin set */
+  int pwdAllowUserChange;              /* 0 = users cannot change their passwords
+                                                                       1 = users can change
+                                          them */
+  int pwdSafeModify;                   /* 0 = old password doesn't need to come
+                                                                            with password change
+                                          request           1 = password change must supply
+                                          existing pwd */
+  char pwdCheckModule[MODULE_NAME_SZ]; /* name of module to dynamically
+                                                                              load
+                                          to check password */
 } PassPolicy;
 
 typedef struct pw_hist {
@@ -111,85 +110,81 @@ typedef struct pw_hist {
 } pw_hist;
 
 /* Operational attributes */
-static AttributeDescription *ad_pwdChangedTime, *ad_pwdAccountLockedTime,
-    *ad_pwdFailureTime, *ad_pwdHistory, *ad_pwdGraceUseTime, *ad_pwdReset,
-    *ad_pwdPolicySubentry;
+static AttributeDescription *ad_pwdChangedTime, *ad_pwdAccountLockedTime, *ad_pwdFailureTime, *ad_pwdHistory,
+    *ad_pwdGraceUseTime, *ad_pwdReset, *ad_pwdPolicySubentry;
 
 static struct schema_info {
   char *def;
   AttributeDescription **ad;
-} pwd_OpSchema[] = {
-    {"( 1.3.6.1.4.1.42.2.27.8.1.16 "
-     "NAME ( 'pwdChangedTime' ) "
-     "DESC 'The time the password was last changed' "
-     "EQUALITY generalizedTimeMatch "
-     "ORDERING generalizedTimeOrderingMatch "
-     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 "
-     "SINGLE-VALUE NO-USER-MODIFICATION USAGE directoryOperation )",
-     &ad_pwdChangedTime},
-    {"( 1.3.6.1.4.1.42.2.27.8.1.17 "
-     "NAME ( 'pwdAccountLockedTime' ) "
-     "DESC 'The time an user account was locked' "
-     "EQUALITY generalizedTimeMatch "
-     "ORDERING generalizedTimeOrderingMatch "
-     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 "
-     "SINGLE-VALUE "
+} pwd_OpSchema[] = {{"( 1.3.6.1.4.1.42.2.27.8.1.16 "
+                     "NAME ( 'pwdChangedTime' ) "
+                     "DESC 'The time the password was last changed' "
+                     "EQUALITY generalizedTimeMatch "
+                     "ORDERING generalizedTimeOrderingMatch "
+                     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 "
+                     "SINGLE-VALUE NO-USER-MODIFICATION USAGE directoryOperation )",
+                     &ad_pwdChangedTime},
+                    {"( 1.3.6.1.4.1.42.2.27.8.1.17 "
+                     "NAME ( 'pwdAccountLockedTime' ) "
+                     "DESC 'The time an user account was locked' "
+                     "EQUALITY generalizedTimeMatch "
+                     "ORDERING generalizedTimeOrderingMatch "
+                     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 "
+                     "SINGLE-VALUE "
 #if 0
 		/* Not until Relax control is released */
 		"NO-USER-MODIFICATION "
 #endif
-     "USAGE directoryOperation )",
-     &ad_pwdAccountLockedTime},
-    {"( 1.3.6.1.4.1.42.2.27.8.1.19 "
-     "NAME ( 'pwdFailureTime' ) "
-     "DESC 'The timestamps of the last consecutive authentication failures' "
-     "EQUALITY generalizedTimeMatch "
-     "ORDERING generalizedTimeOrderingMatch "
-     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 "
-     "NO-USER-MODIFICATION USAGE directoryOperation )",
-     &ad_pwdFailureTime},
-    {"( 1.3.6.1.4.1.42.2.27.8.1.20 "
-     "NAME ( 'pwdHistory' ) "
-     "DESC 'The history of users passwords' "
-     "EQUALITY octetStringMatch "
-     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 "
-     "NO-USER-MODIFICATION USAGE directoryOperation )",
-     &ad_pwdHistory},
-    {"( 1.3.6.1.4.1.42.2.27.8.1.21 "
-     "NAME ( 'pwdGraceUseTime' ) "
-     "DESC 'The timestamps of the grace login once the password has expired' "
-     "EQUALITY generalizedTimeMatch "
-     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 "
-     "NO-USER-MODIFICATION USAGE directoryOperation )",
-     &ad_pwdGraceUseTime},
-    {"( 1.3.6.1.4.1.42.2.27.8.1.22 "
-     "NAME ( 'pwdReset' ) "
-     "DESC 'The indication that the password has been reset' "
-     "EQUALITY booleanMatch "
-     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 "
-     "SINGLE-VALUE USAGE directoryOperation )",
-     &ad_pwdReset},
-    {"( 1.3.6.1.4.1.42.2.27.8.1.23 "
-     "NAME ( 'pwdPolicySubentry' ) "
-     "DESC 'The pwdPolicy subentry in effect for this object' "
-     "EQUALITY distinguishedNameMatch "
-     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 "
-     "SINGLE-VALUE "
+                     "USAGE directoryOperation )",
+                     &ad_pwdAccountLockedTime},
+                    {"( 1.3.6.1.4.1.42.2.27.8.1.19 "
+                     "NAME ( 'pwdFailureTime' ) "
+                     "DESC 'The timestamps of the last consecutive authentication failures' "
+                     "EQUALITY generalizedTimeMatch "
+                     "ORDERING generalizedTimeOrderingMatch "
+                     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 "
+                     "NO-USER-MODIFICATION USAGE directoryOperation )",
+                     &ad_pwdFailureTime},
+                    {"( 1.3.6.1.4.1.42.2.27.8.1.20 "
+                     "NAME ( 'pwdHistory' ) "
+                     "DESC 'The history of users passwords' "
+                     "EQUALITY octetStringMatch "
+                     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 "
+                     "NO-USER-MODIFICATION USAGE directoryOperation )",
+                     &ad_pwdHistory},
+                    {"( 1.3.6.1.4.1.42.2.27.8.1.21 "
+                     "NAME ( 'pwdGraceUseTime' ) "
+                     "DESC 'The timestamps of the grace login once the password has expired' "
+                     "EQUALITY generalizedTimeMatch "
+                     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 "
+                     "NO-USER-MODIFICATION USAGE directoryOperation )",
+                     &ad_pwdGraceUseTime},
+                    {"( 1.3.6.1.4.1.42.2.27.8.1.22 "
+                     "NAME ( 'pwdReset' ) "
+                     "DESC 'The indication that the password has been reset' "
+                     "EQUALITY booleanMatch "
+                     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 "
+                     "SINGLE-VALUE USAGE directoryOperation )",
+                     &ad_pwdReset},
+                    {"( 1.3.6.1.4.1.42.2.27.8.1.23 "
+                     "NAME ( 'pwdPolicySubentry' ) "
+                     "DESC 'The pwdPolicy subentry in effect for this object' "
+                     "EQUALITY distinguishedNameMatch "
+                     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 "
+                     "SINGLE-VALUE "
 #if 0
 		/* Not until Relax control is released */
 		"NO-USER-MODIFICATION "
 #endif
-     "USAGE directoryOperation )",
-     &ad_pwdPolicySubentry},
-    {NULL, NULL}};
+                     "USAGE directoryOperation )",
+                     &ad_pwdPolicySubentry},
+                    {NULL, NULL}};
 
 /* User attributes */
-static AttributeDescription *ad_pwdMinAge, *ad_pwdMaxAge, *ad_pwdInHistory,
-    *ad_pwdCheckQuality, *ad_pwdMinLength, *ad_pwdMaxFailure,
-    *ad_pwdGraceAuthNLimit, *ad_pwdExpireWarning, *ad_pwdLockoutDuration,
-    *ad_pwdFailureCountInterval, *ad_pwdCheckModule, *ad_pwdLockout,
-    *ad_pwdMustChange, *ad_pwdAllowUserChange, *ad_pwdSafeModify,
-    *ad_pwdAttribute, *ad_pwdMaxRecordedFailure;
+static AttributeDescription *ad_pwdMinAge, *ad_pwdMaxAge, *ad_pwdInHistory, *ad_pwdCheckQuality, *ad_pwdMinLength,
+    *ad_pwdMaxFailure, *ad_pwdGraceAuthNLimit, *ad_pwdExpireWarning, *ad_pwdLockoutDuration,
+    *ad_pwdFailureCountInterval, *ad_pwdCheckModule, *ad_pwdLockout, *ad_pwdMustChange, *ad_pwdAllowUserChange,
+    *ad_pwdSafeModify, *ad_pwdAttribute, *ad_pwdMaxRecordedFailure;
 
 #define TAB(name) {#name, &ad_##name}
 
@@ -219,30 +214,26 @@ enum { PPOLICY_DEFAULT = 1, PPOLICY_HASH_CLEARTEXT, PPOLICY_USE_LOCKOUT };
 static ConfigDriver ppolicy_cf_default;
 
 static ConfigTable ppolicycfg[] = {
-    {"ppolicy_default", "policyDN", 2, 2, 0,
-     ARG_DN | ARG_QUOTE | ARG_MAGIC | PPOLICY_DEFAULT, ppolicy_cf_default,
+    {"ppolicy_default", "policyDN", 2, 2, 0, ARG_DN | ARG_QUOTE | ARG_MAGIC | PPOLICY_DEFAULT, ppolicy_cf_default,
      "( OLcfgOvAt:12.1 NAME 'olcPPolicyDefault' "
      "DESC 'DN of a pwdPolicy object for uncustomized objects' "
      "EQUALITY distinguishedNameMatch "
      "SYNTAX OMsDN SINGLE-VALUE )",
      NULL, NULL},
-    {"ppolicy_hash_cleartext", "on|off", 1, 2, 0,
-     ARG_ON_OFF | ARG_OFFSET | PPOLICY_HASH_CLEARTEXT,
+    {"ppolicy_hash_cleartext", "on|off", 1, 2, 0, ARG_ON_OFF | ARG_OFFSET | PPOLICY_HASH_CLEARTEXT,
      (void *)offsetof(pp_info, hash_passwords),
      "( OLcfgOvAt:12.2 NAME 'olcPPolicyHashCleartext' "
      "DESC 'Hash passwords on add or modify' "
      "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
-    {"ppolicy_forward_updates", "on|off", 1, 2, 0, ARG_ON_OFF | ARG_OFFSET,
-     (void *)offsetof(pp_info, forward_updates),
+    {"ppolicy_forward_updates", "on|off", 1, 2, 0, ARG_ON_OFF | ARG_OFFSET, (void *)offsetof(pp_info, forward_updates),
      "( OLcfgOvAt:12.4 NAME 'olcPPolicyForwardUpdates' "
      "DESC 'Allow policy state updates to be forwarded via updateref' "
      "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
-    {"ppolicy_use_lockout", "on|off", 1, 2, 0,
-     ARG_ON_OFF | ARG_OFFSET | PPOLICY_USE_LOCKOUT,
+    {"ppolicy_use_lockout", "on|off", 1, 2, 0, ARG_ON_OFF | ARG_OFFSET | PPOLICY_USE_LOCKOUT,
      (void *)offsetof(pp_info, use_lockout),
      "( OLcfgOvAt:12.3 NAME 'olcPPolicyUseLockout' "
      "DESC 'Warn clients with AccountLocked' "
@@ -251,15 +242,14 @@ static ConfigTable ppolicycfg[] = {
      NULL, NULL},
     {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
 
-static ConfigOCs ppolicyocs[] = {
-    {"( OLcfgOvOc:12.1 "
-     "NAME 'olcPPolicyConfig' "
-     "DESC 'Password Policy configuration' "
-     "SUP olcOverlayConfig "
-     "MAY ( olcPPolicyDefault $ olcPPolicyHashCleartext $ "
-     "olcPPolicyUseLockout $ olcPPolicyForwardUpdates ) )",
-     Cft_Overlay, ppolicycfg},
-    {NULL, 0, NULL}};
+static ConfigOCs ppolicyocs[] = {{"( OLcfgOvOc:12.1 "
+                                  "NAME 'olcPPolicyConfig' "
+                                  "DESC 'Password Policy configuration' "
+                                  "SUP olcOverlayConfig "
+                                  "MAY ( olcPPolicyDefault $ olcPPolicyHashCleartext $ "
+                                  "olcPPolicyUseLockout $ olcPPolicyForwardUpdates ) )",
+                                  Cft_Overlay, ppolicycfg},
+                                 {NULL, 0, NULL}};
 
 static int ppolicy_cf_default(ConfigArgs *c) {
   slap_overinst *on = (slap_overinst *)c->bi;
@@ -321,8 +311,7 @@ static time_t parse_time(char *atm) {
   return ret;
 }
 
-static int account_locked(Operation *op, Entry *e, PassPolicy *pp,
-                          Modifications **mod) {
+static int account_locked(Operation *op, Entry *e, PassPolicy *pp, Modifications **mod) {
   Attribute *la;
 
   assert(mod != NULL);
@@ -378,8 +367,7 @@ static int account_locked(Operation *op, Entry *e, PassPolicy *pp,
 
 static const char ppolicy_ctrl_oid[] = LDAP_CONTROL_PASSWORDPOLICYRESPONSE;
 
-static LDAPControl *create_passcontrol(Operation *op, int exptime, int grace,
-                                       LDAPPasswordPolicyError err) {
+static LDAPControl *create_passcontrol(Operation *op, int exptime, int grace, LDAPPasswordPolicyError err) {
   BerElementBuffer berbuf, bb2;
   BerElement *ber = (BerElement *)&berbuf, *b2 = (BerElement *)&bb2;
   LDAPControl c = {0}, *cp;
@@ -423,8 +411,7 @@ static LDAPControl *create_passcontrol(Operation *op, int exptime, int grace,
   if (ber_flatten2(ber, &c.ldctl_value, 0) == -1) {
     return NULL;
   }
-  cp = op->o_tmpalloc(sizeof(LDAPControl) + c.ldctl_value.bv_len,
-                      op->o_tmpmemctx);
+  cp = op->o_tmpalloc(sizeof(LDAPControl) + c.ldctl_value.bv_len, op->o_tmpmemctx);
   cp->ldctl_oid = (char *)ppolicy_ctrl_oid;
   cp->ldctl_iscritical = 0;
   cp->ldctl_value.bv_val = (char *)&cp[1];
@@ -436,8 +423,7 @@ fail:
   return cp;
 }
 
-static LDAPControl **add_passcontrol(Operation *op, SlapReply *rs,
-                                     LDAPControl *ctrl) {
+static LDAPControl **add_passcontrol(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   LDAPControl **ctrls, **oldctrls = rs->sr_ctrls;
   int n;
 
@@ -515,23 +501,17 @@ static void ppolicy_get(Operation *op, Entry *e, PassPolicy *pp) {
 		slap_bv2ad( &a->a_vals[0], &pp->ad, &text );
 #endif
 
-  if ((a = attr_find(pe->e_attrs, ad_pwdMinAge)) &&
-      lutil_atoi(&pp->pwdMinAge, a->a_vals[0].bv_val) != 0)
+  if ((a = attr_find(pe->e_attrs, ad_pwdMinAge)) && lutil_atoi(&pp->pwdMinAge, a->a_vals[0].bv_val) != 0)
     goto defaultpol;
-  if ((a = attr_find(pe->e_attrs, ad_pwdMaxAge)) &&
-      lutil_atoi(&pp->pwdMaxAge, a->a_vals[0].bv_val) != 0)
+  if ((a = attr_find(pe->e_attrs, ad_pwdMaxAge)) && lutil_atoi(&pp->pwdMaxAge, a->a_vals[0].bv_val) != 0)
     goto defaultpol;
-  if ((a = attr_find(pe->e_attrs, ad_pwdInHistory)) &&
-      lutil_atoi(&pp->pwdInHistory, a->a_vals[0].bv_val) != 0)
+  if ((a = attr_find(pe->e_attrs, ad_pwdInHistory)) && lutil_atoi(&pp->pwdInHistory, a->a_vals[0].bv_val) != 0)
     goto defaultpol;
-  if ((a = attr_find(pe->e_attrs, ad_pwdCheckQuality)) &&
-      lutil_atoi(&pp->pwdCheckQuality, a->a_vals[0].bv_val) != 0)
+  if ((a = attr_find(pe->e_attrs, ad_pwdCheckQuality)) && lutil_atoi(&pp->pwdCheckQuality, a->a_vals[0].bv_val) != 0)
     goto defaultpol;
-  if ((a = attr_find(pe->e_attrs, ad_pwdMinLength)) &&
-      lutil_atoi(&pp->pwdMinLength, a->a_vals[0].bv_val) != 0)
+  if ((a = attr_find(pe->e_attrs, ad_pwdMinLength)) && lutil_atoi(&pp->pwdMinLength, a->a_vals[0].bv_val) != 0)
     goto defaultpol;
-  if ((a = attr_find(pe->e_attrs, ad_pwdMaxFailure)) &&
-      lutil_atoi(&pp->pwdMaxFailure, a->a_vals[0].bv_val) != 0)
+  if ((a = attr_find(pe->e_attrs, ad_pwdMaxFailure)) && lutil_atoi(&pp->pwdMaxFailure, a->a_vals[0].bv_val) != 0)
     goto defaultpol;
   if ((a = attr_find(pe->e_attrs, ad_pwdMaxRecordedFailure)) &&
       lutil_atoi(&pp->pwdMaxRecordedFailure, a->a_vals[0].bv_val) != 0)
@@ -539,8 +519,7 @@ static void ppolicy_get(Operation *op, Entry *e, PassPolicy *pp) {
   if ((a = attr_find(pe->e_attrs, ad_pwdGraceAuthNLimit)) &&
       lutil_atoi(&pp->pwdGraceAuthNLimit, a->a_vals[0].bv_val) != 0)
     goto defaultpol;
-  if ((a = attr_find(pe->e_attrs, ad_pwdExpireWarning)) &&
-      lutil_atoi(&pp->pwdExpireWarning, a->a_vals[0].bv_val) != 0)
+  if ((a = attr_find(pe->e_attrs, ad_pwdExpireWarning)) && lutil_atoi(&pp->pwdExpireWarning, a->a_vals[0].bv_val) != 0)
     goto defaultpol;
   if ((a = attr_find(pe->e_attrs, ad_pwdFailureCountInterval)) &&
       lutil_atoi(&pp->pwdFailureCountInterval, a->a_vals[0].bv_val) != 0)
@@ -550,8 +529,7 @@ static void ppolicy_get(Operation *op, Entry *e, PassPolicy *pp) {
     goto defaultpol;
 
   if ((a = attr_find(pe->e_attrs, ad_pwdCheckModule))) {
-    strncpy(pp->pwdCheckModule, a->a_vals[0].bv_val,
-            sizeof(pp->pwdCheckModule));
+    strncpy(pp->pwdCheckModule, a->a_vals[0].bv_val, sizeof(pp->pwdCheckModule));
     pp->pwdCheckModule[sizeof(pp->pwdCheckModule) - 1] = '\0';
   }
 
@@ -618,8 +596,7 @@ static int password_scheme(struct berval *cred, struct berval *sch) {
   return LDAP_OTHER;
 }
 
-static int check_password_quality(struct berval *cred, PassPolicy *pp,
-                                  LDAPPasswordPolicyError *err, Entry *e,
+static int check_password_quality(struct berval *cred, PassPolicy *pp, LDAPPasswordPolicyError *err, Entry *e,
                                   char **txt) {
   int rc = LDAP_SUCCESS, ok = LDAP_SUCCESS;
   char *ptr __maybe_unused;
@@ -647,8 +624,7 @@ static int check_password_quality(struct berval *cred, PassPolicy *pp,
    */
   rc = password_scheme(cred, &sch);
   if (rc == LDAP_SUCCESS) {
-    if ((sch.bv_val) &&
-        (strncasecmp(sch.bv_val, "{cleartext}", sch.bv_len) == 0)) {
+    if ((sch.bv_val) && (strncasecmp(sch.bv_val, "{cleartext}", sch.bv_len) == 0)) {
       /*
        * We can check the cleartext "hash"
        */
@@ -680,9 +656,7 @@ static int check_password_quality(struct berval *cred, PassPolicy *pp,
     if ((mod = lt_dlopen(pp->pwdCheckModule)) == NULL) {
       err = lt_dlerror();
 
-      Debug(LDAP_DEBUG_ANY,
-            "check_password_quality: lt_dlopen failed: (%s) %s.\n",
-            pp->pwdCheckModule, err);
+      Debug(LDAP_DEBUG_ANY, "check_password_quality: lt_dlopen failed: (%s) %s.\n", pp->pwdCheckModule, err);
       ok = LDAP_OTHER; /* internal error */
     } else {
       /* FIXME: the error message ought to be passed thru a
@@ -695,18 +669,15 @@ static int check_password_quality(struct berval *cred, PassPolicy *pp,
       if ((prog = lt_dlsym(mod, "check_password")) == NULL) {
         err = lt_dlerror();
 
-        Debug(LDAP_DEBUG_ANY,
-              "check_password_quality: lt_dlsym failed: (%s) %s.\n",
-              pp->pwdCheckModule, err);
+        Debug(LDAP_DEBUG_ANY, "check_password_quality: lt_dlsym failed: (%s) %s.\n", pp->pwdCheckModule, err);
         ok = LDAP_OTHER;
       } else {
         ldap_pvt_thread_mutex_lock(&chk_syntax_mutex);
         ok = prog(ptr, txt, e);
         ldap_pvt_thread_mutex_unlock(&chk_syntax_mutex);
         if (ok != LDAP_SUCCESS) {
-          Debug(LDAP_DEBUG_ANY,
-                "check_password_quality: module error: (%s) %s.[%d]\n",
-                pp->pwdCheckModule, *txt ? *txt : "", ok);
+          Debug(LDAP_DEBUG_ANY, "check_password_quality: module error: (%s) %s.[%d]\n", pp->pwdCheckModule,
+                *txt ? *txt : "", ok);
         }
       }
 
@@ -727,8 +698,7 @@ static int check_password_quality(struct berval *cred, PassPolicy *pp,
   return rc;
 }
 
-static int parse_pwdhistory(struct berval *bv, char **oid, time_t *oldtime,
-                            struct berval *oldpw) {
+static int parse_pwdhistory(struct berval *bv, char **oid, time_t *oldtime, struct berval *oldpw) {
   char *ptr;
   struct berval nv, npw;
   ber_len_t i, j;
@@ -807,8 +777,7 @@ exit_failure:;
   return LDAP_OTHER;
 }
 
-static void add_to_pwd_history(pw_hist **l, time_t t, struct berval *oldpw,
-                               struct berval *bv) {
+static void add_to_pwd_history(pw_hist **l, time_t t, struct berval *oldpw, struct berval *bv) {
   pw_hist *p, *p1, *p2;
 
   if (!l)
@@ -843,13 +812,11 @@ static void add_to_pwd_history(pw_hist **l, time_t t, struct berval *oldpw,
 #define MAX_PWD_HISTORY_SZ 1024
 #endif /* MAX_PWD_HISTORY_SZ */
 
-static void make_pwd_history_value(char *timebuf, struct berval *bv,
-                                   Attribute *pa) {
+static void make_pwd_history_value(char *timebuf, struct berval *bv, Attribute *pa) {
   char str[MAX_PWD_HISTORY_SZ];
   int nlen;
 
-  snprintf(str, MAX_PWD_HISTORY_SZ, "%s#%s#%lu#", timebuf,
-           pa->a_desc->ad_type->sat_syntax->ssyn_oid,
+  snprintf(str, MAX_PWD_HISTORY_SZ, "%s#%s#%lu#", timebuf, pa->a_desc->ad_type->sat_syntax->ssyn_oid,
            (unsigned long)pa->a_nvals[0].bv_len);
   str[MAX_PWD_HISTORY_SZ - 1] = 0;
   nlen = strlen(str);
@@ -898,8 +865,7 @@ typedef struct ppbind {
   PassPolicy pp;
 } ppbind;
 
-static void ctrls_cleanup(Operation *op, SlapReply *rs,
-                          LDAPControl **oldctrls) {
+static void ctrls_cleanup(Operation *op, SlapReply *rs, LDAPControl **oldctrls) {
   int n;
 
   assert(rs->sr_ctrls != NULL);
@@ -970,8 +936,7 @@ static int ppolicy_bind_response(Operation *op, SlapReply *rs) {
   strcpy(nowstr_usec, nowstr);
   timestamp_usec.bv_val = nowstr_usec;
   timestamp_usec.bv_len = timestamp.bv_len;
-  snprintf(timestamp_usec.bv_val + timestamp_usec.bv_len - 1,
-           sizeof(".123456Z"), ".%06dZ", now_usec.tt_usec);
+  snprintf(timestamp_usec.bv_val + timestamp_usec.bv_len - 1, sizeof(".123456Z"), ".%06dZ", now_usec.tt_usec);
   timestamp_usec.bv_len += STRLENOF(".123456");
 
   if (rs->sr_err == LDAP_INVALID_CREDENTIALS) {
@@ -1006,8 +971,7 @@ static int ppolicy_bind_response(Operation *op, SlapReply *rs) {
          */
         if (ppb->pp.pwdFailureCountInterval == 0) {
           fc++;
-        } else if (now <= parse_time(a->a_nvals[i].bv_val) +
-                              ppb->pp.pwdFailureCountInterval) {
+        } else if (now <= parse_time(a->a_nvals[i].bv_val) + ppb->pp.pwdFailureCountInterval) {
 
           fc++;
         }
@@ -1035,10 +999,8 @@ static int ppolicy_bind_response(Operation *op, SlapReply *rs) {
           nv = m->sml_nvalues[0];
           ch_free(m->sml_values);
           ch_free(m->sml_nvalues);
-          m->sml_values = ch_calloc(sizeof(struct berval),
-                                    ppb->pp.pwdMaxRecordedFailure + 1);
-          m->sml_nvalues = ch_calloc(sizeof(struct berval),
-                                     ppb->pp.pwdMaxRecordedFailure + 1);
+          m->sml_values = ch_calloc(sizeof(struct berval), ppb->pp.pwdMaxRecordedFailure + 1);
+          m->sml_nvalues = ch_calloc(sizeof(struct berval), ppb->pp.pwdMaxRecordedFailure + 1);
           for (i = 0; i < j; i++) {
             ber_dupbv(&m->sml_values[i], &a->a_vals[a->a_numvals - j + i]);
             ber_dupbv(&m->sml_nvalues[i], &a->a_nvals[a->a_numvals - j + i]);
@@ -1102,8 +1064,7 @@ static int ppolicy_bind_response(Operation *op, SlapReply *rs) {
     /*
      * check to see if the password must be changed
      */
-    if (ppb->pp.pwdMustChange && (a = attr_find(e->e_attrs, ad_pwdReset)) &&
-        bvmatch(&a->a_nvals[0], &slap_true_bv)) {
+    if (ppb->pp.pwdMustChange && (a = attr_find(e->e_attrs, ad_pwdReset)) && bvmatch(&a->a_nvals[0], &slap_true_bv)) {
       /*
        * need to inject client controls here to give
        * more information. For the moment, we ensure
@@ -1154,9 +1115,7 @@ static int ppolicy_bind_response(Operation *op, SlapReply *rs) {
     /*
      * ngut is the number of remaining grace logins
      */
-    Debug(LDAP_DEBUG_ANY,
-          "ppolicy_bind: Entry %s has an expired password: %d grace logins\n",
-          e->e_name.bv_val, ngut);
+    Debug(LDAP_DEBUG_ANY, "ppolicy_bind: Entry %s has an expired password: %d grace logins\n", e->e_name.bv_val, ngut);
 
     if (ngut < 1) {
       ppb->pErr = PP_passwordExpired;
@@ -1190,8 +1149,7 @@ static int ppolicy_bind_response(Operation *op, SlapReply *rs) {
      * we don't need to do this bit. Similarly, if we don't have password
      * aging, then there's no need to do this bit either.
      */
-    if ((ppb->pp.pwdMaxAge < 1) || (pwExpired) ||
-        (ppb->pp.pwdExpireWarning < 1))
+    if ((ppb->pp.pwdMaxAge < 1) || (pwExpired) || (ppb->pp.pwdExpireWarning < 1))
       goto done;
 
     age = (int)(now - pwtime);
@@ -1305,8 +1263,7 @@ static int ppolicy_bind(Operation *op, SlapReply *rs) {
       return SLAP_CB_CONTINUE;
     }
 
-    cb = op->o_tmpcalloc(1, sizeof(ppbind) + sizeof(slap_callback),
-                         op->o_tmpmemctx);
+    cb = op->o_tmpcalloc(1, sizeof(ppbind) + sizeof(slap_callback), op->o_tmpmemctx);
     ppb = (ppbind *)(cb + 1);
     ppb->on = on;
     ppb->pErr = PP_noError;
@@ -1373,8 +1330,7 @@ static int ppolicy_restrict(Operation *op, SlapReply *rs) {
       return SLAP_CB_CONTINUE;
     }
 
-    Debug(LDAP_DEBUG_TRACE,
-          "connection restricted to password changing only\n");
+    Debug(LDAP_DEBUG_TRACE, "connection restricted to password changing only\n");
     if (send_ctrl) {
       LDAPControl *ctrl = NULL;
       ctrl = create_passcontrol(op, -1, -1, PP_changeAfterReset);
@@ -1420,8 +1376,7 @@ static int ppolicy_compare(Operation *op, SlapReply *rs) {
   /* Did we receive a password policy request control?
    * Are we testing the userPassword?
    */
-  if (op->o_ctrlflag[ppolicy_cid] &&
-      op->orc_ava->aa_desc == slap_schema.si_ad_userPassword) {
+  if (op->o_ctrlflag[ppolicy_cid] && op->orc_ava->aa_desc == slap_schema.si_ad_userPassword) {
     Entry *e;
     int rc;
     ppbind *ppb;
@@ -1434,8 +1389,7 @@ static int ppolicy_compare(Operation *op, SlapReply *rs) {
       return SLAP_CB_CONTINUE;
     }
 
-    cb = op->o_tmpcalloc(1, sizeof(ppbind) + sizeof(slap_callback),
-                         op->o_tmpmemctx);
+    cb = op->o_tmpcalloc(1, sizeof(ppbind) + sizeof(slap_callback), op->o_tmpmemctx);
     ppb = (ppbind *)(cb + 1);
     ppb->on = on;
     ppb->pErr = PP_noError;
@@ -1482,14 +1436,12 @@ static int ppolicy_add(Operation *op, SlapReply *rs) {
     return SLAP_CB_CONTINUE;
 
   /* Check for password in entry */
-  if ((pa = attr_find(op->oq_add.rs_e->e_attrs,
-                      slap_schema.si_ad_userPassword))) {
+  if ((pa = attr_find(op->oq_add.rs_e->e_attrs, slap_schema.si_ad_userPassword))) {
     assert(pa->a_vals != NULL);
     assert(!BER_BVISNULL(&pa->a_vals[0]));
 
     if (!BER_BVISNULL(&pa->a_vals[1])) {
-      send_ldap_error(op, rs, LDAP_CONSTRAINT_VIOLATION,
-                      "Password policy only allows one password value");
+      send_ldap_error(op, rs, LDAP_CONSTRAINT_VIOLATION, "Password policy only allows one password value");
       return rs->sr_err;
     }
 
@@ -1518,8 +1470,7 @@ static int ppolicy_add(Operation *op, SlapReply *rs) {
           ctrl = create_passcontrol(op, -1, -1, pErr);
           oldctrls = add_passcontrol(op, rs, ctrl);
         }
-        send_ldap_error(op, rs, rc,
-                        txt ? txt : "Password fails quality checking policy");
+        send_ldap_error(op, rs, rc, txt ? txt : "Password fails quality checking policy");
         if (txt) {
           free(txt);
         }
@@ -1540,8 +1491,7 @@ static int ppolicy_add(Operation *op, SlapReply *rs) {
      * any cleartext password attribute values via the
      * default password hashing scheme.
      */
-    if ((pi->hash_passwords) &&
-        (password_scheme(&(pa->a_vals[0]), NULL) != LDAP_SUCCESS)) {
+    if ((pi->hash_passwords) && (password_scheme(&(pa->a_vals[0]), NULL) != LDAP_SUCCESS)) {
       struct berval hpw;
 
       slap_passwd_hash(&(pa->a_vals[0]), &hpw, &txt);
@@ -1736,14 +1686,12 @@ static int ppolicy_modify(Operation *op, SlapReply *rs) {
 
   ppolicy_get(op, e, &pp);
 
-  for (ml = op->orm_modlist, pwmod = 0, mod_pw_only = 1, deladd = 0,
-      delmod = NULL, addmod = NULL, zapReset = 1;
+  for (ml = op->orm_modlist, pwmod = 0, mod_pw_only = 1, deladd = 0, delmod = NULL, addmod = NULL, zapReset = 1;
        ml != NULL; modtail = ml, ml = ml->sml_next) {
     if (ml->sml_desc == pp.ad) {
       pwmod = 1;
       pwmop = ml->sml_op;
-      if ((deladd == 0) && (ml->sml_op == LDAP_MOD_DELETE) &&
-          (ml->sml_values) && !BER_BVISNULL(&ml->sml_values[0])) {
+      if ((deladd == 0) && (ml->sml_op == LDAP_MOD_DELETE) && (ml->sml_values) && !BER_BVISNULL(&ml->sml_values[0])) {
         deladd = 1;
         delmod = ml;
       }
@@ -1777,8 +1725,7 @@ static int ppolicy_modify(Operation *op, SlapReply *rs) {
         }
       }
 
-    } else if (!(ml->sml_flags & SLAP_MOD_INTERNAL) &&
-               !is_at_operational(ml->sml_desc->ad_type)) {
+    } else if (!(ml->sml_flags & SLAP_MOD_INTERNAL) && !is_at_operational(ml->sml_desc->ad_type)) {
       mod_pw_only = 0;
       /* modifying something other than password */
     }
@@ -1815,8 +1762,7 @@ static int ppolicy_modify(Operation *op, SlapReply *rs) {
 
   if (!BER_BVISEMPTY(&pwcons[op->o_conn->c_conn_idx].dn) && !mod_pw_only) {
     if (dn_match(&op->o_conn->c_ndn, &pwcons[op->o_conn->c_conn_idx].dn)) {
-      Debug(LDAP_DEBUG_TRACE,
-            "connection restricted to password changing only\n");
+      Debug(LDAP_DEBUG_TRACE, "connection restricted to password changing only\n");
       rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
       rs->sr_text = "Operations are restricted to "
                     "bind/unbind/abandon/StartTLS/modify password";
@@ -1846,8 +1792,7 @@ static int ppolicy_modify(Operation *op, SlapReply *rs) {
    * We need this, even if the user is root, in order to maintain
    * the pwdHistory operational attributes properly.
    */
-  if (addmod && pp.pwdInHistory > 0 &&
-      (ha = attr_find(e->e_attrs, ad_pwdHistory))) {
+  if (addmod && pp.pwdInHistory > 0 && (ha = attr_find(e->e_attrs, ad_pwdHistory))) {
     struct berval oldpw;
     time_t oldtime;
 
@@ -1908,8 +1853,7 @@ static int ppolicy_modify(Operation *op, SlapReply *rs) {
   }
 
   if (pp.pwdSafeModify && deladd != 2) {
-    Debug(LDAP_DEBUG_TRACE,
-          "change password must use DELETE followed by ADD/REPLACE\n");
+    Debug(LDAP_DEBUG_TRACE, "change password must use DELETE followed by ADD/REPLACE\n");
     rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
     rs->sr_text = "Must supply old password to be changed as well as new one";
     pErr = PP_mustSupplyOldPassword;
@@ -2033,8 +1977,7 @@ do_modify:
      * if the pwmod succeeds
      */
     if (!BER_BVISEMPTY(&pwcons[op->o_conn->c_conn_idx].dn)) {
-      slap_callback *sc =
-          op->o_tmpcalloc(1, sizeof(slap_callback), op->o_tmpmemctx);
+      slap_callback *sc = op->o_tmpcalloc(1, sizeof(slap_callback), op->o_tmpmemctx);
       sc->sc_next = op->o_callback;
       /* Must use sc_response to insure we reset on success, before
        * the client sees the response. Must use sc_cleanup to insure
@@ -2141,11 +2084,9 @@ do_modify:
         mods->sml_flags = SLAP_MOD_INTERNAL;
         mods->sml_desc = ad_pwdHistory;
         mods->sml_numvals = hsize - pp.pwdInHistory + 1;
-        mods->sml_values =
-            ch_calloc(sizeof(struct berval), hsize - pp.pwdInHistory + 2);
+        mods->sml_values = ch_calloc(sizeof(struct berval), hsize - pp.pwdInHistory + 2);
         BER_BVZERO(&mods->sml_values[hsize - pp.pwdInHistory + 1]);
-        for (i = 0, p = tl; i < (hsize - pp.pwdInHistory + 1);
-             i++, p = p->next) {
+        for (i = 0, p = tl; i < (hsize - pp.pwdInHistory + 1); i++, p = p->next) {
           BER_BVZERO(&mods->sml_values[i]);
           ber_dupbv(&(mods->sml_values[i]), &p->bv);
         }
@@ -2183,8 +2124,7 @@ do_modify:
         modtail = mods;
 
       } else {
-        Debug(LDAP_DEBUG_TRACE,
-              "ppolicy_modify: password attr lookup failed\n");
+        Debug(LDAP_DEBUG_TRACE, "ppolicy_modify: password attr lookup failed\n");
       }
     }
 
@@ -2262,14 +2202,12 @@ static int ppolicy_parseCtrl(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
     rs->sr_text = "passwordPolicyRequest control value not absent";
     return LDAP_PROTOCOL_ERROR;
   }
-  op->o_ctrlflag[ppolicy_cid] =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_ctrlflag[ppolicy_cid] = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   return LDAP_SUCCESS;
 }
 
-static int attrPretty(Syntax *syntax, struct berval *val, struct berval *out,
-                      void *ctx) {
+static int attrPretty(Syntax *syntax, struct berval *val, struct berval *out, void *ctx) {
   AttributeDescription *ad = NULL;
   const char *err;
   int code;
@@ -2281,8 +2219,8 @@ static int attrPretty(Syntax *syntax, struct berval *val, struct berval *out,
   return code;
 }
 
-static int attrNormalize(slap_mask_t use, Syntax *syntax, MatchingRule *mr,
-                         struct berval *val, struct berval *out, void *ctx) {
+static int attrNormalize(slap_mask_t use, Syntax *syntax, MatchingRule *mr, struct berval *val, struct berval *out,
+                         void *ctx) {
   AttributeDescription *ad = NULL;
   const char *err;
   int code;
@@ -2315,10 +2253,8 @@ static int ppolicy_db_init(BackendDB *be, ConfigReply *cr) {
       code = slap_str2ad(pwd_UsSchema[i].def, pwd_UsSchema[i].ad, &err);
       if (code) {
         if (cr) {
-          snprintf(
-              cr->msg, sizeof(cr->msg),
-              "User Schema load failed for attribute \"%s\". Error code %d: %s",
-              pwd_UsSchema[i].def, code, err);
+          snprintf(cr->msg, sizeof(cr->msg), "User Schema load failed for attribute \"%s\". Error code %d: %s",
+                   pwd_UsSchema[i].def, code, err);
           Debug(LDAP_DEBUG_ANY, "%s\n", cr->msg);
         }
         return code;
@@ -2403,9 +2339,8 @@ int ppolicy_over_initialize() {
   }
 
   code = register_supported_control(LDAP_CONTROL_PASSWORDPOLICYREQUEST,
-                                    SLAP_CTRL_ADD | SLAP_CTRL_BIND |
-                                        SLAP_CTRL_MODIFY | SLAP_CTRL_HIDE,
-                                    extops, ppolicy_parseCtrl, &ppolicy_cid);
+                                    SLAP_CTRL_ADD | SLAP_CTRL_BIND | SLAP_CTRL_MODIFY | SLAP_CTRL_HIDE, extops,
+                                    ppolicy_parseCtrl, &ppolicy_cid);
   if (code != LDAP_SUCCESS) {
     Debug(LDAP_DEBUG_ANY, "Failed to register control %d\n", code);
     return code;

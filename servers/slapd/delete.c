@@ -46,31 +46,25 @@ int do_delete(Operation *op, SlapReply *rs) {
     goto cleanup;
   }
 
-  rs->sr_err =
-      dnPrettyNormal(NULL, &dn, &op->o_req_dn, &op->o_req_ndn, op->o_tmpmemctx);
+  rs->sr_err = dnPrettyNormal(NULL, &dn, &op->o_req_dn, &op->o_req_ndn, op->o_tmpmemctx);
   if (rs->sr_err != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_ANY, "%s do_delete: invalid dn (%s)\n", op->o_log_prefix,
-          dn.bv_val);
+    Debug(LDAP_DEBUG_ANY, "%s do_delete: invalid dn (%s)\n", op->o_log_prefix, dn.bv_val);
     send_ldap_error(op, rs, LDAP_INVALID_DN_SYNTAX, "invalid DN");
     goto cleanup;
   }
 
-  Statslog(LDAP_DEBUG_STATS, "%s DEL dn=\"%s\"\n", op->o_log_prefix,
-           op->o_req_dn.bv_val);
+  Statslog(LDAP_DEBUG_STATS, "%s DEL dn=\"%s\"\n", op->o_log_prefix, op->o_req_dn.bv_val);
 
   if (op->o_req_ndn.bv_len == 0) {
     Debug(LDAP_DEBUG_ANY, "%s do_delete: root dse!\n", op->o_log_prefix);
     /* protocolError would likely be a more appropriate error */
-    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                    "cannot delete the root DSE");
+    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "cannot delete the root DSE");
     goto cleanup;
 
   } else if (bvmatch(&op->o_req_ndn, &frontendDB->be_schemandn)) {
-    Debug(LDAP_DEBUG_ANY, "%s do_delete: subschema subentry!\n",
-          op->o_log_prefix);
+    Debug(LDAP_DEBUG_ANY, "%s do_delete: subschema subentry!\n", op->o_log_prefix);
     /* protocolError would likely be a more appropriate error */
-    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                    "cannot delete the root DSE");
+    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "cannot delete the root DSE");
     goto cleanup;
   }
 
@@ -106,8 +100,7 @@ int fe_op_delete(Operation *op, SlapReply *rs) {
   op->o_bd = select_backend(&op->o_req_ndn, 1);
   if (op->o_bd == NULL) {
     op->o_bd = bd;
-    rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn,
-                                  LDAP_SCOPE_DEFAULT);
+    rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
 
     if (!rs->sr_ref)
       rs->sr_ref = default_referral;
@@ -118,8 +111,7 @@ int fe_op_delete(Operation *op, SlapReply *rs) {
       send_ldap_result(op, rs);
       rs_send_cleanup(rs);
     } else {
-      send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                      "no global superior knowledge");
+      send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "no global superior knowledge");
     }
     goto cleanup;
   }
@@ -192,12 +184,10 @@ int fe_op_delete(Operation *op, SlapReply *rs) {
       op->o_delete_glue_parent = 0;
 
     } else {
-      BerVarray defref = op->o_bd->be_update_refs ? op->o_bd->be_update_refs
-                                                  : default_referral;
+      BerVarray defref = op->o_bd->be_update_refs ? op->o_bd->be_update_refs : default_referral;
 
       if (defref != NULL) {
-        rs->sr_ref =
-            referral_rewrite(defref, NULL, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
+        rs->sr_ref = referral_rewrite(defref, NULL, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
         if (!rs->sr_ref)
           ber_bvarray_dup_x(&rs->sr_ref, defref, NULL);
         rs->sr_err = LDAP_REFERRAL;
@@ -205,14 +195,12 @@ int fe_op_delete(Operation *op, SlapReply *rs) {
         send_ldap_result(op, rs);
         rs_send_cleanup(rs);
       } else {
-        send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                        "shadow context; no update referral");
+        send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "shadow context; no update referral");
       }
     }
 
   } else {
-    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                    "operation not supported within namingContext");
+    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "operation not supported within namingContext");
   }
 
 cleanup:;

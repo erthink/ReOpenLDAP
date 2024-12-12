@@ -48,8 +48,7 @@ static int noopsrch_parseCtrl(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
 
   op->o_ctrlnoopsrch = (void *)NULL;
 
-  op->o_noopsrch =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_noopsrch = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   rs->sr_err = LDAP_SUCCESS;
 
@@ -80,8 +79,7 @@ static int noopsrch_response(Operation *op, SlapReply *rs) {
   if (rs->sr_type == REP_SEARCH) {
     nc->nc_nentries++;
 #ifdef NOOPSRCH_DEBUG
-    Debug(LDAP_DEBUG_TRACE, "noopsrch_response(REP_SEARCH): nentries=%d\n",
-          nc->nc_nentries);
+    Debug(LDAP_DEBUG_TRACE, "noopsrch_response(REP_SEARCH): nentries=%d\n", nc->nc_nentries);
 #endif
     return 0;
 
@@ -101,9 +99,8 @@ static int noopsrch_response(Operation *op, SlapReply *rs) {
     }
 
 #ifdef NOOPSRCH_DEBUG
-    Debug(LDAP_DEBUG_TRACE,
-          "noopsrch_response(REP_RESULT): err=%d nentries=%d nref=%d\n", rc,
-          nc->nc_nentries, nc->nc_nsearchref);
+    Debug(LDAP_DEBUG_TRACE, "noopsrch_response(REP_RESULT): err=%d nentries=%d nref=%d\n", rc, nc->nc_nentries,
+          nc->nc_nsearchref);
 #endif
 
     ber_init2(ber, NULL, LBER_USE_DER);
@@ -117,8 +114,7 @@ static int noopsrch_response(Operation *op, SlapReply *rs) {
       return SLAP_CB_CONTINUE;
     }
 
-    ctrl = op->o_tmpcalloc(1, sizeof(LDAPControl) + ctrlval.bv_len + 1,
-                           op->o_tmpmemctx);
+    ctrl = op->o_tmpcalloc(1, sizeof(LDAPControl) + ctrlval.bv_len + 1, op->o_tmpmemctx);
     ctrl->ldctl_value.bv_val = (char *)&ctrl[1];
     ctrl->ldctl_oid = LDAP_CONTROL_X_NOOPSRCH;
     ctrl->ldctl_iscritical = 0;
@@ -155,8 +151,7 @@ static int noopsrch_op_search(Operation *op, SlapReply *rs) {
     slap_callback *sc;
     noopsrch_cb_t *nc;
 
-    sc = op->o_tmpcalloc(1, sizeof(slap_callback) + sizeof(noopsrch_cb_t),
-                         op->o_tmpmemctx);
+    sc = op->o_tmpcalloc(1, sizeof(slap_callback) + sizeof(noopsrch_cb_t), op->o_tmpmemctx);
 
     nc = (noopsrch_cb_t *)&sc[1];
     nc->nc_on = (slap_overinst *)op->o_bd->bd_info;
@@ -184,13 +179,10 @@ static int noopsrch_db_init(BackendDB *be, ConfigReply *cr) {
   if (noopsrch_cnt++ == 0) {
     int rc;
 
-    rc = register_supported_control(LDAP_CONTROL_X_NOOPSRCH,
-                                    SLAP_CTRL_SEARCH | SLAP_CTRL_GLOBAL_SEARCH,
-                                    NULL, noopsrch_parseCtrl, &noopsrch_cid);
+    rc = register_supported_control(LDAP_CONTROL_X_NOOPSRCH, SLAP_CTRL_SEARCH | SLAP_CTRL_GLOBAL_SEARCH, NULL,
+                                    noopsrch_parseCtrl, &noopsrch_cid);
     if (rc != LDAP_SUCCESS) {
-      Debug(LDAP_DEBUG_ANY,
-            "noopsrch_initialize: Failed to register control '%s' (%d)\n",
-            LDAP_CONTROL_X_NOOPSRCH, rc);
+      Debug(LDAP_DEBUG_ANY, "noopsrch_initialize: Failed to register control '%s' (%d)\n", LDAP_CONTROL_X_NOOPSRCH, rc);
       return rc;
     }
   }
@@ -222,6 +214,4 @@ static int noopsrch_initialize(void) {
   return overlay_register(&noopsrch);
 }
 
-SLAP_MODULE_ENTRY(noopsrch, modinit)(int argc, char *argv[]) {
-  return noopsrch_initialize();
-}
+SLAP_MODULE_ENTRY(noopsrch, modinit)(int argc, char *argv[]) { return noopsrch_initialize(); }

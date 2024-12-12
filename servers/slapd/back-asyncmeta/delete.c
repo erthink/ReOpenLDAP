@@ -30,9 +30,8 @@
 #include "../../../libraries/libreldap/lber-int.h"
 #include "../../../libraries/libreldap/ldap-int.h"
 
-meta_search_candidate_t
-asyncmeta_back_delete_start(Operation *op, SlapReply *rs, a_metaconn_t *mc,
-                            bm_context_t *bc, int candidate) {
+meta_search_candidate_t asyncmeta_back_delete_start(Operation *op, SlapReply *rs, a_metaconn_t *mc, bm_context_t *bc,
+                                                    int candidate) {
   a_metainfo_t *mi = mc->mc_info;
   a_metatarget_t *mt = mi->mi_targets[candidate];
   struct berval mdn = BER_BVNULL;
@@ -67,8 +66,7 @@ retry:;
   ber = ldap_build_delete_req(msc->msc_ld, mdn.bv_val, ctrls, NULL, &msgid);
   if (ber) {
     candidates[candidate].sr_msgid = msgid;
-    rc = ldap_send_initial_request(msc->msc_ld, LDAP_REQ_DELETE, mdn.bv_val,
-                                   ber, msgid);
+    rc = ldap_send_initial_request(msc->msc_ld, LDAP_REQ_DELETE, mdn.bv_val, ber, msgid);
     if (rc == msgid)
       rc = LDAP_SUCCESS;
     else
@@ -84,8 +82,7 @@ retry:;
       ldap_pvt_thread_mutex_lock(&mc->mc_om_mutex);
       asyncmeta_clear_one_msc(NULL, mc, candidate);
       ldap_pvt_thread_mutex_unlock(&mc->mc_om_mutex);
-      if (nretries &&
-          asyncmeta_retry(op, rs, &mc, candidate, LDAP_BACK_DONTSEND)) {
+      if (nretries && asyncmeta_retry(op, rs, &mc, candidate, LDAP_BACK_DONTSEND)) {
         nretries = 0;
         /* if the identity changed, there might be need to re-authz */
         (void)mi->mi_ldap_extra->controls_free(op, rs, &ctrls);
@@ -106,8 +103,8 @@ done:
   }
 
 doreturn:;
-  Debug(LDAP_DEBUG_TRACE, "%s <<< asyncmeta_back_delete_start[%p]=%d\n",
-        op->o_log_prefix, msc, candidates[candidate].sr_msgid);
+  Debug(LDAP_DEBUG_TRACE, "%s <<< asyncmeta_back_delete_start[%p]=%d\n", op->o_log_prefix, msc,
+        candidates[candidate].sr_msgid);
   return retcode;
 }
 
@@ -120,8 +117,7 @@ int asyncmeta_back_delete(Operation *op, SlapReply *rs) {
   SlapReply *candidates;
   slap_callback *cb = op->o_callback;
 
-  Debug(LDAP_DEBUG_ARGS, "==> asyncmeta_back_delete: %s\n",
-        op->o_req_dn.bv_val);
+  Debug(LDAP_DEBUG_ARGS, "==> asyncmeta_back_delete: %s\n", op->o_req_dn.bv_val);
 
   asyncmeta_new_bm_context(op, rs, &bc, mi->mi_ntargets);
   if (bc == NULL) {

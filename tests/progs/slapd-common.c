@@ -53,79 +53,78 @@ static int ignore_base[-TESTER_CLIENT_FIRST + TESTER_SERVER_LAST + 1];
 static const struct {
   const char *name;
   int err;
-} ignore_str2err[] = {
-    {"OPERATIONS_ERROR", LDAP_OPERATIONS_ERROR},
-    {"PROTOCOL_ERROR", LDAP_PROTOCOL_ERROR},
-    {"TIMELIMIT_EXCEEDED", LDAP_TIMELIMIT_EXCEEDED},
-    {"SIZELIMIT_EXCEEDED", LDAP_SIZELIMIT_EXCEEDED},
-    {"COMPARE_FALSE", LDAP_COMPARE_FALSE},
-    {"COMPARE_TRUE", LDAP_COMPARE_TRUE},
-    {"AUTH_METHOD_NOT_SUPPORTED", LDAP_AUTH_METHOD_NOT_SUPPORTED},
-    {"STRONG_AUTH_NOT_SUPPORTED", LDAP_STRONG_AUTH_NOT_SUPPORTED},
-    {"STRONG_AUTH_REQUIRED", LDAP_STRONG_AUTH_REQUIRED},
-    {"STRONGER_AUTH_REQUIRED", LDAP_STRONGER_AUTH_REQUIRED},
-    {"PARTIAL_RESULTS", LDAP_PARTIAL_RESULTS},
+} ignore_str2err[] = {{"OPERATIONS_ERROR", LDAP_OPERATIONS_ERROR},
+                      {"PROTOCOL_ERROR", LDAP_PROTOCOL_ERROR},
+                      {"TIMELIMIT_EXCEEDED", LDAP_TIMELIMIT_EXCEEDED},
+                      {"SIZELIMIT_EXCEEDED", LDAP_SIZELIMIT_EXCEEDED},
+                      {"COMPARE_FALSE", LDAP_COMPARE_FALSE},
+                      {"COMPARE_TRUE", LDAP_COMPARE_TRUE},
+                      {"AUTH_METHOD_NOT_SUPPORTED", LDAP_AUTH_METHOD_NOT_SUPPORTED},
+                      {"STRONG_AUTH_NOT_SUPPORTED", LDAP_STRONG_AUTH_NOT_SUPPORTED},
+                      {"STRONG_AUTH_REQUIRED", LDAP_STRONG_AUTH_REQUIRED},
+                      {"STRONGER_AUTH_REQUIRED", LDAP_STRONGER_AUTH_REQUIRED},
+                      {"PARTIAL_RESULTS", LDAP_PARTIAL_RESULTS},
 
-    {"REFERRAL", LDAP_REFERRAL},
-    {"ADMINLIMIT_EXCEEDED", LDAP_ADMINLIMIT_EXCEEDED},
-    {"UNAVAILABLE_CRITICAL_EXTENSION", LDAP_UNAVAILABLE_CRITICAL_EXTENSION},
-    {"CONFIDENTIALITY_REQUIRED", LDAP_CONFIDENTIALITY_REQUIRED},
-    {"SASL_BIND_IN_PROGRESS", LDAP_SASL_BIND_IN_PROGRESS},
+                      {"REFERRAL", LDAP_REFERRAL},
+                      {"ADMINLIMIT_EXCEEDED", LDAP_ADMINLIMIT_EXCEEDED},
+                      {"UNAVAILABLE_CRITICAL_EXTENSION", LDAP_UNAVAILABLE_CRITICAL_EXTENSION},
+                      {"CONFIDENTIALITY_REQUIRED", LDAP_CONFIDENTIALITY_REQUIRED},
+                      {"SASL_BIND_IN_PROGRESS", LDAP_SASL_BIND_IN_PROGRESS},
 
-    {"NO_SUCH_ATTRIBUTE", LDAP_NO_SUCH_ATTRIBUTE},
-    {"UNDEFINED_TYPE", LDAP_UNDEFINED_TYPE},
-    {"INAPPROPRIATE_MATCHING", LDAP_INAPPROPRIATE_MATCHING},
-    {"CONSTRAINT_VIOLATION", LDAP_CONSTRAINT_VIOLATION},
-    {"TYPE_OR_VALUE_EXISTS", LDAP_TYPE_OR_VALUE_EXISTS},
-    {"INVALID_SYNTAX", LDAP_INVALID_SYNTAX},
+                      {"NO_SUCH_ATTRIBUTE", LDAP_NO_SUCH_ATTRIBUTE},
+                      {"UNDEFINED_TYPE", LDAP_UNDEFINED_TYPE},
+                      {"INAPPROPRIATE_MATCHING", LDAP_INAPPROPRIATE_MATCHING},
+                      {"CONSTRAINT_VIOLATION", LDAP_CONSTRAINT_VIOLATION},
+                      {"TYPE_OR_VALUE_EXISTS", LDAP_TYPE_OR_VALUE_EXISTS},
+                      {"INVALID_SYNTAX", LDAP_INVALID_SYNTAX},
 
-    {"NO_SUCH_OBJECT", LDAP_NO_SUCH_OBJECT},
-    {"ALIAS_PROBLEM", LDAP_ALIAS_PROBLEM},
-    {"INVALID_DN_SYNTAX", LDAP_INVALID_DN_SYNTAX},
-    {"IS_LEAF", LDAP_IS_LEAF},
-    {"ALIAS_DEREF_PROBLEM", LDAP_ALIAS_DEREF_PROBLEM},
+                      {"NO_SUCH_OBJECT", LDAP_NO_SUCH_OBJECT},
+                      {"ALIAS_PROBLEM", LDAP_ALIAS_PROBLEM},
+                      {"INVALID_DN_SYNTAX", LDAP_INVALID_DN_SYNTAX},
+                      {"IS_LEAF", LDAP_IS_LEAF},
+                      {"ALIAS_DEREF_PROBLEM", LDAP_ALIAS_DEREF_PROBLEM},
 
-    /* obsolete */
-    {"PROXY_AUTHZ_FAILURE", LDAP_X_PROXY_AUTHZ_FAILURE},
-    {"INAPPROPRIATE_AUTH", LDAP_INAPPROPRIATE_AUTH},
-    {"INVALID_CREDENTIALS", LDAP_INVALID_CREDENTIALS},
-    {"INSUFFICIENT_ACCESS", LDAP_INSUFFICIENT_ACCESS},
+                      /* obsolete */
+                      {"PROXY_AUTHZ_FAILURE", LDAP_X_PROXY_AUTHZ_FAILURE},
+                      {"INAPPROPRIATE_AUTH", LDAP_INAPPROPRIATE_AUTH},
+                      {"INVALID_CREDENTIALS", LDAP_INVALID_CREDENTIALS},
+                      {"INSUFFICIENT_ACCESS", LDAP_INSUFFICIENT_ACCESS},
 
-    {"BUSY", LDAP_BUSY},
-    {"UNAVAILABLE", LDAP_UNAVAILABLE},
-    {"UNWILLING_TO_PERFORM", LDAP_UNWILLING_TO_PERFORM},
-    {"LOOP_DETECT", LDAP_LOOP_DETECT},
+                      {"BUSY", LDAP_BUSY},
+                      {"UNAVAILABLE", LDAP_UNAVAILABLE},
+                      {"UNWILLING_TO_PERFORM", LDAP_UNWILLING_TO_PERFORM},
+                      {"LOOP_DETECT", LDAP_LOOP_DETECT},
 
-    {"NAMING_VIOLATION", LDAP_NAMING_VIOLATION},
-    {"OBJECT_CLASS_VIOLATION", LDAP_OBJECT_CLASS_VIOLATION},
-    {"NOT_ALLOWED_ON_NONLEAF", LDAP_NOT_ALLOWED_ON_NONLEAF},
-    {"NOT_ALLOWED_ON_RDN", LDAP_NOT_ALLOWED_ON_RDN},
-    {"ALREADY_EXISTS", LDAP_ALREADY_EXISTS},
-    {"NO_OBJECT_CLASS_MODS", LDAP_NO_OBJECT_CLASS_MODS},
-    {"RESULTS_TOO_LARGE", LDAP_RESULTS_TOO_LARGE},
-    {"AFFECTS_MULTIPLE_DSAS", LDAP_AFFECTS_MULTIPLE_DSAS},
+                      {"NAMING_VIOLATION", LDAP_NAMING_VIOLATION},
+                      {"OBJECT_CLASS_VIOLATION", LDAP_OBJECT_CLASS_VIOLATION},
+                      {"NOT_ALLOWED_ON_NONLEAF", LDAP_NOT_ALLOWED_ON_NONLEAF},
+                      {"NOT_ALLOWED_ON_RDN", LDAP_NOT_ALLOWED_ON_RDN},
+                      {"ALREADY_EXISTS", LDAP_ALREADY_EXISTS},
+                      {"NO_OBJECT_CLASS_MODS", LDAP_NO_OBJECT_CLASS_MODS},
+                      {"RESULTS_TOO_LARGE", LDAP_RESULTS_TOO_LARGE},
+                      {"AFFECTS_MULTIPLE_DSAS", LDAP_AFFECTS_MULTIPLE_DSAS},
 
-    {"OTHER", LDAP_OTHER},
+                      {"OTHER", LDAP_OTHER},
 
-    {"SERVER_DOWN", LDAP_SERVER_DOWN},
-    {"LOCAL_ERROR", LDAP_LOCAL_ERROR},
-    {"ENCODING_ERROR", LDAP_ENCODING_ERROR},
-    {"DECODING_ERROR", LDAP_DECODING_ERROR},
-    {"TIMEOUT", LDAP_TIMEOUT},
-    {"AUTH_UNKNOWN", LDAP_AUTH_UNKNOWN},
-    {"FILTER_ERROR", LDAP_FILTER_ERROR},
-    {"USER_CANCELLED", LDAP_USER_CANCELLED},
-    {"PARAM_ERROR", LDAP_PARAM_ERROR},
-    {"NO_MEMORY", LDAP_NO_MEMORY},
-    {"CONNECT_ERROR", LDAP_CONNECT_ERROR},
-    {"NOT_SUPPORTED", LDAP_NOT_SUPPORTED},
-    {"CONTROL_NOT_FOUND", LDAP_CONTROL_NOT_FOUND},
-    {"NO_RESULTS_RETURNED", LDAP_NO_RESULTS_RETURNED},
-    {"MORE_RESULTS_TO_RETURN", LDAP_MORE_RESULTS_TO_RETURN},
-    {"CLIENT_LOOP", LDAP_CLIENT_LOOP},
-    {"REFERRAL_LIMIT_EXCEEDED", LDAP_REFERRAL_LIMIT_EXCEEDED},
+                      {"SERVER_DOWN", LDAP_SERVER_DOWN},
+                      {"LOCAL_ERROR", LDAP_LOCAL_ERROR},
+                      {"ENCODING_ERROR", LDAP_ENCODING_ERROR},
+                      {"DECODING_ERROR", LDAP_DECODING_ERROR},
+                      {"TIMEOUT", LDAP_TIMEOUT},
+                      {"AUTH_UNKNOWN", LDAP_AUTH_UNKNOWN},
+                      {"FILTER_ERROR", LDAP_FILTER_ERROR},
+                      {"USER_CANCELLED", LDAP_USER_CANCELLED},
+                      {"PARAM_ERROR", LDAP_PARAM_ERROR},
+                      {"NO_MEMORY", LDAP_NO_MEMORY},
+                      {"CONNECT_ERROR", LDAP_CONNECT_ERROR},
+                      {"NOT_SUPPORTED", LDAP_NOT_SUPPORTED},
+                      {"CONTROL_NOT_FOUND", LDAP_CONTROL_NOT_FOUND},
+                      {"NO_RESULTS_RETURNED", LDAP_NO_RESULTS_RETURNED},
+                      {"MORE_RESULTS_TO_RETURN", LDAP_MORE_RESULTS_TO_RETURN},
+                      {"CLIENT_LOOP", LDAP_CLIENT_LOOP},
+                      {"REFERRAL_LIMIT_EXCEEDED", LDAP_REFERRAL_LIMIT_EXCEEDED},
 
-    {NULL}};
+                      {NULL}};
 
 #define UNKNOWN_ERR (1234567890)
 
@@ -226,8 +225,8 @@ void tester_ldap_error(LDAP *ld, const char *fname, const char *msg) {
     ldap_get_option(ld, LDAP_OPT_DIAGNOSTIC_MESSAGE, (void *)&text);
   }
 
-  fprintf(stderr, "%s: %s: %s (%d) %s %s\n", progname, fname,
-          ldap_err2string(err), err, text == NULL ? "" : text, msg ? msg : "");
+  fprintf(stderr, "%s: %s: %s (%d) %s %s\n", progname, fname, ldap_err2string(err), err, text == NULL ? "" : text,
+          msg ? msg : "");
 
   if (text) {
     ldap_memfree(text);
@@ -277,8 +276,8 @@ void tester_perror(const char *fname, const char *msg) {
   int save_errno = errno;
   char buf[BUFSIZ];
 
-  fprintf(stderr, "%s: %s: (%d) %s %s\n", progname, fname, save_errno,
-          AC_STRERROR_R(save_errno, buf, sizeof(buf)), msg ? msg : "");
+  fprintf(stderr, "%s: %s: (%d) %s %s\n", progname, fname, save_errno, AC_STRERROR_R(save_errno, buf, sizeof(buf)),
+          msg ? msg : "");
 }
 
 int tester_config_opt(struct tester_conn_args *config, char opt, char *optarg) {
@@ -297,13 +296,11 @@ int tester_config_opt(struct tester_conn_args *config, char opt, char *optarg) {
       return -1;
     }
 
-    if (ber_set_option(NULL, LBER_OPT_DEBUG_LEVEL, &debug) !=
-        LBER_OPT_SUCCESS) {
+    if (ber_set_option(NULL, LBER_OPT_DEBUG_LEVEL, &debug) != LBER_OPT_SUCCESS) {
       fprintf(stderr, "Could not set LBER_OPT_DEBUG_LEVEL %d\n", debug);
     }
 
-    if (ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, &debug) !=
-        LDAP_OPT_SUCCESS) {
+    if (ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, &debug) != LDAP_OPT_SUCCESS) {
       fprintf(stderr, "Could not set LDAP_OPT_DEBUG_LEVEL %d\n", debug);
     }
     break;
@@ -433,8 +430,7 @@ void tester_config_finish(struct tester_conn_args *config) {
     static char uribuf[BUFSIZ];
 
     config->uri = uribuf;
-    snprintf(uribuf, sizeof(uribuf), "ldap://%s:%d", config->host,
-             config->port);
+    snprintf(uribuf, sizeof(uribuf), "ldap://%s:%d", config->host, config->port);
   }
 
   if (config->authmethod == -1) {
@@ -452,8 +448,7 @@ void tester_config_finish(struct tester_conn_args *config) {
 #ifdef HAVE_CYRUS_SASL
   if (config->authmethod == LDAP_AUTH_SASL) {
     config->defaults =
-        lutil_sasl_defaults(NULL, config->mech, config->realm, config->authc_id,
-                            config->pass.bv_val, config->authz_id);
+        lutil_sasl_defaults(NULL, config->mech, config->realm, config->authc_id, config->pass.bv_val, config->authz_id);
 
     if (config->defaults == NULL) {
       tester_error("unable to prepare SASL defaults");
@@ -476,8 +471,7 @@ retry:;
   }
 
   (void)ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
-  (void)ldap_set_option(ld, LDAP_OPT_REFERRALS,
-                        config->chaserefs ? LDAP_OPT_ON : LDAP_OPT_OFF);
+  (void)ldap_set_option(ld, LDAP_OPT_REFERRALS, config->chaserefs ? LDAP_OPT_ON : LDAP_OPT_OFF);
 
   if (!(flags & TESTER_INIT_ONLY)) {
     if (config->authmethod == LDAP_AUTH_SASL) {
@@ -491,16 +485,14 @@ retry:;
         }
       }
 
-      rc = ldap_sasl_interactive_bind_s(ld, config->binddn, config->mech, NULL,
-                                        NULL, LDAP_SASL_QUIET,
+      rc = ldap_sasl_interactive_bind_s(ld, config->binddn, config->mech, NULL, NULL, LDAP_SASL_QUIET,
                                         lutil_sasl_interact, config->defaults);
 #else /* HAVE_CYRUS_SASL */
       /* caller shouldn't have allowed this */
       assert(0);
 #endif
     } else if (config->authmethod == LDAP_AUTH_SIMPLE) {
-      rc = ldap_sasl_bind_s(ld, config->binddn, LDAP_SASL_SIMPLE, &config->pass,
-                            NULL, NULL, NULL);
+      rc = ldap_sasl_bind_s(ld, config->binddn, LDAP_SASL_SIMPLE, &config->pass, NULL, NULL, NULL);
     }
 
     if (rc != LDAP_SUCCESS) {
@@ -524,6 +516,4 @@ retry:;
   *ldp = ld;
 }
 
-void tester_error(const char *msg) {
-  fprintf(stderr, "%s: %s\n", progname, msg);
-}
+void tester_error(const char *msg) { fprintf(stderr, "%s: %s\n", progname, msg); }

@@ -51,13 +51,10 @@ int perl_back_modify(Operation *op, SlapReply *rs) {
         break;
       }
 
-      XPUSHs(sv_2mortal(newSVpv(mods->sm_desc->ad_cname.bv_val,
-                                mods->sm_desc->ad_cname.bv_len)));
+      XPUSHs(sv_2mortal(newSVpv(mods->sm_desc->ad_cname.bv_val, mods->sm_desc->ad_cname.bv_len)));
 
-      for (i = 0; mods->sm_values != NULL && mods->sm_values[i].bv_val != NULL;
-           i++) {
-        XPUSHs(sv_2mortal(
-            newSVpv(mods->sm_values[i].bv_val, mods->sm_values[i].bv_len)));
+      for (i = 0; mods->sm_values != NULL && mods->sm_values[i].bv_val != NULL; i++) {
+        XPUSHs(sv_2mortal(newSVpv(mods->sm_values[i].bv_val, mods->sm_values[i].bv_len)));
       }
 
       /* Fix delete attrib without value. */

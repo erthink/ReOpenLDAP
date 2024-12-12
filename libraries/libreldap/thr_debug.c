@@ -148,24 +148,10 @@ static int options_done;
 static int threading_enabled;
 
 /* Resource counts */
-enum {
-  Idx_unexited_thread,
-  Idx_unjoined_thread,
-  Idx_locked_mutex,
-  Idx_mutex,
-  Idx_cond,
-  Idx_rdwr,
-  Idx_tpool,
-  Idx_max
-};
+enum { Idx_unexited_thread, Idx_unjoined_thread, Idx_locked_mutex, Idx_mutex, Idx_cond, Idx_rdwr, Idx_tpool, Idx_max };
 static int resource_counts[Idx_max];
-static const char *const resource_names[] = {"unexited threads",
-                                             "unjoined threads",
-                                             "locked mutexes",
-                                             "mutexes",
-                                             "conds",
-                                             "rdwrs",
-                                             "thread pools"};
+static const char *const resource_names[] = {
+    "unexited threads", "unjoined threads", "locked mutexes", "mutexes", "conds", "rdwrs", "thread pools"};
 static ldap_int_thread_mutex_t resource_mutexes[Idx_max];
 
 /* Hide pointers from malloc debuggers. */
@@ -174,47 +160,47 @@ static ldap_int_thread_mutex_t resource_mutexes[Idx_max];
 #define UNSCRAMBLE_dummyp(num) ((unsigned char *)~(num))
 
 #define WARN(var, msg) (warn(__FILE__, __LINE__, (msg), #var, (var)))
-#define WARN_IF(rc, msg)                                                       \
-  {                                                                            \
-    if (rc)                                                                    \
-      warn(__FILE__, __LINE__, (msg), #rc, (rc));                              \
+#define WARN_IF(rc, msg)                                                                                               \
+  {                                                                                                                    \
+    if (rc)                                                                                                            \
+      warn(__FILE__, __LINE__, (msg), #rc, (rc));                                                                      \
   }
 
-#define ERROR(var, msg)                                                        \
-  {                                                                            \
-    if (!noerror) {                                                            \
-      errmsg(__FILE__, __LINE__, (msg), #var, (var));                          \
-      if (!noabort)                                                            \
-        abort();                                                               \
-    }                                                                          \
+#define ERROR(var, msg)                                                                                                \
+  {                                                                                                                    \
+    if (!noerror) {                                                                                                    \
+      errmsg(__FILE__, __LINE__, (msg), #var, (var));                                                                  \
+      if (!noabort)                                                                                                    \
+        abort();                                                                                                       \
+    }                                                                                                                  \
   }
 
-#define ERROR_IF(rc, msg)                                                      \
-  {                                                                            \
-    if (!noerror) {                                                            \
-      int rc_ = (rc);                                                          \
-      if (rc_) {                                                               \
-        errmsg(__FILE__, __LINE__, (msg), #rc, rc_);                           \
-        if (!noabort)                                                          \
-          abort();                                                             \
-      }                                                                        \
-    }                                                                          \
+#define ERROR_IF(rc, msg)                                                                                              \
+  {                                                                                                                    \
+    if (!noerror) {                                                                                                    \
+      int rc_ = (rc);                                                                                                  \
+      if (rc_) {                                                                                                       \
+        errmsg(__FILE__, __LINE__, (msg), #rc, rc_);                                                                   \
+        if (!noabort)                                                                                                  \
+          abort();                                                                                                     \
+      }                                                                                                                \
+    }                                                                                                                  \
   }
 
 #ifdef LDAP_THREAD_DEBUG_WRAP
-#define MEMERROR_IF(rc, msg, mem_act)                                          \
-  {                                                                            \
-    if (!noerror) {                                                            \
-      int rc_ = (rc);                                                          \
-      if (rc_) {                                                               \
-        errmsg(__FILE__, __LINE__, (msg), #rc, rc_);                           \
-        if (wraptype != Wrap_noalloc) {                                        \
-          mem_act;                                                             \
-        }                                                                      \
-        if (!noabort)                                                          \
-          abort();                                                             \
-      }                                                                        \
-    }                                                                          \
+#define MEMERROR_IF(rc, msg, mem_act)                                                                                  \
+  {                                                                                                                    \
+    if (!noerror) {                                                                                                    \
+      int rc_ = (rc);                                                                                                  \
+      if (rc_) {                                                                                                       \
+        errmsg(__FILE__, __LINE__, (msg), #rc, rc_);                                                                   \
+        if (wraptype != Wrap_noalloc) {                                                                                \
+          mem_act;                                                                                                     \
+        }                                                                                                              \
+        if (!noabort)                                                                                                  \
+          abort();                                                                                                     \
+      }                                                                                                                \
+    }                                                                                                                  \
   }
 #endif /* LDAP_THREAD_DEBUG_WRAP */
 
@@ -230,12 +216,9 @@ warn( const char *file, int line, const char *msg, const char *var, int val )
 }
 #endif
 
-static void errmsg(const char *file, int line, const char *msg, const char *var,
-                   int val) {
-  fprintf(stderr,
-          (strpbrk(var, "!=") ? "%s:%d: %s error: %s\n"
-                              : "%s:%d: %s error: %s is %d\n"),
-          file, line, msg, var, val);
+static void errmsg(const char *file, int line, const char *msg, const char *var, int val) {
+  fprintf(stderr, (strpbrk(var, "!=") ? "%s:%d: %s error: %s\n" : "%s:%d: %s error: %s is %d\n"), file, line, msg, var,
+          val);
 }
 
 static void count_resource_leaks(void) {
@@ -250,8 +233,7 @@ static void count_resource_leaks(void) {
 #endif
     for (i = j = 0; i < Idx_max; i++)
       if (resource_counts[i])
-        j += sprintf(errbuf + j, ", %d %s", resource_counts[i],
-                     resource_names[i]);
+        j += sprintf(errbuf + j, ", %d %s", resource_counts[i], resource_names[i]);
     if (j)
       fprintf(stderr, "== thr_debug: Leaked%s. ==\n", errbuf + 1);
   }
@@ -289,8 +271,7 @@ static void get_options(void) {
       if (oi->name)
         *oi->var = oi->val;
       else
-        fprintf(stderr, "== thr_debug: Unknown $%s option '%.*s' ==\n",
-                "LDAP_THREAD_DEBUG", (int)optlen, s);
+        fprintf(stderr, "== thr_debug: Unknown $%s option '%.*s' ==\n", "LDAP_THREAD_DEBUG", (int)optlen, s);
       s += optlen;
     }
   }
@@ -312,8 +293,7 @@ static void get_options(void) {
   if (!nomem) {
     static const ldap_debug_usage_info_t usage;
     if (sizeof(LDAP_UINTPTR_T) < sizeof(unsigned char *) ||
-        sizeof(LDAP_UINTPTR_T) < sizeof(ldap_debug_usage_info_t *) ||
-        UNSCRAMBLE_usagep(SCRAMBLE(&usage)) != &usage ||
+        sizeof(LDAP_UINTPTR_T) < sizeof(ldap_debug_usage_info_t *) || UNSCRAMBLE_usagep(SCRAMBLE(&usage)) != &usage ||
         UNSCRAMBLE_dummyp(SCRAMBLE((unsigned char *)0))) {
       fputs("== thr_debug: Memory checks unsupported, "
             "adding nomem to $LDAP_THREAD_DEBUG ==\n",
@@ -354,12 +334,9 @@ static void get_options(void) {
 
 static const ldap_int_thread_t ldap_debug_thread_none = LDAP_DEBUG_THREAD_NONE;
 
-#define THREAD_MUTEX_OWNER(mutex)                                              \
-  ldap_int_thread_equal((mutex)->owner, ldap_int_thread_self())
+#define THREAD_MUTEX_OWNER(mutex) ldap_int_thread_equal((mutex)->owner, ldap_int_thread_self())
 
-void ldap_debug_thread_assert_mutex_owner(const char *file, int line,
-                                          const char *msg,
-                                          ldap_pvt_thread_mutex_t *mutex) {
+void ldap_debug_thread_assert_mutex_owner(const char *file, int line, const char *msg, ldap_pvt_thread_mutex_t *mutex) {
   if (!(noerror || THREAD_MUTEX_OWNER(mutex))) {
     errmsg(file, line, msg, "ASSERT_MUTEX_OWNER", 0);
     if (!noabort)
@@ -373,15 +350,14 @@ void ldap_debug_thread_assert_mutex_owner(const char *file, int line,
 #define RESET_OWNER(ptr) ((ptr)->owner = ldap_debug_thread_none)
 #define ASSERT_OWNER(ptr, msg) ERROR_IF(!THREAD_MUTEX_OWNER(ptr), msg)
 #ifndef ASSERT_NO_OWNER
-#define ASSERT_NO_OWNER(ptr, msg)                                              \
-  ERROR_IF(!ldap_int_thread_equal((ptr)->owner, ldap_debug_thread_none), msg)
+#define ASSERT_NO_OWNER(ptr, msg) ERROR_IF(!ldap_int_thread_equal((ptr)->owner, ldap_debug_thread_none), msg)
 #endif
 
 /* Try to provoke memory access error (for malloc debuggers) */
-#define PEEK(mem)                                                              \
-  {                                                                            \
-    if (-*(volatile const unsigned char *)(mem))                               \
-      debug_noop();                                                            \
+#define PEEK(mem)                                                                                                      \
+  {                                                                                                                    \
+    if (-*(volatile const unsigned char *)(mem))                                                                       \
+      debug_noop();                                                                                                    \
   }
 
 static void debug_noop(void);
@@ -390,9 +366,8 @@ static int debug_already_initialized(const ldap_debug_usage_info_t *usage);
 /* Name used for clearer error message */
 #define IS_COPY_OR_MOVED(usage) ((usage)->self != SCRAMBLE(usage))
 
-#define DUMMY_ADDR(usage)                                                      \
-  (wraptype == Wrap_scramble ? UNSCRAMBLE_dummyp((usage)->mem.num)             \
-                             : (usage)->mem.ptr + unwrap_offset)
+#define DUMMY_ADDR(usage)                                                                                              \
+  (wraptype == Wrap_scramble ? UNSCRAMBLE_dummyp((usage)->mem.num) : (usage)->mem.ptr + unwrap_offset)
 
 /* Mark resource as initialized */
 static void init_usage(ldap_debug_usage_info_t *usage, const char *msg) {
@@ -495,12 +470,12 @@ static int debug_already_initialized(const ldap_debug_usage_info_t *usage) {
 #if !(LDAP_THREAD_DEBUG_THREAD_ID + 0)
 
 typedef void ldap_debug_thread_t;
-#define init_thread_info()                                                     \
-  {                                                                            \
+#define init_thread_info()                                                                                             \
+  {                                                                                                                    \
   }
-#define with_thread_info_lock(statements)                                      \
-  {                                                                            \
-    statements;                                                                \
+#define with_thread_info_lock(statements)                                                                              \
+  {                                                                                                                    \
+    statements;                                                                                                        \
   }
 #define thread_info_detached(t) 0
 #define add_thread_info(msg, thr, det) ((void)0)
@@ -529,29 +504,28 @@ static ldap_debug_thread_t **thread_info;
 static unsigned int thread_info_size, thread_info_used;
 static ldap_int_thread_mutex_t thread_info_mutex;
 
-#define init_thread_info()                                                     \
-  {                                                                            \
-    if (threadID) {                                                            \
-      int mutex_init_rc = ldap_int_thread_mutex_init(&thread_info_mutex);      \
-      assert(mutex_init_rc == 0);                                              \
-    }                                                                          \
+#define init_thread_info()                                                                                             \
+  {                                                                                                                    \
+    if (threadID) {                                                                                                    \
+      int mutex_init_rc = ldap_int_thread_mutex_init(&thread_info_mutex);                                              \
+      assert(mutex_init_rc == 0);                                                                                      \
+    }                                                                                                                  \
   }
 
-#define with_thread_info_lock(statements)                                      \
-  {                                                                            \
-    int rc_wtl_ = ldap_int_thread_mutex_lock(&thread_info_mutex);              \
-    assert(rc_wtl_ == 0);                                                      \
-    {                                                                          \
-      statements;                                                              \
-    }                                                                          \
-    rc_wtl_ = ldap_int_thread_mutex_unlock(&thread_info_mutex);                \
-    assert(rc_wtl_ == 0);                                                      \
+#define with_thread_info_lock(statements)                                                                              \
+  {                                                                                                                    \
+    int rc_wtl_ = ldap_int_thread_mutex_lock(&thread_info_mutex);                                                      \
+    assert(rc_wtl_ == 0);                                                                                              \
+    {                                                                                                                  \
+      statements;                                                                                                      \
+    }                                                                                                                  \
+    rc_wtl_ = ldap_int_thread_mutex_unlock(&thread_info_mutex);                                                        \
+    assert(rc_wtl_ == 0);                                                                                              \
   }
 
 #define thread_info_detached(t) ((t)->detached)
 
-static void add_thread_info(const char *msg, const ldap_pvt_thread_t *thread,
-                            int detached) {
+static void add_thread_info(const char *msg, const ldap_pvt_thread_t *thread, int detached) {
   ldap_debug_thread_t *t;
 
   if (thread_info_used >= thread_info_size) {
@@ -588,8 +562,7 @@ static void remove_thread_info(ldap_debug_thread_t *t, const char *msg) {
   (thread_info[thread_info_used] = t)->idx = thread_info_used;
 }
 
-static ldap_debug_thread_t *get_thread_info(ldap_pvt_thread_t thread,
-                                            const char *msg) {
+static ldap_debug_thread_t *get_thread_info(ldap_pvt_thread_t thread, const char *msg) {
   unsigned int i;
   ldap_debug_thread_t *t;
   for (i = 0; i < thread_info_used; i++) {
@@ -711,8 +684,7 @@ static void thread_exiting(const char *how, const char *msg) {
   thread = ldap_pvt_thread_self();
   if (tracethreads) {
     char buf[40];
-    fprintf(stderr, "== thr_debug: %s thread %s ==\n", how,
-            thread_name(buf, sizeof(buf), thread));
+    fprintf(stderr, "== thr_debug: %s thread %s ==\n", how, thread_name(buf, sizeof(buf), thread));
   }
   if (threadID) {
     with_thread_info_lock({
@@ -743,8 +715,7 @@ static void *ldap_debug_thread_wrapper(void *arg) {
   return ret;
 }
 
-int ldap_pvt_thread_create(ldap_pvt_thread_t *thread, int detach,
-                           void *(*start_routine)(void *), void *arg) {
+int ldap_pvt_thread_create(ldap_pvt_thread_t *thread, int detach, void *(*start_routine)(void *), void *arg) {
   int rc;
   if (!options_done)
     get_options();
@@ -774,10 +745,8 @@ int ldap_pvt_thread_create(ldap_pvt_thread_t *thread, int detach,
   } else {
     if (tracethreads) {
       char buf[40], buf2[40];
-      fprintf(stderr, "== thr_debug: Created thread %s%s from thread %s ==\n",
-              thread_name(buf, sizeof(buf), *thread),
-              detach ? " (detached)" : "",
-              thread_name(buf2, sizeof(buf2), ldap_pvt_thread_self()));
+      fprintf(stderr, "== thr_debug: Created thread %s%s from thread %s ==\n", thread_name(buf, sizeof(buf), *thread),
+              detach ? " (detached)" : "", thread_name(buf2, sizeof(buf2), ldap_pvt_thread_self()));
     }
     adjust_count(Idx_unexited_thread, +1);
     if (!detach)
@@ -792,8 +761,7 @@ int ldap_pvt_thread_join(ldap_pvt_thread_t thread, void **thread_return) {
   ERROR_IF(!threading_enabled, "ldap_pvt_thread_join");
   if (tracethreads) {
     char buf[40], buf2[40];
-    fprintf(stderr, "== thr_debug: Joining thread %s in thread %s ==\n",
-            thread_name(buf, sizeof(buf), thread),
+    fprintf(stderr, "== thr_debug: Joining thread %s in thread %s ==\n", thread_name(buf, sizeof(buf), thread),
             thread_name(buf2, sizeof(buf2), ldap_pvt_thread_self()));
   }
   if (threadID)
@@ -818,10 +786,8 @@ int ldap_pvt_thread_kill(ldap_pvt_thread_t thread, int signo) {
   ERROR_IF(!threading_enabled, "ldap_pvt_thread_kill");
   if (tracethreads) {
     char buf[40], buf2[40];
-    fprintf(stderr,
-            "== thr_debug: Killing thread %s (sig %i) from thread %s ==\n",
-            thread_name(buf, sizeof(buf), thread), signo,
-            thread_name(buf2, sizeof(buf2), ldap_pvt_thread_self()));
+    fprintf(stderr, "== thr_debug: Killing thread %s (sig %i) from thread %s ==\n",
+            thread_name(buf, sizeof(buf), thread), signo, thread_name(buf2, sizeof(buf2), ldap_pvt_thread_self()));
   }
   rc = ldap_int_thread_kill(thread, signo);
   ERROR_IF(rc, "ldap_pvt_thread_kill");
@@ -885,8 +851,7 @@ int ldap_pvt_thread_cond_broadcast(ldap_pvt_thread_cond_t *cond) {
   return rc;
 }
 
-int ldap_pvt_thread_cond_wait(ldap_pvt_thread_cond_t *cond,
-                              ldap_pvt_thread_mutex_t *mutex) {
+int ldap_pvt_thread_cond_wait(ldap_pvt_thread_cond_t *cond, ldap_pvt_thread_mutex_t *mutex) {
   int rc;
   ldap_int_thread_t owner;
   check_usage(&cond->usage, "ldap_pvt_thread_cond_wait:cond");
@@ -1064,8 +1029,7 @@ int ldap_pvt_thread_rdwr_active(ldap_pvt_thread_rdwr_t *rwlock) {
 /* Some wrappers for LDAP_THREAD_POOL_IMPLEMENTATION: */
 #ifdef LDAP_THREAD_POOL_IMPLEMENTATION
 
-int ldap_pvt_thread_pool_init(ldap_pvt_thread_pool_t *tpool, int max_threads,
-                              int max_pending) {
+int ldap_pvt_thread_pool_init(ldap_pvt_thread_pool_t *tpool, int max_threads, int max_pending) {
   int rc;
   if (!options_done)
     get_options();
@@ -1079,9 +1043,7 @@ int ldap_pvt_thread_pool_init(ldap_pvt_thread_pool_t *tpool, int max_threads,
   return rc;
 }
 
-int ldap_pvt_thread_pool_submit(ldap_pvt_thread_pool_t *tpool,
-                                ldap_pvt_thread_start_t *start_routine,
-                                void *arg) {
+int ldap_pvt_thread_pool_submit(ldap_pvt_thread_pool_t *tpool, ldap_pvt_thread_start_t *start_routine, void *arg) {
   int rc, has_pool;
   ERROR_IF(!threading_enabled, "ldap_pvt_thread_pool_submit");
   has_pool = (tpool && *tpool);
@@ -1091,8 +1053,7 @@ int ldap_pvt_thread_pool_submit(ldap_pvt_thread_pool_t *tpool,
   return rc;
 }
 
-int ldap_pvt_thread_pool_maxthreads(ldap_pvt_thread_pool_t *tpool,
-                                    int max_threads) {
+int ldap_pvt_thread_pool_maxthreads(ldap_pvt_thread_pool_t *tpool, int max_threads) {
   ERROR_IF(!threading_enabled, "ldap_pvt_thread_pool_maxthreads");
   return ldap_int_thread_pool_maxthreads(tpool, max_threads);
 }
@@ -1102,8 +1063,7 @@ int ldap_pvt_thread_pool_backload(ldap_pvt_thread_pool_t *tpool) {
   return ldap_int_thread_pool_backload(tpool);
 }
 
-int ldap_pvt_thread_pool_destroy(ldap_pvt_thread_pool_t *tpool,
-                                 int run_pending) {
+int ldap_pvt_thread_pool_destroy(ldap_pvt_thread_pool_t *tpool, int run_pending) {
   int rc, has_pool;
   ERROR_IF(!threading_enabled, "ldap_pvt_thread_pool_destroy");
   has_pool = (tpool && *tpool);
@@ -1154,18 +1114,15 @@ int ldap_pvt_thread_pool_resume(ldap_pvt_thread_pool_t *tpool) {
   return ldap_int_thread_pool_resume(tpool);
 }
 
-int ldap_pvt_thread_pool_getkey(void *xctx, void *key, void **data,
-                                ldap_pvt_thread_pool_keyfree_t **kfree) {
+int ldap_pvt_thread_pool_getkey(void *xctx, void *key, void **data, ldap_pvt_thread_pool_keyfree_t **kfree) {
 #if 0 /* Function is used by ch_free() via slap_sl_contxt() in slapd */
 	ERROR_IF( !threading_enabled, "ldap_pvt_thread_pool_getkey" );
 #endif
   return ldap_int_thread_pool_getkey(xctx, key, data, kfree);
 }
 
-int ldap_pvt_thread_pool_setkey(void *xctx, void *key, void *data,
-                                ldap_pvt_thread_pool_keyfree_t *kfree,
-                                void **olddatap,
-                                ldap_pvt_thread_pool_keyfree_t **oldkfreep) {
+int ldap_pvt_thread_pool_setkey(void *xctx, void *key, void *data, ldap_pvt_thread_pool_keyfree_t *kfree,
+                                void **olddatap, ldap_pvt_thread_pool_keyfree_t **oldkfreep) {
   int rc;
   ERROR_IF(!threading_enabled, "ldap_pvt_thread_pool_setkey");
   rc = ldap_int_thread_pool_setkey(xctx, key, data, kfree, olddatap, oldkfreep);

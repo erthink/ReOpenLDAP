@@ -26,9 +26,8 @@ static LUTIL_PASSWD_CHK_FUNC chk_ns_mta_md5;
 static const struct berval scheme = BER_BVC("{NS-MTA-MD5}");
 
 #define NS_MTA_MD5_PASSLEN 64
-static int chk_ns_mta_md5(const struct berval *scheme,
-                          const struct berval *passwd,
-                          const struct berval *cred, const char **text) {
+static int chk_ns_mta_md5(const struct berval *scheme, const struct berval *passwd, const struct berval *cred,
+                          const char **text) {
   lutil_MD5_CTX MD5context;
   unsigned char MD5digest[LUTIL_MD5_BYTES], c;
   char buffer[LUTIL_MD5_BYTES * 2];
@@ -45,8 +44,7 @@ static int chk_ns_mta_md5(const struct berval *scheme,
   c = 0x59;
   lutil_MD5Update(&MD5context, (const unsigned char *)&c, 1);
 
-  lutil_MD5Update(&MD5context, (const unsigned char *)cred->bv_val,
-                  cred->bv_len);
+  lutil_MD5Update(&MD5context, (const unsigned char *)cred->bv_val, cred->bv_len);
 
   c = 0xF7;
   lutil_MD5Update(&MD5context, (const unsigned char *)&c, 1);
@@ -61,9 +59,7 @@ static int chk_ns_mta_md5(const struct berval *scheme,
   }
 
   /* compare */
-  return memcmp((char *)passwd->bv_val, (char *)buffer, sizeof(buffer))
-             ? LUTIL_PASSWD_ERR
-             : LUTIL_PASSWD_OK;
+  return memcmp((char *)passwd->bv_val, (char *)buffer, sizeof(buffer)) ? LUTIL_PASSWD_ERR : LUTIL_PASSWD_OK;
 }
 
 SLAP_MODULE_ENTRY(pw_netscape, modinit)(int argc, char *argv[]) {

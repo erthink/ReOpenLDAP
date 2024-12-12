@@ -42,8 +42,7 @@
 static char *get_line(char *line, int len, FILE *fp, const char *prompt);
 static char **get_list(const char *prompt);
 static int file_read(const char *path, struct berval *bv);
-static LDAPMod **get_modlist(const char *prompt1, const char *prompt2,
-                             const char *prompt3);
+static LDAPMod **get_modlist(const char *prompt1, const char *prompt2, const char *prompt3);
 static void handle_result(LDAP *ld, LDAPMessage *lm);
 static void print_ldap_result(LDAP *ld, LDAPMessage *lm, const char *s);
 static void print_search_entry(LDAP *ld, LDAPMessage *res);
@@ -144,8 +143,7 @@ static int file_read(const char *path, struct berval *bv) {
   return (bv->bv_len);
 }
 
-static LDAPMod **get_modlist(const char *prompt1, const char *prompt2,
-                             const char *prompt3) {
+static LDAPMod **get_modlist(const char *prompt1, const char *prompt2, const char *prompt3) {
   static char buf[256];
   int num;
   LDAPMod tmp = {0};
@@ -215,13 +213,11 @@ static LDAPMod **get_modlist(const char *prompt1, const char *prompt2,
   return (result);
 }
 
-static int bind_prompt(LDAP *ld, const char *url, ber_tag_t request,
-                       ber_int_t msgid, void *params) {
+static int bind_prompt(LDAP *ld, const char *url, ber_tag_t request, ber_int_t msgid, void *params) {
   static char dn[256], passwd[256];
   int authmethod;
 
-  printf("rebind for request=%ld msgid=%ld url=%s\n", request, (long)msgid,
-         url);
+  printf("rebind for request=%ld msgid=%ld url=%s\n", request, (long)msgid, url);
 
   authmethod = LDAP_AUTH_SIMPLE;
 
@@ -323,8 +319,7 @@ int main(int argc, char **argv) {
   }
 
   if (copyfname != NULL) {
-    if ((ld->ld_sb->sb_fd =
-             open(copyfname, O_WRONLY | O_CREAT | O_EXCL, 0600)) == -1) {
+    if ((ld->ld_sb->sb_fd = open(copyfname, O_WRONLY | O_CREAT | O_EXCL, 0600)) == -1) {
       perror(copyfname);
       exit(EXIT_FAILURE);
     }
@@ -454,9 +449,8 @@ int main(int argc, char **argv) {
       if (strncmp(line, "modify", 4) == 0) {
         get_line(dn, sizeof(dn), stdin, "dn? ");
         strcat(dn, dnsuffix);
-        if ((mods =
-                 get_modlist("mod (0=>add, 1=>delete, 2=>replace -1=>done)? ",
-                             "attribute type? ", "attribute value? ")) == NULL)
+        if ((mods = get_modlist("mod (0=>add, 1=>delete, 2=>replace -1=>done)? ", "attribute type? ",
+                                "attribute value? ")) == NULL)
           break;
         if ((id = ldap_modify(ld, dn, mods)) == -1)
           ldap_debug_perror(ld, "ldap_modify");
@@ -520,14 +514,11 @@ int main(int argc, char **argv) {
     case 's': /* search */
       get_line(dn, sizeof(dn), stdin, "searchbase? ");
       strcat(dn, dnsuffix);
-      get_line(line, sizeof(line), stdin,
-               "scope (0=baseObject, 1=oneLevel, 2=subtree, 3=children)? ");
+      get_line(line, sizeof(line), stdin, "scope (0=baseObject, 1=oneLevel, 2=subtree, 3=children)? ");
       scope = atoi(line);
-      get_line(filter, sizeof(filter), stdin,
-               "search filter (e.g. sn=jones)? ");
+      get_line(filter, sizeof(filter), stdin, "search filter (e.g. sn=jones)? ");
       types = get_list("attrs to return? ");
-      get_line(line, sizeof(line), stdin,
-               "attrsonly (0=attrs&values, 1=attrs only)? ");
+      get_line(line, sizeof(line), stdin, "attrsonly (0=attrs&values, 1=attrs only)? ");
       attrsonly = atoi(line);
 
       if ((id = ldap_search(ld, dn, scope, filter, types, attrsonly)) == -1) {
@@ -569,14 +560,13 @@ int main(int argc, char **argv) {
             printf(" <%s>", ludp->lud_attrs[i]);
           }
         }
-        printf("\n\t scope: %s\n",
-               ludp->lud_scope == LDAP_SCOPE_BASE       ? "baseObject"
-               : ludp->lud_scope == LDAP_SCOPE_ONELEVEL ? "oneLevel"
-               : ludp->lud_scope == LDAP_SCOPE_SUBTREE  ? "subtree"
+        printf("\n\t scope: %s\n", ludp->lud_scope == LDAP_SCOPE_BASE       ? "baseObject"
+                                   : ludp->lud_scope == LDAP_SCOPE_ONELEVEL ? "oneLevel"
+                                   : ludp->lud_scope == LDAP_SCOPE_SUBTREE  ? "subtree"
 #ifdef LDAP_SCOPE_SUBORDINATE
-               : ludp->lud_scope == LDAP_SCOPE_SUBORDINATE ? "children"
+                                   : ludp->lud_scope == LDAP_SCOPE_SUBORDINATE ? "children"
 #endif
-                                                           : "**invalid**");
+                                                                               : "**invalid**");
         printf("\tfilter: <%s>\n", ludp->lud_filter);
         ldap_free_urldesc(ludp);
       }
@@ -588,8 +578,7 @@ int main(int argc, char **argv) {
       break;
 
     case 'o': /* set ldap options */
-      get_line(line, sizeof(line), stdin,
-               "alias deref (0=never, 1=searching, 2=finding, 3=always)?");
+      get_line(line, sizeof(line), stdin, "alias deref (0=never, 1=searching, 2=finding, 3=always)?");
       ld->ld_deref = atoi(line);
       get_line(line, sizeof(line), stdin, "timelimit?");
       ld->ld_timelimit = atoi(line);
@@ -598,8 +587,7 @@ int main(int argc, char **argv) {
 
       LDAP_BOOL_ZERO(&ld->ld_options);
 
-      get_line(line, sizeof(line), stdin,
-               "Recognize and chase referrals (0=no, 1=yes)?");
+      get_line(line, sizeof(line), stdin, "Recognize and chase referrals (0=no, 1=yes)?");
       if (atoi(line) != 0) {
         LDAP_BOOL_SET(&ld->ld_options, LDAP_BOOL_REFERRALS);
         get_line(line, sizeof(line), stdin,
@@ -706,8 +694,7 @@ static void print_search_entry(LDAP *ld, LDAPMessage *res) {
     free(dn);
     free(ufn);
 
-    for (a = ldap_first_attribute(ld, e, &ber); a != NULL;
-         a = ldap_next_attribute(ld, e, ber)) {
+    for (a = ldap_first_attribute(ld, e, &ber); a != NULL; a = ldap_next_attribute(ld, e, ber)) {
       struct berval **vals;
 
       printf("\t\tATTR: %s\n", a);

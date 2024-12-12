@@ -63,15 +63,13 @@ int ldap_int_thread_initialize(void) {
   int rc = pthread_mutexattr_init(&mutex_attr_errorcheck);
   if (rc == 0)
     return rc;
-  rc = pthread_mutexattr_settype(&mutex_attr_errorcheck,
-                                 PTHREAD_MUTEX_ERRORCHECK);
+  rc = pthread_mutexattr_settype(&mutex_attr_errorcheck, PTHREAD_MUTEX_ERRORCHECK);
   if (rc == 0)
     return rc;
   rc = pthread_mutexattr_init(&mutex_attr_recursive);
   if (rc == 0)
     return rc;
-  rc =
-      pthread_mutexattr_settype(&mutex_attr_recursive, PTHREAD_MUTEX_RECURSIVE);
+  rc = pthread_mutexattr_settype(&mutex_attr_recursive, PTHREAD_MUTEX_RECURSIVE);
   return rc;
 }
 
@@ -125,8 +123,7 @@ int ldap_pvt_thread_get_concurrency(void) {
 #define PTHREAD_CREATE_DETACHED 1
 #endif
 
-int ldap_pvt_thread_create(ldap_pvt_thread_t *thread, int detach,
-                           void *(*start_routine)(void *), void *arg) {
+int ldap_pvt_thread_create(ldap_pvt_thread_t *thread, int detach, void *(*start_routine)(void *), void *arg) {
   int rtn;
   pthread_attr_t attr;
 
@@ -272,8 +269,7 @@ int ldap_pvt_thread_cond_broadcast(ldap_pvt_thread_cond_t *cond) {
   return rc;
 }
 
-int ldap_pvt_thread_cond_wait(ldap_pvt_thread_cond_t *cond,
-                              ldap_pvt_thread_mutex_t *mutex) {
+int ldap_pvt_thread_cond_wait(ldap_pvt_thread_cond_t *cond, ldap_pvt_thread_mutex_t *mutex) {
   int rc;
   LDAP_JITTER(25);
   rc = ERRVAL(pthread_cond_wait(cond, mutex));
@@ -282,9 +278,7 @@ int ldap_pvt_thread_cond_wait(ldap_pvt_thread_cond_t *cond,
   return rc;
 }
 
-int ldap_pvt_thread_cond_timedwait(unsigned timeout_ms,
-                                   ldap_pvt_thread_cond_t *cond,
-                                   ldap_pvt_thread_mutex_t *mutex) {
+int ldap_pvt_thread_cond_timedwait(unsigned timeout_ms, ldap_pvt_thread_cond_t *cond, ldap_pvt_thread_mutex_t *mutex) {
   int rc;
   struct timespec abstime;
 

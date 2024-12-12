@@ -41,8 +41,7 @@ int txn_start_extop(Operation *op, SlapReply *rs) {
   }
 
   op->o_bd = op->o_conn->c_authz_backend;
-  if (backend_check_restrictions(
-          op, rs, (struct berval *)&slap_EXOP_TXN_START) != LDAP_SUCCESS) {
+  if (backend_check_restrictions(op, rs, (struct berval *)&slap_EXOP_TXN_START) != LDAP_SUCCESS) {
     return rs->sr_err;
   }
 
@@ -112,8 +111,7 @@ typedef struct txn_rctrls {
 static int txn_result(Operation *op, SlapReply *rs) {
   if (rs->sr_ctrls) {
     txn_rctrls **t0, *tr;
-    for (t0 = (txn_rctrls **)&op->o_callback->sc_private; *t0;
-         t0 = &(*t0)->tr_next)
+    for (t0 = (txn_rctrls **)&op->o_callback->sc_private; *t0; t0 = &(*t0)->tr_next)
       ;
     tr = op->o_tmpalloc(sizeof(txn_rctrls), op->o_tmpmemctx);
     tr->tr_next = NULL;
@@ -164,8 +162,7 @@ int txn_end_extop(Operation *op, SlapReply *rs) {
   }
 
   op->o_bd = c->c_authz_backend;
-  if (backend_check_restrictions(op, rs, (struct berval *)&slap_EXOP_TXN_END) !=
-      LDAP_SUCCESS) {
+  if (backend_check_restrictions(op, rs, (struct berval *)&slap_EXOP_TXN_END) != LDAP_SUCCESS) {
     return rs->sr_err;
   }
 

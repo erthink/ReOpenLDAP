@@ -23,20 +23,17 @@
 
 static int base_candidate(BackendDB *be, Entry *e, ID *ids);
 
-static int search_candidates(Operation *op, SlapReply *rs, Entry *e,
-                             IdScopes *isc, MDBX_cursor *mci, ID *ids,
+static int search_candidates(Operation *op, SlapReply *rs, Entry *e, IdScopes *isc, MDBX_cursor *mci, ID *ids,
                              ID *stack);
 
 static int parse_paged_cookie(Operation *op, SlapReply *rs);
 
-static void send_paged_response(Operation *op, SlapReply *rs, ID *lastid,
-                                int tentries);
+static void send_paged_response(Operation *op, SlapReply *rs, ID *lastid, int tentries);
 
 /* Dereference aliases for a single alias entry. Return the final
  * dereferenced entry on success, NULL on any failure.
  */
-static Entry *deref_base(Operation *op, SlapReply *rs, Entry *e,
-                         Entry **matched, MDBX_txn *txn, ID *tmp, ID *visited) {
+static Entry *deref_base(Operation *op, SlapReply *rs, Entry *e, Entry **matched, MDBX_txn *txn, ID *tmp, ID *visited) {
   struct berval ndn;
 
   rs->sr_err = LDAP_ALIAS_DEREF_PROBLEM;
@@ -107,8 +104,7 @@ static Entry *deref_base(Operation *op, SlapReply *rs, Entry *e,
  * Of course we're hardcoded to require a minimum of 8 UM_SIZE
  * IDLs so this is never a problem.
  */
-static int search_aliases(Operation *op, SlapReply *rs, ID e_id, IdScopes *isc,
-                          MDBX_cursor *mci, ID *stack) {
+static int search_aliases(Operation *op, SlapReply *rs, ID e_id, IdScopes *isc, MDBX_cursor *mci, ID *stack) {
   ID *aliases, *curscop, *visited, *newsubs, *oldsubs, *tmp;
   ID cursora, ida, cursoro, ido;
   Entry *matched, *a;
@@ -131,8 +127,7 @@ static int search_aliases(Operation *op, SlapReply *rs, ID e_id, IdScopes *isc,
 
   /* Find all aliases in database */
   MDB_IDL_ZERO(aliases);
-  rs->sr_err =
-      mdb_filter_candidates(op, isc->mt, &af, aliases, curscop, visited);
+  rs->sr_err = mdb_filter_candidates(op, isc->mt, &af, aliases, curscop, visited);
   if (rs->sr_err != LDAP_SUCCESS || MDB_IDL_IS_ZERO(aliases)) {
     return rs->sr_err;
   }
@@ -153,8 +148,7 @@ static int search_aliases(Operation *op, SlapReply *rs, ID e_id, IdScopes *isc,
 
     /* Dereference all of the aliases in the current scope. */
     cursora = 0;
-    for (ida = mdb_idl_first(curscop, &cursora); ida != NOID;
-         ida = mdb_idl_next(curscop, &cursora)) {
+    for (ida = mdb_idl_first(curscop, &cursora); ida != NOID; ida = mdb_idl_next(curscop, &cursora)) {
       rs->sr_err = mdb_id2entry(op, mci, ida, &a);
       if (rs->sr_err != LDAP_SUCCESS) {
         continue;
@@ -266,14 +260,12 @@ static void scope_chunk_free(void *key, void *data) {
 static ID2 *scope_chunk_get(Operation *op) {
   ID2 *ret = NULL;
 
-  ldap_pvt_thread_pool_getkey(op->o_threadctx, (void *)scope_chunk_get,
-                              (void *)&ret, NULL);
+  ldap_pvt_thread_pool_getkey(op->o_threadctx, (void *)scope_chunk_get, (void *)&ret, NULL);
   if (!ret) {
     ret = ch_malloc(MDB_IDL_UM_SIZE * sizeof(ID2));
   } else {
     void *r2 = ret[0].mval.iov_base;
-    ldap_pvt_thread_pool_setkey(op->o_threadctx, (void *)scope_chunk_get, r2,
-                                scope_chunk_free, NULL, NULL);
+    ldap_pvt_thread_pool_setkey(op->o_threadctx, (void *)scope_chunk_get, r2, scope_chunk_free, NULL, NULL);
   }
   return ret;
 }
@@ -281,11 +273,9 @@ static ID2 *scope_chunk_get(Operation *op) {
 static void scope_chunk_ret(Operation *op, ID2 *scopes) {
   void *ret = NULL;
 
-  ldap_pvt_thread_pool_getkey(op->o_threadctx, (void *)scope_chunk_get, &ret,
-                              NULL);
+  ldap_pvt_thread_pool_getkey(op->o_threadctx, (void *)scope_chunk_get, &ret, NULL);
   scopes[0].mval.iov_base = ret;
-  ldap_pvt_thread_pool_setkey(op->o_threadctx, (void *)scope_chunk_get,
-                              (void *)scopes, scope_chunk_free, NULL, NULL);
+  ldap_pvt_thread_pool_setkey(op->o_threadctx, (void *)scope_chunk_get, (void *)scopes, scope_chunk_free, NULL, NULL);
 }
 
 static void *search_stack(Operation *op);
@@ -334,8 +324,7 @@ static void mdb_writewait(Operation *op, slap_callback *sc) {
   }
 }
 
-static int mdb_waitfixup(Operation *op, ww_ctx *ww, MDBX_cursor *mci,
-                         MDBX_cursor *mcd, IdScopes *isc) {
+static int mdb_waitfixup(Operation *op, ww_ctx *ww, MDBX_cursor *mci, MDBX_cursor *mcd, IdScopes *isc) {
   MDBX_val key;
   int rc = 0;
   ww->flag = 0;
@@ -499,12 +488,10 @@ dn2entry_retry:
 
       /* return referral only if "disclose"
        * is granted on the object */
-      if (access_allowed(op, matched, slap_schema.si_ad_entry, NULL,
-                         ACL_DISCLOSE, NULL)) {
+      if (access_allowed(op, matched, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL)) {
         ber_dupbv(&matched_dn, &matched->e_name);
 
-        erefs = is_entry_referral(matched) ? get_entry_referrals(op, matched)
-                                           : NULL;
+        erefs = is_entry_referral(matched) ? get_entry_referrals(op, matched) : NULL;
         if (rs->sr_err == MDBX_NOTFOUND)
           rs->sr_err = LDAP_REFERRAL;
         rs->sr_matched = matched_dn.bv_val;
@@ -514,14 +501,12 @@ dn2entry_retry:
       matched = NULL;
 
       if (erefs) {
-        rs->sr_ref = referral_rewrite(erefs, &matched_dn, &op->o_req_dn,
-                                      op->oq_search.rs_scope);
+        rs->sr_ref = referral_rewrite(erefs, &matched_dn, &op->o_req_dn, op->oq_search.rs_scope);
         ber_bvarray_free(erefs);
       }
 
     } else {
-      rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn,
-                                    op->oq_search.rs_scope);
+      rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn, op->oq_search.rs_scope);
     }
 
     rs->sr_flags = REP_REF_MUSTBEFREED;
@@ -534,8 +519,7 @@ dn2entry_retry:
 
   /* NOTE: __NEW__ "search" access is required
    * on searchBase object */
-  if (!access_allowed_mask(op, e, slap_schema.si_ad_entry, NULL, ACL_SEARCH,
-                           NULL, &mask)) {
+  if (!access_allowed_mask(op, e, slap_schema.si_ad_entry, NULL, ACL_SEARCH, NULL, &mask)) {
     if (!ACL_GRANT(mask, ACL_DISCLOSE)) {
       rs->sr_err = LDAP_NO_SUCH_OBJECT;
     } else {
@@ -561,8 +545,7 @@ dn2entry_retry:
     e = NULL;
 
     if (erefs) {
-      rs->sr_ref = referral_rewrite(erefs, &matched_dn, &op->o_req_dn,
-                                    op->oq_search.rs_scope);
+      rs->sr_ref = referral_rewrite(erefs, &matched_dn, &op->o_req_dn, op->oq_search.rs_scope);
       ber_bvarray_free(erefs);
 
       if (!rs->sr_ref) {
@@ -580,8 +563,7 @@ dn2entry_retry:
     goto done;
   }
 
-  if (get_assert(op) &&
-      (test_filter(op, e, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
+  if (get_assert(op) && (test_filter(op, e, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
     rs->sr_err = LDAP_ASSERTION_FAILED;
     mdb_entry_return(op, e);
     send_ldap_result(op, rs);
@@ -645,8 +627,7 @@ dn2entry_retry:
   }
 
   /* if not root and candidates exceed to-be-checked entries, abort */
-  if (op->ors_limit /* isroot == FALSE */ &&
-      op->ors_limit->lms_s_unchecked != -1 &&
+  if (op->ors_limit /* isroot == FALSE */ && op->ors_limit->lms_s_unchecked != -1 &&
       ncand > (unsigned)op->ors_limit->lms_s_unchecked) {
     rs->sr_err = LDAP_ADMINLIMIT_EXCEEDED;
     send_ldap_result(op, rs);
@@ -654,8 +635,7 @@ dn2entry_retry:
     goto done;
   }
 
-  if (op->ors_limit == NULL /* isroot == TRUE */ ||
-      !op->ors_limit->lms_s_pr_hide) {
+  if (op->ors_limit == NULL /* isroot == TRUE */ || !op->ors_limit->lms_s_pr_hide) {
     tentries = ncand;
   }
 
@@ -686,8 +666,7 @@ dn2entry_retry:
     }
     id = mdb_idl_first(candidates, &cursor);
     if (id == NOID) {
-      Debug(LDAP_DEBUG_TRACE,
-            LDAP_XSTRING(mdb_search) ": no paged results candidates\n");
+      Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_search) ": no paged results candidates\n");
       send_paged_response(op, rs, &lastid, 0);
 
       rs->sr_err = LDAP_OTHER;
@@ -765,8 +744,7 @@ dn2entry_retry:
       /* Is this entry in the candidate list? */
       scopeok = 0;
       if (MDB_IDL_IS_RANGE(candidates)) {
-        if (id >= MDB_IDL_RANGE_FIRST(candidates) &&
-            id <= MDB_IDL_RANGE_LAST(candidates))
+        if (id >= MDB_IDL_RANGE_FIRST(candidates) && id <= MDB_IDL_RANGE_LAST(candidates))
           scopeok = 1;
       } else {
         i = mdb_idl_search(candidates, id);
@@ -819,8 +797,7 @@ dn2entry_retry:
 
     /* Not in scope, ignore it */
     if (!scopeok) {
-      Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_search) ": %ld scope not okay\n",
-            (long)id);
+      Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_search) ": %ld scope not okay\n", (long)id);
       goto loop_continue;
     }
 
@@ -838,9 +815,7 @@ dn2entry_retry:
 
         if (!MDB_IDL_IS_RANGE(candidates)) {
           /* only complain for non-range IDLs */
-          Debug(LDAP_DEBUG_TRACE,
-                LDAP_XSTRING(mdb_search) ": candidate %ld not found\n",
-                (long)id);
+          Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_search) ": candidate %ld not found\n", (long)id);
         } else {
           /* get the next ID from the DB */
           rs->sr_err = mdb_get_nextid(mci, &cursor);
@@ -898,8 +873,7 @@ dn2entry_retry:
       /* but if the search base is an alias, and we didn't
        * deref it when finding, return it.
        */
-      if (is_entry_alias(e) &&
-          ((op->ors_deref & LDAP_DEREF_FINDING) || e != base)) {
+      if (is_entry_alias(e) && ((op->ors_deref & LDAP_DEREF_FINDING) || e != base)) {
         goto loop_continue;
       }
     }
@@ -927,8 +901,7 @@ dn2entry_retry:
         e->e_nname.bv_len += isc.nrdns[i].bv_len + 1;
       }
       e->e_name.bv_val = op->o_tmpalloc(e->e_name.bv_len + 1, op->o_tmpmemctx);
-      e->e_nname.bv_val =
-          op->o_tmpalloc(e->e_nname.bv_len + 1, op->o_tmpmemctx);
+      e->e_nname.bv_val = op->o_tmpalloc(e->e_nname.bv_len + 1, op->o_tmpmemctx);
       d = e->e_name.bv_val;
       n = e->e_nname.bv_val;
       if (nsubs < ncand) {
@@ -973,13 +946,11 @@ dn2entry_retry:
      * this for non-base searches, and don't check the filter
      * explicitly here since it's only a candidate anyway.
      */
-    if (!manageDSAit && op->oq_search.rs_scope != LDAP_SCOPE_BASE &&
-        is_entry_referral(e)) {
+    if (!manageDSAit && op->oq_search.rs_scope != LDAP_SCOPE_BASE && is_entry_referral(e)) {
       BerVarray erefs = get_entry_referrals(op, e);
-      rs->sr_ref = referral_rewrite(
-          erefs, &e->e_name, NULL,
-          op->oq_search.rs_scope == LDAP_SCOPE_ONELEVEL ? LDAP_SCOPE_BASE
-                                                        : LDAP_SCOPE_SUBTREE);
+      rs->sr_ref =
+          referral_rewrite(erefs, &e->e_name, NULL,
+                           op->oq_search.rs_scope == LDAP_SCOPE_ONELEVEL ? LDAP_SCOPE_BASE : LDAP_SCOPE_SUBTREE);
 
       rs->sr_entry = e;
       rs->sr_flags = REP_REF_MUSTBEFREED;
@@ -1000,8 +971,7 @@ dn2entry_retry:
     if (rs->sr_err == LDAP_COMPARE_TRUE) {
       /* check size limit */
       if (get_pagedresults(op) > SLAP_CONTROL_IGNORED) {
-        if (rs->sr_nentries >=
-            ((PagedResultsState *)op->o_pagedresults_state)->ps_size) {
+        if (rs->sr_nentries >= ((PagedResultsState *)op->o_pagedresults_state)->ps_size) {
           if (e != base)
             mdb_entry_return(op, e);
           e = NULL;
@@ -1049,8 +1019,7 @@ dn2entry_retry:
       }
 
     } else {
-      Debug(LDAP_DEBUG_TRACE,
-            LDAP_XSTRING(mdb_search) ": %ld does not match filter\n", (long)id);
+      Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_search) ": %ld does not match filter\n", (long)id);
     }
 
   loop_continue:
@@ -1058,13 +1027,10 @@ dn2entry_retry:
       int percentage, lag = mdbx_txn_straggler(wwctx.txn, &percentage);
       if (lag >= mdb->mi_renew_lag && percentage >= mdb->mi_renew_percent) {
         if (moi == &opinfo) {
-          Debug(LDAP_DEBUG_FILTER, "dreamcatcher: lag %d, percentage %u%%\n",
-                lag, percentage);
+          Debug(LDAP_DEBUG_FILTER, "dreamcatcher: lag %d, percentage %u%%\n", lag, percentage);
           mdb_writewait(op, &cb);
         } else
-          Debug(LDAP_DEBUG_ANY,
-                "dreamcatcher: UNABLE lag %d, percentage %u%%\n", lag,
-                percentage);
+          Debug(LDAP_DEBUG_ANY, "dreamcatcher: UNABLE lag %d, percentage %u%%\n", lag, percentage);
       }
     }
 
@@ -1073,12 +1039,10 @@ dn2entry_retry:
       if (wwctx.nentries >= mdb->mi_rtxn_size) {
         if (mdbx_txn_straggler(wwctx.txn, NULL) > 0) {
           if (moi == &opinfo) {
-            Debug(LDAP_DEBUG_FILTER, "dreamcatcher: %u entries (> %u)\n",
-                  wwctx.nentries, mdb->mi_rtxn_size);
+            Debug(LDAP_DEBUG_FILTER, "dreamcatcher: %u entries (> %u)\n", wwctx.nentries, mdb->mi_rtxn_size);
             mdb_writewait(op, &cb);
           } else
-            Debug(LDAP_DEBUG_ANY, "dreamcatcher: UNABLE %u entries (> %u)\n",
-                  wwctx.nentries, mdb->mi_rtxn_size);
+            Debug(LDAP_DEBUG_ANY, "dreamcatcher: UNABLE %u entries (> %u)\n", wwctx.nentries, mdb->mi_rtxn_size);
         }
         wwctx.nentries = 0;
       }
@@ -1114,8 +1078,7 @@ dn2entry_retry:
             mdb_entry_return(op, base);
           rs->sr_err = mdb_id2entry(op, mci, isc.id, &base);
           if (!rs->sr_err) {
-            mdb_id2name(op, ltid, &isc.mc, isc.id, &base->e_name,
-                        &base->e_nname);
+            mdb_id2name(op, ltid, &isc.mc, isc.id, &base->e_name, &base->e_nname);
             isc.numrdns = 0;
             if (isc.oscope == LDAP_SCOPE_ONELEVEL)
               isc.oscope = LDAP_SCOPE_BASE;
@@ -1183,8 +1146,7 @@ bailout:
 }
 
 static int base_candidate(BackendDB *be, Entry *e, ID *ids) {
-  Debug(LDAP_DEBUG_ARGS, "base_candidates: base: \"%s\" (0x%08lx)\n",
-        e->e_nname.bv_val, (long)e->e_id);
+  Debug(LDAP_DEBUG_ARGS, "base_candidates: base: \"%s\" (0x%08lx)\n", e->e_nname.bv_val, (long)e->e_id);
 
   ids[0] = 1;
   ids[1] = e->e_id;
@@ -1223,30 +1185,25 @@ static int oc_filter(Filter *f, int cur, int *max) {
   return rc;
 }
 
-static void search_stack_free(void *key, void *data) {
-  ber_memfree_x(data, NULL);
-}
+static void search_stack_free(void *key, void *data) { ber_memfree_x(data, NULL); }
 
 static void *search_stack(Operation *op) {
   struct mdb_info *mdb = (struct mdb_info *)op->o_bd->be_private;
   void *ret = NULL;
 
   if (op->o_threadctx) {
-    ldap_pvt_thread_pool_getkey(op->o_threadctx, (void *)search_stack, &ret,
-                                NULL);
+    ldap_pvt_thread_pool_getkey(op->o_threadctx, (void *)search_stack, &ret, NULL);
   } else {
     ret = mdb->mi_search_stack;
   }
 
   if (!ret) {
-    size_t case_stack =
-        mdb->mi_search_stack_depth * MDB_IDL_UM_SIZE * sizeof(ID);
+    size_t case_stack = mdb->mi_search_stack_depth * MDB_IDL_UM_SIZE * sizeof(ID);
     size_t case_sctmp = MDB_IDL_UM_SIZE * sizeof(ID2);
     size_t size = (case_stack > case_sctmp) ? case_stack : case_sctmp;
     ret = ch_malloc(size);
     if (op->o_threadctx) {
-      ldap_pvt_thread_pool_setkey(op->o_threadctx, (void *)search_stack, ret,
-                                  search_stack_free, NULL, NULL);
+      ldap_pvt_thread_pool_setkey(op->o_threadctx, (void *)search_stack, ret, search_stack_free, NULL, NULL);
     } else {
       mdb->mi_search_stack = ret;
     }
@@ -1254,8 +1211,7 @@ static void *search_stack(Operation *op) {
   return ret;
 }
 
-static int search_candidates(Operation *op, SlapReply *rs, Entry *e,
-                             IdScopes *isc, MDBX_cursor *mci, ID *ids,
+static int search_candidates(Operation *op, SlapReply *rs, Entry *e, IdScopes *isc, MDBX_cursor *mci, ID *ids,
                              ID *stack) {
   struct mdb_info *mdb = (struct mdb_info *)op->o_bd->be_private;
   int rc, depth = 1;
@@ -1270,16 +1226,15 @@ static int search_candidates(Operation *op, SlapReply *rs, Entry *e,
    *		(|[(objectClass=referral)](user-filter))
    */
 
-  Debug(LDAP_DEBUG_TRACE, "search_candidates: base=\"%s\" (0x%08lx) scope=%d\n",
-        e->e_nname.bv_val, (long)e->e_id, op->oq_search.rs_scope);
+  Debug(LDAP_DEBUG_TRACE, "search_candidates: base=\"%s\" (0x%08lx) scope=%d\n", e->e_nname.bv_val, (long)e->e_id,
+        op->oq_search.rs_scope);
 
   f = op->oq_search.rs_filter;
 
   /* If the user's filter uses objectClass=*,
    * these clauses are redundant.
    */
-  if (!oc_filter(op->oq_search.rs_filter, 1, &depth) &&
-      !get_subentries_visibility(op)) {
+  if (!oc_filter(op->oq_search.rs_filter, 1, &depth) && !get_subentries_visibility(op)) {
     if (!get_manageDSAit(op) && !get_domainScope(op)) {
       /* match referral objects */
       struct berval bv_ref = BER_BVC("referral");
@@ -1322,8 +1277,7 @@ static int search_candidates(Operation *op, SlapReply *rs, Entry *e,
   }
 
   if (rc == LDAP_SUCCESS) {
-    rc = mdb_filter_candidates(op, isc->mt, f, ids, stack,
-                               stack + MDB_IDL_UM_SIZE);
+    rc = mdb_filter_candidates(op, isc->mt, f, ids, stack, stack + MDB_IDL_UM_SIZE);
   }
 
   if (depth + 1 > mdb->mi_search_stack_depth) {
@@ -1334,8 +1288,7 @@ static int search_candidates(Operation *op, SlapReply *rs, Entry *e,
     Debug(LDAP_DEBUG_TRACE, "mdb_search_candidates: failed (rc=%d)\n", rc);
 
   } else {
-    Debug(LDAP_DEBUG_TRACE,
-          "mdb_search_candidates: id=%ld first=%ld last=%ld\n", (long)ids[0],
+    Debug(LDAP_DEBUG_TRACE, "mdb_search_candidates: id=%ld first=%ld last=%ld\n", (long)ids[0],
           (long)MDB_IDL_FIRST(ids), (long)MDB_IDL_LAST(ids));
   }
 
@@ -1385,16 +1338,14 @@ done:;
   return rc;
 }
 
-static void send_paged_response(Operation *op, SlapReply *rs, ID *lastid,
-                                int tentries) {
+static void send_paged_response(Operation *op, SlapReply *rs, ID *lastid, int tentries) {
   LDAPControl *ctrls[2];
   BerElementBuffer berbuf;
   BerElement *ber = (BerElement *)&berbuf;
   PagedResultsCookie respcookie;
   struct berval cookie;
 
-  Debug(LDAP_DEBUG_ARGS, "send_paged_response: lastid=0x%08lx nentries=%d\n",
-        lastid ? *lastid : 0, rs->sr_nentries);
+  Debug(LDAP_DEBUG_ARGS, "send_paged_response: lastid=0x%08lx nentries=%d\n", lastid ? *lastid : 0, rs->sr_nentries);
 
   ctrls[1] = NULL;
 
@@ -1412,8 +1363,7 @@ static void send_paged_response(Operation *op, SlapReply *rs, ID *lastid,
 
   op->o_conn->c_pagedresults_state.ps_cookie = respcookie;
   op->o_conn->c_pagedresults_state.ps_count =
-      ((PagedResultsState *)op->o_pagedresults_state)->ps_count +
-      rs->sr_nentries;
+      ((PagedResultsState *)op->o_pagedresults_state)->ps_count + rs->sr_nentries;
 
   /* return size of 0 -- no estimate */
   ber_printf(ber, "{iO}", 0, &cookie);

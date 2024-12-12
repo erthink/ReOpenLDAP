@@ -30,38 +30,37 @@
 static void oc_usage(void);
 static void at_usage(void);
 
-static char *const err2text[] = {
-    "Success",
-    "Out of memory",
-    "ObjectClass not found",
-    "user-defined ObjectClass includes operational attributes",
-    "user-defined ObjectClass has inappropriate SUPerior",
-    "Duplicate objectClass",
-    "Inconsistent duplicate objectClass",
-    "AttributeType not found",
-    "AttributeType inappropriate matching rule",
-    "AttributeType inappropriate USAGE",
-    "AttributeType inappropriate SUPerior",
-    "AttributeType SYNTAX or SUPerior required",
-    "Duplicate attributeType",
-    "Inconsistent duplicate attributeType",
-    "MatchingRule not found",
-    "MatchingRule incomplete",
-    "Duplicate matchingRule",
-    "Syntax not found",
-    "Duplicate ldapSyntax",
-    "Superior syntax not found",
-    "Substitute syntax not specified",
-    "Substitute syntax not found",
-    "OID or name required",
-    "Qualifier not supported",
-    "Invalid NAME",
-    "OID could not be expanded",
-    "Duplicate Content Rule",
-    "Content Rule not for STRUCTURAL object class",
-    "Content Rule AUX contains inappropriate object class",
-    "Content Rule attribute type list contains duplicate",
-    NULL};
+static char *const err2text[] = {"Success",
+                                 "Out of memory",
+                                 "ObjectClass not found",
+                                 "user-defined ObjectClass includes operational attributes",
+                                 "user-defined ObjectClass has inappropriate SUPerior",
+                                 "Duplicate objectClass",
+                                 "Inconsistent duplicate objectClass",
+                                 "AttributeType not found",
+                                 "AttributeType inappropriate matching rule",
+                                 "AttributeType inappropriate USAGE",
+                                 "AttributeType inappropriate SUPerior",
+                                 "AttributeType SYNTAX or SUPerior required",
+                                 "Duplicate attributeType",
+                                 "Inconsistent duplicate attributeType",
+                                 "MatchingRule not found",
+                                 "MatchingRule incomplete",
+                                 "Duplicate matchingRule",
+                                 "Syntax not found",
+                                 "Duplicate ldapSyntax",
+                                 "Superior syntax not found",
+                                 "Substitute syntax not specified",
+                                 "Substitute syntax not found",
+                                 "OID or name required",
+                                 "Qualifier not supported",
+                                 "Invalid NAME",
+                                 "OID could not be expanded",
+                                 "Duplicate Content Rule",
+                                 "Content Rule not for STRUCTURAL object class",
+                                 "Content Rule AUX contains inappropriate object class",
+                                 "Content Rule attribute type list contains duplicate",
+                                 NULL};
 
 char *scherr2str(int code) {
   if (code < 0 || SLAP_SCHERR_LAST <= code) {
@@ -126,8 +125,7 @@ int parse_cr(struct config_args_s *c, ContentRule **scr) {
 
   cr = ldap_str2contentrule(line, &code, &err, LDAP_SCHEMA_ALLOW_ALL);
   if (!cr) {
-    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: %s before %s", c->argv[0],
-             ldap_scherr2str(code), err);
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: %s before %s", c->argv[0], ldap_scherr2str(code), err);
     Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s %s\n", c->log, c->cr_msg);
     cr_usage();
     return 1;
@@ -143,8 +141,7 @@ int parse_cr(struct config_args_s *c, ContentRule **scr) {
 
   code = cr_add(cr, 1, scr, &err);
   if (code) {
-    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: %s: \"%s\"", c->argv[0],
-             scherr2str(code), err);
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: %s: \"%s\"", c->argv[0], scherr2str(code), err);
     Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s %s\n", c->log, c->cr_msg);
     code = 1;
     goto done;
@@ -169,8 +166,7 @@ int parse_oc(struct config_args_s *c, ObjectClass **soc, ObjectClass *prev) {
 
   oc = ldap_str2objectclass(line, &code, &err, LDAP_SCHEMA_ALLOW_ALL);
   if (!oc) {
-    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: %s before %s", c->argv[0],
-             ldap_scherr2str(code), err);
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: %s before %s", c->argv[0], ldap_scherr2str(code), err);
     Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s %s\n", c->log, c->cr_msg);
     oc_usage();
     return 1;
@@ -186,8 +182,7 @@ int parse_oc(struct config_args_s *c, ObjectClass **soc, ObjectClass *prev) {
 
   code = oc_add(oc, 1, soc, prev, &err);
   if (code) {
-    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: %s: \"%s\"", c->argv[0],
-             scherr2str(code), err);
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: %s: \"%s\"", c->argv[0], scherr2str(code), err);
     Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s %s\n", c->log, c->cr_msg);
     code = 1;
     goto done;
@@ -205,18 +200,17 @@ done:;
 }
 
 static void oc_usage(void) {
-  fprintf(stderr,
-          "ObjectClassDescription = \"(\" whsp\n"
-          "  numericoid whsp                 ; ObjectClass identifier\n"
-          "  [ \"NAME\" qdescrs ]\n"
-          "  [ \"DESC\" qdstring ]\n"
-          "  [ \"OBSOLETE\" whsp ]\n"
-          "  [ \"SUP\" oids ]                ; Superior ObjectClasses\n"
-          "  [ ( \"ABSTRACT\" / \"STRUCTURAL\" / \"AUXILIARY\" ) whsp ]\n"
-          "                                  ; default structural\n"
-          "  [ \"MUST\" oids ]               ; AttributeTypes\n"
-          "  [ \"MAY\" oids ]                ; AttributeTypes\n"
-          "  whsp \")\"\n");
+  fprintf(stderr, "ObjectClassDescription = \"(\" whsp\n"
+                  "  numericoid whsp                 ; ObjectClass identifier\n"
+                  "  [ \"NAME\" qdescrs ]\n"
+                  "  [ \"DESC\" qdstring ]\n"
+                  "  [ \"OBSOLETE\" whsp ]\n"
+                  "  [ \"SUP\" oids ]                ; Superior ObjectClasses\n"
+                  "  [ ( \"ABSTRACT\" / \"STRUCTURAL\" / \"AUXILIARY\" ) whsp ]\n"
+                  "                                  ; default structural\n"
+                  "  [ \"MUST\" oids ]               ; AttributeTypes\n"
+                  "  [ \"MAY\" oids ]                ; AttributeTypes\n"
+                  "  whsp \")\"\n");
 }
 
 static void at_usage(void) {
@@ -243,8 +237,7 @@ static void at_usage(void) {
           "  whsp \")\"\n");
 }
 
-int parse_at(struct config_args_s *c, AttributeType **sat,
-             AttributeType *prev) {
+int parse_at(struct config_args_s *c, AttributeType **sat, AttributeType *prev) {
   LDAPAttributeType *at;
   int code;
   const char *err;
@@ -252,8 +245,7 @@ int parse_at(struct config_args_s *c, AttributeType **sat,
 
   at = ldap_str2attributetype(line, &code, &err, LDAP_SCHEMA_ALLOW_ALL);
   if (!at) {
-    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: %s before %s", c->argv[0],
-             ldap_scherr2str(code), err);
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: %s before %s", c->argv[0], ldap_scherr2str(code), err);
     Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s %s\n", c->log, c->cr_msg);
     at_usage();
     return 1;
@@ -269,8 +261,7 @@ int parse_at(struct config_args_s *c, AttributeType **sat,
 
   /* operational attributes should be defined internally */
   if (at->at_usage) {
-    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: \"%s\" is operational",
-             c->argv[0], at->at_oid);
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: \"%s\" is operational", c->argv[0], at->at_oid);
     Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s %s\n", c->log, c->cr_msg);
     code = 1;
     goto done;
@@ -278,8 +269,7 @@ int parse_at(struct config_args_s *c, AttributeType **sat,
 
   code = at_add(at, 1, sat, prev, &err);
   if (code) {
-    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: %s: \"%s\"", c->argv[0],
-             scherr2str(code), err);
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: %s: \"%s\"", c->argv[0], scherr2str(code), err);
     Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s %s\n", c->log, c->cr_msg);
     code = 1;
     goto done;
@@ -314,8 +304,7 @@ int parse_syn(struct config_args_s *c, Syntax **ssyn, Syntax *prev) {
 
   syn = ldap_str2syntax(line, &code, &err, LDAP_SCHEMA_ALLOW_ALL);
   if (!syn) {
-    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: %s before %s", c->argv[0],
-             ldap_scherr2str(code), err);
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: %s before %s", c->argv[0], ldap_scherr2str(code), err);
     Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s %s\n", c->log, c->cr_msg);
     syn_usage();
     return 1;
@@ -331,8 +320,7 @@ int parse_syn(struct config_args_s *c, Syntax **ssyn, Syntax *prev) {
 
   code = syn_add(syn, 1, &def, ssyn, prev, &err);
   if (code) {
-    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: %s: \"%s\"", c->argv[0],
-             scherr2str(code), err);
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: %s: \"%s\"", c->argv[0], scherr2str(code), err);
     Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s %s\n", c->log, c->cr_msg);
     code = 1;
     goto done;

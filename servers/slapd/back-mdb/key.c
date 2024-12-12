@@ -25,8 +25,8 @@
 #include "idl.h"
 
 /* read a key */
-int mdb_key_read(Backend *be, MDBX_txn *txn, MDBX_dbi dbi, struct berval *k,
-                 ID *ids, MDBX_cursor **saved_cursor, int get_flag) {
+int mdb_key_read(Backend *be, MDBX_txn *txn, MDBX_dbi dbi, struct berval *k, ID *ids, MDBX_cursor **saved_cursor,
+                 int get_flag) {
   int rc;
   MDBX_val key;
 #ifndef MISALIGNED_OK
@@ -53,8 +53,7 @@ int mdb_key_read(Backend *be, MDBX_txn *txn, MDBX_dbi dbi, struct berval *k,
   if (rc != LDAP_SUCCESS) {
     Debug(LDAP_DEBUG_TRACE, "<= mdb_index_read: failed (%d)\n", rc);
   } else {
-    Debug(LDAP_DEBUG_TRACE, "<= mdb_index_read %ld candidates\n",
-          (long)MDB_IDL_N(ids));
+    Debug(LDAP_DEBUG_TRACE, "<= mdb_index_read %ld candidates\n", (long)MDB_IDL_N(ids));
   }
 
   return rc;

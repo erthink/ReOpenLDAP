@@ -88,8 +88,7 @@ int main(int argc, char **argv) {
   printf("  API Info version:  %d\n", api.ldapai_info_version);
 
   if (api.ldapai_info_version != LDAP_API_INFO_VERSION) {
-    printf(" API INFO version mismatch: got %d, expected %d\n",
-           api.ldapai_info_version, LDAP_API_INFO_VERSION);
+    printf(" API INFO version mismatch: got %d, expected %d\n", api.ldapai_info_version, LDAP_API_INFO_VERSION);
     return EXIT_FAILURE;
   }
 
@@ -111,22 +110,18 @@ int main(int argc, char **argv) {
       fi.ldapaif_name = api.ldapai_extensions[i];
       fi.ldapaif_version = 0;
 
-      if (ldap_get_option(NULL, LDAP_OPT_API_FEATURE_INFO, &fi) ==
-          LDAP_SUCCESS) {
+      if (ldap_get_option(NULL, LDAP_OPT_API_FEATURE_INFO, &fi) == LDAP_SUCCESS) {
         if (fi.ldapaif_info_version != LDAP_FEATURE_INFO_VERSION) {
           printf("                     %s feature info mismatch: got %d, "
                  "expected %d\n",
-                 api.ldapai_extensions[i], LDAP_FEATURE_INFO_VERSION,
-                 fi.ldapaif_info_version);
+                 api.ldapai_extensions[i], LDAP_FEATURE_INFO_VERSION, fi.ldapaif_info_version);
 
         } else {
-          printf("                     %s: version %d\n", fi.ldapaif_name,
-                 fi.ldapaif_version);
+          printf("                     %s: version %d\n", fi.ldapaif_name, fi.ldapaif_version);
         }
 
       } else {
-        printf("                     %s (NO FEATURE INFO)\n",
-               api.ldapai_extensions[i]);
+        printf("                     %s (NO FEATURE INFO)\n", api.ldapai_extensions[i]);
       }
 
 #else

@@ -25,8 +25,7 @@
 #include "idl.h"
 
 /* read a key */
-int bdb_key_read(Backend *be, DB *db, DB_TXN *txn, struct berval *k, ID *ids,
-                 DBC **saved_cursor, int get_flag) {
+int bdb_key_read(Backend *be, DB *db, DB_TXN *txn, struct berval *k, ID *ids, DBC **saved_cursor, int get_flag) {
   int rc;
   DBT key;
 
@@ -42,21 +41,18 @@ int bdb_key_read(Backend *be, DB *db, DB_TXN *txn, struct berval *k, ID *ids,
   if (rc != LDAP_SUCCESS) {
     Debug(LDAP_DEBUG_TRACE, "<= bdb_index_read: failed (%d)\n", rc);
   } else {
-    Debug(LDAP_DEBUG_TRACE, "<= bdb_index_read %ld candidates\n",
-          (long)BDB_IDL_N(ids));
+    Debug(LDAP_DEBUG_TRACE, "<= bdb_index_read %ld candidates\n", (long)BDB_IDL_N(ids));
   }
 
   return rc;
 }
 
 /* Add or remove stuff from index files */
-int bdb_key_change(Backend *be, DB *db, DB_TXN *txn, struct berval *k, ID id,
-                   int op) {
+int bdb_key_change(Backend *be, DB *db, DB_TXN *txn, struct berval *k, ID id, int op) {
   int rc;
   DBT key;
 
-  Debug(LDAP_DEBUG_TRACE, "=> key_change(%s,%lx)\n",
-        op == SLAP_INDEX_ADD_OP ? "ADD" : "DELETE", (long)id);
+  Debug(LDAP_DEBUG_TRACE, "=> key_change(%s,%lx)\n", op == SLAP_INDEX_ADD_OP ? "ADD" : "DELETE", (long)id);
 
   DBTzero(&key);
   bv2DBT(k, &key);

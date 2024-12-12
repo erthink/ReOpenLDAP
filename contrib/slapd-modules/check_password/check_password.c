@@ -39,12 +39,11 @@
 #define FILENAME_MAXLEN 512
 
 #define PASSWORD_TOO_SHORT_SZ "Password for dn=\"%s\" is too short (%d/6)"
-#define PASSWORD_QUALITY_SZ                                                    \
-  "Password for dn=\"%s\" does not pass required number of strength checks "   \
+#define PASSWORD_QUALITY_SZ                                                                                            \
+  "Password for dn=\"%s\" does not pass required number of strength checks "                                           \
   "for the required character sets (%d of %d)"
 #define BAD_PASSWORD_SZ "Bad password for dn=\"%s\" because %s"
-#define UNKNOWN_ERROR_SZ                                                       \
-  "An unknown error occurred, please see your systems administrator"
+#define UNKNOWN_ERROR_SZ "An unknown error occurred, please see your systems administrator"
 
 typedef int (*validator)(char *);
 static int read_config_file();
@@ -109,8 +108,7 @@ char *chomp(char *s) {
 
 static int set_quality(char *value) {
 #ifdef CHECKPASSWD_DEBUG
-  Log(LDAP_DEBUG_CONFIG, LOG_NOTICE, "check_password: Setting quality to [%s]",
-      value);
+  Log(LDAP_DEBUG_CONFIG, LOG_NOTICE, "check_password: Setting quality to [%s]", value);
 #endif
 
   /* No need to require more quality than we can check for. */
@@ -121,8 +119,7 @@ static int set_quality(char *value) {
 
 static int set_cracklib(char *value) {
 #ifdef CHECKPASSWD_DEBUG
-  Log(LDAP_DEBUG_CONFIG, LOG_NOTICE,
-      "check_password: Setting cracklib usage to [%s]", value);
+  Log(LDAP_DEBUG_CONFIG, LOG_NOTICE, "check_password: Setting cracklib usage to [%s]", value);
 #endif
 
   return (int)(value[0] - '0');
@@ -130,8 +127,7 @@ static int set_cracklib(char *value) {
 
 static int set_digit(char *value) {
 #ifdef CHECKPASSWD_DEBUG
-  Log(LDAP_DEBUG_CONFIG, LOG_NOTICE,
-      "check_password: Setting parameter to [%s]", value);
+  Log(LDAP_DEBUG_CONFIG, LOG_NOTICE, "check_password: Setting parameter to [%s]", value);
 #endif
   if (!isdigit(*value) || (int)(value[0] - '0') > 9)
     return 0;
@@ -152,13 +148,11 @@ static validator valid_word(char *word) {
   int index = 0;
 
 #ifdef CHECKPASSWD_DEBUG
-  Log(LDAP_DEBUG_CONFIG, LOG_NOTICE,
-      "check_password: Validating parameter [%s]", word);
+  Log(LDAP_DEBUG_CONFIG, LOG_NOTICE, "check_password: Validating parameter [%s]", word);
 #endif
 
   while (list[index].parameter != NULL) {
-    if (strlen(word) == strlen(list[index].parameter) &&
-        strcmp(list[index].parameter, word) == 0) {
+    if (strlen(word) == strlen(list[index].parameter) && strcmp(list[index].parameter, word) == 0) {
 #ifdef CHECKPASSWD_DEBUG
       Log(LDAP_DEBUG_CONFIG, LOG_NOTICE, "check_password: Parameter accepted.");
 #endif
@@ -187,8 +181,7 @@ static int read_config_file() {
 
   if ((config = fopen(CHECKPASSWD_CONFIGFILE, "r")) == NULL) {
 #ifdef CHECKPASSWD_DEBUG
-    Log(LDAP_DEBUG_ANY, LOG_ERR, "check_password: Opening file %s failed",
-        CHECKPASSWD_CONFIGFILE);
+    Log(LDAP_DEBUG_ANY, LOG_ERR, "check_password: Opening file %s failed", CHECKPASSWD_CONFIGFILE);
 #endif
 
     ber_memfree(line);
@@ -214,8 +207,7 @@ static int read_config_file() {
     if (ispunct(*start)) {
 #ifdef CHECKPASSWD_DEBUG
       /* Debug traces to syslog. */
-      Log(LDAP_DEBUG_TRACE, LOG_NOTICE, "check_password: Skipped line |%s|",
-          line);
+      Log(LDAP_DEBUG_TRACE, LOG_NOTICE, "check_password: Skipped line |%s|", line);
 #endif
       continue;
     }
@@ -227,12 +219,10 @@ static int read_config_file() {
       const char *keyWord = centry[i].key;
       if ((word = strtok(start, " \t")) && (value = strtok(NULL, " \t"))) {
         while (keyWord != NULL) {
-          if ((strncmp(keyWord, word, strlen(keyWord)) == 0) &&
-              (dealer = valid_word(word))) {
+          if ((strncmp(keyWord, word, strlen(keyWord)) == 0) && (dealer = valid_word(word))) {
 
 #ifdef CHECKPASSWD_DEBUG
-            Log(LDAP_DEBUG_TRACE, LOG_NOTICE,
-                "check_password: Word = %s, value = %s", word, value);
+            Log(LDAP_DEBUG_TRACE, LOG_NOTICE, "check_password: Word = %s, value = %s", word, value);
 #endif
 
             centry[i].value = chomp(value);
@@ -253,8 +243,7 @@ static int read_config_file() {
 static int realloc_error_message(char **target, int curlen, int nextlen) {
   if (curlen < nextlen + MEMORY_MARGIN) {
 #ifdef CHECKPASSWD_DEBUG
-    Log(LDAP_DEBUG_TRACE, LOG_WARNING,
-        "check_password: Reallocating szErrStr from %d to %d", curlen,
+    Log(LDAP_DEBUG_TRACE, LOG_WARNING, "check_password: Reallocating szErrStr from %d to %d", curlen,
         nextlen + MEMORY_MARGIN);
 #endif
     ber_memfree(*target);
@@ -278,8 +267,7 @@ int check_password(char *pPasswd, char **ppErrStr, Entry *pEntry) {
   int i;
 
   if (read_config_file() == -1) {
-    Log(LDAP_DEBUG_ANY, LOG_ERR,
-        "Warning: Could not read values from config file %s. Using defaults.",
+    Log(LDAP_DEBUG_ANY, LOG_ERR, "Warning: Could not read values from config file %s. Using defaults.",
         CHECKPASSWD_CONFIGFILE);
   }
 
@@ -296,9 +284,8 @@ int check_password(char *pPasswd, char **ppErrStr, Entry *pEntry) {
    * than 6 characters
    */
   if (nLen < (useCracklib ? 6 : minQuality)) {
-    mem_len = realloc_error_message(&szErrStr, mem_len,
-                                    strlen(PASSWORD_TOO_SHORT_SZ) +
-                                        strlen(pEntry->e_name.bv_val) + 1);
+    mem_len =
+        realloc_error_message(&szErrStr, mem_len, strlen(PASSWORD_TOO_SHORT_SZ) + strlen(pEntry->e_name.bv_val) + 1);
     sprintf(szErrStr, PASSWORD_TOO_SHORT_SZ, pEntry->e_name.bv_val, nLen);
     goto fail;
   }
@@ -321,9 +308,7 @@ int check_password(char *pPasswd, char **ppErrStr, Entry *pEntry) {
         nLower = 1;
         nQuality++;
 #ifdef CHECKPASSWD_DEBUG
-        Log(LDAP_DEBUG_TRACE, LOG_NOTICE,
-            "check_password: Found lower character - quality raise %d",
-            nQuality);
+        Log(LDAP_DEBUG_TRACE, LOG_NOTICE, "check_password: Found lower character - quality raise %d", nQuality);
 #endif
       }
       continue;
@@ -335,9 +320,7 @@ int check_password(char *pPasswd, char **ppErrStr, Entry *pEntry) {
         nUpper = 1;
         nQuality++;
 #ifdef CHECKPASSWD_DEBUG
-        Log(LDAP_DEBUG_TRACE, LOG_NOTICE,
-            "check_password: Found upper character - quality raise %d",
-            nQuality);
+        Log(LDAP_DEBUG_TRACE, LOG_NOTICE, "check_password: Found upper character - quality raise %d", nQuality);
 #endif
       }
       continue;
@@ -349,9 +332,7 @@ int check_password(char *pPasswd, char **ppErrStr, Entry *pEntry) {
         nDigit = 1;
         nQuality++;
 #ifdef CHECKPASSWD_DEBUG
-        Log(LDAP_DEBUG_TRACE, LOG_NOTICE,
-            "check_password: Found digit character - quality raise %d",
-            nQuality);
+        Log(LDAP_DEBUG_TRACE, LOG_NOTICE, "check_password: Found digit character - quality raise %d", nQuality);
 #endif
       }
       continue;
@@ -363,9 +344,7 @@ int check_password(char *pPasswd, char **ppErrStr, Entry *pEntry) {
         nPunct = 1;
         nQuality++;
 #ifdef CHECKPASSWD_DEBUG
-        Log(LDAP_DEBUG_TRACE, LOG_NOTICE,
-            "check_password: Found punctuation character - quality raise %d",
-            nQuality);
+        Log(LDAP_DEBUG_TRACE, LOG_NOTICE, "check_password: Found punctuation character - quality raise %d", nQuality);
 #endif
       }
       continue;
@@ -377,13 +356,10 @@ int check_password(char *pPasswd, char **ppErrStr, Entry *pEntry) {
    * checks.
    */
 
-  if ((minLower > 0) || (minUpper > 0) || (minDigit > 0) || (minPunct > 0) ||
-      (nQuality < minQuality)) {
-    mem_len = realloc_error_message(&szErrStr, mem_len,
-                                    strlen(PASSWORD_QUALITY_SZ) +
-                                        strlen(pEntry->e_name.bv_val) + 2);
-    sprintf(szErrStr, PASSWORD_QUALITY_SZ, pEntry->e_name.bv_val, nQuality,
-            minQuality);
+  if ((minLower > 0) || (minUpper > 0) || (minDigit > 0) || (minPunct > 0) || (nQuality < minQuality)) {
+    mem_len =
+        realloc_error_message(&szErrStr, mem_len, strlen(PASSWORD_QUALITY_SZ) + strlen(pEntry->e_name.bv_val) + 2);
+    sprintf(szErrStr, PASSWORD_QUALITY_SZ, pEntry->e_name.bv_val, nQuality, minQuality);
     goto fail;
   }
 
@@ -404,8 +380,7 @@ int check_password(char *pPasswd, char **ppErrStr, Entry *pEntry) {
 
     for (j = 0; j < 3; j++) {
 
-      snprintf(filename, FILENAME_MAXLEN - 1, "%s.%s", CRACKLIB_DICTPATH,
-               ext[j]);
+      snprintf(filename, FILENAME_MAXLEN - 1, "%s.%s", CRACKLIB_DICTPATH, ext[j]);
 
       if ((fp = fopen(filename, "r")) == NULL) {
 
@@ -423,9 +398,7 @@ int check_password(char *pPasswd, char **ppErrStr, Entry *pEntry) {
       r = (char *)FascistCheck(pPasswd, CRACKLIB_DICTPATH);
       if (r != NULL) {
         mem_len = realloc_error_message(&szErrStr, mem_len,
-                                        strlen(BAD_PASSWORD_SZ) +
-                                            strlen(pEntry->e_name.bv_val) +
-                                            strlen(r));
+                                        strlen(BAD_PASSWORD_SZ) + strlen(pEntry->e_name.bv_val) + strlen(r));
         sprintf(szErrStr, BAD_PASSWORD_SZ, pEntry->e_name.bv_val, r);
         goto fail;
       }
@@ -434,8 +407,7 @@ int check_password(char *pPasswd, char **ppErrStr, Entry *pEntry) {
 
   else {
 #ifdef CHECKPASSWD_DEBUG
-    Log(LDAP_DEBUG_NONE, LOG_NOTICE,
-        "check_password: Cracklib verification disabled by configuration");
+    Log(LDAP_DEBUG_NONE, LOG_NOTICE, "check_password: Cracklib verification disabled by configuration");
 #endif
   }
 

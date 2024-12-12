@@ -26,8 +26,7 @@
  * for the closest ancestor of the DN. Otherwise e is NULL.
  */
 
-int bdb_dn2entry(Operation *op, DB_TXN *tid, struct berval *dn, EntryInfo **e,
-                 int matched, DB_LOCK *lock) {
+int bdb_dn2entry(Operation *op, DB_TXN *tid, struct berval *dn, EntryInfo **e, int matched, DB_LOCK *lock) {
   EntryInfo *ei = NULL;
   int rc, rc2;
 

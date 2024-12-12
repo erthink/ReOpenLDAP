@@ -32,9 +32,7 @@ struct entrything {
 
 static int et_cmp(const void *aa, const void *bb);
 
-int ldap_sort_strcasecmp(const void *a, const void *b) {
-  return (strcasecmp(*(char *const *)a, *(char *const *)b));
-}
+int ldap_sort_strcasecmp(const void *a, const void *b) { return (strcasecmp(*(char *const *)a, *(char *const *)b)); }
 
 static int et_cmp(const void *aa, const void *bb) {
   int i, rc;
@@ -61,8 +59,7 @@ static int et_cmp(const void *aa, const void *bb) {
   return (1);
 }
 
-int ldap_sort_entries(LDAP *ld, LDAPMessage **chain,
-                      const char *attr, /* NULL => sort by DN */
+int ldap_sort_entries(LDAP *ld, LDAPMessage **chain, const char *attr, /* NULL => sort by DN */
                       int (*cmp)(const char *, const char *)) {
   int i, count = 0;
   struct entrything *et;
@@ -101,8 +98,7 @@ int ldap_sort_entries(LDAP *ld, LDAPMessage **chain,
     return 0;
   }
 
-  if ((et = (struct entrything *)LDAP_MALLOC(
-           count * sizeof(struct entrything))) == NULL) {
+  if ((et = (struct entrything *)LDAP_MALLOC(count * sizeof(struct entrything))) == NULL) {
     ld->ld_errno = LDAP_NO_MEMORY;
     return (-1);
   }
@@ -141,8 +137,7 @@ int ldap_sort_entries(LDAP *ld, LDAPMessage **chain,
   return (0);
 }
 
-int ldap_sort_values(LDAP *ld, char **vals,
-                     int (*cmp)(const void *, const void *)) {
+int ldap_sort_values(LDAP *ld, char **vals, int (*cmp)(const void *, const void *)) {
   int nel;
 
   for (nel = 0; vals[nel] != NULL; nel++)

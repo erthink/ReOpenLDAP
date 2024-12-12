@@ -72,8 +72,7 @@ char *slapi_entry_attr_get_charptr(const Slapi_Entry *e, const char *type);
 int slapi_entry_attr_get_int(const Slapi_Entry *e, const char *type);
 long slapi_entry_attr_get_long(const Slapi_Entry *e, const char *type);
 unsigned int slapi_entry_attr_get_uint(const Slapi_Entry *e, const char *type);
-unsigned long slapi_entry_attr_get_ulong(const Slapi_Entry *e,
-                                         const char *type);
+unsigned long slapi_entry_attr_get_ulong(const Slapi_Entry *e, const char *type);
 int slapi_attr_get_values(Slapi_Attr *attr, struct berval ***vals);
 char *slapi_dn_normalize(char *dn);
 char *slapi_dn_normalize_case(char *dn);
@@ -87,10 +86,8 @@ int slapi_rdn2typeval(char *rdn, char **type, struct berval *bv);
 char *slapi_dn_plus_rdn(const char *dn, const char *rdn);
 
 /* DS 5.x SLAPI */
-int slapi_access_allowed(Slapi_PBlock *pb, Slapi_Entry *e, char *attr,
-                         struct berval *val, int access);
-int slapi_acl_check_mods(Slapi_PBlock *pb, Slapi_Entry *e, LDAPMod **mods,
-                         char **errbuf);
+int slapi_access_allowed(Slapi_PBlock *pb, Slapi_Entry *e, char *attr, struct berval *val, int access);
+int slapi_acl_check_mods(Slapi_PBlock *pb, Slapi_Entry *e, LDAPMod **mods, char **errbuf);
 Slapi_Attr *slapi_attr_new(void);
 Slapi_Attr *slapi_attr_init(Slapi_Attr *a, const char *type);
 void slapi_attr_free(Slapi_Attr **a);
@@ -101,8 +98,7 @@ int slapi_attr_get_type(const Slapi_Attr *attr, char **type);
 int slapi_attr_get_oid_copy(const Slapi_Attr *attr, char **oidp);
 int slapi_attr_get_flags(const Slapi_Attr *attr, unsigned long *flags);
 int slapi_attr_flag_is_set(const Slapi_Attr *attr, unsigned long flag);
-int slapi_attr_value_cmp(const Slapi_Attr *attr, const struct berval *v1,
-                         const struct berval *v2);
+int slapi_attr_value_cmp(const Slapi_Attr *attr, const struct berval *v1, const struct berval *v2);
 int slapi_attr_value_find(const Slapi_Attr *a, struct berval *v);
 #define SLAPI_TYPE_CMP_EXACT 0
 #define SLAPI_TYPE_CMP_BASE 1
@@ -114,41 +110,27 @@ int slapi_attr_next_value(Slapi_Attr *a, int hint, Slapi_Value **v);
 int slapi_attr_get_numvalues(const Slapi_Attr *a, int *numValues);
 int slapi_attr_get_valueset(const Slapi_Attr *a, Slapi_ValueSet **vs);
 int slapi_attr_get_bervals_copy(Slapi_Attr *a, struct berval ***vals);
-int slapi_entry_attr_hasvalue(Slapi_Entry *e, const char *type,
-                              const char *value);
-int slapi_entry_attr_merge_sv(Slapi_Entry *e, const char *type,
-                              Slapi_Value **vals);
-void slapi_entry_attr_set_charptr(Slapi_Entry *e, const char *type,
-                                  const char *value);
+int slapi_entry_attr_hasvalue(Slapi_Entry *e, const char *type, const char *value);
+int slapi_entry_attr_merge_sv(Slapi_Entry *e, const char *type, Slapi_Value **vals);
+void slapi_entry_attr_set_charptr(Slapi_Entry *e, const char *type, const char *value);
 void slapi_entry_attr_set_int(Slapi_Entry *e, const char *type, int l);
-void slapi_entry_attr_set_uint(Slapi_Entry *e, const char *type,
-                               unsigned int l);
+void slapi_entry_attr_set_uint(Slapi_Entry *e, const char *type, unsigned int l);
 void slapi_entry_attr_set_long(Slapi_Entry *e, const char *type, long l);
-void slapi_entry_attr_set_ulong(Slapi_Entry *e, const char *type,
-                                unsigned long l);
+void slapi_entry_attr_set_ulong(Slapi_Entry *e, const char *type, unsigned long l);
 int slapi_entry_has_children(const Slapi_Entry *e);
 size_t slapi_entry_size(Slapi_Entry *e);
 int slapi_is_rootdse(const char *dn);
-int slapi_entry_attr_merge_sv(Slapi_Entry *e, const char *type,
-                              Slapi_Value **vals);
-int slapi_entry_add_values_sv(Slapi_Entry *e, const char *type,
-                              Slapi_Value **vals);
-int slapi_entry_add_valueset(Slapi_Entry *e, const char *type,
-                             Slapi_ValueSet *vs);
-int slapi_entry_delete_values_sv(Slapi_Entry *e, const char *type,
-                                 Slapi_Value **vals);
-int slapi_entry_merge_values_sv(Slapi_Entry *e, const char *type,
-                                Slapi_Value **vals);
-int slapi_entry_attr_replace_sv(Slapi_Entry *e, const char *type,
-                                Slapi_Value **vals);
-int slapi_entry_add_value(Slapi_Entry *e, const char *type,
-                          const Slapi_Value *value);
+int slapi_entry_attr_merge_sv(Slapi_Entry *e, const char *type, Slapi_Value **vals);
+int slapi_entry_add_values_sv(Slapi_Entry *e, const char *type, Slapi_Value **vals);
+int slapi_entry_add_valueset(Slapi_Entry *e, const char *type, Slapi_ValueSet *vs);
+int slapi_entry_delete_values_sv(Slapi_Entry *e, const char *type, Slapi_Value **vals);
+int slapi_entry_merge_values_sv(Slapi_Entry *e, const char *type, Slapi_Value **vals);
+int slapi_entry_attr_replace_sv(Slapi_Entry *e, const char *type, Slapi_Value **vals);
+int slapi_entry_add_value(Slapi_Entry *e, const char *type, const Slapi_Value *value);
 int slapi_entry_add_string(Slapi_Entry *e, const char *type, const char *value);
-int slapi_entry_delete_string(Slapi_Entry *e, const char *type,
-                              const char *value);
+int slapi_entry_delete_string(Slapi_Entry *e, const char *type, const char *value);
 int slapi_entry_first_attr(const Slapi_Entry *e, Slapi_Attr **attr);
-int slapi_entry_next_attr(const Slapi_Entry *e, Slapi_Attr *prevattr,
-                          Slapi_Attr **attr);
+int slapi_entry_next_attr(const Slapi_Entry *e, Slapi_Attr *prevattr, Slapi_Attr **attr);
 const char *slapi_entry_get_uniqueid(const Slapi_Entry *e);
 void slapi_entry_set_uniqueid(Slapi_Entry *e, char *uniqueid);
 int slapi_entry_schema_check(Slapi_PBlock *pb, Slapi_Entry *e);
@@ -166,10 +148,8 @@ Slapi_Value *slapi_value_init_string(Slapi_Value *v, const char *s);
 Slapi_Value *slapi_value_dup(const Slapi_Value *v);
 void slapi_value_free(Slapi_Value **value);
 const struct berval *slapi_value_get_berval(const Slapi_Value *value);
-Slapi_Value *slapi_value_set_berval(Slapi_Value *value,
-                                    const struct berval *bval);
-Slapi_Value *slapi_value_set_value(Slapi_Value *value,
-                                   const Slapi_Value *vfrom);
+Slapi_Value *slapi_value_set_berval(Slapi_Value *value, const struct berval *bval);
+Slapi_Value *slapi_value_set_value(Slapi_Value *value, const Slapi_Value *vfrom);
 Slapi_Value *slapi_value_set(Slapi_Value *value, void *val, unsigned long len);
 int slapi_value_set_string(Slapi_Value *value, const char *strVal);
 int slapi_value_set_int(Slapi_Value *value, int intVal);
@@ -179,8 +159,7 @@ unsigned int slapi_value_get_uint(const Slapi_Value *value);
 long slapi_value_get_long(const Slapi_Value *value);
 unsigned long slapi_value_get_ulong(const Slapi_Value *value);
 size_t slapi_value_get_length(const Slapi_Value *value);
-int slapi_value_compare(const Slapi_Attr *a, const Slapi_Value *v1,
-                        const Slapi_Value *v2);
+int slapi_value_compare(const Slapi_Attr *a, const Slapi_Value *v1, const Slapi_Value *v2);
 
 Slapi_ValueSet *slapi_valueset_new(void);
 void slapi_valueset_free(Slapi_ValueSet *vs);
@@ -190,8 +169,7 @@ void slapi_valueset_add_value(Slapi_ValueSet *vs, const Slapi_Value *addval);
 int slapi_valueset_first_value(Slapi_ValueSet *vs, Slapi_Value **v);
 int slapi_valueset_next_value(Slapi_ValueSet *vs, int index, Slapi_Value **v);
 int slapi_valueset_count(const Slapi_ValueSet *vs);
-void slapi_valueset_set_valueset(Slapi_ValueSet *vs1,
-                                 const Slapi_ValueSet *vs2);
+void slapi_valueset_set_valueset(Slapi_ValueSet *vs1, const Slapi_ValueSet *vs2);
 
 /* DNs */
 Slapi_DN *slapi_sdn_new(void);
@@ -210,8 +188,7 @@ void slapi_sdn_free(Slapi_DN **sdn);
 const char *slapi_sdn_get_dn(const Slapi_DN *sdn);
 const char *slapi_sdn_get_ndn(const Slapi_DN *sdn);
 void slapi_sdn_get_parent(const Slapi_DN *sdn, Slapi_DN *sdn_parent);
-void slapi_sdn_get_backend_parent(const Slapi_DN *sdn, Slapi_DN *sdn_parent,
-                                  const Slapi_Backend *backend);
+void slapi_sdn_get_backend_parent(const Slapi_DN *sdn, Slapi_DN *sdn_parent, const Slapi_Backend *backend);
 Slapi_DN *slapi_sdn_dup(const Slapi_DN *sdn);
 void slapi_sdn_copy(const Slapi_DN *from, Slapi_DN *to);
 int slapi_sdn_compare(const Slapi_DN *sdn1, const Slapi_DN *sdn2);
@@ -224,10 +201,8 @@ int slapi_sdn_scope_test(const Slapi_DN *dn, const Slapi_DN *base, int scope);
 void slapi_sdn_get_rdn(const Slapi_DN *sdn, Slapi_RDN *rdn);
 Slapi_DN *slapi_sdn_set_rdn(Slapi_DN *sdn, const Slapi_RDN *rdn);
 Slapi_DN *slapi_sdn_set_parent(Slapi_DN *sdn, const Slapi_DN *parentdn);
-int slapi_sdn_is_rdn_component(const Slapi_DN *rdn, const Slapi_Attr *a,
-                               const Slapi_Value *v);
-char *slapi_moddn_get_newdn(Slapi_DN *dn_olddn, char *newrdn,
-                            char *newsuperiordn);
+int slapi_sdn_is_rdn_component(const Slapi_DN *rdn, const Slapi_Attr *a, const Slapi_Value *v);
+char *slapi_moddn_get_newdn(Slapi_DN *dn_olddn, char *newrdn, char *newsuperiordn);
 
 /* RDNs */
 Slapi_RDN *slapi_rdn_new(void);
@@ -245,16 +220,13 @@ void slapi_rdn_free(Slapi_RDN **rdn);
 void slapi_rdn_done(Slapi_RDN *rdn);
 int slapi_rdn_get_first(Slapi_RDN *rdn, char **type, char **value);
 int slapi_rdn_get_next(Slapi_RDN *rdn, int index, char **type, char **value);
-int slapi_rdn_get_index(Slapi_RDN *rdn, const char *type, const char *value,
-                        size_t length);
+int slapi_rdn_get_index(Slapi_RDN *rdn, const char *type, const char *value, size_t length);
 int slapi_rdn_get_index_attr(Slapi_RDN *rdn, const char *type, char **value);
-int slapi_rdn_contains(Slapi_RDN *rdn, const char *type, const char *value,
-                       size_t length);
+int slapi_rdn_contains(Slapi_RDN *rdn, const char *type, const char *value, size_t length);
 int slapi_rdn_contains_attr(Slapi_RDN *rdn, const char *type, char **value);
 int slapi_rdn_add(Slapi_RDN *rdn, const char *type, const char *value);
 int slapi_rdn_remove_index(Slapi_RDN *rdn, int atindex);
-int slapi_rdn_remove(Slapi_RDN *rdn, const char *type, const char *value,
-                     size_t length);
+int slapi_rdn_remove(Slapi_RDN *rdn, const char *type, const char *value, size_t length);
 int slapi_rdn_remove_attr(Slapi_RDN *rdn, const char *type);
 int slapi_rdn_isempty(const Slapi_RDN *rdn);
 int slapi_rdn_get_num_components(Slapi_RDN *rdn);
@@ -290,10 +262,8 @@ struct berval *slapi_ch_bvdup(const struct berval *v);
 struct berval **slapi_ch_bvecdup(const struct berval **v);
 
 /* LDAP V3 routines */
-int slapi_control_present(LDAPControl **controls, char *oid,
-                          struct berval **val, int *iscritical);
-void slapi_register_supported_control(char *controloid,
-                                      unsigned long controlops);
+int slapi_control_present(LDAPControl **controls, char *oid, struct berval **val, int *iscritical);
+void slapi_register_supported_control(char *controloid, unsigned long controlops);
 #define SLAPI_OPERATION_BIND 0x00000001L
 #define SLAPI_OPERATION_UNBIND 0x00000002L
 #define SLAPI_OPERATION_SEARCH 0x00000004L
@@ -322,13 +292,9 @@ int slapi_operation_is_flag_set(Slapi_Operation *op, unsigned long flag);
 char *slapi_op_type_to_string(unsigned long type);
 
 /* send ldap result back */
-void slapi_send_ldap_result(Slapi_PBlock *pb, int err, char *matched,
-                            char *text, int nentries, struct berval **urls);
-int slapi_send_ldap_search_entry(Slapi_PBlock *pb, Slapi_Entry *e,
-                                 LDAPControl **ectrls, char **attrs,
-                                 int attrsonly);
-int slapi_send_ldap_search_reference(Slapi_PBlock *pb, Slapi_Entry *e,
-                                     struct berval **urls, LDAPControl **ectrls,
+void slapi_send_ldap_result(Slapi_PBlock *pb, int err, char *matched, char *text, int nentries, struct berval **urls);
+int slapi_send_ldap_search_entry(Slapi_PBlock *pb, Slapi_Entry *e, LDAPControl **ectrls, char **attrs, int attrsonly);
+int slapi_send_ldap_search_reference(Slapi_PBlock *pb, Slapi_Entry *e, struct berval **urls, LDAPControl **ectrls,
                                      struct berval **v2refs);
 
 /* filter routines */
@@ -341,18 +307,14 @@ Slapi_Filter *slapi_filter_list_first(Slapi_Filter *f);
 Slapi_Filter *slapi_filter_list_next(Slapi_Filter *f, Slapi_Filter *fprev);
 int slapi_filter_get_attribute_type(Slapi_Filter *f, char **type);
 int slapi_x_filter_set_attribute_type(Slapi_Filter *f, const char *type);
-int slapi_filter_get_subfilt(Slapi_Filter *f, char **type, char **initial,
-                             char ***any, char **final);
+int slapi_filter_get_subfilt(Slapi_Filter *f, char **type, char **initial, char ***any, char **final);
 Slapi_Filter *slapi_filter_join(int ftype, Slapi_Filter *f1, Slapi_Filter *f2);
-int slapi_x_filter_append(int choice, Slapi_Filter **pContainingFilter,
-                          Slapi_Filter **pNextFilter,
+int slapi_x_filter_append(int choice, Slapi_Filter **pContainingFilter, Slapi_Filter **pNextFilter,
                           Slapi_Filter *filterToAppend);
-int slapi_filter_test(Slapi_PBlock *pb, Slapi_Entry *e, Slapi_Filter *f,
-                      int verify_access);
+int slapi_filter_test(Slapi_PBlock *pb, Slapi_Entry *e, Slapi_Filter *f, int verify_access);
 int slapi_filter_test_simple(Slapi_Entry *e, Slapi_Filter *f);
 typedef int (*FILTER_APPLY_FN)(Slapi_Filter *f, void *arg);
-int slapi_filter_apply(Slapi_Filter *f, FILTER_APPLY_FN fn, void *arg,
-                       int *error_code);
+int slapi_filter_apply(Slapi_Filter *f, FILTER_APPLY_FN fn, void *arg, int *error_code);
 #define SLAPI_FILTER_SCAN_STOP -1          /* set by callback */
 #define SLAPI_FILTER_SCAN_ERROR -2         /* set by callback */
 #define SLAPI_FILTER_SCAN_NOMORE 0         /* set by callback */
@@ -360,82 +322,53 @@ int slapi_filter_apply(Slapi_Filter *f, FILTER_APPLY_FN fn, void *arg,
 #define SLAPI_FILTER_UNKNOWN_FILTER_TYPE 2 /* set by slapi_filter_apply() */
 
 /* internal add/delete/search/modify routines */
-Slapi_PBlock *slapi_search_internal(char *base, int scope, char *filter,
-                                    LDAPControl **controls, char **attrs,
+Slapi_PBlock *slapi_search_internal(char *base, int scope, char *filter, LDAPControl **controls, char **attrs,
                                     int attrsonly);
-Slapi_PBlock *slapi_modify_internal(char *dn, LDAPMod **mods,
-                                    LDAPControl **controls, int log_change);
-Slapi_PBlock *slapi_add_internal(char *dn, LDAPMod **attrs,
-                                 LDAPControl **controls, int log_changes);
-Slapi_PBlock *slapi_add_entry_internal(Slapi_Entry *e, LDAPControl **controls,
-                                       int log_change);
-Slapi_PBlock *slapi_delete_internal(char *dn, LDAPControl **controls,
-                                    int log_change);
-Slapi_PBlock *slapi_modrdn_internal(char *olddn, char *newrdn, int deloldrdn,
-                                    LDAPControl **controls, int log_change);
-Slapi_PBlock *slapi_rename_internal(const char *olddn, const char *newrdn,
-                                    const char *newsuperior, int deloldrdn,
+Slapi_PBlock *slapi_modify_internal(char *dn, LDAPMod **mods, LDAPControl **controls, int log_change);
+Slapi_PBlock *slapi_add_internal(char *dn, LDAPMod **attrs, LDAPControl **controls, int log_changes);
+Slapi_PBlock *slapi_add_entry_internal(Slapi_Entry *e, LDAPControl **controls, int log_change);
+Slapi_PBlock *slapi_delete_internal(char *dn, LDAPControl **controls, int log_change);
+Slapi_PBlock *slapi_modrdn_internal(char *olddn, char *newrdn, int deloldrdn, LDAPControl **controls, int log_change);
+Slapi_PBlock *slapi_rename_internal(const char *olddn, const char *newrdn, const char *newsuperior, int deloldrdn,
                                     LDAPControl **controls, int log_change);
 void slapi_free_search_results_internal(Slapi_PBlock *pb);
 
 /* new internal add/delete/search/modify routines */
 typedef void (*plugin_result_callback)(int rc, void *callback_data);
-typedef int (*plugin_referral_entry_callback)(char *referral,
-                                              void *callback_data);
-typedef int (*plugin_search_entry_callback)(Slapi_Entry *e,
-                                            void *callback_data);
+typedef int (*plugin_referral_entry_callback)(char *referral, void *callback_data);
+typedef int (*plugin_search_entry_callback)(Slapi_Entry *e, void *callback_data);
 void slapi_free_search_results_internal(Slapi_PBlock *pb);
 
 #define SLAPI_OP_FLAG_NEVER_CHAIN 0x0800
 
 int slapi_search_internal_pb(Slapi_PBlock *pb);
-int slapi_search_internal_callback_pb(Slapi_PBlock *pb, void *callback_data,
-                                      plugin_result_callback prc,
-                                      plugin_search_entry_callback psec,
-                                      plugin_referral_entry_callback prec);
+int slapi_search_internal_callback_pb(Slapi_PBlock *pb, void *callback_data, plugin_result_callback prc,
+                                      plugin_search_entry_callback psec, plugin_referral_entry_callback prec);
 int slapi_add_internal_pb(Slapi_PBlock *pb);
 int slapi_modify_internal_pb(Slapi_PBlock *pb);
 int slapi_modrdn_internal_pb(Slapi_PBlock *pb);
 int slapi_delete_internal_pb(Slapi_PBlock *pb);
 
-int slapi_seq_internal_callback_pb(Slapi_PBlock *pb, void *callback_data,
-                                   plugin_result_callback res_callback,
+int slapi_seq_internal_callback_pb(Slapi_PBlock *pb, void *callback_data, plugin_result_callback res_callback,
                                    plugin_search_entry_callback srch_callback,
                                    plugin_referral_entry_callback ref_callback);
 
-void slapi_search_internal_set_pb(Slapi_PBlock *pb, const char *base, int scope,
-                                  const char *filter, char **attrs,
-                                  int attrsonly, LDAPControl **controls,
-                                  const char *uniqueid,
-                                  Slapi_ComponentId *plugin_identity,
-                                  int operation_flags);
-void slapi_add_entry_internal_set_pb(Slapi_PBlock *pb, Slapi_Entry *e,
-                                     LDAPControl **controls,
-                                     Slapi_ComponentId *plugin_identity,
-                                     int operation_flags);
-int slapi_add_internal_set_pb(Slapi_PBlock *pb, const char *dn, LDAPMod **attrs,
-                              LDAPControl **controls,
-                              Slapi_ComponentId *plugin_identity,
-                              int operation_flags);
-void slapi_modify_internal_set_pb(Slapi_PBlock *pb, const char *dn,
-                                  LDAPMod **mods, LDAPControl **controls,
-                                  const char *uniqueid,
-                                  Slapi_ComponentId *plugin_identity,
-                                  int operation_flags);
-void slapi_rename_internal_set_pb(Slapi_PBlock *pb, const char *olddn,
-                                  const char *newrdn, const char *newsuperior,
-                                  int deloldrdn, LDAPControl **controls,
-                                  const char *uniqueid,
-                                  Slapi_ComponentId *plugin_identity,
-                                  int operation_flags);
-void slapi_delete_internal_set_pb(Slapi_PBlock *pb, const char *dn,
-                                  LDAPControl **controls, const char *uniqueid,
-                                  Slapi_ComponentId *plugin_identity,
-                                  int operation_flags);
-void slapi_seq_internal_set_pb(Slapi_PBlock *pb, char *ibase, int type,
-                               char *attrname, char *val, char **attrs,
-                               int attrsonly, LDAPControl **controls,
-                               Slapi_ComponentId *plugin_identity,
+void slapi_search_internal_set_pb(Slapi_PBlock *pb, const char *base, int scope, const char *filter, char **attrs,
+                                  int attrsonly, LDAPControl **controls, const char *uniqueid,
+                                  Slapi_ComponentId *plugin_identity, int operation_flags);
+void slapi_add_entry_internal_set_pb(Slapi_PBlock *pb, Slapi_Entry *e, LDAPControl **controls,
+                                     Slapi_ComponentId *plugin_identity, int operation_flags);
+int slapi_add_internal_set_pb(Slapi_PBlock *pb, const char *dn, LDAPMod **attrs, LDAPControl **controls,
+                              Slapi_ComponentId *plugin_identity, int operation_flags);
+void slapi_modify_internal_set_pb(Slapi_PBlock *pb, const char *dn, LDAPMod **mods, LDAPControl **controls,
+                                  const char *uniqueid, Slapi_ComponentId *plugin_identity, int operation_flags);
+void slapi_rename_internal_set_pb(Slapi_PBlock *pb, const char *olddn, const char *newrdn, const char *newsuperior,
+                                  int deloldrdn, LDAPControl **controls, const char *uniqueid,
+                                  Slapi_ComponentId *plugin_identity, int operation_flags);
+void slapi_delete_internal_set_pb(Slapi_PBlock *pb, const char *dn, LDAPControl **controls, const char *uniqueid,
+                                  Slapi_ComponentId *plugin_identity, int operation_flags);
+void slapi_seq_internal_set_pb(Slapi_PBlock *pb, char *ibase, int type, char *attrname, char *val, char **attrs,
+                               int attrsonly, LDAPControl **controls, Slapi_ComponentId *plugin_identity,
                                int operation_flags);
 
 /* connection related routines */
@@ -446,17 +379,14 @@ void slapi_free_client_ip(char **clientIP);
 
 /* computed attributes */
 typedef struct _computed_attr_context computed_attr_context;
-typedef int (*slapi_compute_output_t)(computed_attr_context *c, Slapi_Attr *a,
-                                      Slapi_Entry *e);
-typedef int (*slapi_compute_callback_t)(computed_attr_context *c, char *type,
-                                        Slapi_Entry *e,
+typedef int (*slapi_compute_output_t)(computed_attr_context *c, Slapi_Attr *a, Slapi_Entry *e);
+typedef int (*slapi_compute_callback_t)(computed_attr_context *c, char *type, Slapi_Entry *e,
                                         slapi_compute_output_t outputfn);
 typedef int (*slapi_search_rewrite_callback_t)(Slapi_PBlock *pb);
 int slapi_compute_add_evaluator(slapi_compute_callback_t function);
 int slapi_compute_add_search_rewriter(slapi_search_rewrite_callback_t function);
 int compute_rewrite_search_filter(Slapi_PBlock *pb);
-int compute_evaluator(computed_attr_context *c, char *type, Slapi_Entry *e,
-                      slapi_compute_output_t outputfn);
+int compute_evaluator(computed_attr_context *c, char *type, Slapi_Entry *e, slapi_compute_output_t outputfn);
 int slapi_x_compute_get_pblock(computed_attr_context *c, Slapi_PBlock **pb);
 
 /* backend routines */
@@ -466,31 +396,25 @@ const char *slapi_x_be_get_updatedn(Slapi_Backend *be);
 Slapi_Backend *slapi_be_select(const Slapi_DN *sdn);
 
 /* ACL plugins; only SLAPI_PLUGIN_ACL_ALLOW_ACCESS supported now */
-typedef int (*slapi_acl_callback_t)(Slapi_PBlock *pb, Slapi_Entry *e,
-                                    const char *attr, struct berval *berval,
+typedef int (*slapi_acl_callback_t)(Slapi_PBlock *pb, Slapi_Entry *e, const char *attr, struct berval *berval,
                                     int access, void *state);
 
 /* object extensions */
 typedef void *(*slapi_extension_constructor_fnptr)(void *object, void *parent);
 
-typedef void (*slapi_extension_destructor_fnptr)(void *extension, void *object,
-                                                 void *parent);
+typedef void (*slapi_extension_destructor_fnptr)(void *extension, void *object, void *parent);
 
-int slapi_register_object_extension(
-    const char *pluginname, const char *objectname,
-    slapi_extension_constructor_fnptr constructor,
-    slapi_extension_destructor_fnptr destructor, int *objecttype,
-    int *extensionhandle);
+int slapi_register_object_extension(const char *pluginname, const char *objectname,
+                                    slapi_extension_constructor_fnptr constructor,
+                                    slapi_extension_destructor_fnptr destructor, int *objecttype, int *extensionhandle);
 
 #define SLAPI_EXT_CONNECTION "Connection"
 #define SLAPI_EXT_OPERATION "Operation"
 #define SLAPI_EXT_ENTRY "Entry"
 #define SLAPI_EXT_MTNODE "Mapping Tree Node"
 
-void *slapi_get_object_extension(int objecttype, void *object,
-                                 int extensionhandle);
-void slapi_set_object_extension(int objecttype, void *object,
-                                int extensionhandle, void *extension);
+void *slapi_get_object_extension(int objecttype, void *object, int extensionhandle);
+void slapi_set_object_extension(int objecttype, void *object, int extensionhandle, void *extension);
 
 int slapi_x_backend_get_flags(const Slapi_Backend *be, unsigned long *flags);
 
@@ -512,17 +436,14 @@ int slapi_x_backend_get_flags(const Slapi_Backend *be, unsigned long *flags);
  */
 #define SLAPI_BACKEND_FLAG_NOLASTMOD 0x0001U
 #define SLAPI_BACKEND_FLAG_NO_SCHEMA_CHECK 0x0002U
-#define SLAPI_BACKEND_FLAG_GLUE_INSTANCE 0x0010U /* a glue backend */
-#define SLAPI_BACKEND_FLAG_GLUE_SUBORDINATE                                    \
-  0x0020U /* child of a glue hierarchy */
-#define SLAPI_BACKEND_FLAG_GLUE_LINKED                                         \
-  0x0040U                                  /* child is connected to parent */
-#define SLAPI_BACKEND_FLAG_OVERLAY 0x0080U /* this db struct is an overlay */
-#define SLAPI_BACKEND_FLAG_GLOBAL_OVERLAY                                      \
-  0x0100U /* this db struct is a global overlay */
-#define SLAPI_BACKEND_FLAG_SHADOW 0x8000U       /* a shadow */
-#define SLAPI_BACKEND_FLAG_SYNC_SHADOW 0x1000U  /* a sync shadow */
-#define SLAPI_BACKEND_FLAG_SLURP_SHADOW 0x2000U /* a slurp shadow */
+#define SLAPI_BACKEND_FLAG_GLUE_INSTANCE 0x0010U    /* a glue backend */
+#define SLAPI_BACKEND_FLAG_GLUE_SUBORDINATE 0x0020U /* child of a glue hierarchy */
+#define SLAPI_BACKEND_FLAG_GLUE_LINKED 0x0040U      /* child is connected to parent */
+#define SLAPI_BACKEND_FLAG_OVERLAY 0x0080U          /* this db struct is an overlay */
+#define SLAPI_BACKEND_FLAG_GLOBAL_OVERLAY 0x0100U   /* this db struct is a global overlay */
+#define SLAPI_BACKEND_FLAG_SHADOW 0x8000U           /* a shadow */
+#define SLAPI_BACKEND_FLAG_SYNC_SHADOW 0x1000U      /* a sync shadow */
+#define SLAPI_BACKEND_FLAG_SLURP_SHADOW 0x2000U     /* a slurp shadow */
 
 /*
  * ACL levels
@@ -949,8 +870,7 @@ typedef struct slapi_plugindesc {
 
 #ifdef __GNUC__
 #ifndef __clang__
-#define SLAPI_PLUGIN_ENTRY                                                     \
-  __attribute__((visibility("default"), externally_visible))
+#define SLAPI_PLUGIN_ENTRY __attribute__((visibility("default"), externally_visible))
 #else
 #define SLAPI_PLUGIN_ENTRY __attribute__((visibility("default")))
 #endif

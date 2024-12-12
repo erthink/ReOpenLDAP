@@ -102,8 +102,8 @@ int asyncmeta_back_db_init(Backend *be, ConfigReply *cr) {
   }
 
   /* set default flags */
-  mi->mi_flags = META_BACK_F_DEFER_ROOTDN_BIND | META_BACK_F_PROXYAUTHZ_ALWAYS |
-                 META_BACK_F_PROXYAUTHZ_ANON | META_BACK_F_PROXYAUTHZ_NOANON;
+  mi->mi_flags = META_BACK_F_DEFER_ROOTDN_BIND | META_BACK_F_PROXYAUTHZ_ALWAYS | META_BACK_F_PROXYAUTHZ_ANON |
+                 META_BACK_F_PROXYAUTHZ_NOANON;
 
   /*
    * At present the default is no default target;
@@ -137,8 +137,7 @@ int asyncmeta_back_db_init(Backend *be, ConfigReply *cr) {
   return 0;
 }
 
-int asyncmeta_target_finish(a_metainfo_t *mi, a_metatarget_t *mt,
-                            const char *log, char *msg, size_t msize) {
+int asyncmeta_target_finish(a_metainfo_t *mi, a_metatarget_t *mt, const char *log, char *msg, size_t msize) {
   slap_bindconf sb = {BER_BVNULL};
   struct berval mapped;
   int rc;
@@ -149,30 +148,25 @@ int asyncmeta_target_finish(a_metainfo_t *mi, a_metatarget_t *mt,
   BER_BVSTR(&sb.sb_binddn, "");
 
   if (META_BACK_TGT_T_F_DISCOVER(mt)) {
-    rc = slap_discover_feature(
-        &sb, slap_schema.si_ad_supportedFeatures->ad_cname.bv_val,
-        LDAP_FEATURE_ABSOLUTE_FILTERS);
+    rc =
+        slap_discover_feature(&sb, slap_schema.si_ad_supportedFeatures->ad_cname.bv_val, LDAP_FEATURE_ABSOLUTE_FILTERS);
     if (rc == LDAP_COMPARE_TRUE) {
       mt->mt_flags |= LDAP_BACK_F_T_F;
     }
   }
 
   if (META_BACK_TGT_CANCEL_DISCOVER(mt)) {
-    rc = slap_discover_feature(
-        &sb, slap_schema.si_ad_supportedExtension->ad_cname.bv_val,
-        LDAP_EXOP_CANCEL);
+    rc = slap_discover_feature(&sb, slap_schema.si_ad_supportedExtension->ad_cname.bv_val, LDAP_EXOP_CANCEL);
     if (rc == LDAP_COMPARE_TRUE) {
       mt->mt_flags |= LDAP_BACK_F_CANCEL_EXOP;
     }
   }
 
-  if (!(mt->mt_idassert_flags & LDAP_BACK_AUTH_OVERRIDE) ||
-      mt->mt_idassert_authz != NULL) {
+  if (!(mt->mt_idassert_flags & LDAP_BACK_AUTH_OVERRIDE) || mt->mt_idassert_authz != NULL) {
     mi->mi_flags &= ~META_BACK_F_PROXYAUTHZ_ALWAYS;
   }
 
-  if ((mt->mt_idassert_flags & LDAP_BACK_AUTH_AUTHZ_ALL) &&
-      !(mt->mt_idassert_flags & LDAP_BACK_AUTH_PRESCRIPTIVE)) {
+  if ((mt->mt_idassert_flags & LDAP_BACK_AUTH_AUTHZ_ALL) && !(mt->mt_idassert_flags & LDAP_BACK_AUTH_PRESCRIPTIVE)) {
     snprintf(msg, msize,
              "%s: inconsistent idassert configuration "
              "(likely authz=\"*\" used with \"non-prescriptive\" flag)",
@@ -190,16 +184,13 @@ int asyncmeta_target_finish(a_metainfo_t *mi, a_metatarget_t *mt,
   }
 
   BER_BVZERO(&mapped);
-  asyncmeta_map(&mt->mt_rwmap.rwm_at, &slap_schema.si_ad_entryDN->ad_cname,
-                &mapped, BACKLDAP_REMAP);
+  asyncmeta_map(&mt->mt_rwmap.rwm_at, &slap_schema.si_ad_entryDN->ad_cname, &mapped, BACKLDAP_REMAP);
   if (BER_BVISNULL(&mapped) || mapped.bv_val[0] == '\0') {
     mt->mt_rep_flags |= REP_NO_ENTRYDN;
   }
 
   BER_BVZERO(&mapped);
-  asyncmeta_map(&mt->mt_rwmap.rwm_at,
-                &slap_schema.si_ad_subschemaSubentry->ad_cname, &mapped,
-                BACKLDAP_REMAP);
+  asyncmeta_map(&mt->mt_rwmap.rwm_at, &slap_schema.si_ad_subschemaSubentry->ad_cname, &mapped, BACKLDAP_REMAP);
   if (BER_BVISNULL(&mapped) || mapped.bv_val[0] == '\0') {
     mt->mt_rep_flags |= REP_NO_SUBSCHEMA;
   }
@@ -226,13 +217,10 @@ int asyncmeta_back_db_open(Backend *be, ConfigReply *cr) {
   mi->mi_num_conns = 0;
   for (i = 0; i < mi->mi_ntargets; i++) {
     a_metatarget_t *mt = mi->mi_targets[i];
-    if (asyncmeta_target_finish(mi, mt, "asyncmeta_back_db_open", msg,
-                                sizeof(msg)))
+    if (asyncmeta_target_finish(mi, mt, "asyncmeta_back_db_open", msg, sizeof(msg)))
       return 1;
   }
-  mi->mi_num_conns = (mi->mi_max_target_conns == 0)
-                         ? META_BACK_CFG_MAX_TARGET_CONNS
-                         : mi->mi_max_target_conns;
+  mi->mi_num_conns = (mi->mi_max_target_conns == 0) ? META_BACK_CFG_MAX_TARGET_CONNS : mi->mi_max_target_conns;
   assert(mi->mi_num_conns > 0);
   mi->mi_conns = ch_calloc(mi->mi_num_conns, sizeof(a_metaconn_t));
   for (i = 0; i < mi->mi_num_conns; i++) {
@@ -244,8 +232,7 @@ int asyncmeta_back_db_open(Backend *be, ConfigReply *cr) {
   }
 
   ldap_pvt_thread_mutex_lock(&slapd_rq.rq_mutex);
-  mi->mi_task = ldap_pvt_runqueue_insert(&slapd_rq, 0, asyncmeta_timeout_loop,
-                                         mi, "asyncmeta_timeout_loop",
+  mi->mi_task = ldap_pvt_runqueue_insert(&slapd_rq, 0, asyncmeta_timeout_loop, mi, "asyncmeta_timeout_loop",
                                          be->be_suffix[0].bv_val);
   ldap_pvt_thread_mutex_unlock(&slapd_rq.rq_mutex);
   return 0;
@@ -285,10 +272,7 @@ void asyncmeta_back_map_free(struct ldapmap *lm) {
   lm->map = NULL;
 }
 
-static void asyncmeta_back_stop_miconns(a_metainfo_t *mi) {
-
-  /*Todo do any other mc cleanup here if necessary*/
-}
+static void asyncmeta_back_stop_miconns(a_metainfo_t *mi) { /*Todo do any other mc cleanup here if necessary*/ }
 
 static void asyncmeta_back_clear_miconns(a_metainfo_t *mi) {
   int i, j;

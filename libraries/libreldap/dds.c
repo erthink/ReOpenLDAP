@@ -76,8 +76,7 @@ done:;
   return rc;
 }
 
-int ldap_refresh(LDAP *ld, struct berval *dn, ber_int_t ttl,
-                 LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
+int ldap_refresh(LDAP *ld, struct berval *dn, ber_int_t ttl, LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
   struct berval bv = {0, NULL};
   BerElement *ber = NULL;
   int rc;
@@ -96,8 +95,7 @@ int ldap_refresh(LDAP *ld, struct berval *dn, ber_int_t ttl,
     return ld->ld_errno;
   }
 
-  ber_printf(ber, "{tOtiN}", LDAP_TAG_EXOP_REFRESH_REQ_DN, dn,
-             LDAP_TAG_EXOP_REFRESH_REQ_TTL, ttl);
+  ber_printf(ber, "{tOtiN}", LDAP_TAG_EXOP_REFRESH_REQ_DN, dn, LDAP_TAG_EXOP_REFRESH_REQ_TTL, ttl);
 
   rc = ber_flatten2(ber, &bv, 0);
 
@@ -106,8 +104,7 @@ int ldap_refresh(LDAP *ld, struct berval *dn, ber_int_t ttl,
     goto done;
   }
 
-  rc = ldap_extended_operation(ld, LDAP_EXOP_REFRESH, &bv, sctrls, cctrls,
-                               msgidp);
+  rc = ldap_extended_operation(ld, LDAP_EXOP_REFRESH, &bv, sctrls, cctrls, msgidp);
 
 done:;
   ber_free(ber, 1);
@@ -115,8 +112,7 @@ done:;
   return rc;
 }
 
-int ldap_refresh_s(LDAP *ld, struct berval *dn, ber_int_t ttl,
-                   ber_int_t *newttl, LDAPControl **sctrls,
+int ldap_refresh_s(LDAP *ld, struct berval *dn, ber_int_t ttl, ber_int_t *newttl, LDAPControl **sctrls,
                    LDAPControl **cctrls) {
   int rc;
   int msgid;

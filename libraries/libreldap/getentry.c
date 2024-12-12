@@ -30,9 +30,7 @@ LDAPMessage *ldap_first_entry(LDAP *ld, LDAPMessage *chain) {
   assert(LDAP_VALID(ld));
   assert(chain != NULL);
 
-  return chain->lm_msgtype == LDAP_RES_SEARCH_ENTRY
-             ? chain
-             : ldap_next_entry(ld, chain);
+  return chain->lm_msgtype == LDAP_RES_SEARCH_ENTRY ? chain : ldap_next_entry(ld, chain);
 }
 
 LDAPMessage *ldap_next_entry(LDAP *ld, LDAPMessage *entry) {
@@ -64,8 +62,7 @@ int ldap_count_entries(LDAP *ld, LDAPMessage *chain) {
   return (i);
 }
 
-int ldap_get_entry_controls(LDAP *ld, LDAPMessage *entry,
-                            LDAPControl ***sctrls) {
+int ldap_get_entry_controls(LDAP *ld, LDAPMessage *entry, LDAPControl ***sctrls) {
   int rc;
   BerElement be;
 

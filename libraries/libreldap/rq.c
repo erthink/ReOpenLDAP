@@ -32,9 +32,7 @@
 #include "ldap_queue.h"
 #include "ldap_rq.h"
 
-struct re_s *ldap_pvt_runqueue_insert_ns(struct runqueue_s *rq,
-                                         slap_time_t interval,
-                                         ldap_pvt_thread_start_t *routine,
+struct re_s *ldap_pvt_runqueue_insert_ns(struct runqueue_s *rq, slap_time_t interval, ldap_pvt_thread_start_t *routine,
                                          void *arg, char *tname, char *tspec) {
   struct re_s *entry;
 
@@ -51,17 +49,12 @@ struct re_s *ldap_pvt_runqueue_insert_ns(struct runqueue_s *rq,
   return entry;
 }
 
-struct re_s *ldap_pvt_runqueue_insert(struct runqueue_s *rq,
-                                      int interval_seconds,
-                                      ldap_pvt_thread_start_t *routine,
+struct re_s *ldap_pvt_runqueue_insert(struct runqueue_s *rq, int interval_seconds, ldap_pvt_thread_start_t *routine,
                                       void *arg, char *tname, char *tspec) {
-  return ldap_pvt_runqueue_insert_ns(rq, ldap_from_seconds(interval_seconds),
-                                     routine, arg, tname, tspec);
+  return ldap_pvt_runqueue_insert_ns(rq, ldap_from_seconds(interval_seconds), routine, arg, tname, tspec);
 }
 
-struct re_s *ldap_pvt_runqueue_find(struct runqueue_s *rq,
-                                    ldap_pvt_thread_start_t *routine,
-                                    void *arg) {
+struct re_s *ldap_pvt_runqueue_find(struct runqueue_s *rq, ldap_pvt_thread_start_t *routine, void *arg) {
   struct re_s *e;
 
   LDAP_STAILQ_FOREACH(e, &rq->task_list, tnext) {
@@ -86,8 +79,7 @@ void ldap_pvt_runqueue_remove(struct runqueue_s *rq, struct re_s *entry) {
   LDAP_FREE(entry);
 }
 
-struct re_s *ldap_pvt_runqueue_next_sched(struct runqueue_s *rq,
-                                          slap_time_t *next_run) {
+struct re_s *ldap_pvt_runqueue_next_sched(struct runqueue_s *rq, slap_time_t *next_run) {
   struct re_s *entry;
 
   entry = LDAP_STAILQ_FIRST(&rq->task_list);
@@ -118,8 +110,7 @@ int ldap_pvt_runqueue_isrunning(struct runqueue_s *rq, struct re_s *entry) {
   return 0;
 }
 
-void ldap_pvt_runqueue_resched(struct runqueue_s *rq, struct re_s *entry,
-                               int defer) {
+void ldap_pvt_runqueue_resched(struct runqueue_s *rq, struct re_s *entry, int defer) {
   struct re_s *prev;
   struct re_s *e;
 

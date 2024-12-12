@@ -51,11 +51,9 @@ retry:
     goto cleanup;
   }
 
-  rs->sr_err = ldap_compare_ext(lc->lc_ld, op->o_req_dn.bv_val,
-                                op->orc_ava->aa_desc->ad_cname.bv_val,
+  rs->sr_err = ldap_compare_ext(lc->lc_ld, op->o_req_dn.bv_val, op->orc_ava->aa_desc->ad_cname.bv_val,
                                 &op->orc_ava->aa_value, ctrls, NULL, &msgid);
-  rc = ldap_back_op_result(lc, op, rs, msgid, li->li_timeout[SLAP_OP_COMPARE],
-                           (LDAP_BACK_SENDRESULT | retrying));
+  rc = ldap_back_op_result(lc, op, rs, msgid, li->li_timeout[SLAP_OP_COMPARE], (LDAP_BACK_SENDRESULT | retrying));
   if (rc == LDAP_UNAVAILABLE && retrying) {
     retrying &= ~LDAP_BACK_RETRYING;
     if (ldap_back_retry(&lc, op, rs, LDAP_BACK_SENDERR)) {

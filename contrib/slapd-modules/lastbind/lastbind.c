@@ -54,44 +54,41 @@ static AttributeDescription *ad_authTimestamp;
 static struct schema_info {
   char *def;
   AttributeDescription **ad;
-} lastBind_OpSchema[] = {
-    {"( 1.3.6.1.4.1.453.16.2.188 "
-     "NAME 'authTimestamp' "
-     "DESC 'last successful authentication using any method/mech' "
-     "EQUALITY generalizedTimeMatch "
-     "ORDERING generalizedTimeOrderingMatch "
-     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 "
-     "SINGLE-VALUE NO-USER-MODIFICATION USAGE dsaOperation )",
-     &ad_authTimestamp},
-    {NULL, NULL}};
+} lastBind_OpSchema[] = {{"( 1.3.6.1.4.1.453.16.2.188 "
+                          "NAME 'authTimestamp' "
+                          "DESC 'last successful authentication using any method/mech' "
+                          "EQUALITY generalizedTimeMatch "
+                          "ORDERING generalizedTimeOrderingMatch "
+                          "SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 "
+                          "SINGLE-VALUE NO-USER-MODIFICATION USAGE dsaOperation )",
+                          &ad_authTimestamp},
+                         {NULL, NULL}};
 
 /* configuration attribute and objectclass */
-static ConfigTable lastbindcfg[] = {
-    {"lastbind-precision", "seconds", 2, 2, 0, ARG_INT | ARG_OFFSET,
-     (void *)offsetof(lastbind_info, timestamp_precision),
-     "( OLcfgCtAt:5.1 "
-     "NAME 'olcLastBindPrecision' "
-     "DESC 'Precision of authTimestamp attribute' "
-     "EQUALITY integerMatch "
-     "SYNTAX OMsInteger SINGLE-VALUE )",
-     NULL, NULL},
-    {"lastbind_forward_updates", "on|off", 1, 2, 0, ARG_ON_OFF | ARG_OFFSET,
-     (void *)offsetof(lastbind_info, forward_updates),
-     "( OLcfgAt:5.2 NAME 'olcLastBindForwardUpdates' "
-     "DESC 'Allow authTimestamp updates to be forwarded via updateref' "
-     "EQUALITY booleanMatch "
-     "SYNTAX OMsBoolean SINGLE-VALUE )",
-     NULL, NULL},
-    {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
+static ConfigTable lastbindcfg[] = {{"lastbind-precision", "seconds", 2, 2, 0, ARG_INT | ARG_OFFSET,
+                                     (void *)offsetof(lastbind_info, timestamp_precision),
+                                     "( OLcfgCtAt:5.1 "
+                                     "NAME 'olcLastBindPrecision' "
+                                     "DESC 'Precision of authTimestamp attribute' "
+                                     "EQUALITY integerMatch "
+                                     "SYNTAX OMsInteger SINGLE-VALUE )",
+                                     NULL, NULL},
+                                    {"lastbind_forward_updates", "on|off", 1, 2, 0, ARG_ON_OFF | ARG_OFFSET,
+                                     (void *)offsetof(lastbind_info, forward_updates),
+                                     "( OLcfgAt:5.2 NAME 'olcLastBindForwardUpdates' "
+                                     "DESC 'Allow authTimestamp updates to be forwarded via updateref' "
+                                     "EQUALITY booleanMatch "
+                                     "SYNTAX OMsBoolean SINGLE-VALUE )",
+                                     NULL, NULL},
+                                    {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
 
-static ConfigOCs lastbindocs[] = {
-    {"( OLcfgCtOc:5.1 "
-     "NAME 'olcLastBindConfig' "
-     "DESC 'Last Bind configuration' "
-     "SUP olcOverlayConfig "
-     "MAY ( olcLastBindPrecision $ olcLastBindForwardUpdates) )",
-     Cft_Overlay, lastbindcfg, NULL, NULL},
-    {NULL, 0, NULL}};
+static ConfigOCs lastbindocs[] = {{"( OLcfgCtOc:5.1 "
+                                   "NAME 'olcLastBindConfig' "
+                                   "DESC 'Last Bind configuration' "
+                                   "SUP olcOverlayConfig "
+                                   "MAY ( olcLastBindPrecision $ olcLastBindForwardUpdates) )",
+                                   Cft_Overlay, lastbindcfg, NULL, NULL},
+                                  {NULL, 0, NULL}};
 
 static time_t parse_time(char *atm) {
   struct lutil_tm tm;
@@ -290,6 +287,4 @@ static int lastbind_initialize() {
   return overlay_register(&lastbind);
 }
 
-SLAP_MODULE_ENTRY(lastbind, modinit)(int argc, char *argv[]) {
-  return lastbind_initialize();
-}
+SLAP_MODULE_ENTRY(lastbind, modinit)(int argc, char *argv[]) { return lastbind_initialize(); }

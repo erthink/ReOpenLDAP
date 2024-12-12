@@ -76,8 +76,7 @@ const char *slapi_sdn_get_dn(const Slapi_DN *sdn) {
 
 const char *slapi_sdn_get_ndn(const Slapi_DN *sdn) {
   if (BER_BVISNULL(&sdn->ndn)) {
-    dnNormalize(0, NULL, NULL, (struct berval *)&sdn->dn,
-                (struct berval *)&sdn->ndn, NULL);
+    dnNormalize(0, NULL, NULL, (struct berval *)&sdn->dn, (struct berval *)&sdn->ndn, NULL);
     ((Slapi_DN *)sdn)->flag |= FLAG_NDN;
   }
 
@@ -207,12 +206,10 @@ void slapi_sdn_get_parent(const Slapi_DN *sdn, Slapi_DN *sdn_parent) {
   }
 }
 
-void slapi_sdn_get_backend_parent(const Slapi_DN *sdn, Slapi_DN *sdn_parent,
-                                  const Slapi_Backend *backend) {
+void slapi_sdn_get_backend_parent(const Slapi_DN *sdn, Slapi_DN *sdn_parent, const Slapi_Backend *backend) {
   slapi_sdn_get_ndn(sdn);
 
-  if (backend == NULL ||
-      be_issuffix((Slapi_Backend *)backend, (struct berval *)&sdn->ndn) == 0) {
+  if (backend == NULL || be_issuffix((Slapi_Backend *)backend, (struct berval *)&sdn->ndn) == 0) {
     slapi_sdn_get_parent(sdn, sdn_parent);
   }
 }
@@ -226,9 +223,7 @@ Slapi_DN *slapi_sdn_dup(const Slapi_DN *sdn) {
   return new_sdn;
 }
 
-void slapi_sdn_copy(const Slapi_DN *from, Slapi_DN *to) {
-  slapi_sdn_set_dn_byval(to, from->dn.bv_val);
-}
+void slapi_sdn_copy(const Slapi_DN *from, Slapi_DN *to) { slapi_sdn_set_dn_byval(to, from->dn.bv_val); }
 
 int slapi_sdn_compare(const Slapi_DN *sdn1, const Slapi_DN *sdn2) {
   int match = -1;
@@ -236,15 +231,12 @@ int slapi_sdn_compare(const Slapi_DN *sdn1, const Slapi_DN *sdn2) {
   slapi_sdn_get_ndn(sdn1);
   slapi_sdn_get_ndn(sdn2);
 
-  dnMatch(&match, 0, slap_schema.si_syn_distinguishedName, NULL,
-          (struct berval *)&sdn1->ndn, (void *)&sdn2->ndn);
+  dnMatch(&match, 0, slap_schema.si_syn_distinguishedName, NULL, (struct berval *)&sdn1->ndn, (void *)&sdn2->ndn);
 
   return match;
 }
 
-int slapi_sdn_isempty(const Slapi_DN *sdn) {
-  return (BER_BVISEMPTY(&sdn->dn) && BER_BVISEMPTY(&sdn->ndn));
-}
+int slapi_sdn_isempty(const Slapi_DN *sdn) { return (BER_BVISEMPTY(&sdn->dn) && BER_BVISEMPTY(&sdn->ndn)); }
 
 int slapi_sdn_issuffix(const Slapi_DN *sdn, const Slapi_DN *suffix_sdn) {
   slapi_sdn_get_ndn(sdn);
@@ -330,13 +322,9 @@ Slapi_RDN *slapi_rdn_new_dn(const char *dn) {
   return rdn;
 }
 
-Slapi_RDN *slapi_rdn_new_sdn(const Slapi_DN *sdn) {
-  return slapi_rdn_new_dn(slapi_sdn_get_dn(sdn));
-}
+Slapi_RDN *slapi_rdn_new_sdn(const Slapi_DN *sdn) { return slapi_rdn_new_dn(slapi_sdn_get_dn(sdn)); }
 
-Slapi_RDN *slapi_rdn_new_rdn(const Slapi_RDN *fromrdn) {
-  return slapi_rdn_new_dn(fromrdn->bv.bv_val);
-}
+Slapi_RDN *slapi_rdn_new_rdn(const Slapi_RDN *fromrdn) { return slapi_rdn_new_dn(fromrdn->bv.bv_val); }
 
 void slapi_rdn_init_dn(Slapi_RDN *rdn, const char *dn) {
   slapi_rdn_init(rdn);
@@ -369,13 +357,9 @@ void slapi_rdn_set_dn(Slapi_RDN *rdn, const char *dn) {
   rdn->flag |= FLAG_DN;
 }
 
-void slapi_rdn_set_sdn(Slapi_RDN *rdn, const Slapi_DN *sdn) {
-  slapi_rdn_set_dn(rdn, slapi_sdn_get_dn(sdn));
-}
+void slapi_rdn_set_sdn(Slapi_RDN *rdn, const Slapi_DN *sdn) { slapi_rdn_set_dn(rdn, slapi_sdn_get_dn(sdn)); }
 
-void slapi_rdn_set_rdn(Slapi_RDN *rdn, const Slapi_RDN *fromrdn) {
-  slapi_rdn_set_dn(rdn, fromrdn->bv.bv_val);
-}
+void slapi_rdn_set_rdn(Slapi_RDN *rdn, const Slapi_RDN *fromrdn) { slapi_rdn_set_dn(rdn, fromrdn->bv.bv_val); }
 
 void slapi_rdn_free(Slapi_RDN **rdn) {
   slapi_rdn_done(*rdn);
@@ -434,9 +418,7 @@ int slapi_rdn_get_num_components(Slapi_RDN *rdn) {
   return i;
 }
 
-int slapi_rdn_get_first(Slapi_RDN *rdn, char **type, char **value) {
-  return slapi_rdn_get_next(rdn, 0, type, value);
-}
+int slapi_rdn_get_first(Slapi_RDN *rdn, char **type, char **value) { return slapi_rdn_get_next(rdn, 0, type, value); }
 
 int slapi_rdn_get_next(Slapi_RDN *rdn, int index, char **type, char **value) {
   slapi_int_rdn_explode(rdn);
@@ -450,8 +432,7 @@ int slapi_rdn_get_next(Slapi_RDN *rdn, int index, char **type, char **value) {
   return index + 1;
 }
 
-int slapi_rdn_get_index(Slapi_RDN *rdn, const char *type, const char *value,
-                        size_t length) {
+int slapi_rdn_get_index(Slapi_RDN *rdn, const char *type, const char *value, size_t length) {
   int i, match;
   struct berval bv;
   AttributeDescription *ad = NULL;
@@ -470,8 +451,8 @@ int slapi_rdn_get_index(Slapi_RDN *rdn, const char *type, const char *value,
     if (!slapi_attr_types_equivalent(ad->ad_cname.bv_val, type))
       continue;
 
-    if (value_match(&match, ad, ad->ad_type->sat_equality, 0,
-                    &rdn->rdn[i]->la_value, (void *)&bv, &text) != LDAP_SUCCESS)
+    if (value_match(&match, ad, ad->ad_type->sat_equality, 0, &rdn->rdn[i]->la_value, (void *)&bv, &text) !=
+        LDAP_SUCCESS)
       match = -1;
 
     if (match == 0)
@@ -494,8 +475,7 @@ int slapi_rdn_get_index_attr(Slapi_RDN *rdn, const char *type, char **value) {
   return -1;
 }
 
-int slapi_rdn_contains(Slapi_RDN *rdn, const char *type, const char *value,
-                       size_t length) {
+int slapi_rdn_contains(Slapi_RDN *rdn, const char *type, const char *value, size_t length) {
   return (slapi_rdn_get_index(rdn, type, value, length) != -1);
 }
 
@@ -518,9 +498,7 @@ int slapi_rdn_compare(Slapi_RDN *rdn1, Slapi_RDN *rdn2) {
   return match;
 }
 
-int slapi_rdn_isempty(const Slapi_RDN *rdn) {
-  return (BER_BVISEMPTY(&rdn->bv));
-}
+int slapi_rdn_isempty(const Slapi_RDN *rdn) { return (BER_BVISEMPTY(&rdn->bv)); }
 
 int slapi_rdn_add(Slapi_RDN *rdn, const char *type, const char *value) {
   char *s;
@@ -571,8 +549,7 @@ int slapi_rdn_remove_index(Slapi_RDN *rdn, int atindex) {
   return 1;
 }
 
-int slapi_rdn_remove(Slapi_RDN *rdn, const char *type, const char *value,
-                     size_t length) {
+int slapi_rdn_remove(Slapi_RDN *rdn, const char *type, const char *value, size_t length) {
   int index = slapi_rdn_get_index(rdn, type, value, length);
 
   return slapi_rdn_remove_index(rdn, index);

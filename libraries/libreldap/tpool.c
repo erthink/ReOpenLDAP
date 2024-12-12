@@ -71,12 +71,12 @@ static struct {
 #define DELETED_THREAD_CTX (&ldap_int_main_thrctx + 1) /* dummy addr */
 } thread_keys[LDAP_MAXTHR];
 
-#define TID_HASH(tid, hash)                                                    \
-  do {                                                                         \
-    unsigned const char *ptr_ = (unsigned const char *)&(tid);                 \
-    unsigned i_;                                                               \
-    for (i_ = 0, (hash) = ptr_[0]; ++i_ < sizeof(tid);)                        \
-      (hash) += ((hash) << 5) ^ ptr_[i_];                                      \
+#define TID_HASH(tid, hash)                                                                                            \
+  do {                                                                                                                 \
+    unsigned const char *ptr_ = (unsigned const char *)&(tid);                                                         \
+    unsigned i_;                                                                                                       \
+    for (i_ = 0, (hash) = ptr_[0]; ++i_ < sizeof(tid);)                                                                \
+      (hash) += ((hash) << 5) ^ ptr_[i_];                                                                              \
   } while (0)
 
 /* Task for a thread to perform */
@@ -171,12 +171,11 @@ struct ldap_int_thread_pool_s {
   int ltp_max_pending;
 };
 
-static ldap_int_tpool_plist_t empty_pending_list =
-    LDAP_STAILQ_HEAD_INITIALIZER(empty_pending_list);
+static ldap_int_tpool_plist_t empty_pending_list = LDAP_STAILQ_HEAD_INITIALIZER(empty_pending_list);
 
 static int ldap_int_has_thread_pool = 0;
-static LDAP_STAILQ_HEAD(tpq, ldap_int_thread_pool_s) ldap_int_thread_pool_list =
-    LDAP_STAILQ_HEAD_INITIALIZER(ldap_int_thread_pool_list);
+static LDAP_STAILQ_HEAD(tpq, ldap_int_thread_pool_s)
+    ldap_int_thread_pool_list = LDAP_STAILQ_HEAD_INITIALIZER(ldap_int_thread_pool_list);
 
 static ldap_pvt_thread_mutex_t ldap_pvt_thread_pool_mutex;
 
@@ -205,8 +204,7 @@ int ldap_int_thread_pool_shutdown(void) {
 }
 
 /* Create a thread pool */
-int ldap_pvt_thread_pool_init_q(ldap_pvt_thread_pool_t *tpool, int max_threads,
-                                int max_pending, int numqs) {
+int ldap_pvt_thread_pool_init_q(ldap_pvt_thread_pool_t *tpool, int max_threads, int max_pending, int numqs) {
   ldap_pvt_thread_pool_t pool;
   struct ldap_int_thread_poolq_s *pq;
   int i, rc, rem_thr, rem_pend;
@@ -220,8 +218,7 @@ int ldap_pvt_thread_pool_init_q(ldap_pvt_thread_pool_t *tpool, int max_threads,
     max_pending = MAX_PENDING;
 
   *tpool = NULL;
-  pool = (ldap_pvt_thread_pool_t)LDAP_CALLOC(
-      1, sizeof(struct ldap_int_thread_pool_s));
+  pool = (ldap_pvt_thread_pool_t)LDAP_CALLOC(1, sizeof(struct ldap_int_thread_pool_s));
 
   if (pool == NULL)
     return -1;
@@ -233,8 +230,7 @@ int ldap_pvt_thread_pool_init_q(ldap_pvt_thread_pool_t *tpool, int max_threads,
   }
 
   for (i = 0; i < numqs; i++) {
-    char *ptr =
-        LDAP_CALLOC(1, sizeof(struct ldap_int_thread_poolq_s) + CACHELINE - 1);
+    char *ptr = LDAP_CALLOC(1, sizeof(struct ldap_int_thread_poolq_s) + CACHELINE - 1);
     if (ptr == NULL) {
       for (--i; i >= 0; i--)
         LDAP_FREE(pool->ltp_wqs[i]->ltq_free);
@@ -242,9 +238,7 @@ int ldap_pvt_thread_pool_init_q(ldap_pvt_thread_pool_t *tpool, int max_threads,
       LDAP_FREE(pool);
       return (-1);
     }
-    pool->ltp_wqs[i] =
-        (struct ldap_int_thread_poolq_s *)(((size_t)ptr + CACHELINE - 1) &
-                                           ~(CACHELINE - 1));
+    pool->ltp_wqs[i] = (struct ldap_int_thread_poolq_s *)(((size_t)ptr + CACHELINE - 1) & ~(CACHELINE - 1));
     pool->ltp_wqs[i]->ltq_free = ptr;
   }
 
@@ -329,22 +323,18 @@ cleanup1:
   return rc;
 }
 
-int ldap_pvt_thread_pool_init(ldap_pvt_thread_pool_t *tpool, int max_threads,
-                              int max_pending) {
+int ldap_pvt_thread_pool_init(ldap_pvt_thread_pool_t *tpool, int max_threads, int max_pending) {
   return ldap_pvt_thread_pool_init_q(tpool, max_threads, max_pending, 1);
 }
 
 /* Submit a task to be performed by the thread pool */
-int ldap_pvt_thread_pool_submit(ldap_pvt_thread_pool_t *tpool,
-                                ldap_pvt_thread_start_t *start_routine,
-                                void *arg) {
+int ldap_pvt_thread_pool_submit(ldap_pvt_thread_pool_t *tpool, ldap_pvt_thread_start_t *start_routine, void *arg) {
   return ldap_pvt_thread_pool_submit2(tpool, start_routine, arg, NULL);
 }
 
 /* Submit a task to be performed by the thread pool */
-int ldap_pvt_thread_pool_submit2(ldap_pvt_thread_pool_t *tpool,
-                                 ldap_pvt_thread_start_t *start_routine,
-                                 void *arg, void **cookie) {
+int ldap_pvt_thread_pool_submit2(ldap_pvt_thread_pool_t *tpool, ldap_pvt_thread_start_t *start_routine, void *arg,
+                                 void **cookie) {
   struct ldap_int_thread_pool_s *pool;
   struct ldap_int_thread_poolq_s *pq;
   ldap_int_thread_task_t *task;
@@ -360,8 +350,7 @@ int ldap_pvt_thread_pool_submit2(ldap_pvt_thread_pool_t *tpool,
     return (-1);
 
   if (pool->ltp_numqs > 1) {
-    int min =
-        pool->ltp_wqs[0]->ltq_max_pending + pool->ltp_wqs[0]->ltq_max_count;
+    int min = pool->ltp_wqs[0]->ltq_max_pending + pool->ltp_wqs[0]->ltq_max_count;
     int min_x = 0, cnt;
     for (i = 0; i < pool->ltp_numqs; i++) {
       /* take first queue that has nothing active */
@@ -369,8 +358,7 @@ int ldap_pvt_thread_pool_submit2(ldap_pvt_thread_pool_t *tpool,
         min_x = i;
         break;
       }
-      cnt = pool->ltp_wqs[i]->ltq_active_count +
-            pool->ltp_wqs[i]->ltq_pending_count;
+      cnt = pool->ltp_wqs[i]->ltq_active_count + pool->ltp_wqs[i]->ltq_pending_count;
       if (cnt < min) {
         min = cnt;
         min_x = i;
@@ -383,8 +371,7 @@ int ldap_pvt_thread_pool_submit2(ldap_pvt_thread_pool_t *tpool,
   j = i;
   while (1) {
     ldap_pvt_thread_mutex_lock(&pool->ltp_wqs[i]->ltq_mutex);
-    if (pool->ltp_wqs[i]->ltq_pending_count <
-        pool->ltp_wqs[i]->ltq_max_pending) {
+    if (pool->ltp_wqs[i]->ltq_pending_count < pool->ltp_wqs[i]->ltq_max_pending) {
       break;
     }
     ldap_pvt_thread_mutex_unlock(&pool->ltp_wqs[i]->ltq_mutex);
@@ -417,13 +404,11 @@ int ldap_pvt_thread_pool_submit2(ldap_pvt_thread_pool_t *tpool,
     goto done;
 
   /* should we open (create) a thread? */
-  if (pq->ltq_open_count < pq->ltq_active_count + pq->ltq_pending_count &&
-      pq->ltq_open_count < pq->ltq_max_count) {
+  if (pq->ltq_open_count < pq->ltq_active_count + pq->ltq_pending_count && pq->ltq_open_count < pq->ltq_max_count) {
     pq->ltq_starting++;
     pq->ltq_open_count++;
 
-    if (0 !=
-        ldap_pvt_thread_create(&thr, 1, ldap_int_thread_pool_wrapper, pq)) {
+    if (0 != ldap_pvt_thread_create(&thr, 1, ldap_int_thread_pool_wrapper, pq)) {
       /* couldn't create thread.  back out of
        * ltp_open_count and check for even worse things.
        */
@@ -446,8 +431,7 @@ int ldap_pvt_thread_pool_submit2(ldap_pvt_thread_pool_t *tpool,
            * back out of ltp_pending_count, free the task,
            * report the error. */
           pq->ltq_pending_count--;
-          LDAP_STAILQ_REMOVE(&pq->ltq_pending_list, task,
-                             ldap_int_thread_task_s, ltt_next.q);
+          LDAP_STAILQ_REMOVE(&pq->ltq_pending_list, task, ldap_int_thread_task_s, ltt_next.q);
           LDAP_SLIST_INSERT_HEAD(&pq->ltq_free_list, task, ltt_next.l);
           goto failed;
         }
@@ -503,9 +487,8 @@ int ldap_pvt_thread_pool_retract(void *cookie) {
 
 /* Walk the pool and allow tasks to be retracted, only to be called while the
  * pool is paused */
-int ldap_pvt_thread_pool_walk(ldap_pvt_thread_pool_t *tpool,
-                              ldap_pvt_thread_start_t *start,
-                              ldap_pvt_thread_walk_t *cb, void *arg) {
+int ldap_pvt_thread_pool_walk(ldap_pvt_thread_pool_t *tpool, ldap_pvt_thread_start_t *start, ldap_pvt_thread_walk_t *cb,
+                              void *arg) {
   struct ldap_int_thread_pool_s *pool;
   struct ldap_int_thread_poolq_s *pq;
   ldap_int_thread_task_t *task;
@@ -558,21 +541,18 @@ int ldap_pvt_thread_pool_queues(ldap_pvt_thread_pool_t *tpool, int numqs) {
       pool->ltp_wqs[i]->ltq_max_count = 0;
   } else if (numqs > pool->ltp_numqs) {
     struct ldap_int_thread_poolq_s **wqs;
-    wqs = LDAP_REALLOC(pool->ltp_wqs,
-                       numqs * sizeof(struct ldap_int_thread_poolq_s *));
+    wqs = LDAP_REALLOC(pool->ltp_wqs, numqs * sizeof(struct ldap_int_thread_poolq_s *));
     if (wqs == NULL)
       return (-1);
     pool->ltp_wqs = wqs;
     for (i = pool->ltp_numqs; i < numqs; i++) {
-      char *ptr = LDAP_CALLOC(1, sizeof(struct ldap_int_thread_poolq_s) +
-                                     CACHELINE - 1);
+      char *ptr = LDAP_CALLOC(1, sizeof(struct ldap_int_thread_poolq_s) + CACHELINE - 1);
       if (ptr == NULL) {
         for (; i < numqs; i++)
           pool->ltp_wqs[i] = NULL;
         return (-1);
       }
-      pq = (struct ldap_int_thread_poolq_s *)(((size_t)ptr + CACHELINE - 1) &
-                                              ~(CACHELINE - 1));
+      pq = (struct ldap_int_thread_poolq_s *)(((size_t)ptr + CACHELINE - 1) & ~(CACHELINE - 1));
       pq->ltq_free = ptr;
       pool->ltp_wqs[i] = pq;
       pq->ltq_pool = pool;
@@ -607,8 +587,7 @@ int ldap_pvt_thread_pool_queues(ldap_pvt_thread_pool_t *tpool, int numqs) {
 }
 
 /* Set max #threads.  value <= 0 means max supported #threads (LDAP_MAXTHR) */
-int ldap_pvt_thread_pool_maxthreads(ldap_pvt_thread_pool_t *tpool,
-                                    int max_threads) {
+int ldap_pvt_thread_pool_maxthreads(ldap_pvt_thread_pool_t *tpool, int max_threads) {
   struct ldap_int_thread_pool_s *pool;
   struct ldap_int_thread_poolq_s *pq;
   int remthr, i;
@@ -644,9 +623,7 @@ int ldap_pvt_thread_pool_maxthreads(ldap_pvt_thread_pool_t *tpool,
 }
 
 /* Inspect the pool */
-int ldap_pvt_thread_pool_query(ldap_pvt_thread_pool_t *tpool,
-                               ldap_pvt_thread_pool_param_t param,
-                               void *value) {
+int ldap_pvt_thread_pool_query(ldap_pvt_thread_pool_t *tpool, ldap_pvt_thread_pool_param_t param, void *value) {
   struct ldap_int_thread_pool_s *pool;
   int count = -1;
 
@@ -755,8 +732,7 @@ int ldap_pvt_thread_pool_query(ldap_pvt_thread_pool_t *tpool,
  * 0 if not pause, 1 if pause, -1 if error or no pool.
  */
 
-static ATTRIBUTE_NO_SANITIZE_THREAD_INLINE int
-read_ltp_pause__tsan_woraround(struct ldap_int_thread_pool_s *pool) {
+static ATTRIBUTE_NO_SANITIZE_THREAD_INLINE int read_ltp_pause__tsan_woraround(struct ldap_int_thread_pool_s *pool) {
   return pool->ltp_pause;
 }
 
@@ -778,8 +754,7 @@ int ldap_pvt_thread_pool_pausing(ldap_pvt_thread_pool_t *tpool) {
 int ldap_pvt_thread_pool_backload(ldap_pvt_thread_pool_t *tpool) {
   int rc, count = 0;
 
-  rc = ldap_pvt_thread_pool_query(tpool, LDAP_PVT_THREAD_POOL_PARAM_BACKLOAD,
-                                  (void *)&count);
+  rc = ldap_pvt_thread_pool_query(tpool, LDAP_PVT_THREAD_POOL_PARAM_BACKLOAD, (void *)&count);
 
   if (rc == 0) {
     return count;
@@ -792,8 +767,7 @@ int ldap_pvt_thread_pool_backload(ldap_pvt_thread_pool_t *tpool) {
  * wrapper for ldap_pvt_thread_pool_close+free(), left around
  * for backwards compatibility
  */
-int ldap_pvt_thread_pool_destroy(ldap_pvt_thread_pool_t *tpool,
-                                 int run_pending) {
+int ldap_pvt_thread_pool_destroy(ldap_pvt_thread_pool_t *tpool, int run_pending) {
   int rc;
 
   if ((rc = ldap_pvt_thread_pool_close(tpool, run_pending))) {
@@ -884,8 +858,7 @@ int ldap_pvt_thread_pool_free(ldap_pvt_thread_pool_t *tpool) {
       break;
   }
   if (pptr == pool) {
-    LDAP_STAILQ_REMOVE(&ldap_int_thread_pool_list, pool, ldap_int_thread_pool_s,
-                       ltp_next);
+    LDAP_STAILQ_REMOVE(&ldap_int_thread_pool_list, pool, ldap_int_thread_pool_s, ltp_next);
     *tpool = NULL;
     ldap_int_has_thread_pool--;
   }
@@ -947,8 +920,7 @@ static void *ldap_int_thread_pool_wrapper(void *xpool) {
    * itself (mod LDAP_MAXTHR) and look for an empty slot.
    */
   ldap_pvt_thread_mutex_lock(&ldap_pvt_thread_pool_mutex);
-  for (keyslot = hash & (LDAP_MAXTHR - 1);
-       (kctx = thread_keys[keyslot].ctx) && kctx != DELETED_THREAD_CTX;
+  for (keyslot = hash & (LDAP_MAXTHR - 1); (kctx = thread_keys[keyslot].ctx) && kctx != DELETED_THREAD_CTX;
        keyslot = (keyslot + 1) & (LDAP_MAXTHR - 1))
     ;
   thread_keys[keyslot].ctx = &ctx;
@@ -1067,8 +1039,7 @@ done:
 #define GO_UNIDLE 16
 #define CHECK_PAUSE 32 /* if ltp_pause: GO_IDLE; wait; GO_UNIDLE */
 #define DO_PAUSE 64    /* CHECK_PAUSE; pause the pool */
-#define PAUSE_ARG(a)                                                           \
-  ((a) | ((a) & (GO_IDLE | GO_UNIDLE) ? GO_IDLE - 1 : CHECK_PAUSE))
+#define PAUSE_ARG(a) ((a) | ((a) & (GO_IDLE | GO_UNIDLE) ? GO_IDLE - 1 : CHECK_PAUSE))
 
 static int handle_pause(ldap_pvt_thread_pool_t *tpool, int pause_type) {
   struct ldap_int_thread_pool_s *pool;
@@ -1188,14 +1159,10 @@ static int handle_pause(ldap_pvt_thread_pool_t *tpool, int pause_type) {
 }
 
 /* Consider this task idle: It will not block pool_pause() in other tasks. */
-void ldap_pvt_thread_pool_idle(ldap_pvt_thread_pool_t *tpool) {
-  handle_pause(tpool, PAUSE_ARG(GO_IDLE));
-}
+void ldap_pvt_thread_pool_idle(ldap_pvt_thread_pool_t *tpool) { handle_pause(tpool, PAUSE_ARG(GO_IDLE)); }
 
 /* Cancel pool_idle(). If the pool is paused, wait it out first. */
-void ldap_pvt_thread_pool_unidle(ldap_pvt_thread_pool_t *tpool) {
-  handle_pause(tpool, PAUSE_ARG(GO_UNIDLE));
-}
+void ldap_pvt_thread_pool_unidle(ldap_pvt_thread_pool_t *tpool) { handle_pause(tpool, PAUSE_ARG(GO_UNIDLE)); }
 
 /*
  * If a pause was requested, wait for it.  If several threads
@@ -1211,9 +1178,7 @@ int ldap_pvt_thread_pool_pausecheck(ldap_pvt_thread_pool_t *tpool) {
  * Pause the pool.  The calling task must be active, not idle.
  * Return when all other tasks are paused or idle.
  */
-int ldap_pvt_thread_pool_pause(ldap_pvt_thread_pool_t *tpool) {
-  return handle_pause(tpool, PAUSE_ARG(DO_PAUSE));
-}
+int ldap_pvt_thread_pool_pause(ldap_pvt_thread_pool_t *tpool) { return handle_pause(tpool, PAUSE_ARG(DO_PAUSE)); }
 
 /* End a pause */
 int ldap_pvt_thread_pool_resume(ldap_pvt_thread_pool_t *tpool) {
@@ -1245,8 +1210,7 @@ int ldap_pvt_thread_pool_resume(ldap_pvt_thread_pool_t *tpool) {
 /*
  * Get the key's data and optionally free function in the given context.
  */
-int ldap_pvt_thread_pool_getkey(void *xctx, void *key, void **data,
-                                ldap_pvt_thread_pool_keyfree_t **kfree) {
+int ldap_pvt_thread_pool_getkey(void *xctx, void *key, void **data, ldap_pvt_thread_pool_keyfree_t **kfree) {
   ldap_int_thread_userctx_t *ctx = xctx;
   int i;
 
@@ -1279,10 +1243,8 @@ static void clear_key_idx(ldap_int_thread_userctx_t *ctx, int i) {
  *   responsibility to free any existing data with the same key.
  *   kfree() must not call functions taking a tpool argument.
  */
-int ldap_pvt_thread_pool_setkey(void *xctx, void *key, void *data,
-                                ldap_pvt_thread_pool_keyfree_t *kfree,
-                                void **olddatap,
-                                ldap_pvt_thread_pool_keyfree_t **oldkfreep) {
+int ldap_pvt_thread_pool_setkey(void *xctx, void *key, void *data, ldap_pvt_thread_pool_keyfree_t *kfree,
+                                void **olddatap, ldap_pvt_thread_pool_keyfree_t **oldkfreep) {
   ldap_int_thread_userctx_t *ctx = xctx;
   int i, found;
 
@@ -1343,8 +1305,7 @@ void ldap_pvt_thread_pool_purgekey(void *key) {
       for (j = 0; j < MAXKEYS && ctx->ltu_key[j].ltk_key; j++) {
         if (ctx->ltu_key[j].ltk_key == key) {
           if (ctx->ltu_key[j].ltk_free)
-            ctx->ltu_key[j].ltk_free(ctx->ltu_key[j].ltk_key,
-                                     ctx->ltu_key[j].ltk_data);
+            ctx->ltu_key[j].ltk_free(ctx->ltu_key[j].ltk_key, ctx->ltu_key[j].ltk_data);
           clear_key_idx(ctx, j);
           break;
         }
@@ -1382,8 +1343,7 @@ void ldap_pvt_thread_pool_context_reset(void *vctx) {
     if (!ctx->ltu_key[i].ltk_key)
       continue;
     if (ctx->ltu_key[i].ltk_free)
-      ctx->ltu_key[i].ltk_free(ctx->ltu_key[i].ltk_key,
-                               ctx->ltu_key[i].ltk_data);
+      ctx->ltu_key[i].ltk_free(ctx->ltu_key[i].ltk_key, ctx->ltu_key[i].ltk_data);
     ctx->ltu_key[i].ltk_key = NULL;
   }
 }

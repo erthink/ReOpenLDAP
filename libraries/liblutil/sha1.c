@@ -55,34 +55,30 @@
  * I got the idea of expanding during the round function from SSLeay
  */
 #if BYTE_ORDER == LITTLE_ENDIAN
-#define blk0(i)                                                                \
-  (block[i] =                                                                  \
-       (rol(block[i], 24) & 0xFF00FF00) | (rol(block[i], 8) & 0x00FF00FF))
+#define blk0(i) (block[i] = (rol(block[i], 24) & 0xFF00FF00) | (rol(block[i], 8) & 0x00FF00FF))
 #else
 #define blk0(i) block[i]
 #endif
-#define blk(i)                                                                 \
-  (block[i & 15] = rol(block[(i + 13) & 15] ^ block[(i + 8) & 15] ^            \
-                           block[(i + 2) & 15] ^ block[i & 15],                \
-                       1))
+#define blk(i)                                                                                                         \
+  (block[i & 15] = rol(block[(i + 13) & 15] ^ block[(i + 8) & 15] ^ block[(i + 2) & 15] ^ block[i & 15], 1))
 
 /*
  * (R0+R1), R2, R3, R4 are the different operations (rounds) used in SHA1
  */
-#define R0(v, w, x, y, z, i)                                                   \
-  z += ((w & (x ^ y)) ^ y) + blk0(i) + 0x5A827999 + rol(v, 5);                 \
+#define R0(v, w, x, y, z, i)                                                                                           \
+  z += ((w & (x ^ y)) ^ y) + blk0(i) + 0x5A827999 + rol(v, 5);                                                         \
   w = rol(w, 30);
-#define R1(v, w, x, y, z, i)                                                   \
-  z += ((w & (x ^ y)) ^ y) + blk(i) + 0x5A827999 + rol(v, 5);                  \
+#define R1(v, w, x, y, z, i)                                                                                           \
+  z += ((w & (x ^ y)) ^ y) + blk(i) + 0x5A827999 + rol(v, 5);                                                          \
   w = rol(w, 30);
-#define R2(v, w, x, y, z, i)                                                   \
-  z += (w ^ x ^ y) + blk(i) + 0x6ED9EBA1 + rol(v, 5);                          \
+#define R2(v, w, x, y, z, i)                                                                                           \
+  z += (w ^ x ^ y) + blk(i) + 0x6ED9EBA1 + rol(v, 5);                                                                  \
   w = rol(w, 30);
-#define R3(v, w, x, y, z, i)                                                   \
-  z += (((w | x) & y) | (w & x)) + blk(i) + 0x8F1BBCDC + rol(v, 5);            \
+#define R3(v, w, x, y, z, i)                                                                                           \
+  z += (((w | x) & y) | (w & x)) + blk(i) + 0x8F1BBCDC + rol(v, 5);                                                    \
   w = rol(w, 30);
-#define R4(v, w, x, y, z, i)                                                   \
-  z += (w ^ x ^ y) + blk(i) + 0xCA62C1D6 + rol(v, 5);                          \
+#define R4(v, w, x, y, z, i)                                                                                           \
+  z += (w ^ x ^ y) + blk(i) + 0xCA62C1D6 + rol(v, 5);                                                                  \
   w = rol(w, 30);
 
 /*
@@ -215,8 +211,7 @@ void lutil_SHA1Init(lutil_SHA1_CTX *context) {
 /*
  * Run your data through this.
  */
-void lutil_SHA1Update(lutil_SHA1_CTX *context, const unsigned char *data,
-                      uint32_t len) {
+void lutil_SHA1Update(lutil_SHA1_CTX *context, const unsigned char *data, uint32_t len) {
   u_int i, j;
 
   j = context->count[0];
@@ -243,9 +238,8 @@ void lutil_SHA1Final(unsigned char *digest, lutil_SHA1_CTX *context) {
   unsigned char finalcount[8];
 
   for (i = 0; i < 8; i++) {
-    finalcount[i] = (unsigned char)((context->count[(i >= 4 ? 0 : 1)] >>
-                                     ((3 - (i & 3)) * 8)) &
-                                    255); /* Endian independent */
+    finalcount[i] =
+        (unsigned char)((context->count[(i >= 4 ? 0 : 1)] >> ((3 - (i & 3)) * 8)) & 255); /* Endian independent */
   }
   lutil_SHA1Update(context, (unsigned char *)"\200", 1);
   while ((context->count[0] & 504) != 448)
@@ -254,9 +248,7 @@ void lutil_SHA1Final(unsigned char *digest, lutil_SHA1_CTX *context) {
 
   if (digest) {
     for (i = 0; i < 20; i++)
-      digest[i] =
-          (unsigned char)((context->state[i >> 2] >> ((3 - (i & 3)) * 8)) &
-                          255);
+      digest[i] = (unsigned char)((context->state[i >> 2] >> ((3 - (i & 3)) * 8)) & 255);
   }
 }
 
@@ -270,8 +262,7 @@ void lutil_SHA1Final(unsigned char *digest, lutil_SHA1_CTX *context) {
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] =
-    "$OpenBSD: sha1hl.c,v 1.1 1997/07/12 20:06:03 millert Exp $";
+static char rcsid[] = "$OpenBSD: sha1hl.c,v 1.1 1997/07/12 20:06:03 millert Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <stdio.h>

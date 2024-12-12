@@ -33,8 +33,7 @@
 #include "ldap-int.h"
 #include "ldap_log.h"
 
-int ldap_turn(LDAP *ld, int mutual, const char *identifier,
-              LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
+int ldap_turn(LDAP *ld, int mutual, const char *identifier, LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
 #ifdef LDAP_EXOP_X_TURN
   BerElement *turnvalber = NULL;
   struct berval *turnvalp = NULL;
@@ -48,8 +47,7 @@ int ldap_turn(LDAP *ld, int mutual, const char *identifier,
   }
   ber_flatten(turnvalber, &turnvalp);
 
-  rc = ldap_extended_operation(ld, LDAP_EXOP_X_TURN, turnvalp, sctrls, cctrls,
-                               msgidp);
+  rc = ldap_extended_operation(ld, LDAP_EXOP_X_TURN, turnvalp, sctrls, cctrls, msgidp);
   ber_free(turnvalber, 1);
   return rc;
 #else
@@ -57,8 +55,7 @@ int ldap_turn(LDAP *ld, int mutual, const char *identifier,
 #endif
 }
 
-int ldap_turn_s(LDAP *ld, int mutual, const char *identifier,
-                LDAPControl **sctrls, LDAPControl **cctrls) {
+int ldap_turn_s(LDAP *ld, int mutual, const char *identifier, LDAPControl **sctrls, LDAPControl **cctrls) {
 #ifdef LDAP_EXOP_X_TURN
   BerElement *turnvalber = NULL;
   struct berval *turnvalp = NULL;
@@ -72,8 +69,7 @@ int ldap_turn_s(LDAP *ld, int mutual, const char *identifier,
   }
   ber_flatten(turnvalber, &turnvalp);
 
-  rc = ldap_extended_operation_s(ld, LDAP_EXOP_X_TURN, turnvalp, sctrls, cctrls,
-                                 NULL, NULL);
+  rc = ldap_extended_operation_s(ld, LDAP_EXOP_X_TURN, turnvalp, sctrls, cctrls, NULL, NULL);
   ber_free(turnvalber, 1);
   return rc;
 #else

@@ -85,8 +85,7 @@ static void usage(int tool, const char *progname) {
     break;
 
   case SLAPINDEX:
-    options =
-        " [-c]\n\t[-g] [-n databasenumber | -b suffix] [attr ...] [-q] [-t]\n";
+    options = " [-c]\n\t[-g] [-n databasenumber | -b suffix] [attr ...] [-q] [-t]\n";
     break;
 
   case SLAPTEST:
@@ -224,8 +223,7 @@ static int parse_slapopt(int tool, int *mode) {
       break;
     }
 
-  } else if ((strncasecmp(optarg, "ldif_wrap", len) == 0) ||
-             (strncasecmp(optarg, "ldif-wrap", len) == 0)) {
+  } else if ((strncasecmp(optarg, "ldif_wrap", len) == 0) || (strncasecmp(optarg, "ldif-wrap", len) == 0)) {
     switch (tool) {
     case SLAPCAT:
       if (strcasecmp(p, "no") == 0) {
@@ -370,8 +368,7 @@ void slap_tool_init(const char *progname, int tool, int argc, char **argv) {
       slap_set_debug_level(mask);
 #else
       if (mask != 0 || debug_unknowns)
-        fputs("must be configured with '--enable-debug' for debugging\n",
-              stderr);
+        fputs("must be configured with '--enable-debug' for debugging\n", stderr);
 #endif /* LDAP_DEBUG */
     } break;
 
@@ -395,9 +392,7 @@ void slap_tool_init(const char *progname, int tool, int argc, char **argv) {
       LDAPURLDesc *ludp;
       int rc;
 
-      rc = ldap_url_parse_ext(optarg, &ludp,
-                              LDAP_PVT_URL_PARSE_NOEMPTY_HOST |
-                                  LDAP_PVT_URL_PARSE_NOEMPTY_DN);
+      rc = ldap_url_parse_ext(optarg, &ludp, LDAP_PVT_URL_PARSE_NOEMPTY_HOST | LDAP_PVT_URL_PARSE_NOEMPTY_DN);
       if (rc != LDAP_URL_SUCCESS) {
         usage(tool, progname);
       }
@@ -644,8 +639,7 @@ void slap_tool_init(const char *progname, int tool, int argc, char **argv) {
   rc = read_config(conffile, confdir);
 
   if (rc != 0) {
-    fprintf(stderr, "%s: bad configuration %s!\n", progname,
-            confdir ? "directory" : "file");
+    fprintf(stderr, "%s: bad configuration %s!\n", progname, confdir ? "directory" : "file");
     exit(EXIT_FAILURE);
   }
 
@@ -742,8 +736,7 @@ void slap_tool_init(const char *progname, int tool, int argc, char **argv) {
 
     rc = dnNormalize(0, NULL, NULL, &base, &nbase, NULL);
     if (rc != LDAP_SUCCESS) {
-      fprintf(stderr, "%s: slap_init invalid suffix (\"%s\")\n", progname,
-              base.bv_val);
+      fprintf(stderr, "%s: slap_init invalid suffix (\"%s\")\n", progname, base.bv_val);
       exit(EXIT_FAILURE);
     }
 
@@ -752,8 +745,7 @@ void slap_tool_init(const char *progname, int tool, int argc, char **argv) {
     BER_BVZERO(&nbase);
 
     if (be == NULL) {
-      fprintf(stderr, "%s: slap_init no backend for \"%s\"\n", progname,
-              base.bv_val);
+      fprintf(stderr, "%s: slap_init no backend for \"%s\"\n", progname, base.bv_val);
       exit(EXIT_FAILURE);
     }
     switch (tool) {
@@ -941,8 +933,7 @@ int slap_tool_destroy(void) {
   return rc;
 }
 
-int slap_tool_update_ctxcsn(const char *progname, unsigned long sid,
-                            struct berval *bvtext) {
+int slap_tool_update_ctxcsn(const char *progname, unsigned long sid, struct berval *bvtext) {
   struct berval ctxdn;
   ID ctxcsn_id;
   Entry *ctxcsn_e;
@@ -953,8 +944,7 @@ int slap_tool_update_ctxcsn(const char *progname, unsigned long sid,
   }
 
   if (SLAP_SYNC_SUBENTRY(be)) {
-    build_new_dn(&ctxdn, &be->be_nsuffix[0],
-                 (struct berval *)&slap_ldapsync_cn_bv, NULL);
+    build_new_dn(&ctxdn, &be->be_nsuffix[0], (struct berval *)&slap_ldapsync_cn_bv, NULL);
   } else {
     ctxdn = be->be_nsuffix[0];
   }
@@ -964,8 +954,7 @@ int slap_tool_update_ctxcsn(const char *progname, unsigned long sid,
       ctxcsn_e = slap_create_context_csn_entry(be, NULL);
       for (sid = 0; sid <= SLAP_SYNC_SID_MAX; sid++) {
         if (maxcsn[sid].bv_len) {
-          attr_merge_one(ctxcsn_e, slap_schema.si_ad_contextCSN, &maxcsn[sid],
-                         NULL);
+          attr_merge_one(ctxcsn_e, slap_schema.si_ad_contextCSN, &maxcsn[sid], NULL);
         }
       }
       ctxcsn_id = be->be_entry_put(be, ctxcsn_e, bvtext);
@@ -1016,17 +1005,14 @@ int slap_tool_update_ctxcsn(const char *progname, unsigned long sid,
             match = -1;
 
           } else {
-            value_match(&match, slap_schema.si_ad_entryCSN,
-                        slap_schema.si_ad_entryCSN->ad_type->sat_ordering,
-                        SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, &maxcsn[sid],
-                        &attr->a_nvals[i], &text);
+            value_match(&match, slap_schema.si_ad_entryCSN, slap_schema.si_ad_entryCSN->ad_type->sat_ordering,
+                        SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, &maxcsn[sid], &attr->a_nvals[i], &text);
           }
 
           if (match > 0) {
             change = 1;
           } else {
-            memcpy(maxcsn[sid].bv_val, attr->a_nvals[i].bv_val,
-                   attr->a_nvals[i].bv_len);
+            memcpy(maxcsn[sid].bv_val, attr->a_nvals[i].bv_val, attr->a_nvals[i].bv_len);
             maxcsn[sid].bv_val[attr->a_nvals[i].bv_len] = '\0';
             maxcsn[sid].bv_len = attr->a_nvals[i].bv_len;
           }
@@ -1054,12 +1040,10 @@ int slap_tool_update_ctxcsn(const char *progname, unsigned long sid,
 
         ctxcsn_id = be->be_entry_modify(be, e, bvtext);
         if (ctxcsn_id == NOID) {
-          fprintf(stderr, "%s: could not modify ctxcsn (%s)\n", progname,
-                  bvtext->bv_val ? bvtext->bv_val : "");
+          fprintf(stderr, "%s: could not modify ctxcsn (%s)\n", progname, bvtext->bv_val ? bvtext->bv_val : "");
           rc = EXIT_FAILURE;
         } else if (verbose) {
-          fprintf(stderr, "modified: \"%s\" (%08lx)\n", e->e_dn,
-                  (long)ctxcsn_id);
+          fprintf(stderr, "modified: \"%s\" (%08lx)\n", e->e_dn, (long)ctxcsn_id);
         }
       }
       entry_free(e);
@@ -1101,10 +1085,8 @@ unsigned long slap_tool_update_ctxcsn_check(const char *progname, Entry *e) {
       sid = (unsigned)rc_sid;
       if (maxcsn[sid].bv_len != 0) {
         match = 0;
-        value_match(&match, slap_schema.si_ad_entryCSN,
-                    slap_schema.si_ad_entryCSN->ad_type->sat_ordering,
-                    SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, &maxcsn[sid],
-                    &attr->a_nvals[0], &text);
+        value_match(&match, slap_schema.si_ad_entryCSN, slap_schema.si_ad_entryCSN->ad_type->sat_ordering,
+                    SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, &maxcsn[sid], &attr->a_nvals[0], &text);
       } else {
         match = -1;
       }
@@ -1131,8 +1113,7 @@ int slap_tool_update_ctxcsn_init(void) {
   return 0;
 }
 
-int slap_tool_entry_check(const char *progname, Operation *op, Entry *e,
-                          int lineno, const char **text, char *textbuf,
+int slap_tool_entry_check(const char *progname, Operation *op, Entry *e, int lineno, const char **text, char *textbuf,
                           size_t textlen) {
   /* NOTE: we may want to conditionally enable manage */
   int manage = 0;
@@ -1140,8 +1121,7 @@ int slap_tool_entry_check(const char *progname, Operation *op, Entry *e,
   Attribute *oc = attr_find(e->e_attrs, slap_schema.si_ad_objectClass);
 
   if (oc == NULL) {
-    fprintf(stderr, "%s: dn=\"%s\" (line=%d): %s\n", progname, e->e_dn, lineno,
-            "no objectClass attribute");
+    fprintf(stderr, "%s: dn=\"%s\" (line=%d): %s\n", progname, e->e_dn, lineno, "no objectClass attribute");
     return LDAP_NO_SUCH_ATTRIBUTE;
   }
 
@@ -1149,12 +1129,10 @@ int slap_tool_entry_check(const char *progname, Operation *op, Entry *e,
   op->o_bd = be;
 
   if ((slapMode & SLAP_TOOL_NO_SCHEMA_CHECK) == 0) {
-    int rc = entry_schema_check(op, e, NULL, manage, 1, NULL, text, textbuf,
-                                textlen);
+    int rc = entry_schema_check(op, e, NULL, manage, 1, NULL, text, textbuf, textlen);
 
     if (rc != LDAP_SUCCESS) {
-      fprintf(stderr, "%s: dn=\"%s\" (line=%d): (%d) %s\n", progname, e->e_dn,
-              lineno, rc, *text);
+      fprintf(stderr, "%s: dn=\"%s\" (line=%d): (%d) %s\n", progname, e->e_dn, lineno, rc, *text);
       return rc;
     }
     textbuf[0] = '\0';
@@ -1165,8 +1143,7 @@ int slap_tool_entry_check(const char *progname, Operation *op, Entry *e,
 
     int rc = slap_entry2mods(e, &ml, text, textbuf, textlen);
     if (rc != LDAP_SUCCESS) {
-      fprintf(stderr, "%s: dn=\"%s\" (line=%d): (%d) %s\n", progname, e->e_dn,
-              lineno, rc, *text);
+      fprintf(stderr, "%s: dn=\"%s\" (line=%d): (%d) %s\n", progname, e->e_dn, lineno, rc, *text);
       return rc;
     }
     textbuf[0] = '\0';
@@ -1174,8 +1151,7 @@ int slap_tool_entry_check(const char *progname, Operation *op, Entry *e,
     rc = slap_mods_check(op, ml, text, textbuf, textlen, NULL);
     slap_mods_free(ml, 1);
     if (rc != LDAP_SUCCESS) {
-      fprintf(stderr, "%s: dn=\"%s\" (line=%d): (%d) %s\n", progname, e->e_dn,
-              lineno, rc, *text);
+      fprintf(stderr, "%s: dn=\"%s\" (line=%d): (%d) %s\n", progname, e->e_dn, lineno, rc, *text);
       return rc;
     }
     textbuf[0] = '\0';

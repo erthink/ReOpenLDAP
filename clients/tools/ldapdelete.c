@@ -51,13 +51,9 @@ void usage(void) {
                     "readed from stdin\n"));
   fprintf(stderr, _("	    or from the file specified with \"-f file\".\n"));
   fprintf(stderr, _("Delete Options:\n"));
-  fprintf(
-      stderr,
-      _("  -c         continuous operation mode (do not stop on errors)\n"));
+  fprintf(stderr, _("  -c         continuous operation mode (do not stop on errors)\n"));
   fprintf(stderr, _("  -f file    read operations from `file'\n"));
-  fprintf(
-      stderr,
-      _("  -M         enable Manage DSA IT control (-MM to make critical)\n"));
+  fprintf(stderr, _("  -M         enable Manage DSA IT control (-MM to make critical)\n"));
   fprintf(stderr, _("  -P version protocol version (default: 3)\n"));
   fprintf(stderr, _("  -r         delete recursively\n"));
   tool_common_usage();
@@ -120,8 +116,7 @@ int handle_private_option(int i) {
       sizelimit = ival;
     }
     if (sizelimit < 0 || sizelimit > LDAP_MAXINT) {
-      fprintf(stderr, _("%s: invalid sizelimit (%d) specified\n"), prog,
-              sizelimit);
+      fprintf(stderr, _("%s: invalid sizelimit (%d) specified\n"), prog, sizelimit);
       exit(EXIT_FAILURE);
     }
     break;
@@ -222,8 +217,7 @@ static int dodelete(LDAP *ld, const char *dn) {
 
   rc = ldap_delete_ext(ld, dn, NULL, NULL, &id);
   if (rc != LDAP_SUCCESS) {
-    fprintf(stderr, "%s: ldap_delete_ext: %s (%d)\n", prog, ldap_err2string(rc),
-            rc);
+    fprintf(stderr, "%s: ldap_delete_ext: %s (%d)\n", prog, ldap_err2string(rc), rc);
     return rc;
   }
 
@@ -262,15 +256,13 @@ static int dodelete(LDAP *ld, const char *dn) {
     /* fallthru */
 
   default:
-    fprintf(stderr, "%s: ldap_parse_result: %s (%d)\n", prog,
-            ldap_err2string(rc), rc);
+    fprintf(stderr, "%s: ldap_parse_result: %s (%d)\n", prog, ldap_err2string(rc), rc);
     return rc;
   }
 
   if (code != LDAP_SUCCESS) {
     tool_perror("ldap_delete", code, NULL, matcheddn, text, refs);
-  } else if (verbose && ((matcheddn && *matcheddn) || (text && *text) ||
-                         (refs && *refs))) {
+  } else if (verbose && ((matcheddn && *matcheddn) || (text && *text) || (refs && *refs))) {
     printf(_("Delete Result: %s (%d)\n"), ldap_err2string(code), code);
 
     if (text && *text) {
@@ -343,8 +335,7 @@ static int deletechildren(LDAP *ld, const char *base, int subentries) {
    * Do a one level search at base for children.  For each, delete its children.
    */
 more:;
-  srch_rc = ldap_search_ext_s(ld, base, LDAP_SCOPE_ONELEVEL, NULL, attrs, 1,
-                              ctrlsp, NULL, NULL, sizelimit, &res);
+  srch_rc = ldap_search_ext_s(ld, base, LDAP_SCOPE_ONELEVEL, NULL, attrs, 1, ctrlsp, NULL, NULL, sizelimit, &res);
   switch (srch_rc) {
   case LDAP_SUCCESS:
   case LDAP_SIZELIMIT_EXCEEDED:
@@ -359,8 +350,7 @@ more:;
   if (entries > 0) {
     int i;
 
-    for (e = ldap_first_entry(ld, res), i = 0; e != NULL;
-         e = ldap_next_entry(ld, e), i++) {
+    for (e = ldap_first_entry(ld, res), i = 0; e != NULL; e = ldap_next_entry(ld, e), i++) {
       char *dn = ldap_get_dn(ld, e);
 
       if (dn == NULL) {

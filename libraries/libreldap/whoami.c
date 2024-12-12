@@ -50,22 +50,19 @@ int ldap_parse_whoami(LDAP *ld, LDAPMessage *res, struct berval **authzid) {
   return rc;
 }
 
-int ldap_whoami(LDAP *ld, LDAPControl **sctrls, LDAPControl **cctrls,
-                int *msgidp) {
+int ldap_whoami(LDAP *ld, LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
   int rc;
 
   assert(ld != NULL);
   assert(LDAP_VALID(ld));
   assert(msgidp != NULL);
 
-  rc = ldap_extended_operation(ld, LDAP_EXOP_WHO_AM_I, NULL, sctrls, cctrls,
-                               msgidp);
+  rc = ldap_extended_operation(ld, LDAP_EXOP_WHO_AM_I, NULL, sctrls, cctrls, msgidp);
 
   return rc;
 }
 
-int ldap_whoami_s(LDAP *ld, struct berval **authzid, LDAPControl **sctrls,
-                  LDAPControl **cctrls) {
+int ldap_whoami_s(LDAP *ld, struct berval **authzid, LDAPControl **sctrls, LDAPControl **cctrls) {
   int rc;
   int msgid;
   LDAPMessage *res;
@@ -74,9 +71,7 @@ int ldap_whoami_s(LDAP *ld, struct berval **authzid, LDAPControl **sctrls,
   if (rc != LDAP_SUCCESS)
     return rc;
 
-  if (ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res) ==
-          -1 ||
-      !res) {
+  if (ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res) == -1 || !res) {
     return ld->ld_errno;
   }
 

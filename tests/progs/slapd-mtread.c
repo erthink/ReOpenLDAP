@@ -50,14 +50,11 @@
 #define RETRIES 0
 #define DEFAULT_BASE "ou=people,dc=example,dc=com"
 
-static void do_read(LDAP *ld, char *entry, char **attrs, int noattrs,
-                    int nobind, int maxloop, int force, int idx);
+static void do_read(LDAP *ld, char *entry, char **attrs, int noattrs, int nobind, int maxloop, int force, int idx);
 
-static void do_random(LDAP *ld, char *sbase, char *filter, char **attrs,
-                      int noattrs, int nobind, int force, int idx);
+static void do_random(LDAP *ld, char *sbase, char *filter, char **attrs, int noattrs, int nobind, int force, int idx);
 
-static void do_random2(LDAP *ld, char *sbase, char *filter, char **attrs,
-                       int noattrs, int nobind, int force, int idx);
+static void do_random2(LDAP *ld, char *sbase, char *filter, char **attrs, int noattrs, int nobind, int force, int idx);
 
 static void *do_onethread(void *arg);
 
@@ -99,16 +96,14 @@ static void thread_error(int idx, char *string) {
 
 static void thread_output(int idx, char *string) {
   char buf[BUFSIZ];
-  snprintf(buf, BUFSIZ, "tidx: %d says: %.*s", idx, (int)sizeof(buf) - 64,
-           string);
+  snprintf(buf, BUFSIZ, "tidx: %d says: %.*s", idx, (int)sizeof(buf) - 64, string);
   tester_error(buf);
 }
 
 static void thread_verbose(int idx, char *string) {
   if (verbose) {
     char buf[BUFSIZ];
-    snprintf(buf, BUFSIZ, "tidx: %d says: %.*s", idx, (int)sizeof(buf) - 64,
-             string);
+    snprintf(buf, BUFSIZ, "tidx: %d says: %.*s", idx, (int)sizeof(buf) - 64, string);
     tester_error(buf);
   }
 }
@@ -146,8 +141,7 @@ int main(int argc, char **argv) {
   /* by default, tolerate referrals and no such object */
   tester_ignore_str2errlist("REFERRAL,NO_SUCH_OBJECT");
 
-  while ((i = getopt(argc, argv, TESTER_COMMON_OPTS "Ac:e:Ff:M:m:NT:v")) !=
-         EOF) {
+  while ((i = getopt(argc, argv, TESTER_COMMON_OPTS "Ac:e:Ff:M:m:NT:v")) != EOF) {
     switch (i) {
     case 'A':
       noattrs++;
@@ -240,8 +234,7 @@ int main(int argc, char **argv) {
     tester_init_ld(&lds[i], config, nobind);
   }
 
-  snprintf(outstr, BUFSIZ, "MT Test Start: conns: %d (%s)", noconns,
-           config->uri);
+  snprintf(outstr, BUFSIZ, "MT Test Start: conns: %d (%s)", noconns, config->uri);
   tester_error(outstr);
   snprintf(outstr, BUFSIZ, "Threads: RO: %d RW: %d", threads, rwthreads);
   tester_error(outstr);
@@ -276,8 +269,7 @@ int main(int argc, char **argv) {
   free(lds);
 
   for (i = 0; i < threads; i++) {
-    snprintf(outstr, BUFSIZ, "RO thread %d pass=%d fail=%d", i, rt_pass[i],
-             rt_fail[i]);
+    snprintf(outstr, BUFSIZ, "RO thread %d pass=%d fail=%d", i, rt_pass[i], rt_fail[i]);
     tester_error(outstr);
     if (rt_fail[i] != 0 || rt_pass[i] != ptpass) {
       snprintf(outstr, BUFSIZ, "FAIL RO thread %d", i);
@@ -286,8 +278,7 @@ int main(int argc, char **argv) {
     }
   }
   for (i = 0; i < rwthreads; i++) {
-    snprintf(outstr, BUFSIZ, "RW thread %d pass=%d fail=%d", i + MAX_THREAD,
-             rwt_pass[i], rwt_fail[i]);
+    snprintf(outstr, BUFSIZ, "RW thread %d pass=%d fail=%d", i + MAX_THREAD, rwt_pass[i], rwt_fail[i]);
     tester_error(outstr);
     if (rwt_fail[i] != 0 || rwt_pass[i] != ptpass) {
       snprintf(outstr, BUFSIZ, "FAIL RW thread %d", i);
@@ -324,8 +315,7 @@ static void *do_onethread(void *arg) {
       }
     }
     rc = ldap_get_option(mlds[0], LDAP_OPT_SESSION_REFCNT, &refcnt);
-    snprintf(thrstr, BUFSIZ, "RO Thread conns: %d refcnt: %d (rc = %d)",
-             noconns, refcnt, rc);
+    snprintf(thrstr, BUFSIZ, "RO Thread conns: %d refcnt: %d (rc = %d)", noconns, refcnt, rc);
     thread_verbose(idx, thrstr);
 
     thisconn = (idx + j) % noconns;
@@ -340,15 +330,12 @@ static void *do_onethread(void *arg) {
     thread_verbose(idx, thrstr);
     if (filter != NULL) {
       if (strchr(filter, '['))
-        do_random2(mlds[thisconn], entry, filter, attrs, noattrs, nobind, force,
-                   idx);
+        do_random2(mlds[thisconn], entry, filter, attrs, noattrs, nobind, force, idx);
       else
-        do_random(mlds[thisconn], entry, filter, attrs, noattrs, nobind, force,
-                  idx);
+        do_random(mlds[thisconn], entry, filter, attrs, noattrs, nobind, force, idx);
 
     } else {
-      do_read(mlds[thisconn], entry, attrs, noattrs, nobind, config->loops,
-              force, idx);
+      do_read(mlds[thisconn], entry, attrs, noattrs, nobind, config->loops, force, idx);
     }
     for (i = 0; i < noconns; i++) {
       (void)ldap_destroy(mlds[i]);
@@ -409,8 +396,7 @@ static void *do_onerwthread(void *arg) {
       }
     }
     rc = ldap_get_option(mlds[0], LDAP_OPT_SESSION_REFCNT, &refcnt);
-    snprintf(thrstr, BUFSIZ, "RW Thread conns: %d refcnt: %d (rc = %d)",
-             noconns, refcnt, rc);
+    snprintf(thrstr, BUFSIZ, "RW Thread conns: %d refcnt: %d (rc = %d)", noconns, refcnt, rc);
     thread_verbose(idx, thrstr);
 
     thisconn = (idx + j) % noconns;
@@ -451,8 +437,7 @@ static void *do_onerwthread(void *arg) {
       }
     }
 
-    snprintf(thrstr, BUFSIZ, "INNER STOP RW Thread using conn %d (%d/%d)",
-             thisconn, adds, dels);
+    snprintf(thrstr, BUFSIZ, "INNER STOP RW Thread using conn %d (%d/%d)", thisconn, adds, dels);
     thread_verbose(idx, thrstr);
 
     for (i = 0; i < noconns; i++) {
@@ -465,8 +450,8 @@ static void *do_onerwthread(void *arg) {
   return (NULL);
 }
 
-static void do_random(LDAP *ld, char *sbase, char *filter, char **srchattrs,
-                      int noattrs, int nobind, int force, int idx) {
+static void do_random(LDAP *ld, char *sbase, char *filter, char **srchattrs, int noattrs, int nobind, int force,
+                      int idx) {
   int i = 0, do_retry = config->retries;
   char *attrs[2];
   int rc = LDAP_SUCCESS;
@@ -478,12 +463,10 @@ static void do_random(LDAP *ld, char *sbase, char *filter, char **srchattrs,
   attrs[0] = LDAP_NO_ATTRS;
   attrs[1] = NULL;
 
-  snprintf(thrstr, BUFSIZ, "Read(%d): base=\"%s\", filter=\"%s\".\n",
-           config->loops, sbase, filter);
+  snprintf(thrstr, BUFSIZ, "Read(%d): base=\"%s\", filter=\"%s\".\n", config->loops, sbase, filter);
   thread_verbose(idx, thrstr);
 
-  rc = ldap_search_ext_s(ld, sbase, LDAP_SCOPE_SUBTREE, filter, attrs, 0, NULL,
-                         NULL, NULL, LDAP_NO_LIMIT, &res);
+  rc = ldap_search_ext_s(ld, sbase, LDAP_SCOPE_SUBTREE, filter, attrs, 0, NULL, NULL, NULL, LDAP_NO_LIMIT, &res);
   switch (rc) {
   case LDAP_SIZELIMIT_EXCEEDED:
   case LDAP_TIMELIMIT_EXCEEDED:
@@ -497,8 +480,7 @@ static void do_random(LDAP *ld, char *sbase, char *filter, char **srchattrs,
     }
 
     values = malloc((nvalues + 1) * sizeof(char *));
-    for (i = 0, e = ldap_first_entry(ld, res); e != NULL;
-         i++, e = ldap_next_entry(ld, e)) {
+    for (i = 0, e = ldap_first_entry(ld, res); e != NULL; i++, e = ldap_next_entry(ld, e)) {
       values[i] = ldap_get_dn(ld, e);
     }
     values[i] = NULL;
@@ -506,9 +488,7 @@ static void do_random(LDAP *ld, char *sbase, char *filter, char **srchattrs,
     ldap_msgfree(res);
 
     if (do_retry == config->retries) {
-      snprintf(thrstr, BUFSIZ,
-               "Read base=\"%s\" filter=\"%s\" got %d values.\n", sbase, filter,
-               nvalues);
+      snprintf(thrstr, BUFSIZ, "Read base=\"%s\" filter=\"%s\" got %d values.\n", sbase, filter, nvalues);
       thread_verbose(idx, thrstr);
     }
 
@@ -534,8 +514,8 @@ static void do_random(LDAP *ld, char *sbase, char *filter, char **srchattrs,
 }
 
 /* substitute a generated int into the filter */
-static void do_random2(LDAP *ld, char *sbase, char *filter, char **srchattrs,
-                       int noattrs, int nobind, int force, int idx) {
+static void do_random2(LDAP *ld, char *sbase, char *filter, char **srchattrs, int noattrs, int nobind, int force,
+                       int idx) {
   int i = 0, do_retry = config->retries;
   int rc = LDAP_SUCCESS;
   int lo, hi, range;
@@ -545,8 +525,7 @@ static void do_random2(LDAP *ld, char *sbase, char *filter, char **srchattrs,
   char thrstr[BUFSIZ];
   char fbuf[BUFSIZ];
 
-  snprintf(thrstr, BUFSIZ, "Read(%d): base=\"%s\", filter=\"%s\".\n",
-           config->loops, sbase, filter);
+  snprintf(thrstr, BUFSIZ, "Read(%d): base=\"%s\", filter=\"%s\".\n", config->loops, sbase, filter);
   thread_verbose(idx, thrstr);
 
   ptr = strchr(filter, '[');
@@ -566,8 +545,8 @@ static void do_random2(LDAP *ld, char *sbase, char *filter, char **srchattrs,
     int r = lo + lrand48() % range;
     sprintf(fbuf, "%.*s%d%s", flen, filter, r, ftail);
 
-    rc = ldap_search_ext_s(ld, sbase, LDAP_SCOPE_SUBTREE, fbuf, srchattrs,
-                           noattrs, NULL, NULL, NULL, LDAP_NO_LIMIT, &res);
+    rc = ldap_search_ext_s(ld, sbase, LDAP_SCOPE_SUBTREE, fbuf, srchattrs, noattrs, NULL, NULL, NULL, LDAP_NO_LIMIT,
+                           &res);
     if (res != NULL) {
       ldap_msgfree(res);
     }
@@ -603,8 +582,7 @@ static void do_random2(LDAP *ld, char *sbase, char *filter, char **srchattrs,
   thread_verbose(idx, thrstr);
 }
 
-static void do_read(LDAP *ld, char *entry, char **attrs, int noattrs,
-                    int nobind, int maxloop, int force, int idx) {
+static void do_read(LDAP *ld, char *entry, char **attrs, int noattrs, int nobind, int maxloop, int force, int idx) {
   int i = 0, do_retry = config->retries;
   int rc = LDAP_SUCCESS;
   char thrstr[BUFSIZ];
@@ -615,15 +593,13 @@ retry:;
     thread_verbose(idx, thrstr);
   }
 
-  snprintf(thrstr, BUFSIZ, "LD %p cnt: %d (retried %d) (%s)", (void *)ld,
-           maxloop, (do_retry - config->retries), entry);
+  snprintf(thrstr, BUFSIZ, "LD %p cnt: %d (retried %d) (%s)", (void *)ld, maxloop, (do_retry - config->retries), entry);
   thread_verbose(idx, thrstr);
 
   for (; i < maxloop; i++) {
     LDAPMessage *res = NULL;
 
-    rc = ldap_search_ext_s(ld, entry, LDAP_SCOPE_BASE, NULL, attrs, noattrs,
-                           NULL, NULL, NULL, LDAP_NO_LIMIT, &res);
+    rc = ldap_search_ext_s(ld, entry, LDAP_SCOPE_BASE, NULL, attrs, noattrs, NULL, NULL, NULL, LDAP_NO_LIMIT, &res);
     if (res != NULL) {
       ldap_msgfree(res);
     }

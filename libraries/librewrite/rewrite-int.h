@@ -65,8 +65,7 @@
 /* #define REWRITE_SUBMATCH_ESCAPE			'\\' */
 #define REWRITE_SUBMATCH_ESCAPE_ORIG '%'
 #define REWRITE_SUBMATCH_ESCAPE '$'
-#define IS_REWRITE_SUBMATCH_ESCAPE(c)                                          \
-  ((c) == REWRITE_SUBMATCH_ESCAPE || (c) == REWRITE_SUBMATCH_ESCAPE_ORIG)
+#define IS_REWRITE_SUBMATCH_ESCAPE(c) ((c) == REWRITE_SUBMATCH_ESCAPE || (c) == REWRITE_SUBMATCH_ESCAPE_ORIG)
 
 /*
  * REGEX flags
@@ -347,13 +346,11 @@ rewrite_xmap_parse(struct rewrite_info *info, const char *s, const char **end);
  * Resolves key in val by means of map (also in legacy 'x' version)
  */
 LDAP_REWRITE_F(int)
-rewrite_map_apply(struct rewrite_info *info, struct rewrite_op *op,
-                  struct rewrite_map *map, struct berval *key,
+rewrite_map_apply(struct rewrite_info *info, struct rewrite_op *op, struct rewrite_map *map, struct berval *key,
                   struct berval *val);
 
 LDAP_REWRITE_F(int)
-rewrite_xmap_apply(struct rewrite_info *info, struct rewrite_op *op,
-                   struct rewrite_map *map, struct berval *key,
+rewrite_xmap_apply(struct rewrite_info *info, struct rewrite_op *op, struct rewrite_map *map, struct berval *key,
                    struct berval *val);
 
 LDAP_REWRITE_F(int)
@@ -379,8 +376,7 @@ rewrite_subst_compile(struct rewrite_info *info, const char *result);
  * pattern using submatches
  */
 LDAP_REWRITE_F(int)
-rewrite_subst_apply(struct rewrite_info *info, struct rewrite_op *op,
-                    struct rewrite_subst *subst, const char *string,
+rewrite_subst_apply(struct rewrite_info *info, struct rewrite_op *op, struct rewrite_subst *subst, const char *string,
                     const regmatch_t *match, struct berval *val);
 
 LDAP_REWRITE_F(int)
@@ -394,9 +390,8 @@ rewrite_subst_destroy(struct rewrite_subst **subst);
  * Compiles the rule and appends it at the running context
  */
 LDAP_REWRITE_F(int)
-rewrite_rule_compile(struct rewrite_info *info, struct rewrite_context *context,
-                     const char *pattern, const char *result,
-                     const char *flagstring);
+rewrite_rule_compile(struct rewrite_info *info, struct rewrite_context *context, const char *pattern,
+                     const char *result, const char *flagstring);
 
 /*
  * Rewrites string according to rule; may return:
@@ -408,8 +403,7 @@ rewrite_rule_compile(struct rewrite_info *info, struct rewrite_context *context,
  *      REWRITE_REGEXEC_ERR:	an error occurred
  */
 LDAP_REWRITE_F(int)
-rewrite_rule_apply(struct rewrite_info *info, struct rewrite_op *op,
-                   struct rewrite_rule *rule, const char *string,
+rewrite_rule_apply(struct rewrite_info *info, struct rewrite_op *op, struct rewrite_rule *rule, const char *string,
                    char **result);
 
 LDAP_REWRITE_F(int)
@@ -429,15 +423,14 @@ rewrite_session_find(struct rewrite_info *info, const void *cookie);
  * Defines and inits a variable with session scope
  */
 LDAP_REWRITE_F(int)
-rewrite_session_var_set_f(struct rewrite_info *info, const void *cookie,
-                          const char *name, const char *value, int flags);
+rewrite_session_var_set_f(struct rewrite_info *info, const void *cookie, const char *name, const char *value,
+                          int flags);
 
 /*
  * Gets a var with session scope
  */
 LDAP_REWRITE_F(int)
-rewrite_session_var_get(struct rewrite_info *info, const void *cookie,
-                        const char *name, struct berval *val);
+rewrite_session_var_get(struct rewrite_info *info, const void *cookie, const char *name, struct berval *val);
 
 /*
  * Deletes a session
@@ -471,25 +464,20 @@ rewrite_var_replace(struct rewrite_var *var, const char *value, int flags);
  * Inserts a newly created var
  */
 LDAP_REWRITE_F(struct rewrite_var *)
-rewrite_var_insert_f(Avlnode **tree, const char *name, const char *value,
-                     int flags);
+rewrite_var_insert_f(Avlnode **tree, const char *name, const char *value, int flags);
 
-#define rewrite_var_insert(tree, name, value)                                  \
-  rewrite_var_insert_f((tree), (name), (value),                                \
-                       REWRITE_VAR_UPDATE | REWRITE_VAR_COPY_NAME |            \
-                           REWRITE_VAR_COPY_VALUE)
+#define rewrite_var_insert(tree, name, value)                                                                          \
+  rewrite_var_insert_f((tree), (name), (value), REWRITE_VAR_UPDATE | REWRITE_VAR_COPY_NAME | REWRITE_VAR_COPY_VALUE)
 
 /*
  * Sets/inserts a var
  */
 LDAP_REWRITE_F(struct rewrite_var *)
-rewrite_var_set_f(Avlnode **tree, const char *name, const char *value,
-                  int flags);
+rewrite_var_set_f(Avlnode **tree, const char *name, const char *value, int flags);
 
-#define rewrite_var_set(tree, name, value, insert)                             \
-  rewrite_var_set_f((tree), (name), (value),                                   \
-                    REWRITE_VAR_UPDATE | REWRITE_VAR_COPY_NAME |               \
-                        REWRITE_VAR_COPY_VALUE |                               \
+#define rewrite_var_set(tree, name, value, insert)                                                                     \
+  rewrite_var_set_f((tree), (name), (value),                                                                           \
+                    REWRITE_VAR_UPDATE | REWRITE_VAR_COPY_NAME | REWRITE_VAR_COPY_VALUE |                              \
                         ((insert) ? REWRITE_VAR_INSERT : 0))
 
 /*
@@ -521,9 +509,8 @@ rewrite_context_create(struct rewrite_info *info, const char *rewriteContext);
  *      UNWILL: rule matched; force 'unwilling to perform'
  */
 LDAP_REWRITE_F(int)
-rewrite_context_apply(struct rewrite_info *info, struct rewrite_op *op,
-                      struct rewrite_context *context, const char *string,
-                      char **result);
+rewrite_context_apply(struct rewrite_info *info, struct rewrite_op *op, struct rewrite_context *context,
+                      const char *string, char **result);
 
 LDAP_REWRITE_F(int)
 rewrite_context_destroy(struct rewrite_context **context);

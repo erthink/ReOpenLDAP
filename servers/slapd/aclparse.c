@@ -30,10 +30,8 @@
 #include "lutil.h"
 
 static const char style_base[] = "base";
-const char *style_strings[] = {"regex",     "expand",   "exact", "one",
-                               "subtree",   "children", "level", "attrof",
-                               "anonymous", "users",    "self",  "ip",
-                               "ipv6",      "path",     NULL};
+const char *style_strings[] = {"regex",     "expand", "exact", "one", "subtree", "children", "level", "attrof",
+                               "anonymous", "users",  "self",  "ip",  "ipv6",    "path",     NULL};
 
 #define ACLBUF_CHUNKSIZE 8192
 static struct berval aclbuf;
@@ -52,16 +50,14 @@ static void print_acl(Backend *be, AccessControl *a);
 static int check_scope(BackendDB *be, AccessControl *a);
 
 #ifdef SLAP_DYNACL
-static int slap_dynacl_config(const char *fname, int lineno, Access *b,
-                              const char *name, const char *opts,
+static int slap_dynacl_config(const char *fname, int lineno, Access *b, const char *name, const char *opts,
                               slap_style_t sty, const char *right) {
   slap_dynacl_t *da, *tmp;
   int rc = 0;
 
   for (da = b->a_dynacl; da; da = da->da_next) {
     if (strcasecmp(da->da_name, name) == 0) {
-      Debug(LDAP_DEBUG_ANY, "%s: line %d: dynacl \"%s\" already specified.\n",
-            fname, lineno, name);
+      Debug(LDAP_DEBUG_ANY, "%s: line %d: dynacl \"%s\" already specified.\n", fname, lineno, name);
       return acl_usage();
     }
   }
@@ -125,8 +121,7 @@ static void regtest(const char *fname, int lineno, char *pat) {
 
   *dp = '\0';
   if (size >= (sizeof(buf) - 1)) {
-    Debug(LDAP_DEBUG_ANY, "%s: line %d: regular expression \"%s\" too large\n",
-          fname, lineno, pat);
+    Debug(LDAP_DEBUG_ANY, "%s: line %d: regular expression \"%s\" too large\n", fname, lineno, pat);
     (void)acl_usage();
     exit(EXIT_FAILURE);
   }
@@ -134,8 +129,7 @@ static void regtest(const char *fname, int lineno, char *pat) {
   if ((e = regcomp(&re, buf, REG_EXTENDED | REG_ICASE))) {
     char error[sizeof(buf) - 64];
     regerror(e, &re, error, sizeof(error));
-    snprintf(buf, sizeof(buf), "regular expression \"%s\" bad because of %s",
-             pat, error);
+    snprintf(buf, sizeof(buf), "regular expression \"%s\" bad because of %s", pat, error);
     Debug(LDAP_DEBUG_ANY, "%s: line %d: %s\n", fname, lineno, buf);
     acl_usage();
     exit(EXIT_FAILURE);
@@ -192,8 +186,7 @@ static int check_scope(BackendDB *be, AccessControl *a) {
       if (rebuf[rebuflen - 1] == '$') {
         rebuf[--rebuflen] = '\0';
       }
-      while (rebuflen > be->be_nsuffix[0].bv_len &&
-             rebuf[rebuflen - 1] == ')') {
+      while (rebuflen > be->be_nsuffix[0].bv_len && rebuf[rebuflen - 1] == ')') {
         rebuf[--rebuflen] = '\0';
       }
       if (rebuflen == be->be_nsuffix[0].bv_len) {
@@ -259,8 +252,7 @@ static int check_scope(BackendDB *be, AccessControl *a) {
       break;
     }
 
-    if (dn.bv_len < patlen &&
-        !DN_SEPARATOR(a->acl_dn_pat.bv_val[patlen - dn.bv_len - 1])) {
+    if (dn.bv_len < patlen && !DN_SEPARATOR(a->acl_dn_pat.bv_val[patlen - dn.bv_len - 1])) {
       return ACL_SCOPE_ERR;
     }
 
@@ -274,8 +266,7 @@ static int check_scope(BackendDB *be, AccessControl *a) {
   return ACL_SCOPE_UNKNOWN;
 }
 
-int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
-              int pos) {
+int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv, int pos) {
   int i;
   char *left, *right = NULL, *style;
   struct berval bv;
@@ -303,8 +294,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
         }
 
         if (strcasecmp(argv[i], "*") == 0) {
-          if (!BER_BVISEMPTY(&a->acl_dn_pat) ||
-              a->acl_dn_style != ACL_STYLE_REGEX) {
+          if (!BER_BVISEMPTY(&a->acl_dn_pat) || a->acl_dn_style != ACL_STYLE_REGEX) {
             Debug(LDAP_DEBUG_ANY,
                   "%s: line %d: dn pattern"
                   " already specified in to clause.\n",
@@ -328,8 +318,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
         }
 
         if (strcasecmp(left, "dn") == 0) {
-          if (!BER_BVISEMPTY(&a->acl_dn_pat) ||
-              a->acl_dn_style != ACL_STYLE_REGEX) {
+          if (!BER_BVISEMPTY(&a->acl_dn_pat) || a->acl_dn_style != ACL_STYLE_REGEX) {
             Debug(LDAP_DEBUG_ANY,
                   "%s: line %d: dn pattern"
                   " already specified in to clause.\n",
@@ -337,20 +326,16 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
             goto fail;
           }
 
-          if (style == NULL || *style == '\0' ||
-              strcasecmp(style, "baseObject") == 0 ||
-              strcasecmp(style, "base") == 0 ||
-              strcasecmp(style, "exact") == 0) {
+          if (style == NULL || *style == '\0' || strcasecmp(style, "baseObject") == 0 ||
+              strcasecmp(style, "base") == 0 || strcasecmp(style, "exact") == 0) {
             a->acl_dn_style = ACL_STYLE_BASE;
             ber_str2bv(right, 0, 1, &a->acl_dn_pat);
 
-          } else if (strcasecmp(style, "oneLevel") == 0 ||
-                     strcasecmp(style, "one") == 0) {
+          } else if (strcasecmp(style, "oneLevel") == 0 || strcasecmp(style, "one") == 0) {
             a->acl_dn_style = ACL_STYLE_ONE;
             ber_str2bv(right, 0, 1, &a->acl_dn_pat);
 
-          } else if (strcasecmp(style, "subtree") == 0 ||
-                     strcasecmp(style, "sub") == 0) {
+          } else if (strcasecmp(style, "subtree") == 0 || strcasecmp(style, "sub") == 0) {
             if (*right == '\0') {
               ber_str2bv("*", STRLENOF("*"), 1, &a->acl_dn_pat);
 
@@ -371,10 +356,8 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
               a->acl_dn_style = ACL_STYLE_BASE;
               ber_str2bv(right, 0, 1, &a->acl_dn_pat);
 
-            } else if (strcmp(right, "*") == 0 || strcmp(right, ".*") == 0 ||
-                       strcmp(right, ".*$") == 0 || strcmp(right, "^.*") == 0 ||
-                       strcmp(right, "^.*$") == 0 ||
-                       strcmp(right, ".*$$") == 0 ||
+            } else if (strcmp(right, "*") == 0 || strcmp(right, ".*") == 0 || strcmp(right, ".*$") == 0 ||
+                       strcmp(right, "^.*") == 0 || strcmp(right, "^.*$") == 0 || strcmp(right, ".*$$") == 0 ||
                        strcmp(right, "^.*$$") == 0) {
               ber_str2bv("*", STRLENOF("*"), 1, &a->acl_dn_pat);
 
@@ -395,9 +378,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
 
         if (strcasecmp(left, "filter") == 0) {
           if ((a->acl_filter = str2filter(right)) == NULL) {
-            Debug(LDAP_DEBUG_ANY,
-                  "%s: line %d: bad filter \"%s\" in to clause\n", fname,
-                  lineno, right);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: bad filter \"%s\" in to clause\n", fname, lineno, right);
             goto fail;
           }
 
@@ -414,9 +395,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
 
           a->acl_attrs = str2anlist(a->acl_attrs, right, ",");
           if (a->acl_attrs == NULL) {
-            Debug(LDAP_DEBUG_ANY,
-                  "%s: line %d: unknown attr \"%s\" in to clause\n", fname,
-                  lineno, right);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: unknown attr \"%s\" in to clause\n", fname, lineno, right);
             goto fail;
           }
 
@@ -425,16 +404,11 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
           char *mr;
 
           if (!BER_BVISEMPTY(&a->acl_attrval)) {
-            Debug(LDAP_DEBUG_ANY,
-                  "%s: line %d: attr val already specified in to clause.\n",
-                  fname, lineno);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: attr val already specified in to clause.\n", fname, lineno);
             goto fail;
           }
-          if (a->acl_attrs == NULL ||
-              !BER_BVISEMPTY(&a->acl_attrs[1].an_name)) {
-            Debug(LDAP_DEBUG_ANY,
-                  "%s: line %d: attr val requires a single attribute.\n", fname,
-                  lineno);
+          if (a->acl_attrs == NULL || !BER_BVISEMPTY(&a->acl_attrs[1].an_name)) {
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: attr val requires a single attribute.\n", fname, lineno);
             goto fail;
           }
 
@@ -455,8 +429,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
               goto fail;
             }
 
-            if (!mr_usable_with_at(a->acl_attrval_mr,
-                                   a->acl_attrs[0].an_desc->ad_type)) {
+            if (!mr_usable_with_at(a->acl_attrval_mr, a->acl_attrs[0].an_desc->ad_type)) {
               char buf[SLAP_TEXT_BUFLEN];
 
               snprintf(buf, sizeof(buf),
@@ -471,14 +444,11 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
 
           if (style != NULL) {
             if (strcasecmp(style, "regex") == 0) {
-              int e = regcomp(&a->acl_attrval_re, bv.bv_val,
-                              REG_EXTENDED | REG_ICASE);
+              int e = regcomp(&a->acl_attrval_re, bv.bv_val, REG_EXTENDED | REG_ICASE);
               if (e) {
                 char buf[SLAP_TEXT_BUFLEN], err[sizeof(buf) - 64];
                 regerror(e, &a->acl_attrval_re, err, sizeof(err));
-                snprintf(buf, sizeof(buf),
-                         "regular expression \"%s\" bad because of %s", right,
-                         err);
+                snprintf(buf, sizeof(buf), "regular expression \"%s\" bad because of %s", right, err);
 
                 Debug(LDAP_DEBUG_ANY, "%s: line %d: %s\n", fname, lineno, buf);
                 goto fail;
@@ -491,30 +461,24 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
               if (!strcasecmp(style, "base") || !strcasecmp(style, "exact")) {
                 a->acl_attrval_style = ACL_STYLE_BASE;
 
-              } else if (a->acl_attrs[0].an_desc->ad_type->sat_syntax ==
-                         slap_schema.si_syn_distinguishedName) {
-                if (!strcasecmp(style, "baseObject") ||
-                    !strcasecmp(style, "base")) {
+              } else if (a->acl_attrs[0].an_desc->ad_type->sat_syntax == slap_schema.si_syn_distinguishedName) {
+                if (!strcasecmp(style, "baseObject") || !strcasecmp(style, "base")) {
                   a->acl_attrval_style = ACL_STYLE_BASE;
-                } else if (!strcasecmp(style, "onelevel") ||
-                           !strcasecmp(style, "one")) {
+                } else if (!strcasecmp(style, "onelevel") || !strcasecmp(style, "one")) {
                   a->acl_attrval_style = ACL_STYLE_ONE;
-                } else if (!strcasecmp(style, "subtree") ||
-                           !strcasecmp(style, "sub")) {
+                } else if (!strcasecmp(style, "subtree") || !strcasecmp(style, "sub")) {
                   a->acl_attrval_style = ACL_STYLE_SUBTREE;
                 } else if (!strcasecmp(style, "children")) {
                   a->acl_attrval_style = ACL_STYLE_CHILDREN;
                 } else {
                   char buf[SLAP_TEXT_BUFLEN];
 
-                  snprintf(
-                      buf, sizeof(buf),
-                      "unknown val.<style> \"%s\" for attributeType \"%s\" "
-                      "with DN syntax.",
-                      style, a->acl_attrs[0].an_desc->ad_cname.bv_val);
+                  snprintf(buf, sizeof(buf),
+                           "unknown val.<style> \"%s\" for attributeType \"%s\" "
+                           "with DN syntax.",
+                           style, a->acl_attrs[0].an_desc->ad_cname.bv_val);
 
-                  Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_ACL, "%s: line %d: %s\n",
-                        fname, lineno, buf);
+                  Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_ACL, "%s: line %d: %s\n", fname, lineno, buf);
                   goto fail;
                 }
 
@@ -525,21 +489,17 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
                   snprintf(buf, sizeof(buf),
                            "unable to normalize DN \"%s\" "
                            "for attributeType \"%s\" (%d).",
-                           bv.bv_val, a->acl_attrs[0].an_desc->ad_cname.bv_val,
-                           rc);
-                  Debug(LDAP_DEBUG_ANY, "%s: line %d: %s\n", fname, lineno,
-                        buf);
+                           bv.bv_val, a->acl_attrs[0].an_desc->ad_cname.bv_val, rc);
+                  Debug(LDAP_DEBUG_ANY, "%s: line %d: %s\n", fname, lineno, buf);
                   goto fail;
                 }
 
               } else {
                 char buf[SLAP_TEXT_BUFLEN];
 
-                snprintf(buf, sizeof(buf),
-                         "unknown val.<style> \"%s\" for attributeType \"%s\".",
-                         style, a->acl_attrs[0].an_desc->ad_cname.bv_val);
-                Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_ACL, "%s: line %d: %s\n",
-                      fname, lineno, buf);
+                snprintf(buf, sizeof(buf), "unknown val.<style> \"%s\" for attributeType \"%s\".", style,
+                         a->acl_attrs[0].an_desc->ad_cname.bv_val);
+                Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_ACL, "%s: line %d: %s\n", fname, lineno, buf);
                 goto fail;
               }
             }
@@ -554,8 +514,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
             const char *text;
 
             if (a->acl_attrval_mr == NULL) {
-              a->acl_attrval_mr =
-                  a->acl_attrs[0].an_desc->ad_type->sat_equality;
+              a->acl_attrval_mr = a->acl_attrs[0].an_desc->ad_type->sat_equality;
             }
 
             if (a->acl_attrval_mr == NULL) {
@@ -566,10 +525,9 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
               goto fail;
             }
 
-            rc = asserted_value_validate_normalize(
-                a->acl_attrs[0].an_desc, a->acl_attrval_mr,
-                SLAP_MR_EQUALITY | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX, &bv,
-                &a->acl_attrval, &text, NULL);
+            rc = asserted_value_validate_normalize(a->acl_attrs[0].an_desc, a->acl_attrval_mr,
+                                                   SLAP_MR_EQUALITY | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX, &bv,
+                                                   &a->acl_attrval, &text, NULL);
             if (rc != LDAP_SUCCESS) {
               char buf[SLAP_TEXT_BUFLEN];
 
@@ -583,8 +541,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
           }
 
         } else {
-          Debug(LDAP_DEBUG_ANY, "%s: line %d: expecting <what> got \"%s\"\n",
-                fname, lineno, left);
+          Debug(LDAP_DEBUG_ANY, "%s: line %d: expecting <what> got \"%s\"\n", fname, lineno, left);
           goto fail;
         }
       }
@@ -595,28 +552,23 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
         a->acl_dn_style = ACL_STYLE_REGEX;
       }
 
-      if (!BER_BVISEMPTY(&a->acl_dn_pat) ||
-          a->acl_dn_style != ACL_STYLE_REGEX) {
+      if (!BER_BVISEMPTY(&a->acl_dn_pat) || a->acl_dn_style != ACL_STYLE_REGEX) {
         if (a->acl_dn_style != ACL_STYLE_REGEX) {
           struct berval bv;
           rc = dnNormalize(0, NULL, NULL, &a->acl_dn_pat, &bv, NULL);
           if (rc != LDAP_SUCCESS) {
-            Debug(LDAP_DEBUG_ANY,
-                  "%s: line %d: bad DN \"%s\" in to DN clause\n", fname, lineno,
-                  a->acl_dn_pat.bv_val);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: bad DN \"%s\" in to DN clause\n", fname, lineno, a->acl_dn_pat.bv_val);
             goto fail;
           }
           free(a->acl_dn_pat.bv_val);
           a->acl_dn_pat = bv;
 
         } else {
-          int e = regcomp(&a->acl_dn_re, a->acl_dn_pat.bv_val,
-                          REG_EXTENDED | REG_ICASE);
+          int e = regcomp(&a->acl_dn_re, a->acl_dn_pat.bv_val, REG_EXTENDED | REG_ICASE);
           if (e) {
             char buf[SLAP_TEXT_BUFLEN], err[sizeof(buf) - 64];
             regerror(e, &a->acl_dn_re, err, sizeof(err));
-            snprintf(buf, sizeof(buf),
-                     "regular expression \"%s\" bad because of %s", right, err);
+            snprintf(buf, sizeof(buf), "regular expression \"%s\" bad because of %s", right, err);
             Debug(LDAP_DEBUG_ANY, "%s: line %d: %s\n", fname, lineno, buf);
             goto fail;
           }
@@ -638,8 +590,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
        */
 
       if (++i == argc) {
-        Debug(LDAP_DEBUG_ANY, "%s: line %d: premature EOL: expecting <who>\n",
-              fname, lineno);
+        Debug(LDAP_DEBUG_ANY, "%s: line %d: premature EOL: expecting <who>\n", fname, lineno);
         goto fail;
       }
 
@@ -684,18 +635,14 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
           }
         }
 
-        if (style == NULL || *style == '\0' ||
-            strcasecmp(style, "exact") == 0 ||
-            strcasecmp(style, "baseObject") == 0 ||
-            strcasecmp(style, "base") == 0) {
+        if (style == NULL || *style == '\0' || strcasecmp(style, "exact") == 0 ||
+            strcasecmp(style, "baseObject") == 0 || strcasecmp(style, "base") == 0) {
           sty = ACL_STYLE_BASE;
 
-        } else if (strcasecmp(style, "onelevel") == 0 ||
-                   strcasecmp(style, "one") == 0) {
+        } else if (strcasecmp(style, "onelevel") == 0 || strcasecmp(style, "one") == 0) {
           sty = ACL_STYLE_ONE;
 
-        } else if (strcasecmp(style, "subtree") == 0 ||
-                   strcasecmp(style, "sub") == 0) {
+        } else if (strcasecmp(style, "subtree") == 0 || strcasecmp(style, "sub") == 0) {
           sty = ACL_STYLE_SUBTREE;
 
         } else if (strcasecmp(style, "children") == 0) {
@@ -723,8 +670,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
 
         } else if (strcasecmp(style, "ipv6") == 0) {
 #ifndef LDAP_PF_INET6
-          Debug(LDAP_DEBUG_ANY, "%s: line %d: IPv6 not supported\n", fname,
-                lineno);
+          Debug(LDAP_DEBUG_ANY, "%s: line %d: IPv6 not supported\n", fname, lineno);
 #endif /* ! LDAP_PF_INET6 */
           sty = ACL_STYLE_IPV6;
 
@@ -739,9 +685,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
 #endif /* LDAP_PF_LOCAL */
 
         } else {
-          Debug(LDAP_DEBUG_ANY,
-                "%s: line %d: unknown style \"%s\" in by clause\n", fname,
-                lineno, style);
+          Debug(LDAP_DEBUG_ANY, "%s: line %d: unknown style \"%s\" in by clause\n", fname, lineno, style);
           goto fail;
         }
 
@@ -810,19 +754,13 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
               ber_str2bv("users", STRLENOF("users"), 1, &bv);
               bdn->a_style = ACL_STYLE_USERS;
 
-            } else if (strcmp(right, ".+") == 0 || strcmp(right, "^.+") == 0 ||
-                       strcmp(right, ".+$") == 0 ||
-                       strcmp(right, "^.+$") == 0 ||
-                       strcmp(right, ".+$$") == 0 ||
-                       strcmp(right, "^.+$$") == 0) {
+            } else if (strcmp(right, ".+") == 0 || strcmp(right, "^.+") == 0 || strcmp(right, ".+$") == 0 ||
+                       strcmp(right, "^.+$") == 0 || strcmp(right, ".+$$") == 0 || strcmp(right, "^.+$$") == 0) {
               ber_str2bv("users", STRLENOF("users"), 1, &bv);
               bdn->a_style = ACL_STYLE_USERS;
 
-            } else if (strcmp(right, ".*") == 0 || strcmp(right, "^.*") == 0 ||
-                       strcmp(right, ".*$") == 0 ||
-                       strcmp(right, "^.*$") == 0 ||
-                       strcmp(right, ".*$$") == 0 ||
-                       strcmp(right, "^.*$$") == 0) {
+            } else if (strcmp(right, ".*") == 0 || strcmp(right, "^.*") == 0 || strcmp(right, ".*$") == 0 ||
+                       strcmp(right, "^.*$") == 0 || strcmp(right, ".*$$") == 0 || strcmp(right, "^.*$$") == 0) {
               ber_str2bv("*", STRLENOF("*"), 1, &bv);
 
             } else {
@@ -850,24 +788,19 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
 
         if (!BER_BVISNULL(&bv)) {
           if (!BER_BVISEMPTY(&bdn->a_pat)) {
-            Debug(LDAP_DEBUG_ANY,
-                  "%s: line %d: dn pattern already specified.\n", fname,
-                  lineno);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: dn pattern already specified.\n", fname, lineno);
             goto fail;
           }
 
-          if (sty != ACL_STYLE_REGEX && sty != ACL_STYLE_ANONYMOUS &&
-              sty != ACL_STYLE_USERS && sty != ACL_STYLE_SELF && expand == 0) {
+          if (sty != ACL_STYLE_REGEX && sty != ACL_STYLE_ANONYMOUS && sty != ACL_STYLE_USERS && sty != ACL_STYLE_SELF &&
+              expand == 0) {
             rc = dnNormalize(0, NULL, NULL, &bv, &bdn->a_pat, NULL);
             if (rc != LDAP_SUCCESS) {
-              Debug(LDAP_DEBUG_ANY,
-                    "%s: line %d: bad DN \"%s\" in by DN clause\n", fname,
-                    lineno, bv.bv_val);
+              Debug(LDAP_DEBUG_ANY, "%s: line %d: bad DN \"%s\" in by DN clause\n", fname, lineno, bv.bv_val);
               goto fail;
             }
             free(bv.bv_val);
-            if (sty == ACL_STYLE_BASE && be != NULL &&
-                !BER_BVISNULL(&be->be_rootndn) &&
+            if (sty == ACL_STYLE_BASE && be != NULL && !BER_BVISNULL(&be->be_rootndn) &&
                 dn_match(&bdn->a_pat, &be->be_rootndn)) {
               Debug(LDAP_DEBUG_ANY,
                     "%s: line %d: rootdn is always granted "
@@ -883,9 +816,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
             char *exp;
             int gotit = 0;
 
-            for (exp = strchr(bdn->a_pat.bv_val, '$');
-                 exp &&
-                 (ber_len_t)(exp - bdn->a_pat.bv_val) < bdn->a_pat.bv_len;
+            for (exp = strchr(bdn->a_pat.bv_val, '$'); exp && (ber_len_t)(exp - bdn->a_pat.bv_val) < bdn->a_pat.bv_len;
                  exp = strchr(exp, '$')) {
               if ((isdigit((unsigned char)exp[1]) || exp[1] == '{')) {
                 gotit = 1;
@@ -942,8 +873,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
           }
 
           if (bdn->a_at != NULL) {
-            Debug(LDAP_DEBUG_ANY, "%s: line %d: dnattr already specified.\n",
-                  fname, lineno);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: dnattr already specified.\n", fname, lineno);
             goto fail;
           }
 
@@ -1021,9 +951,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
           }
 
           if (!BER_BVISEMPTY(&b->a_group_pat)) {
-            Debug(LDAP_DEBUG_ANY,
-                  "%s: line %d: group pattern already specified.\n", fname,
-                  lineno);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: group pattern already specified.\n", fname, lineno);
             goto fail;
           }
 
@@ -1048,8 +976,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
             ber_str2bv(right, 0, 0, &bv);
             rc = dnNormalize(0, NULL, NULL, &bv, &b->a_group_pat, NULL);
             if (rc != LDAP_SUCCESS) {
-              Debug(LDAP_DEBUG_ANY, "%s: line %d: bad DN \"%s\".\n", fname,
-                    lineno, right);
+              Debug(LDAP_DEBUG_ANY, "%s: line %d: bad DN \"%s\".\n", fname, lineno, right);
               goto fail;
             }
           }
@@ -1108,20 +1035,14 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
             goto fail;
           }
 
-          if (!is_at_syntax(b->a_group_at->ad_type,
-                            SLAPD_DN_SYNTAX) /* e.g. "member" */
-              && !is_at_syntax(b->a_group_at->ad_type,
-                               SLAPD_NAMEUID_SYNTAX) /* e.g. memberUID */
-              &&
-              !is_at_subtype(
-                  b->a_group_at->ad_type,
-                  slap_schema.si_ad_labeledURI->ad_type) /* e.g. memberURL */) {
+          if (!is_at_syntax(b->a_group_at->ad_type, SLAPD_DN_SYNTAX)         /* e.g. "member" */
+              && !is_at_syntax(b->a_group_at->ad_type, SLAPD_NAMEUID_SYNTAX) /* e.g. memberUID */
+              && !is_at_subtype(b->a_group_at->ad_type, slap_schema.si_ad_labeledURI->ad_type) /* e.g. memberURL */) {
             char buf[SLAP_TEXT_BUFLEN];
 
             snprintf(buf, sizeof(buf),
                      "group \"%s\" attr \"%s\": inappropriate syntax: %s; "
-                     "must be " SLAPD_DN_SYNTAX " (DN), " SLAPD_NAMEUID_SYNTAX
-                     " (NameUID) "
+                     "must be " SLAPD_DN_SYNTAX " (DN), " SLAPD_NAMEUID_SYNTAX " (NameUID) "
                      "or a subtype of labeledURI.",
                      right, attr_name, at_syntax(b->a_group_at->ad_type));
             Debug(LDAP_DEBUG_ANY, "%s: line %d: %s\n", fname, lineno, buf);
@@ -1140,8 +1061,8 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
             if (rc != 0) {
               char buf[SLAP_TEXT_BUFLEN];
 
-              snprintf(buf, sizeof(buf), "group: \"%s\" not allowed by \"%s\".",
-                       b->a_group_at->ad_cname.bv_val, b->a_group_oc->soc_oid);
+              snprintf(buf, sizeof(buf), "group: \"%s\" not allowed by \"%s\".", b->a_group_at->ad_cname.bv_val,
+                       b->a_group_oc->soc_oid);
               Debug(LDAP_DEBUG_ANY, "%s: line %d: %s\n", fname, lineno, buf);
               goto fail;
             }
@@ -1384,9 +1305,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
           }
 
           if (!BER_BVISEMPTY(&b->a_domain_pat)) {
-            Debug(LDAP_DEBUG_ANY,
-                  "%s: line %d: domain pattern already specified.\n", fname,
-                  lineno);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: domain pattern already specified.\n", fname, lineno);
             goto fail;
           }
 
@@ -1433,9 +1352,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
           }
 
           if (!BER_BVISEMPTY(&b->a_sockurl_pat)) {
-            Debug(LDAP_DEBUG_ANY,
-                  "%s: line %d: sockurl pattern already specified.\n", fname,
-                  lineno);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: sockurl pattern already specified.\n", fname, lineno);
             goto fail;
           }
 
@@ -1479,15 +1396,12 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
           }
 
           if (!BER_BVISEMPTY(&b->a_set_pat)) {
-            Debug(LDAP_DEBUG_ANY,
-                  "%s: line %d: set attribute already specified.\n", fname,
-                  lineno);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: set attribute already specified.\n", fname, lineno);
             goto fail;
           }
 
           if (right == NULL || *right == '\0') {
-            Debug(LDAP_DEBUG_ANY, "%s: line %d: no set is defined.\n", fname,
-                  lineno);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: no set is defined.\n", fname, lineno);
             goto fail;
           }
 
@@ -1545,28 +1459,22 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
           }
 
           if (b->a_authz.sai_ssf) {
-            Debug(LDAP_DEBUG_ANY,
-                  "%s: line %d: ssf attribute already specified.\n", fname,
-                  lineno);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: ssf attribute already specified.\n", fname, lineno);
             goto fail;
           }
 
           if (right == NULL || *right == '\0') {
-            Debug(LDAP_DEBUG_ANY, "%s: line %d: no ssf is defined.\n", fname,
-                  lineno);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: no ssf is defined.\n", fname, lineno);
             goto fail;
           }
 
           if (lutil_atou(&b->a_authz.sai_ssf, right) != 0) {
-            Debug(LDAP_DEBUG_ANY,
-                  "%s: line %d: unable to parse ssf value (%s).\n", fname,
-                  lineno, right);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: unable to parse ssf value (%s).\n", fname, lineno, right);
             goto fail;
           }
 
           if (!b->a_authz.sai_ssf) {
-            Debug(LDAP_DEBUG_ANY, "%s: line %d: invalid ssf value (%s).\n",
-                  fname, lineno, right);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: invalid ssf value (%s).\n", fname, lineno, right);
             goto fail;
           }
           continue;
@@ -1590,8 +1498,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
           }
 
           if (right == NULL || *right == '\0') {
-            Debug(LDAP_DEBUG_ANY, "%s: line %d: no transport_ssf is defined.\n",
-                  fname, lineno);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: no transport_ssf is defined.\n", fname, lineno);
             goto fail;
           }
 
@@ -1604,9 +1511,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
           }
 
           if (!b->a_authz.sai_transport_ssf) {
-            Debug(LDAP_DEBUG_ANY,
-                  "%s: line %d: invalid transport_ssf value (%s).\n", fname,
-                  lineno, right);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: invalid transport_ssf value (%s).\n", fname, lineno, right);
             goto fail;
           }
           continue;
@@ -1630,8 +1535,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
           }
 
           if (right == NULL || *right == '\0') {
-            Debug(LDAP_DEBUG_ANY, "%s: line %d: no tls_ssf is defined\n", fname,
-                  lineno);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: no tls_ssf is defined\n", fname, lineno);
             goto fail;
           }
 
@@ -1644,8 +1548,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
           }
 
           if (!b->a_authz.sai_tls_ssf) {
-            Debug(LDAP_DEBUG_ANY, "%s: line %d: invalid tls_ssf value (%s).\n",
-                  fname, lineno, right);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: invalid tls_ssf value (%s).\n", fname, lineno, right);
             goto fail;
           }
           continue;
@@ -1669,8 +1572,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
           }
 
           if (right == NULL || *right == '\0') {
-            Debug(LDAP_DEBUG_ANY, "%s: line %d: no sasl_ssf is defined.\n",
-                  fname, lineno);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: no sasl_ssf is defined.\n", fname, lineno);
             goto fail;
           }
 
@@ -1683,8 +1585,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
           }
 
           if (!b->a_authz.sai_sasl_ssf) {
-            Debug(LDAP_DEBUG_ANY, "%s: line %d: invalid sasl_ssf value (%s).\n",
-                  fname, lineno, right);
+            Debug(LDAP_DEBUG_ANY, "%s: line %d: invalid sasl_ssf value (%s).\n", fname, lineno, right);
             goto fail;
           }
           continue;
@@ -1758,8 +1659,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
       }
 
       if (ACL_IS_INVALID(b->a_access_mask)) {
-        Debug(LDAP_DEBUG_ANY, "%s: line %d: expecting <access> got \"%s\".\n",
-              fname, lineno, left);
+        Debug(LDAP_DEBUG_ANY, "%s: line %d: expecting <access> got \"%s\".\n", fname, lineno, left);
         goto fail;
       }
 
@@ -2120,37 +2020,36 @@ static int acl_usage(void) {
                "<attr> ::= <attrname> | @<objectClass> | !<objectClass> | "
                "entry | children\n";
 
-  char *who =
-      "<who> ::= [ * | anonymous | users | self | dn[.<dnstyle>]=<DN> ]\n"
-      "\t[ realanonymous | realusers | realself | realdn[.<dnstyle>]=<DN> ]\n"
-      "\t[dnattr=<attrname>]\n"
-      "\t[realdnattr=<attrname>]\n"
-      "\t[group[/<objectclass>[/<attrname>]][.<style>]=<group>]\n"
-      "\t[peername[.<peernamestyle>]=<peer>] [sockname[.<style>]=<name>]\n"
-      "\t[domain[.<domainstyle>]=<domain>] [sockurl[.<style>]=<url>]\n"
+  char *who = "<who> ::= [ * | anonymous | users | self | dn[.<dnstyle>]=<DN> ]\n"
+              "\t[ realanonymous | realusers | realself | realdn[.<dnstyle>]=<DN> ]\n"
+              "\t[dnattr=<attrname>]\n"
+              "\t[realdnattr=<attrname>]\n"
+              "\t[group[/<objectclass>[/<attrname>]][.<style>]=<group>]\n"
+              "\t[peername[.<peernamestyle>]=<peer>] [sockname[.<style>]=<name>]\n"
+              "\t[domain[.<domainstyle>]=<domain>] [sockurl[.<style>]=<url>]\n"
 #ifdef SLAP_DYNACL
-      "\t[dynacl/<name>[/<options>][.<dynstyle>][=<pattern>]]\n"
+              "\t[dynacl/<name>[/<options>][.<dynstyle>][=<pattern>]]\n"
 #endif /* SLAP_DYNACL */
-      "\t[ssf=<n>] [transport_ssf=<n>] [tls_ssf=<n>] [sasl_ssf=<n>]\n"
-      "<style> ::= exact | regex | base(Object)\n"
-      "<dnstyle> ::= base(Object) | one(level) | sub(tree) | children | "
-      "exact | regex\n"
-      "<attrstyle> ::= exact | regex | base(Object) | one(level) | "
-      "sub(tree) | children\n"
-      "<peernamestyle> ::= exact | regex | ip | ipv6 | path\n"
-      "<domainstyle> ::= exact | regex | base(Object) | sub(tree)\n"
-      "<access> ::= [[real]self]{<level>|<priv>}\n"
-      "<level> ::= "
-      "none|disclose|auth|compare|search|read|{write|add|delete}|manage\n"
-      "<priv> ::= {=|+|-}{0|d|x|c|s|r|{w|a|z}|m}+\n"
-      "<control> ::= [ stop | continue | break ]\n"
+              "\t[ssf=<n>] [transport_ssf=<n>] [tls_ssf=<n>] [sasl_ssf=<n>]\n"
+              "<style> ::= exact | regex | base(Object)\n"
+              "<dnstyle> ::= base(Object) | one(level) | sub(tree) | children | "
+              "exact | regex\n"
+              "<attrstyle> ::= exact | regex | base(Object) | one(level) | "
+              "sub(tree) | children\n"
+              "<peernamestyle> ::= exact | regex | ip | ipv6 | path\n"
+              "<domainstyle> ::= exact | regex | base(Object) | sub(tree)\n"
+              "<access> ::= [[real]self]{<level>|<priv>}\n"
+              "<level> ::= "
+              "none|disclose|auth|compare|search|read|{write|add|delete}|manage\n"
+              "<priv> ::= {=|+|-}{0|d|x|c|s|r|{w|a|z}|m}+\n"
+              "<control> ::= [ stop | continue | break ]\n"
 #ifdef SLAP_DYNACL
 #ifdef SLAPD_ACI_ENABLED
-      "dynacl:\n"
-      "\t<name>=ACI\t<pattern>=<attrname>\n"
+              "dynacl:\n"
+              "\t<name>=ACI\t<pattern>=<attrname>\n"
 #endif /* SLAPD_ACI_ENABLED */
 #endif /* ! SLAP_DYNACL */
-      "";
+              "";
 
   Debug(LDAP_DEBUG_ANY, "%s%s%s\n", access, what, who);
 
@@ -2388,8 +2287,7 @@ slap_access_t str2access(const char *str) {
   return (ACL_INVALID_ACCESS);
 }
 
-static char *safe_strncopy(char *ptr, const char *src, size_t n,
-                           struct berval *buf) {
+static char *safe_strncopy(char *ptr, const char *src, size_t n, struct berval *buf) {
   while (ptr + n >= buf->bv_val + buf->bv_len) {
     char *tmp = ch_realloc(buf->bv_val, 2 * buf->bv_len);
     if (tmp == NULL) {
@@ -2409,8 +2307,7 @@ static char *safe_strcopy(char *ptr, const char *s, struct berval *buf) {
   return safe_strncopy(ptr, s, n, buf);
 }
 
-static char *safe_strbvcopy(char *ptr, const struct berval *bv,
-                            struct berval *buf) {
+static char *safe_strbvcopy(char *ptr, const struct berval *bv, struct berval *buf) {
   return safe_strncopy(ptr, bv->bv_val, bv->bv_len, buf);
 }
 
@@ -2425,8 +2322,8 @@ static char *dnaccess2text(slap_dn_access *bdn, char *ptr, int is_realdn) {
     ptr = acl_safe_strcopy(ptr, "real");
   }
 
-  if (ber_bvccmp(&bdn->a_pat, '*') || bdn->a_style == ACL_STYLE_ANONYMOUS ||
-      bdn->a_style == ACL_STYLE_USERS || bdn->a_style == ACL_STYLE_SELF) {
+  if (ber_bvccmp(&bdn->a_pat, '*') || bdn->a_style == ACL_STYLE_ANONYMOUS || bdn->a_style == ACL_STYLE_USERS ||
+      bdn->a_style == ACL_STYLE_SELF) {
     if (is_realdn) {
       assert(!ber_bvccmp(&bdn->a_pat, '*'));
     }
@@ -2486,11 +2383,9 @@ static char *access2text(Access *b, char *ptr) {
 
   if (!BER_BVISEMPTY(&b->a_group_pat)) {
     ptr = acl_safe_strcopy(ptr, " group/");
-    ptr = acl_safe_strcopy(ptr, b->a_group_oc ? b->a_group_oc->soc_cname.bv_val
-                                              : SLAPD_GROUP_CLASS);
+    ptr = acl_safe_strcopy(ptr, b->a_group_oc ? b->a_group_oc->soc_cname.bv_val : SLAPD_GROUP_CLASS);
     ptr = acl_safe_strcopy(ptr, "/");
-    ptr = acl_safe_strcopy(ptr, b->a_group_at ? b->a_group_at->ad_cname.bv_val
-                                              : SLAPD_GROUP_ATTR);
+    ptr = acl_safe_strcopy(ptr, b->a_group_at ? b->a_group_at->ad_cname.bv_val : SLAPD_GROUP_ATTR);
     ptr = acl_safe_strcopy(ptr, ".");
     ptr = acl_safe_strcopy(ptr, style_strings[b->a_group_style]);
     ptr = acl_safe_strcopy(ptr, "=\"");
@@ -2569,8 +2464,7 @@ static char *access2text(Access *b, char *ptr) {
   }
   if (b->a_authz.sai_transport_ssf) {
     char buf[SLAP_TEXT_BUFLEN];
-    int n = snprintf(buf, sizeof(buf), " transport_ssf=%u",
-                     b->a_authz.sai_transport_ssf);
+    int n = snprintf(buf, sizeof(buf), " transport_ssf=%u", b->a_authz.sai_transport_ssf);
     ptr = acl_safe_strncopy(ptr, buf, n);
   }
   if (b->a_authz.sai_tls_ssf) {
@@ -2659,8 +2553,7 @@ void acl_unparse(AccessControl *a, struct berval *bv) {
       if (!first)
         ptr = acl_safe_strcopy(ptr, ",");
       if (an->an_oc) {
-        ptr = acl_safe_strcopy(ptr,
-                               (an->an_flags & SLAP_AN_OCEXCLUDE) ? "!" : "@");
+        ptr = acl_safe_strcopy(ptr, (an->an_flags & SLAP_AN_OCEXCLUDE) ? "!" : "@");
         ptr = acl_safe_strbvcopy(ptr, &an->an_oc->soc_cname);
 
       } else {
@@ -2675,8 +2568,7 @@ void acl_unparse(AccessControl *a, struct berval *bv) {
     to++;
     ptr = acl_safe_strcopy(ptr, " val.");
     if (a->acl_attrval_style == ACL_STYLE_BASE &&
-        a->acl_attrs[0].an_desc->ad_type->sat_syntax ==
-            slap_schema.si_syn_distinguishedName)
+        a->acl_attrs[0].an_desc->ad_type->sat_syntax == slap_schema.si_syn_distinguishedName)
       ptr = acl_safe_strcopy(ptr, style_base);
     else
       ptr = acl_safe_strcopy(ptr, style_strings[a->acl_attrval_style]);
@@ -2702,7 +2594,6 @@ static void print_acl(Backend *be, AccessControl *a) {
   struct berval bv;
 
   acl_unparse(a, &bv);
-  fprintf(stderr, "%s ACL: access %s\n", be == NULL ? "Global" : "Backend",
-          bv.bv_val);
+  fprintf(stderr, "%s ACL: access %s\n", be == NULL ? "Global" : "Backend", bv.bv_val);
 }
 #endif /* LDAP_DEBUG */

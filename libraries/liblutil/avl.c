@@ -421,8 +421,7 @@ int avl_apply(Avlnode *root, AVL_APPLY fn, void *arg, int stopflag, int type) {
  * AVL_NOMORE is returned.
  */
 
-int avl_prefixapply(Avlnode *root, void *data, AVL_CMP fmatch, void *marg,
-                    AVL_CMP fcmp, void *carg, int stopflag) {
+int avl_prefixapply(Avlnode *root, void *data, AVL_CMP fmatch, void *marg, AVL_CMP fcmp, void *carg, int stopflag) {
   int cmp;
 
   if (root == 0)
@@ -434,24 +433,20 @@ int avl_prefixapply(Avlnode *root, void *data, AVL_CMP fmatch, void *marg,
       return (stopflag);
 
     if (root->avl_left != 0)
-      if (avl_prefixapply(root->avl_left, data, fmatch, marg, fcmp, carg,
-                          stopflag) == stopflag)
+      if (avl_prefixapply(root->avl_left, data, fmatch, marg, fcmp, carg, stopflag) == stopflag)
         return (stopflag);
 
     if (root->avl_right != 0)
-      return (avl_prefixapply(root->avl_right, data, fmatch, marg, fcmp, carg,
-                              stopflag));
+      return (avl_prefixapply(root->avl_right, data, fmatch, marg, fcmp, carg, stopflag));
     else
       return (AVL_NOMORE);
 
   } else if (cmp < 0) {
     if (root->avl_left != 0)
-      return (avl_prefixapply(root->avl_left, data, fmatch, marg, fcmp, carg,
-                              stopflag));
+      return (avl_prefixapply(root->avl_left, data, fmatch, marg, fcmp, carg, stopflag));
   } else {
     if (root->avl_right != 0)
-      return (avl_prefixapply(root->avl_right, data, fmatch, marg, fcmp, carg,
-                              stopflag));
+      return (avl_prefixapply(root->avl_right, data, fmatch, marg, fcmp, carg, stopflag));
   }
 
   return (AVL_NOMORE);
@@ -555,8 +550,7 @@ static int avl_buildlist(void *data, void *arg) {
     avl_maxlist = 0;
   } else if (avl_maxlist == slots) {
     slots += AVL_GRABSIZE;
-    avl_list = (void **)ber_memrealloc((char *)avl_list,
-                                       (unsigned)slots * sizeof(void *));
+    avl_list = (void **)ber_memrealloc((char *)avl_list, (unsigned)slots * sizeof(void *));
   }
 
   avl_list[avl_maxlist++] = data;

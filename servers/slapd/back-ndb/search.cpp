@@ -50,8 +50,7 @@ static int ndb_dn2bound(NdbIndexScanOperation *myop, NdbRdns *rdns) {
  * Otherwise, a full scan of the DB must be done with all filtering done by
  * slapd.
  */
-static int ndb_filter_check(struct ndb_info *ni, Filter *f, NdbOcInfo **oci,
-                            int *indexed, int *ocfilter) {
+static int ndb_filter_check(struct ndb_info *ni, Filter *f, NdbOcInfo **oci, int *indexed, int *ocfilter) {
   AttributeDescription *ad = NULL;
   ber_tag_t choice = f->f_choice;
   int rc = 0, undef = 0;
@@ -106,8 +105,7 @@ static int ndb_filter_check(struct ndb_info *ni, Filter *f, NdbOcInfo **oci,
   return rc;
 }
 
-static int ndb_filter_set(Operation *op, struct ndb_info *ni, Filter *f,
-                          int indexed, NdbIndexScanOperation *scan,
+static int ndb_filter_set(Operation *op, struct ndb_info *ni, Filter *f, int indexed, NdbIndexScanOperation *scan,
                           NdbScanFilter *sf, int *bounds) {
   AttributeDescription *ad = NULL;
   ber_tag_t choice = f->f_choice;
@@ -128,8 +126,7 @@ static int ndb_filter_set(Operation *op, struct ndb_info *ni, Filter *f,
     }
   case LDAP_FILTER_AND:
     if (sf) {
-      sf->begin(choice == LDAP_FILTER_OR ? NdbScanFilter::OR
-                                         : NdbScanFilter::AND);
+      sf->begin(choice == LDAP_FILTER_OR ? NdbScanFilter::OR : NdbScanFilter::AND);
     }
     for (f = f->f_list; f; f = f->f_next) {
       if (ndb_filter_set(op, ni, f, indexed, scan, sf, bounds))
@@ -167,8 +164,7 @@ static int ndb_filter_set(Operation *op, struct ndb_info *ni, Filter *f,
 
         switch (choice) {
         case LDAP_FILTER_PRESENT:
-          rc = scan->setBound(ai->na_ixcol - IDX_COLUMN,
-                              NdbIndexScanOperation::BoundGT, NULL);
+          rc = scan->setBound(ai->na_ixcol - IDX_COLUMN, NdbIndexScanOperation::BoundGT, NULL);
           break;
         case LDAP_FILTER_EQUALITY:
         case LDAP_FILTER_APPROX:
@@ -216,8 +212,7 @@ static int ndb_filter_set(Operation *op, struct ndb_info *ni, Filter *f,
         case LDAP_FILTER_LE:
           bc = NdbScanFilter::COND_LE;
         setf:
-          rc = sf->cmp(bc, ai->na_column, f->f_av_value.bv_val,
-                       f->f_av_value.bv_len);
+          rc = sf->cmp(bc, ai->na_column, f->f_av_value.bv_val, f->f_av_value.bv_len);
           break;
         case LDAP_FILTER_SUBSTRINGS:
           rc = 0;
@@ -269,8 +264,7 @@ static int ndb_filter_set(Operation *op, struct ndb_info *ni, Filter *f,
   return 0;
 }
 
-static int ndb_oc_search(Operation *op, SlapReply *rs, Ndb *ndb,
-                         NdbTransaction *txn, NdbRdns *rbase, NdbOcInfo *oci,
+static int ndb_oc_search(Operation *op, SlapReply *rs, Ndb *ndb, NdbTransaction *txn, NdbRdns *rbase, NdbOcInfo *oci,
                          int indexed) {
   struct ndb_info *ni = (struct ndb_info *)op->o_bd->be_private;
   const NdbDictionary::Dictionary *myDict = ndb->getDictionary();
@@ -445,12 +439,9 @@ static int ndb_oc_search(Operation *op, SlapReply *rs, Ndb *ndb,
     case LDAP_SCOPE_SUBTREE:
     default:
       if (e.e_name.bv_len <= op->o_req_dn.bv_len) {
-        if (op->ors_scope != LDAP_SCOPE_SUBTREE ||
-            strcasecmp(op->o_req_dn.bv_val, e.e_name.bv_val))
+        if (op->ors_scope != LDAP_SCOPE_SUBTREE || strcasecmp(op->o_req_dn.bv_val, e.e_name.bv_val))
           continue;
-      } else if (strcasecmp(op->o_req_dn.bv_val, e.e_name.bv_val +
-                                                     e.e_name.bv_len -
-                                                     op->o_req_dn.bv_len))
+      } else if (strcasecmp(op->o_req_dn.bv_val, e.e_name.bv_val + e.e_name.bv_len - op->o_req_dn.bv_len))
         continue;
     }
 
@@ -480,9 +471,7 @@ static int ndb_oc_search(Operation *op, SlapReply *rs, Ndb *ndb,
     if (!manageDSAit && is_entry_referral(&e)) {
       BerVarray erefs = get_entry_referrals(op, &e);
       rs->sr_ref = referral_rewrite(erefs, &e.e_name, NULL,
-                                    op->ors_scope == LDAP_SCOPE_ONELEVEL
-                                        ? LDAP_SCOPE_BASE
-                                        : LDAP_SCOPE_SUBTREE);
+                                    op->ors_scope == LDAP_SCOPE_ONELEVEL ? LDAP_SCOPE_BASE : LDAP_SCOPE_SUBTREE);
       rc = send_search_reference(op, rs);
       ber_bvarray_free(rs->sr_ref);
       ber_bvarray_free(erefs);
@@ -538,8 +527,7 @@ extern "C" int ndb_back_search(Operation *op, SlapReply *rs) {
 
   txn = NA.ndb->startTransaction();
   if (!txn) {
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(ndb_back_search) ": startTransaction failed: %s (%d)\n",
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(ndb_back_search) ": startTransaction failed: %s (%d)\n",
           NA.ndb->getNdbError().message, NA.ndb->getNdbError().code);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "internal error";
@@ -563,8 +551,7 @@ extern "C" int ndb_back_search(Operation *op, SlapReply *rs) {
     goto leave;
   }
 
-  if (!access_allowed_mask(op, &e, slap_schema.si_ad_entry, NULL, ACL_SEARCH,
-                           NULL, &mask)) {
+  if (!access_allowed_mask(op, &e, slap_schema.si_ad_entry, NULL, ACL_SEARCH, NULL, &mask)) {
     if (!ACL_GRANT(mask, ACL_DISCLOSE))
       rs->sr_err = LDAP_NO_SUCH_OBJECT;
     else
@@ -594,8 +581,7 @@ extern "C" int ndb_back_search(Operation *op, SlapReply *rs) {
     goto leave;
   }
 
-  if (get_assert(op) &&
-      test_filter(op, &e, (Filter *)get_assertion(op)) != LDAP_COMPARE_TRUE) {
+  if (get_assert(op) && test_filter(op, &e, (Filter *)get_assertion(op)) != LDAP_COMPARE_TRUE) {
     rs->sr_err = LDAP_ASSERTION_FAILED;
     attrs_free(e.e_attrs);
     e.e_attrs = NULL;
@@ -622,8 +608,7 @@ extern "C" int ndb_back_search(Operation *op, SlapReply *rs) {
     attrs_free(e.e_attrs);
     e.e_attrs = NULL;
     if (rdns.nr_num == NDB_MAX_RDNS) {
-      if (op->ors_scope == LDAP_SCOPE_ONELEVEL ||
-          op->ors_scope == LDAP_SCOPE_CHILDREN)
+      if (op->ors_scope == LDAP_SCOPE_ONELEVEL || op->ors_scope == LDAP_SCOPE_CHILDREN)
         rs->sr_err = LDAP_SUCCESS;
       goto leave;
     }
@@ -638,9 +623,8 @@ extern "C" int ndb_back_search(Operation *op, SlapReply *rs) {
   ocfilter = 0;
   rc = ndb_filter_check(ni, op->ors_filter, &oci, &indexed, &ocfilter);
   if (rc) {
-    Debug(LDAP_DEBUG_TRACE,
-          "ndb_back_search: "
-          "filter attributes from multiple tables, indexing ignored\n");
+    Debug(LDAP_DEBUG_TRACE, "ndb_back_search: "
+                            "filter attributes from multiple tables, indexing ignored\n");
   } else if (oci) {
     rc = ndb_oc_search(op, rs, NA.ndb, txn, &rdns, oci, indexed);
     goto leave;
@@ -661,10 +645,7 @@ extern "C" int ndb_back_search(Operation *op, SlapReply *rs) {
   switch (op->ors_scope) {
   case LDAP_SCOPE_ONELEVEL:
     sf = new NdbScanFilter(scan);
-    if (sf->begin() < 0 ||
-        sf->cmp(NdbScanFilter::COND_NOT_LIKE, rc + 3, "_%", STRLENOF("_%")) <
-            0 ||
-        sf->end() < 0) {
+    if (sf->begin() < 0 || sf->cmp(NdbScanFilter::COND_NOT_LIKE, rc + 3, "_%", STRLENOF("_%")) < 0 || sf->end() < 0) {
       rs->sr_err = LDAP_OTHER;
       goto leave;
     }
@@ -728,9 +709,7 @@ extern "C" int ndb_back_search(Operation *op, SlapReply *rs) {
     if (!manageDSAit && is_entry_referral(&e)) {
       BerVarray erefs = get_entry_referrals(op, &e);
       rs->sr_ref = referral_rewrite(erefs, &e.e_name, NULL,
-                                    op->ors_scope == LDAP_SCOPE_ONELEVEL
-                                        ? LDAP_SCOPE_BASE
-                                        : LDAP_SCOPE_SUBTREE);
+                                    op->ors_scope == LDAP_SCOPE_ONELEVEL ? LDAP_SCOPE_BASE : LDAP_SCOPE_SUBTREE);
       rc = send_search_reference(op, rs);
       ber_bvarray_free(rs->sr_ref);
       ber_bvarray_free(erefs);
@@ -788,8 +767,7 @@ extern "C" int ndb_has_children(NdbArgs *NA, int *hasChildren) {
   scan->setInterpretedCode(ndb_lastrow_code);
 #endif
   scan->getValue(EID_COLUMN, idbuf);
-  if (NA->txn->execute(NdbTransaction::NoCommit, NdbOperation::AO_IgnoreError,
-                       1)) {
+  if (NA->txn->execute(NdbTransaction::NoCommit, NdbOperation::AO_IgnoreError, 1)) {
     return LDAP_OTHER;
   }
   if (rc < NDB_MAX_RDNS && scan->nextResult(true, true) == 0)
@@ -800,8 +778,7 @@ extern "C" int ndb_has_children(NdbArgs *NA, int *hasChildren) {
   return 0;
 }
 
-extern "C" int ndb_has_subordinates(Operation *op, Entry *e,
-                                    int *hasSubordinates) {
+extern "C" int ndb_has_subordinates(Operation *op, Entry *e, int *hasSubordinates) {
   NdbArgs NA;
   NdbRdns rdns;
   int rc;
@@ -835,17 +812,13 @@ extern "C" int ndb_operational(Operation *op, SlapReply *rs) {
     }
   }
 
-  if (*ap == NULL &&
-      attr_find(rs->sr_entry->e_attrs, slap_schema.si_ad_hasSubordinates) ==
-          NULL &&
-      (SLAP_OPATTRS(rs->sr_attr_flags) ||
-       ad_inlist(slap_schema.si_ad_hasSubordinates, rs->sr_attrs))) {
+  if (*ap == NULL && attr_find(rs->sr_entry->e_attrs, slap_schema.si_ad_hasSubordinates) == NULL &&
+      (SLAP_OPATTRS(rs->sr_attr_flags) || ad_inlist(slap_schema.si_ad_hasSubordinates, rs->sr_attrs))) {
     int hasSubordinates, rc;
 
     rc = ndb_has_subordinates(op, rs->sr_entry, &hasSubordinates);
     if (rc == LDAP_SUCCESS) {
-      *ap =
-          slap_operational_hasSubordinate(hasSubordinates == LDAP_COMPARE_TRUE);
+      *ap = slap_operational_hasSubordinate(hasSubordinates == LDAP_COMPARE_TRUE);
       assert(*ap != NULL);
 
       ap = &(*ap)->a_next;

@@ -41,8 +41,7 @@
 /* this is used to add extra format checking to the function calls as if this
    was a printf()-like function */
 #if __GNUC_PREREQ(3, 0)
-#define LIKE_PRINTF(format_idx, arg_idx)                                       \
-  __attribute__((__format__(__printf__, format_idx, arg_idx)))
+#define LIKE_PRINTF(format_idx, arg_idx) __attribute__((__format__(__printf__, format_idx, arg_idx)))
 #else
 #define LIKE_PRINTF(format_idx, arg_idx) /* no attribute */
 #endif

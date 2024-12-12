@@ -32,69 +32,58 @@ static ConfigDriver ndb_cf_gen;
 enum { NDB_ATLEN = 1, NDB_ATSET, NDB_INDEX, NDB_ATBLOB };
 
 static ConfigTable ndbcfg[] = {
-    {"dbhost", "hostname", 2, 2, 0, ARG_STRING | ARG_OFFSET,
-     (void *)offsetof(struct ndb_info, ni_hostname),
+    {"dbhost", "hostname", 2, 2, 0, ARG_STRING | ARG_OFFSET, (void *)offsetof(struct ndb_info, ni_hostname),
      "( OLcfgDbAt:6.1 NAME 'olcDbHost' "
      "DESC 'Hostname of SQL server' "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
-    {"dbname", "name", 2, 2, 0, ARG_STRING | ARG_OFFSET,
-     (void *)offsetof(struct ndb_info, ni_dbname),
+    {"dbname", "name", 2, 2, 0, ARG_STRING | ARG_OFFSET, (void *)offsetof(struct ndb_info, ni_dbname),
      "( OLcfgDbAt:6.2 NAME 'olcDbName' "
      "DESC 'Name of SQL database' "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
-    {"dbuser", "username", 2, 2, 0, ARG_STRING | ARG_OFFSET,
-     (void *)offsetof(struct ndb_info, ni_username),
+    {"dbuser", "username", 2, 2, 0, ARG_STRING | ARG_OFFSET, (void *)offsetof(struct ndb_info, ni_username),
      "( OLcfgDbAt:6.3 NAME 'olcDbUser' "
      "DESC 'Username for SQL session' "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
-    {"dbpass", "password", 2, 2, 0, ARG_STRING | ARG_OFFSET,
-     (void *)offsetof(struct ndb_info, ni_password),
+    {"dbpass", "password", 2, 2, 0, ARG_STRING | ARG_OFFSET, (void *)offsetof(struct ndb_info, ni_password),
      "( OLcfgDbAt:6.4 NAME 'olcDbPass' "
      "DESC 'Password for SQL session' "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
-    {"dbport", "port", 2, 2, 0, ARG_UINT | ARG_OFFSET,
-     (void *)offsetof(struct ndb_info, ni_port),
+    {"dbport", "port", 2, 2, 0, ARG_UINT | ARG_OFFSET, (void *)offsetof(struct ndb_info, ni_port),
      "( OLcfgDbAt:6.5 NAME 'olcDbPort' "
      "DESC 'Port number of SQL server' "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-    {"dbsocket", "path", 2, 2, 0, ARG_STRING | ARG_OFFSET,
-     (void *)offsetof(struct ndb_info, ni_socket),
+    {"dbsocket", "path", 2, 2, 0, ARG_STRING | ARG_OFFSET, (void *)offsetof(struct ndb_info, ni_socket),
      "( OLcfgDbAt:6.6 NAME 'olcDbSocket' "
      "DESC 'Local socket path of SQL server' "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
-    {"dbflag", "flag", 2, 2, 0, ARG_LONG | ARG_OFFSET,
-     (void *)offsetof(struct ndb_info, ni_clflag),
+    {"dbflag", "flag", 2, 2, 0, ARG_LONG | ARG_OFFSET, (void *)offsetof(struct ndb_info, ni_clflag),
      "( OLcfgDbAt:6.7 NAME 'olcDbFlag' "
      "DESC 'Flags for SQL session' "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-    {"dbconnect", "hostname", 2, 2, 0, ARG_STRING | ARG_OFFSET,
-     (void *)offsetof(struct ndb_info, ni_connectstr),
+    {"dbconnect", "hostname", 2, 2, 0, ARG_STRING | ARG_OFFSET, (void *)offsetof(struct ndb_info, ni_connectstr),
      "( OLcfgDbAt:6.8 NAME 'olcDbConnect' "
      "DESC 'Hostname of NDB server' "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
-    {"dbconnections", "number", 2, 2, 0, ARG_INT | ARG_OFFSET,
-     (void *)offsetof(struct ndb_info, ni_nconns),
+    {"dbconnections", "number", 2, 2, 0, ARG_INT | ARG_OFFSET, (void *)offsetof(struct ndb_info, ni_nconns),
      "( OLcfgDbAt:6.9 NAME 'olcDbConnections' "
      "DESC 'Number of cluster connections to open' "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-    {"attrlen", "attr> <len", 3, 3, 0, ARG_MAGIC | NDB_ATLEN,
-     (void *)ndb_cf_gen,
+    {"attrlen", "attr> <len", 3, 3, 0, ARG_MAGIC | NDB_ATLEN, (void *)ndb_cf_gen,
      "( OLcfgDbAt:6.10 NAME 'olcNdbAttrLen' "
      "DESC 'Column length of a specific attribute' "
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString )",
      NULL, NULL},
-    {"attrset", "set> <attrs", 3, 3, 0, ARG_MAGIC | NDB_ATSET,
-     (void *)ndb_cf_gen,
+    {"attrset", "set> <attrs", 3, 3, 0, ARG_MAGIC | NDB_ATSET, (void *)ndb_cf_gen,
      "( OLcfgDbAt:6.11 NAME 'olcNdbAttrSet' "
      "DESC 'Set of common attributes' "
      "EQUALITY caseIgnoreMatch "
@@ -119,17 +108,16 @@ static ConfigTable ndbcfg[] = {
      NULL, NULL},
     {NULL, NULL, 0, 0, 0, ARG_IGNORED, NULL, NULL, NULL, NULL}};
 
-static ConfigOCs ndbocs[] = {
-    {"( OLcfgDbOc:6.2 "
-     "NAME 'olcNdbConfig' "
-     "DESC 'NDB backend configuration' "
-     "SUP olcDatabaseConfig "
-     "MUST ( olcDbHost $ olcDbName $ olcDbConnect ) "
-     "MAY ( olcDbUser $ olcDbPass $ olcDbPort $ olcDbSocket $ "
-     "olcDbFlag $ olcDbConnections $ olcNdbAttrLen $ "
-     "olcDbIndex $ olcNdbAttrSet $ olcNdbAttrBlob ) )",
-     Cft_Database, ndbcfg},
-    {NULL, Cft_Abstract, NULL}};
+static ConfigOCs ndbocs[] = {{"( OLcfgDbOc:6.2 "
+                              "NAME 'olcNdbConfig' "
+                              "DESC 'NDB backend configuration' "
+                              "SUP olcDatabaseConfig "
+                              "MUST ( olcDbHost $ olcDbName $ olcDbConnect ) "
+                              "MAY ( olcDbUser $ olcDbPass $ olcDbPort $ olcDbSocket $ "
+                              "olcDbFlag $ olcDbConnections $ olcNdbAttrLen $ "
+                              "olcDbIndex $ olcNdbAttrSet $ olcNdbAttrBlob ) )",
+                              Cft_Database, ndbcfg},
+                             {NULL, Cft_Abstract, NULL}};
 
 static int ndb_cf_gen(ConfigArgs *c) {
   struct ndb_info *ni = (struct ndb_info *)c->be->be_private;
@@ -148,8 +136,7 @@ static int ndb_cf_gen(ConfigArgs *c) {
       if (ni->ni_attrlens) {
         for (ln = ni->ni_attrlens; ln; ln = ln->ln_next) {
           ai = (NdbAttrInfo *)ln->ln_data;
-          bv.bv_len = snprintf(buf, sizeof(buf), "%s %d", ai->na_name.bv_val,
-                               ai->na_len);
+          bv.bv_len = snprintf(buf, sizeof(buf), "%s %d", ai->na_name.bv_val, ai->na_len);
           value_add_one(&c->rvalue_vals, &bv);
         }
       } else {
@@ -222,16 +209,14 @@ static int ndb_cf_gen(ConfigArgs *c) {
     ber_str2bv(c->argv[1], 0, 0, &bv);
     ai = ndb_ai_get(ni, &bv);
     if (!ai) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg), "%.*s: invalid attr %s",
-               (int)sizeof(c->cr_msg) - 64, c->log, c->argv[1]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "%.*s: invalid attr %s", (int)sizeof(c->cr_msg) - 64, c->log, c->argv[1]);
       Debug(LDAP_DEBUG_ANY, "%s\n", c->cr_msg);
       return -1;
     }
     for (ln = ni->ni_attrlens; ln; ln = ln->ln_next) {
       if (ln->ln_data == (void *)ai) {
-        snprintf(c->cr_msg, sizeof(c->cr_msg),
-                 "%.*s: attr len already set for %s",
-                 (int)sizeof(c->cr_msg) - 32, c->log, c->argv[1]);
+        snprintf(c->cr_msg, sizeof(c->cr_msg), "%.*s: attr len already set for %s", (int)sizeof(c->cr_msg) - 32, c->log,
+                 c->argv[1]);
         Debug(LDAP_DEBUG_ANY, "%s\n", c->cr_msg);
         return -1;
       }
@@ -250,16 +235,14 @@ static int ndb_cf_gen(ConfigArgs *c) {
     ber_str2bv(c->argv[1], 0, 0, &bv);
     ai = ndb_ai_get(ni, &bv);
     if (!ai) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg), "%.*s: invalid attr %s",
-               (int)sizeof(c->cr_msg) - 32, c->log, c->argv[1]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "%.*s: invalid attr %s", (int)sizeof(c->cr_msg) - 32, c->log, c->argv[1]);
       Debug(LDAP_DEBUG_ANY, "%s\n", c->cr_msg);
       return -1;
     }
     for (ln = ni->ni_attridxs; ln; ln = ln->ln_next) {
       if (ln->ln_data == (void *)ai) {
-        snprintf(c->cr_msg, sizeof(c->cr_msg),
-                 "%.*s: attr index already set for %s",
-                 (int)sizeof(c->cr_msg) - 32, c->log, c->argv[1]);
+        snprintf(c->cr_msg, sizeof(c->cr_msg), "%.*s: attr index already set for %s", (int)sizeof(c->cr_msg) - 32,
+                 c->log, c->argv[1]);
         Debug(LDAP_DEBUG_ANY, "%s\n", c->cr_msg);
         return -1;
       }
@@ -280,12 +263,11 @@ static int ndb_cf_gen(ConfigArgs *c) {
     ber_bvarray_free(bva);
     if (rc) {
       if (rc == LDAP_ALREADY_EXISTS) {
-        snprintf(c->cr_msg, sizeof(c->cr_msg),
-                 "%.*s: attrset %s already defined",
-                 (int)sizeof(c->cr_msg) - 32, c->log, c->argv[1]);
+        snprintf(c->cr_msg, sizeof(c->cr_msg), "%.*s: attrset %s already defined", (int)sizeof(c->cr_msg) - 32, c->log,
+                 c->argv[1]);
       } else {
-        snprintf(c->cr_msg, sizeof(c->cr_msg), "%.*s: invalid attrset %s (%d)",
-                 (int)sizeof(c->cr_msg) - 32, c->log, c->argv[1], rc);
+        snprintf(c->cr_msg, sizeof(c->cr_msg), "%.*s: invalid attrset %s (%d)", (int)sizeof(c->cr_msg) - 32, c->log,
+                 c->argv[1], rc);
       }
       Debug(LDAP_DEBUG_ANY, "%s\n", c->cr_msg);
       return -1;
@@ -302,16 +284,14 @@ static int ndb_cf_gen(ConfigArgs *c) {
     ber_str2bv(c->argv[1], 0, 0, &bv);
     ai = ndb_ai_get(ni, &bv);
     if (!ai) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg), "%.*s: invalid attr %s",
-               (int)sizeof(c->cr_msg) - 32, c->log, c->argv[1]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "%.*s: invalid attr %s", (int)sizeof(c->cr_msg) - 32, c->log, c->argv[1]);
       Debug(LDAP_DEBUG_ANY, "%s\n", c->cr_msg);
       return -1;
     }
     for (ln = ni->ni_attrblobs; ln; ln = ln->ln_next) {
       if (ln->ln_data == (void *)ai) {
-        snprintf(c->cr_msg, sizeof(c->cr_msg),
-                 "%.*s: attr blob already set for %s",
-                 (int)sizeof(c->cr_msg) - 32, c->log, c->argv[1]);
+        snprintf(c->cr_msg, sizeof(c->cr_msg), "%.*s: attr blob already set for %s", (int)sizeof(c->cr_msg) - 32,
+                 c->log, c->argv[1]);
         Debug(LDAP_DEBUG_ANY, "%s\n", c->cr_msg);
         return -1;
       }

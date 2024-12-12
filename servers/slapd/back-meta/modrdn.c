@@ -130,11 +130,9 @@ retry:;
     goto cleanup;
   }
 
-  rs->sr_err = ldap_rename(mc->mc_conns[candidate].msc_ld, mdn.bv_val,
-                           newrdn.bv_val, mnewSuperior.bv_val,
+  rs->sr_err = ldap_rename(mc->mc_conns[candidate].msc_ld, mdn.bv_val, newrdn.bv_val, mnewSuperior.bv_val,
                            op->orr_deleteoldrdn, ctrls, NULL, &msgid);
-  rs->sr_err = meta_back_op_result(mc, op, rs, candidate, msgid,
-                                   mt->mt_timeout[SLAP_OP_MODRDN],
+  rs->sr_err = meta_back_op_result(mc, op, rs, candidate, msgid, mt->mt_timeout[SLAP_OP_MODRDN],
                                    (LDAP_BACK_SENDRESULT | retrying));
   if (rs->sr_err == LDAP_UNAVAILABLE && retrying) {
     retrying &= ~LDAP_BACK_RETRYING;
@@ -153,8 +151,7 @@ cleanup:;
     BER_BVZERO(&mdn);
   }
 
-  if (!BER_BVISNULL(&mnewSuperior) &&
-      mnewSuperior.bv_val != op->orr_newSup->bv_val) {
+  if (!BER_BVISNULL(&mnewSuperior) && mnewSuperior.bv_val != op->orr_newSup->bv_val) {
     free(mnewSuperior.bv_val);
     BER_BVZERO(&mnewSuperior);
   }

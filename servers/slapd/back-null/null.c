@@ -36,14 +36,12 @@ typedef struct null_info {
 } null_info;
 
 static ConfigTable nullcfg[] = {
-    {"bind", "true|FALSE", 1, 2, 0, ARG_ON_OFF | ARG_OFFSET,
-     (void *)offsetof(null_info, ni_bind_allowed),
+    {"bind", "true|FALSE", 1, 2, 0, ARG_ON_OFF | ARG_OFFSET, (void *)offsetof(null_info, ni_bind_allowed),
      "( OLcfgDbAt:8.1 NAME 'olcDbBindAllowed' "
      "DESC 'Allow binds to this database' "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
-    {"dosearch", "true|FALSE", 1, 2, 0, ARG_ON_OFF | ARG_OFFSET,
-     (void *)offsetof(null_info, ni_dosearch),
+    {"dosearch", "true|FALSE", 1, 2, 0, ARG_ON_OFF | ARG_OFFSET, (void *)offsetof(null_info, ni_dosearch),
      "( OLcfgDbAt:8.2 NAME 'olcDbDoSearch' "
      "DESC 'Return an entry on searches' "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
@@ -101,8 +99,7 @@ static int null_back_bind(Operation *op, SlapReply *rs) {
 }
 
 static int null_back_respond(Operation *op, SlapReply *rs, int rc) {
-  LDAPControl ctrl[SLAP_MAX_RESPONSE_CONTROLS],
-      *ctrls[SLAP_MAX_RESPONSE_CONTROLS];
+  LDAPControl ctrl[SLAP_MAX_RESPONSE_CONTROLS], *ctrls[SLAP_MAX_RESPONSE_CONTROLS];
   int c = 0;
 
   BerElementBuffer ps_berbuf;
@@ -251,14 +248,10 @@ done:;
 }
 
 /* add, delete, modify, modrdn, search */
-static int null_back_success(Operation *op, SlapReply *rs) {
-  return null_back_respond(op, rs, LDAP_SUCCESS);
-}
+static int null_back_success(Operation *op, SlapReply *rs) { return null_back_respond(op, rs, LDAP_SUCCESS); }
 
 /* compare */
-static int null_back_false(Operation *op, SlapReply *rs) {
-  return null_back_respond(op, rs, LDAP_COMPARE_FALSE);
-}
+static int null_back_false(Operation *op, SlapReply *rs) { return null_back_respond(op, rs, LDAP_COMPARE_FALSE); }
 
 static int null_back_search(Operation *op, SlapReply *rs) {
   struct null_info *ni = (struct null_info *)op->o_bd->be_private;
@@ -275,9 +268,8 @@ static int null_back_search(Operation *op, SlapReply *rs) {
 }
 
 /* for overlays */
-static int null_back_entry_get(Operation *op, struct berval *ndn,
-                               ObjectClass *oc, AttributeDescription *at,
-                               int rw, Entry **ent) {
+static int null_back_entry_get(Operation *op, struct berval *ndn, ObjectClass *oc, AttributeDescription *at, int rw,
+                               Entry **ent) {
   /* don't admit the object isn't there */
   return oc || at ? LDAP_NO_SUCH_ATTRIBUTE : LDAP_BUSY;
 }
@@ -296,10 +288,7 @@ static int null_tool_entry_close(BackendDB *be) {
   return 0;
 }
 
-static ID null_tool_entry_first_x(BackendDB *be, struct berval *base, int scope,
-                                  Filter *f) {
-  return NOID;
-}
+static ID null_tool_entry_first_x(BackendDB *be, struct berval *base, int scope, Filter *f) { return NOID; }
 
 static ID null_tool_entry_next(BackendDB *be) { return NOID; }
 
@@ -341,20 +330,14 @@ static int null_back_db_destroy(Backend *be, ConfigReply *cr) {
 }
 
 int null_back_initialize(BackendInfo *bi) {
-  static const char *const controls[] = {LDAP_CONTROL_ASSERT,
-                                         LDAP_CONTROL_MANAGEDSAIT,
-                                         LDAP_CONTROL_NOOP,
-                                         LDAP_CONTROL_PAGEDRESULTS,
-                                         LDAP_CONTROL_SUBENTRIES,
-                                         LDAP_CONTROL_PRE_READ,
-                                         LDAP_CONTROL_POST_READ,
-                                         LDAP_CONTROL_X_PERMISSIVE_MODIFY,
-                                         NULL};
+  static const char *const controls[] = {
+      LDAP_CONTROL_ASSERT,       LDAP_CONTROL_MANAGEDSAIT,         LDAP_CONTROL_NOOP,
+      LDAP_CONTROL_PAGEDRESULTS, LDAP_CONTROL_SUBENTRIES,          LDAP_CONTROL_PRE_READ,
+      LDAP_CONTROL_POST_READ,    LDAP_CONTROL_X_PERMISSIVE_MODIFY, NULL};
 
   Debug(LDAP_DEBUG_TRACE, "null_back_initialize: initialize null backend\n");
 
-  bi->bi_flags |= SLAP_BFLAG_INCREMENT | SLAP_BFLAG_SUBENTRIES |
-                  SLAP_BFLAG_ALIASES | SLAP_BFLAG_REFERRALS;
+  bi->bi_flags |= SLAP_BFLAG_INCREMENT | SLAP_BFLAG_SUBENTRIES | SLAP_BFLAG_ALIASES | SLAP_BFLAG_REFERRALS;
 
   bi->bi_controls = controls;
 

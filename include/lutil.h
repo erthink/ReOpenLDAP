@@ -60,18 +60,14 @@ struct lutil_pw_scheme;
 #define LUTIL_PASSWD_OK (0)
 #define LUTIL_PASSWD_ERR (-1)
 
-typedef int(LUTIL_PASSWD_CHK_FUNC)(const struct berval *scheme,
-                                   const struct berval *passwd,
-                                   const struct berval *cred,
+typedef int(LUTIL_PASSWD_CHK_FUNC)(const struct berval *scheme, const struct berval *passwd, const struct berval *cred,
                                    const char **text);
 
-typedef int(LUTIL_PASSWD_HASH_FUNC)(const struct berval *scheme,
-                                    const struct berval *passwd,
-                                    struct berval *hash, const char **text);
+typedef int(LUTIL_PASSWD_HASH_FUNC)(const struct berval *scheme, const struct berval *passwd, struct berval *hash,
+                                    const char **text);
 
 LDAP_LUTIL_F(int)
-lutil_passwd_add(struct berval *scheme, LUTIL_PASSWD_CHK_FUNC *chk_fn,
-                 LUTIL_PASSWD_HASH_FUNC *hash_fn);
+lutil_passwd_add(struct berval *scheme, LUTIL_PASSWD_CHK_FUNC *chk_fn, LUTIL_PASSWD_HASH_FUNC *hash_fn);
 
 LDAP_LUTIL_F(void)
 lutil_passwd_init(void);
@@ -85,9 +81,8 @@ lutil_authpasswd(const struct berval *passwd, /* stored password */
                  const char **methods);
 
 LDAP_LUTIL_F(int)
-lutil_authpasswd_hash(const struct berval *cred,
-                      struct berval **passwd, /* password to store */
-                      struct berval **salt,   /* salt to store */
+lutil_authpasswd_hash(const struct berval *cred, struct berval **passwd, /* password to store */
+                      struct berval **salt,                              /* salt to store */
                       const char *method);
 
 #ifdef SLAPD_CRYPT
@@ -104,8 +99,7 @@ LDAP_LUTIL_F(int)
 lutil_passwd_generate(struct berval *pw, ber_len_t);
 
 LDAP_LUTIL_F(int)
-lutil_passwd_hash(const struct berval *passwd, const char *method,
-                  struct berval *hash, const char **text);
+lutil_passwd_hash(const struct berval *passwd, const char *method, struct berval *hash, const char **text);
 
 LDAP_LUTIL_F(int)
 lutil_passwd_scheme(const char *scheme);
@@ -114,8 +108,8 @@ LDAP_LUTIL_F(int)
 lutil_salt_format(const char *format);
 
 LDAP_LUTIL_F(int)
-lutil_passwd_string64(const struct berval *sc, const struct berval *hash,
-                      struct berval *b64, const struct berval *salt);
+lutil_passwd_string64(const struct berval *sc, const struct berval *hash, struct berval *b64,
+                      const struct berval *salt);
 
 /* utils.c */
 LDAP_LUTIL_F(char *)
@@ -183,8 +177,7 @@ LDAP_LUTIL_F(size_t)
 lutil_uuidstr(char *buf, size_t len);
 
 LDAP_LUTIL_F(int)
-lutil_uuidstr_from_normalized(char *uuid, size_t uuidlen, char *buf,
-                              size_t buflen);
+lutil_uuidstr_from_normalized(char *uuid, size_t uuidlen, char *buf, size_t buflen);
 
 /*
  * Sometimes not all declarations in a header file are needed.
@@ -238,12 +231,12 @@ lutil_unparse_time(char *buf, size_t buflen, unsigned long t);
 #define lutil_timerdiv timerdiv
 #else /* ! timerdiv */
 /* works inplace (x == t) */
-#define lutil_timerdiv(t, d, x)                                                \
-  do {                                                                         \
-    time_t s = (t)->tv_sec;                                                    \
-    assert(d > 0);                                                             \
-    (x)->tv_sec = s / d;                                                       \
-    (x)->tv_usec = ((t)->tv_usec + 1000000 * (s % d)) / d;                     \
+#define lutil_timerdiv(t, d, x)                                                                                        \
+  do {                                                                                                                 \
+    time_t s = (t)->tv_sec;                                                                                            \
+    assert(d > 0);                                                                                                     \
+    (x)->tv_sec = s / d;                                                                                               \
+    (x)->tv_usec = ((t)->tv_usec + 1000000 * (s % d)) / d;                                                             \
   } while (0)
 #endif /* ! timerdiv */
 
@@ -251,12 +244,12 @@ lutil_unparse_time(char *buf, size_t buflen, unsigned long t);
 #define lutil_timermul timermul
 #else /* ! timermul */
 /* works inplace (x == t) */
-#define lutil_timermul(t, m, x)                                                \
-  do {                                                                         \
-    time_t u = (t)->tv_usec * m;                                               \
-    assert(m > 0);                                                             \
-    (x)->tv_sec = (t)->tv_sec * m + u / 1000000;                               \
-    (x)->tv_usec = u % 1000000;                                                \
+#define lutil_timermul(t, m, x)                                                                                        \
+  do {                                                                                                                 \
+    time_t u = (t)->tv_usec * m;                                                                                       \
+    assert(m > 0);                                                                                                     \
+    (x)->tv_sec = (t)->tv_sec * m + u / 1000000;                                                                       \
+    (x)->tv_usec = u % 1000000;                                                                                        \
   } while (0);
 #endif /* ! timermul */
 

@@ -34,15 +34,13 @@ LDAP_BEGIN_DECL
 
 typedef struct {
   int (*display_open)(void **datap);
-  int (*display_update)(void **datap, double frac, time_t remaining_time,
-                        time_t elapsed, double byte_rate);
+  int (*display_update)(void **datap, double frac, time_t remaining_time, time_t elapsed, double byte_rate);
   int (*display_close)(void **datap);
 } lutil_meter_display_t;
 
 typedef struct {
   int (*estimator_open)(void **datap);
-  int (*estimator_update)(void **datap, double start, double frac,
-                          time_t *remaining_time);
+  int (*estimator_update)(void **datap, double start, double frac, time_t *remaining_time);
   int (*estimator_close)(void **datap);
 } lutil_meter_estimator_t;
 
@@ -61,8 +59,7 @@ LDAP_LUTIL_V(const lutil_meter_display_t) lutil_meter_text_display;
 LDAP_LUTIL_V(const lutil_meter_estimator_t) lutil_meter_linear_estimator;
 
 LDAP_LUTIL_F(int)
-lutil_meter_open(lutil_meter_t *lutil_meter,
-                 const lutil_meter_display_t *display,
+lutil_meter_open(lutil_meter_t *lutil_meter, const lutil_meter_display_t *display,
                  const lutil_meter_estimator_t *estimator, size_t goal_value);
 LDAP_LUTIL_F(int)
 lutil_meter_update(lutil_meter_t *lutil_meter, size_t position, int force);

@@ -29,8 +29,7 @@ LDAP_LUTIL_F(void)
 lutil_sasl_freedefs(void *defaults);
 
 LDAP_LUTIL_F(void *)
-lutil_sasl_defaults(LDAP *ld, char *mech, char *realm, char *authcid,
-                    char *passwd, char *authzid);
+lutil_sasl_defaults(LDAP *ld, char *mech, char *realm, char *authcid, char *passwd, char *authzid);
 
 LDAP_LUTIL_F(int)
 lutil_sasl_interact(LDAP *ld, unsigned flags, void *defaults, void *p);

@@ -37,10 +37,8 @@
  *	}
  */
 
-BerElement *ldap_build_moddn_req(LDAP *ld, const char *dn, const char *newrdn,
-                                 const char *newSuperior, int deleteoldrdn,
-                                 LDAPControl **sctrls, LDAPControl **cctrls,
-                                 ber_int_t *msgidp) {
+BerElement *ldap_build_moddn_req(LDAP *ld, const char *dn, const char *newrdn, const char *newSuperior,
+                                 int deleteoldrdn, LDAPControl **sctrls, LDAPControl **cctrls, ber_int_t *msgidp) {
   BerElement *ber;
   int rc;
 
@@ -58,13 +56,11 @@ BerElement *ldap_build_moddn_req(LDAP *ld, const char *dn, const char *newrdn,
       return (NULL);
     }
     rc = ber_printf(ber, "{it{ssbtsN}", /* '}' */
-                    *msgidp, LDAP_REQ_MODDN, dn, newrdn,
-                    (ber_int_t)deleteoldrdn, LDAP_TAG_NEWSUPERIOR, newSuperior);
+                    *msgidp, LDAP_REQ_MODDN, dn, newrdn, (ber_int_t)deleteoldrdn, LDAP_TAG_NEWSUPERIOR, newSuperior);
 
   } else {
     rc = ber_printf(ber, "{it{ssbN}", /* '}' */
-                    *msgidp, LDAP_REQ_MODDN, dn, newrdn,
-                    (ber_int_t)deleteoldrdn);
+                    *msgidp, LDAP_REQ_MODDN, dn, newrdn, (ber_int_t)deleteoldrdn);
   }
 
   if (rc < 0) {
@@ -102,9 +98,8 @@ BerElement *ldap_build_moddn_req(LDAP *ld, const char *dn, const char *newrdn,
  * Returns the LDAP error code.
  */
 
-int ldap_rename(LDAP *ld, const char *dn, const char *newrdn,
-                const char *newSuperior, int deleteoldrdn, LDAPControl **sctrls,
-                LDAPControl **cctrls, int *msgidp) {
+int ldap_rename(LDAP *ld, const char *dn, const char *newrdn, const char *newSuperior, int deleteoldrdn,
+                LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
   BerElement *ber;
   int rc;
   ber_int_t id;
@@ -116,8 +111,7 @@ int ldap_rename(LDAP *ld, const char *dn, const char *newrdn,
   if (rc != LDAP_SUCCESS)
     return rc;
 
-  ber = ldap_build_moddn_req(ld, dn, newrdn, newSuperior, deleteoldrdn, sctrls,
-                             cctrls, &id);
+  ber = ldap_build_moddn_req(ld, dn, newrdn, newSuperior, deleteoldrdn, sctrls, cctrls, &id);
   if (!ber)
     return ld->ld_errno;
 
@@ -131,15 +125,13 @@ int ldap_rename(LDAP *ld, const char *dn, const char *newrdn,
   return LDAP_SUCCESS;
 }
 
-int ldap_rename_s(LDAP *ld, const char *dn, const char *newrdn,
-                  const char *newSuperior, int deleteoldrdn,
+int ldap_rename_s(LDAP *ld, const char *dn, const char *newrdn, const char *newSuperior, int deleteoldrdn,
                   LDAPControl **sctrls, LDAPControl **cctrls) {
   int rc;
   int msgid = 0;
   LDAPMessage *res;
 
-  rc = ldap_rename(ld, dn, newrdn, newSuperior, deleteoldrdn, sctrls, cctrls,
-                   &msgid);
+  rc = ldap_rename(ld, dn, newrdn, newSuperior, deleteoldrdn, sctrls, cctrls, &msgid);
 
   if (rc != LDAP_SUCCESS) {
     return rc;

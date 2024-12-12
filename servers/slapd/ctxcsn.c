@@ -117,15 +117,12 @@ int slap_get_commit_csn(Operation *op, struct berval *maxcsn) {
       LDAP_TAILQ_FOREACH(csne, be->be_pending_csn_list, ce_csn_link) {
         if (sid == csne->ce_sid) {
 #ifdef CTXCSN_ORDERING
-          if (committed_csne &&
-              slap_csn_compare_ts(&csne->ce_csn, &committed_csne->ce_csn)
-                  CTXCSN_ORDERING 0) {
+          if (committed_csne && slap_csn_compare_ts(&csne->ce_csn, &committed_csne->ce_csn) CTXCSN_ORDERING 0) {
             Debug(LDAP_DEBUG_SYNC,
                   "slap_get_commit_csn:"
                   "  next-pending %p %s\n\t"
                   " prev-commited %p %s\n",
-                  csne, csne->ce_csn.bv_val, committed_csne,
-                  committed_csne->ce_csn.bv_val);
+                  csne, csne->ce_csn.bv_val, committed_csne, committed_csne->ce_csn.bv_val);
             assert(0);
           }
 #endif
@@ -173,9 +170,7 @@ int slap_graduate_commit_csn(Operation *op) {
 
   LDAP_TAILQ_FOREACH(csne, be->be_pending_csn_list, ce_csn_link) {
     if (csne->ce_op == op) {
-      Debug(LDAP_DEBUG_SYNC,
-            "slap_graduate_commit_csn: removing %p %s, op %p\n", csne,
-            csne->ce_csn.bv_val, op);
+      Debug(LDAP_DEBUG_SYNC, "slap_graduate_commit_csn: removing %p %s, op %p\n", csne, csne->ce_csn.bv_val, op);
       assert(csne->ce_state > 0);
       assert(slap_csn_match(&op->o_csn, &csne->ce_csn));
       found = csne->ce_state;
@@ -198,8 +193,7 @@ int slap_graduate_commit_csn(Operation *op) {
   return found;
 }
 
-static struct berval ocbva[] = {BER_BVC("top"), BER_BVC("subentry"),
-                                BER_BVC("syncProviderSubentry"), BER_BVNULL};
+static struct berval ocbva[] = {BER_BVC("top"), BER_BVC("subentry"), BER_BVC("syncProviderSubentry"), BER_BVNULL};
 
 Entry *slap_create_context_csn_entry(Backend *be, struct berval *context_csn) {
   assert(slap_csn_verify_full(context_csn));
@@ -210,8 +204,7 @@ Entry *slap_create_context_csn_entry(Backend *be, struct berval *context_csn) {
 
   attr_merge(e, slap_schema.si_ad_objectClass, ocbva, NULL);
   attr_merge_one(e, slap_schema.si_ad_structuralObjectClass, &ocbva[1], NULL);
-  attr_merge_one(e, slap_schema.si_ad_cn, (struct berval *)&slap_ldapsync_bv,
-                 NULL);
+  attr_merge_one(e, slap_schema.si_ad_cn, (struct berval *)&slap_ldapsync_bv, NULL);
 
   if (context_csn) {
     attr_merge_one(e, slap_schema.si_ad_contextCSN, context_csn, NULL);
@@ -220,8 +213,7 @@ Entry *slap_create_context_csn_entry(Backend *be, struct berval *context_csn) {
   BER_BVSTR(&bv, "{}");
   attr_merge_one(e, slap_schema.si_ad_subtreeSpecification, &bv, NULL);
 
-  build_new_dn(&e->e_name, &be->be_nsuffix[0],
-               (struct berval *)&slap_ldapsync_cn_bv, NULL);
+  build_new_dn(&e->e_name, &be->be_nsuffix[0], (struct berval *)&slap_ldapsync_cn_bv, NULL);
   ber_dupbv(&e->e_nname, &e->e_name);
 
   return e;
@@ -239,8 +231,7 @@ void slap_queue_csn(Operation *op, const struct berval *csn) {
   before = NULL;
   LDAP_TAILQ_FOREACH(pending, be->be_pending_csn_list, ce_csn_link) {
 #ifdef CTXCSN_ORDERING
-    if (pending->ce_sid == sid && !before &&
-        slap_csn_compare_ts(csn, &pending->ce_csn) CTXCSN_ORDERING 0)
+    if (pending->ce_sid == sid && !before && slap_csn_compare_ts(csn, &pending->ce_csn) CTXCSN_ORDERING 0)
       before = pending;
 #endif
     if (pending->ce_op == op) {
@@ -252,8 +243,7 @@ void slap_queue_csn(Operation *op, const struct berval *csn) {
   }
 
   if (likely(pending == NULL)) {
-    pending =
-        (struct slap_csn_entry *)ch_calloc(1, sizeof(struct slap_csn_entry));
+    pending = (struct slap_csn_entry *)ch_calloc(1, sizeof(struct slap_csn_entry));
     ber_dupbv(&pending->ce_csn, csn);
     assert(BER_BVISEMPTY(&op->o_csn));
     slap_op_csn_assign(op, &pending->ce_csn);
@@ -261,8 +251,7 @@ void slap_queue_csn(Operation *op, const struct berval *csn) {
     pending->ce_op = op;
     pending->ce_state = SLAP_CSN_PENDING;
     if (before == NULL) {
-      Debug(LDAP_DEBUG_SYNC, "slap_queue_csn: tail-queueing %p %s, op %p\n",
-            pending, pending->ce_csn.bv_val, op);
+      Debug(LDAP_DEBUG_SYNC, "slap_queue_csn: tail-queueing %p %s, op %p\n", pending, pending->ce_csn.bv_val, op);
       LDAP_TAILQ_INSERT_TAIL(be->be_pending_csn_list, pending, ce_csn_link);
     } else {
       Debug(LDAP_DEBUG_SYNC,

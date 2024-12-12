@@ -35,8 +35,7 @@ int shell_back_delete(Operation *op, SlapReply *rs) {
   FILE *rfp, *wfp;
 
   if (si->si_delete == NULL) {
-    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                    "delete not implemented");
+    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "delete not implemented");
     return (-1);
   }
 

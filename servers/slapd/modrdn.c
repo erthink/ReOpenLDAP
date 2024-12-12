@@ -60,19 +60,16 @@ int do_modrdn(Operation *op, SlapReply *rs) {
       /* Connection record indicates v2 but field
        * newSuperior is present: report error.
        */
-      Debug(LDAP_DEBUG_ANY, "%s do_modrdn: newSuperior requires LDAPv3\n",
-            op->o_log_prefix);
+      Debug(LDAP_DEBUG_ANY, "%s do_modrdn: newSuperior requires LDAPv3\n", op->o_log_prefix);
 
-      send_ldap_discon(op, rs, LDAP_PROTOCOL_ERROR,
-                       "newSuperior requires LDAPv3");
+      send_ldap_discon(op, rs, LDAP_PROTOCOL_ERROR, "newSuperior requires LDAPv3");
       rs->sr_err = SLAPD_DISCONNECT;
       goto cleanup;
     }
 
     if (ber_scanf(op->o_ber, "m", &newSuperior) == LBER_ERROR) {
 
-      Debug(LDAP_DEBUG_ANY, "%s do_modrdn: ber_scanf(\"m\") failed\n",
-            op->o_log_prefix);
+      Debug(LDAP_DEBUG_ANY, "%s do_modrdn: ber_scanf(\"m\") failed\n", op->o_log_prefix);
 
       send_ldap_discon(op, rs, LDAP_PROTOCOL_ERROR, "decoding error");
       rs->sr_err = SLAPD_DISCONNECT;
@@ -82,8 +79,8 @@ int do_modrdn(Operation *op, SlapReply *rs) {
     op->orr_nnewSup = &nnewSuperior;
   }
 
-  Debug(LDAP_DEBUG_ARGS, "do_modrdn: dn (%s) newrdn (%s) newsuperior (%s)\n",
-        dn.bv_val, newrdn.bv_val, newSuperior.bv_len ? newSuperior.bv_val : "");
+  Debug(LDAP_DEBUG_ARGS, "do_modrdn: dn (%s) newrdn (%s) newsuperior (%s)\n", dn.bv_val, newrdn.bv_val,
+        newSuperior.bv_len ? newSuperior.bv_val : "");
 
   if (ber_scanf(op->o_ber, /*{*/ "}") == LBER_ERROR) {
     Debug(LDAP_DEBUG_ANY, "%s do_modrdn: ber_scanf failed\n", op->o_log_prefix);
@@ -98,46 +95,38 @@ int do_modrdn(Operation *op, SlapReply *rs) {
     goto cleanup;
   }
 
-  rs->sr_err =
-      dnPrettyNormal(NULL, &dn, &op->o_req_dn, &op->o_req_ndn, op->o_tmpmemctx);
+  rs->sr_err = dnPrettyNormal(NULL, &dn, &op->o_req_dn, &op->o_req_ndn, op->o_tmpmemctx);
   if (rs->sr_err != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_ANY, "%s do_modrdn: invalid dn (%s)\n", op->o_log_prefix,
-          dn.bv_val);
+    Debug(LDAP_DEBUG_ANY, "%s do_modrdn: invalid dn (%s)\n", op->o_log_prefix, dn.bv_val);
     send_ldap_error(op, rs, LDAP_INVALID_DN_SYNTAX, "invalid DN");
     goto cleanup;
   }
 
   /* FIXME: should have/use rdnPretty / rdnNormalize routines */
 
-  rs->sr_err = dnPrettyNormal(NULL, &newrdn, &op->orr_newrdn, &op->orr_nnewrdn,
-                              op->o_tmpmemctx);
+  rs->sr_err = dnPrettyNormal(NULL, &newrdn, &op->orr_newrdn, &op->orr_nnewrdn, op->o_tmpmemctx);
   if (rs->sr_err != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_ANY, "%s do_modrdn: invalid newrdn (%s)\n",
-          op->o_log_prefix, newrdn.bv_val);
+    Debug(LDAP_DEBUG_ANY, "%s do_modrdn: invalid newrdn (%s)\n", op->o_log_prefix, newrdn.bv_val);
     send_ldap_error(op, rs, LDAP_INVALID_DN_SYNTAX, "invalid new RDN");
     goto cleanup;
   }
 
   if (rdn_validate(&op->orr_newrdn) != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_ANY, "%s do_modrdn: invalid rdn (%s)\n", op->o_log_prefix,
-          op->orr_newrdn.bv_val);
+    Debug(LDAP_DEBUG_ANY, "%s do_modrdn: invalid rdn (%s)\n", op->o_log_prefix, op->orr_newrdn.bv_val);
     send_ldap_error(op, rs, LDAP_INVALID_DN_SYNTAX, "invalid new RDN");
     goto cleanup;
   }
 
   if (op->orr_newSup) {
-    rs->sr_err = dnPrettyNormal(NULL, &newSuperior, &pnewSuperior,
-                                &nnewSuperior, op->o_tmpmemctx);
+    rs->sr_err = dnPrettyNormal(NULL, &newSuperior, &pnewSuperior, &nnewSuperior, op->o_tmpmemctx);
     if (rs->sr_err != LDAP_SUCCESS) {
-      Debug(LDAP_DEBUG_ANY, "%s do_modrdn: invalid newSuperior (%s)\n",
-            op->o_log_prefix, newSuperior.bv_val);
+      Debug(LDAP_DEBUG_ANY, "%s do_modrdn: invalid newSuperior (%s)\n", op->o_log_prefix, newSuperior.bv_val);
       send_ldap_error(op, rs, LDAP_INVALID_DN_SYNTAX, "invalid newSuperior");
       goto cleanup;
     }
   }
 
-  Statslog(LDAP_DEBUG_STATS, "%s MODRDN dn=\"%s\"\n", op->o_log_prefix,
-           op->o_req_dn.bv_val);
+  Statslog(LDAP_DEBUG_STATS, "%s MODRDN dn=\"%s\"\n", op->o_log_prefix, op->o_req_dn.bv_val);
 
   op->orr_deleteoldrdn = deloldrdn;
   op->orr_modlist = NULL;
@@ -190,17 +179,14 @@ int fe_op_modrdn(Operation *op, SlapReply *rs) {
 
   if (op->o_req_ndn.bv_len == 0) {
     Debug(LDAP_DEBUG_ANY, "%s do_modrdn: root dse!\n", op->o_log_prefix);
-    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                    "cannot rename the root DSE");
+    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "cannot rename the root DSE");
     goto cleanup;
 
   } else if (bvmatch(&op->o_req_ndn, &frontendDB->be_schemandn)) {
-    Debug(LDAP_DEBUG_ANY, "%s do_modrdn: subschema subentry: %s (%ld)\n",
-          op->o_log_prefix, frontendDB->be_schemandn.bv_val,
-          (long)frontendDB->be_schemandn.bv_len);
+    Debug(LDAP_DEBUG_ANY, "%s do_modrdn: subschema subentry: %s (%ld)\n", op->o_log_prefix,
+          frontendDB->be_schemandn.bv_val, (long)frontendDB->be_schemandn.bv_len);
 
-    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                    "cannot rename subschema subentry");
+    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "cannot rename subschema subentry");
     goto cleanup;
   }
 
@@ -212,11 +198,9 @@ int fe_op_modrdn(Operation *op, SlapReply *rs) {
   build_new_dn(&dest_ndn, &dest_pndn, &op->orr_nnewrdn, op->o_tmpmemctx);
 
   diff = (ber_slen_t)dest_ndn.bv_len - (ber_slen_t)op->o_req_ndn.bv_len;
-  if (diff > 0 ? dnIsSuffix(&dest_ndn, &op->o_req_ndn)
-               : diff < 0 && dnIsSuffix(&op->o_req_ndn, &dest_ndn)) {
+  if (diff > 0 ? dnIsSuffix(&dest_ndn, &op->o_req_ndn) : diff < 0 && dnIsSuffix(&op->o_req_ndn, &dest_ndn)) {
     send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                    diff > 0 ? "cannot place an entry below itself"
-                             : "cannot place an entry above itself");
+                    diff > 0 ? "cannot place an entry below itself" : "cannot place an entry above itself");
     goto cleanup;
   }
 
@@ -228,8 +212,7 @@ int fe_op_modrdn(Operation *op, SlapReply *rs) {
   op->o_bd = select_backend(&op->o_req_ndn, 1);
   if (op->o_bd == NULL) {
     op->o_bd = bd;
-    rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn,
-                                  LDAP_SCOPE_DEFAULT);
+    rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
     if (!rs->sr_ref)
       rs->sr_ref = default_referral;
     else
@@ -240,8 +223,7 @@ int fe_op_modrdn(Operation *op, SlapReply *rs) {
       send_ldap_result(op, rs);
       rs_send_cleanup(rs);
     } else {
-      send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                      "no global superior knowledge");
+      send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "no global superior knowledge");
     }
     goto cleanup;
   }
@@ -265,8 +247,7 @@ int fe_op_modrdn(Operation *op, SlapReply *rs) {
 
   /* check that destination DN is in the same backend as source DN */
   if (select_backend(&dest_ndn, 0) != op->o_bd) {
-    send_ldap_error(op, rs, LDAP_AFFECTS_MULTIPLE_DSAS,
-                    "cannot rename between DSAs");
+    send_ldap_error(op, rs, LDAP_AFFECTS_MULTIPLE_DSAS, "cannot rename between DSAs");
     goto cleanup;
   }
 
@@ -322,12 +303,10 @@ int fe_op_modrdn(Operation *op, SlapReply *rs) {
       }
 
     } else {
-      BerVarray defref = op->o_bd->be_update_refs ? op->o_bd->be_update_refs
-                                                  : default_referral;
+      BerVarray defref = op->o_bd->be_update_refs ? op->o_bd->be_update_refs : default_referral;
 
       if (defref != NULL) {
-        rs->sr_ref =
-            referral_rewrite(defref, NULL, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
+        rs->sr_ref = referral_rewrite(defref, NULL, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
         if (!rs->sr_ref)
           ber_bvarray_dup_x(&rs->sr_ref, defref, NULL);
         rs->sr_err = LDAP_REFERRAL;
@@ -335,13 +314,11 @@ int fe_op_modrdn(Operation *op, SlapReply *rs) {
         send_ldap_result(op, rs);
         rs_send_cleanup(rs);
       } else {
-        send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                        "shadow context; no update referral");
+        send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "shadow context; no update referral");
       }
     }
   } else {
-    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                    "operation not supported within namingContext");
+    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "operation not supported within namingContext");
   }
 
 cleanup:;
@@ -362,8 +339,7 @@ int slap_modrdn2mods(Operation *op, SlapReply *rs) {
   if (BER_BVISEMPTY(&op->o_req_dn))
     op->orr_deleteoldrdn = 0;
 
-  if (ldap_bv2rdn_x(&op->oq_modrdn.rs_newrdn, &new_rdn, (char **)&rs->sr_text,
-                    LDAP_DN_FORMAT_LDAP, op->o_tmpmemctx)) {
+  if (ldap_bv2rdn_x(&op->oq_modrdn.rs_newrdn, &new_rdn, (char **)&rs->sr_text, LDAP_DN_FORMAT_LDAP, op->o_tmpmemctx)) {
     Debug(LDAP_DEBUG_TRACE,
           "%s slap_modrdn2mods: can't figure out "
           "type(s)/value(s) of newrdn\n",
@@ -374,8 +350,7 @@ int slap_modrdn2mods(Operation *op, SlapReply *rs) {
   }
 
   if (op->oq_modrdn.rs_deleteoldrdn) {
-    if (ldap_bv2rdn_x(&op->o_req_dn, &old_rdn, (char **)&rs->sr_text,
-                      LDAP_DN_FORMAT_LDAP, op->o_tmpmemctx)) {
+    if (ldap_bv2rdn_x(&op->o_req_dn, &old_rdn, (char **)&rs->sr_text, LDAP_DN_FORMAT_LDAP, op->o_tmpmemctx)) {
       Debug(LDAP_DEBUG_TRACE,
             "%s slap_modrdn2mods: can't figure out "
             "type(s)/value(s) of oldrdn\n",
@@ -395,14 +370,14 @@ int slap_modrdn2mods(Operation *op, SlapReply *rs) {
     rs->sr_err = slap_bv2ad(&new_rdn[a_cnt]->la_attr, &desc, &rs->sr_text);
 
     if (rs->sr_err != LDAP_SUCCESS) {
-      Debug(LDAP_DEBUG_TRACE, "%s slap_modrdn2mods: %s: %s (new)\n",
-            op->o_log_prefix, rs->sr_text, new_rdn[a_cnt]->la_attr.bv_val);
+      Debug(LDAP_DEBUG_TRACE, "%s slap_modrdn2mods: %s: %s (new)\n", op->o_log_prefix, rs->sr_text,
+            new_rdn[a_cnt]->la_attr.bv_val);
       goto done;
     }
 
     if (!desc->ad_type->sat_equality) {
-      Debug(LDAP_DEBUG_TRACE, "%s slap_modrdn2mods: %s: %s (new)\n",
-            op->o_log_prefix, rs->sr_text, new_rdn[a_cnt]->la_attr.bv_val);
+      Debug(LDAP_DEBUG_TRACE, "%s slap_modrdn2mods: %s: %s (new)\n", op->o_log_prefix, rs->sr_text,
+            new_rdn[a_cnt]->la_attr.bv_val);
       rs->sr_text = "naming attribute has no equality matching rule";
       rs->sr_err = LDAP_NAMING_VIOLATION;
       goto done;
@@ -418,10 +393,9 @@ int slap_modrdn2mods(Operation *op, SlapReply *rs) {
     mod_tmp->sml_values[1].bv_val = NULL;
     if (desc->ad_type->sat_equality->smr_normalize) {
       mod_tmp->sml_nvalues = (BerVarray)ch_malloc(2 * sizeof(struct berval));
-      rs->sr_err = desc->ad_type->sat_equality->smr_normalize(
-          SLAP_MR_EQUALITY | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX,
-          desc->ad_type->sat_syntax, desc->ad_type->sat_equality,
-          &mod_tmp->sml_values[0], &mod_tmp->sml_nvalues[0], NULL);
+      rs->sr_err = desc->ad_type->sat_equality->smr_normalize(SLAP_MR_EQUALITY | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX,
+                                                              desc->ad_type->sat_syntax, desc->ad_type->sat_equality,
+                                                              &mod_tmp->sml_values[0], &mod_tmp->sml_nvalues[0], NULL);
       if (rs->sr_err != LDAP_SUCCESS) {
         ch_free(mod_tmp->sml_nvalues);
         ch_free(mod_tmp->sml_values[0].bv_val);
@@ -447,8 +421,8 @@ int slap_modrdn2mods(Operation *op, SlapReply *rs) {
 
       rs->sr_err = slap_bv2ad(&old_rdn[d_cnt]->la_attr, &desc, &rs->sr_text);
       if (rs->sr_err != LDAP_SUCCESS) {
-        Debug(LDAP_DEBUG_TRACE, "%s slap_modrdn2mods: %s: %s (old)\n",
-              op->o_log_prefix, rs->sr_text, old_rdn[d_cnt]->la_attr.bv_val);
+        Debug(LDAP_DEBUG_TRACE, "%s slap_modrdn2mods: %s: %s (old)\n", op->o_log_prefix, rs->sr_text,
+              old_rdn[d_cnt]->la_attr.bv_val);
         goto done;
       }
 
@@ -462,10 +436,9 @@ int slap_modrdn2mods(Operation *op, SlapReply *rs) {
       mod_tmp->sml_values[1].bv_val = NULL;
       if (desc->ad_type->sat_equality->smr_normalize) {
         mod_tmp->sml_nvalues = (BerVarray)ch_malloc(2 * sizeof(struct berval));
-        (void)(*desc->ad_type->sat_equality->smr_normalize)(
-            SLAP_MR_EQUALITY | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX,
-            desc->ad_type->sat_syntax, desc->ad_type->sat_equality,
-            &mod_tmp->sml_values[0], &mod_tmp->sml_nvalues[0], NULL);
+        (void)(*desc->ad_type->sat_equality->smr_normalize)(SLAP_MR_EQUALITY | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX,
+                                                            desc->ad_type->sat_syntax, desc->ad_type->sat_equality,
+                                                            &mod_tmp->sml_values[0], &mod_tmp->sml_nvalues[0], NULL);
         mod_tmp->sml_nvalues[1].bv_val = NULL;
       } else {
         mod_tmp->sml_nvalues = NULL;

@@ -58,8 +58,7 @@ int monitor_subsys_time_init(BackendDB *be, monitor_subsys_t *ms) {
   int rc = -1;
 
   BER_BVSTR(&bv, "cn=Start");
-  e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv,
-                         mi->mi_oc_monitoredObject, NULL, NULL);
+  e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv, mi->mi_oc_monitoredObject, NULL, NULL);
   if (e == NULL) {
     Debug(LDAP_DEBUG_ANY,
           "monitor_subsys_time_init: "
@@ -67,8 +66,7 @@ int monitor_subsys_time_init(BackendDB *be, monitor_subsys_t *ms) {
           bv.bv_val, ms->mss_ndn.bv_val);
     goto bailout;
   }
-  attr_merge_normalize_one(e, mi->mi_ad_monitorTimestamp, &mi->mi_startTime,
-                           NULL);
+  attr_merge_normalize_one(e, mi->mi_ad_monitorTimestamp, &mi->mi_startTime, NULL);
 
   mp = monitor_entrypriv_create();
   if (mp == NULL) {
@@ -93,8 +91,7 @@ int monitor_subsys_time_init(BackendDB *be, monitor_subsys_t *ms) {
    * Current
    */
   BER_BVSTR(&bv, "cn=Current");
-  e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv,
-                         mi->mi_oc_monitoredObject, NULL, NULL);
+  e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv, mi->mi_oc_monitoredObject, NULL, NULL);
   if (e == NULL) {
     Debug(LDAP_DEBUG_ANY,
           "monitor_subsys_time_init: "
@@ -102,8 +99,7 @@ int monitor_subsys_time_init(BackendDB *be, monitor_subsys_t *ms) {
           bv.bv_val, ms->mss_ndn.bv_val);
     goto bailout;
   }
-  attr_merge_normalize_one(e, mi->mi_ad_monitorTimestamp, &mi->mi_startTime,
-                           NULL);
+  attr_merge_normalize_one(e, mi->mi_ad_monitorTimestamp, &mi->mi_startTime, NULL);
 
   mp = monitor_entrypriv_create();
   if (mp == NULL) {
@@ -128,8 +124,7 @@ int monitor_subsys_time_init(BackendDB *be, monitor_subsys_t *ms) {
    * Uptime
    */
   BER_BVSTR(&bv, "cn=Uptime");
-  e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv,
-                         mi->mi_oc_monitoredObject, NULL, NULL);
+  e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv, mi->mi_oc_monitoredObject, NULL, NULL);
   if (e == NULL) {
     Debug(LDAP_DEBUG_ANY,
           "monitor_subsys_time_init: "
@@ -167,8 +162,7 @@ bailout:
 
 static int monitor_subsys_time_update(Operation *op, SlapReply *rs, Entry *e) {
   monitor_info_t *mi = (monitor_info_t *)op->o_bd->be_private;
-  static struct berval bv_current = BER_BVC("cn=current"),
-                       bv_uptime = BER_BVC("cn=uptime");
+  static struct berval bv_current = BER_BVC("cn=current"), bv_uptime = BER_BVC("cn=uptime");
   struct berval rdn;
 
   assert(mi != NULL);

@@ -126,8 +126,7 @@ int slappasswd(int argc, char *argv[]) {
       slap_set_debug_level(mask);
 #else
       if (mask != 0 || debug_unknowns)
-        fputs("must be configured with '--enable-debug' for debugging\n",
-              stderr);
+        fputs("must be configured with '--enable-debug' for debugging\n", stderr);
 #endif
     } break;
 
@@ -279,8 +278,7 @@ int slappasswd(int argc, char *argv[]) {
 
   lutil_passwd_hash(&passwd, scheme, &hash, &text);
   if (hash.bv_val == NULL) {
-    fprintf(stderr, "Password generation failed for scheme %s: %s\n", scheme,
-            text ? text : "");
+    fprintf(stderr, "Password generation failed for scheme %s: %s\n", scheme, text ? text : "");
     rc = EXIT_FAILURE;
     goto destroy;
   }

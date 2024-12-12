@@ -32,8 +32,7 @@ static char *principal;
 static char *kt_name;
 static kinit_data *kid;
 
-static void log_krb5_errmsg(krb5_context ctx, const char *func,
-                            krb5_error_code rc) {
+static void log_krb5_errmsg(krb5_context ctx, const char *func, krb5_error_code rc) {
   const char *errmsg = krb5_get_error_message(ctx, rc);
   Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "slapd-kinit: %s: %s\n", func, errmsg);
   krb5_free_error_message(ctx, errmsg);
@@ -55,8 +54,7 @@ static int kinit_check_tgt(kinit_data *kid, int *remaining) {
     return 2;
   } else {
     if (!krb5_principal_compare(kid->ctx, kid->princ, princ)) {
-      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
-          "Principal in ccache does not match requested principal\n");
+      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "Principal in ccache does not match requested principal\n");
       krb5_free_principal(kid->ctx, princ);
       return 2;
     }
@@ -75,19 +73,16 @@ static int kinit_check_tgt(kinit_data *kid, int *remaining) {
       continue;
     }
 
-    if (creds.server->length == 2 &&
-        (!strcmp(creds.server->data[0].data, "krbtgt")) &&
+    if (creds.server->length == 2 && (!strcmp(creds.server->data[0].data, "krbtgt")) &&
         (!strcmp(creds.server->data[1].data, princ->realm.data))) {
 
       krb5_unparse_name(kid->ctx, creds.server, &name);
 
       *remaining = (time_t)creds.times.endtime - now;
       if (*remaining <= 0) {
-        Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_DEBUG,
-            "kinit_qtask: TGT (%s) expired\n", name);
+        Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_DEBUG, "kinit_qtask: TGT (%s) expired\n", name);
       } else {
-        Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_DEBUG,
-            "kinit_qtask: TGT (%s) expires in %dh:%02dm:%02ds\n", name,
+        Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_DEBUG, "kinit_qtask: TGT (%s) expires in %dh:%02dm:%02ds\n", name,
             *remaining / 3600, (*remaining % 3600) / 60, *remaining % 60);
       }
       free(name);
@@ -95,8 +90,7 @@ static int kinit_check_tgt(kinit_data *kid, int *remaining) {
       if (*remaining <= 30) {
         if (creds.times.renew_till - 60 > now) {
           int renewal = creds.times.renew_till - now;
-          Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_DEBUG,
-              "kinit_qtask: Time remaining for renewal: %dh:%02dm:%02ds\n",
+          Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_DEBUG, "kinit_qtask: Time remaining for renewal: %dh:%02dm:%02ds\n",
               renewal / 3600, (renewal % 3600) / 60, renewal % 60);
           ret = 1;
         } else {
@@ -132,15 +126,11 @@ void *kinit_qtask(void *ctx, void *arg) {
 
   if (renew > 0) {
     if (renew == 1) {
-      Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_DEBUG,
-          "kinit_qtask: Trying to renew TGT: ");
-      rc = krb5_get_renewed_creds(kid->ctx, &creds, kid->princ, kid->ccache,
-                                  NULL);
+      Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_DEBUG, "kinit_qtask: Trying to renew TGT: ");
+      rc = krb5_get_renewed_creds(kid->ctx, &creds, kid->princ, kid->ccache, NULL);
       if (rc != 0) {
         Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_DEBUG, "Failed\n");
-        log_krb5_errmsg(kid->ctx,
-                        "kinit_qtask, Renewal failed: krb5_get_renewed_creds",
-                        rc);
+        log_krb5_errmsg(kid->ctx, "kinit_qtask, Renewal failed: krb5_get_renewed_creds", rc);
         renew++;
       } else {
         Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_DEBUG, "Success\n");
@@ -151,10 +141,8 @@ void *kinit_qtask(void *ctx, void *arg) {
       }
     }
     if (renew > 1) {
-      Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_DEBUG,
-          "kinit_qtask: Trying to get new TGT: ");
-      rc = krb5_get_init_creds_keytab(kid->ctx, &creds, kid->princ, kid->keytab,
-                                      0, NULL, kid->opts);
+      Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_DEBUG, "kinit_qtask: Trying to get new TGT: ");
+      rc = krb5_get_init_creds_keytab(kid->ctx, &creds, kid->princ, kid->keytab, 0, NULL, kid->opts);
       if (rc) {
         Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_DEBUG, "Failed\n");
         log_krb5_errmsg(kid->ctx, "krb5_get_init_creds_keytab", rc);
@@ -175,8 +163,7 @@ void *kinit_qtask(void *ctx, void *arg) {
   if (ldap_pvt_runqueue_isrunning(&slapd_rq, rtask)) {
     ldap_pvt_runqueue_stoptask(&slapd_rq, rtask);
   }
-  Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_DEBUG,
-      "kinit_qtask: Next TGT check in %dh:%02dm:%02ds\n", nextcheck / 3600,
+  Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_DEBUG, "kinit_qtask: Next TGT check in %dh:%02dm:%02ds\n", nextcheck / 3600,
       (nextcheck % 3600) / 60, nextcheck % 60);
   rtask->interval = ldap_from_seconds(nextcheck);
   ldap_pvt_runqueue_resched(&slapd_rq, rtask, 0);
@@ -214,13 +201,11 @@ static int kinit_initialize(void) {
     rc = krb5_get_init_creds_opt_alloc(kid->ctx, &kid->opts);
 
   if (!rc)
-    rc = krb5_get_init_creds_opt_set_out_ccache(kid->ctx, kid->opts,
-                                                kid->ccache);
+    rc = krb5_get_init_creds_opt_set_out_ccache(kid->ctx, kid->opts, kid->ccache);
 
   if (!rc) {
     ldap_pvt_thread_mutex_lock(&slapd_rq.rq_mutex);
-    task = ldap_pvt_runqueue_insert(&slapd_rq, 10, kinit_qtask, (void *)kid,
-                                    "kinit_qtask",
+    task = ldap_pvt_runqueue_insert(&slapd_rq, 10, kinit_qtask, (void *)kid, "kinit_qtask",
                                     "ldap/bronsted.g17.lan@G17.LAN");
     ldap_pvt_thread_mutex_unlock(&slapd_rq.rq_mutex);
   }

@@ -128,8 +128,7 @@ rewrite_info_delete(struct rewrite_info **info);
  *      rewriteParam		paramName paramValue
  */
 LDAP_REWRITE_F(int)
-rewrite_parse(struct rewrite_info *info, const char *fname, int lineno,
-              int argc, char **argv);
+rewrite_parse(struct rewrite_info *info, const char *fname, int lineno, int argc, char **argv);
 
 /*
  * process a config file that was already opened. Uses rewrite_parse.
@@ -153,15 +152,14 @@ rewrite_read(FILE *fin, struct rewrite_info *info);
  *      - use the default rewrite context.
  */
 LDAP_REWRITE_F(int)
-rewrite(struct rewrite_info *info, const char *rewriteContext,
-        const char *string, char **result);
+rewrite(struct rewrite_info *info, const char *rewriteContext, const char *string, char **result);
 
 /*
  * Same as above; the cookie relates the rewrite to a session
  */
 LDAP_REWRITE_F(int)
-rewrite_session(struct rewrite_info *info, const char *rewriteContext,
-                const char *string, const void *cookie, char **result);
+rewrite_session(struct rewrite_info *info, const char *rewriteContext, const char *string, const void *cookie,
+                char **result);
 
 /*
  * Inits a session
@@ -173,14 +171,12 @@ rewrite_session_init(struct rewrite_info *info, const void *cookie);
  * Defines and inits a variable with session scope
  */
 LDAP_REWRITE_F(int)
-rewrite_session_var_set_f(struct rewrite_info *info, const void *cookie,
-                          const char *name, const char *value, int flags);
+rewrite_session_var_set_f(struct rewrite_info *info, const void *cookie, const char *name, const char *value,
+                          int flags);
 
-#define rewrite_session_var_set(info, cookie, name, value)                     \
-  rewrite_session_var_set_f((info), (cookie), (name), (value),                 \
-                            REWRITE_VAR_INSERT | REWRITE_VAR_UPDATE |          \
-                                REWRITE_VAR_COPY_NAME |                        \
-                                REWRITE_VAR_COPY_VALUE)
+#define rewrite_session_var_set(info, cookie, name, value)                                                             \
+  rewrite_session_var_set_f((info), (cookie), (name), (value),                                                         \
+                            REWRITE_VAR_INSERT | REWRITE_VAR_UPDATE | REWRITE_VAR_COPY_NAME | REWRITE_VAR_COPY_VALUE)
 
 /*
  * Deletes a session
@@ -196,15 +192,13 @@ rewrite_session_delete(struct rewrite_info *info, const void *cookie);
  * Defines and inits a variable with global scope
  */
 LDAP_REWRITE_F(int)
-rewrite_param_set(struct rewrite_info *info, const char *name,
-                  const char *value);
+rewrite_param_set(struct rewrite_info *info, const char *name, const char *value);
 
 /*
  * Gets a var with global scope
  */
 LDAP_REWRITE_F(int)
-rewrite_param_get(struct rewrite_info *info, const char *name,
-                  struct berval *value);
+rewrite_param_get(struct rewrite_info *info, const char *name, struct berval *value);
 
 /*
  * Destroys the parameter tree
@@ -218,11 +212,9 @@ rewrite_param_destroy(struct rewrite_info *info);
 
 struct rewrite_mapper;
 
-typedef void *(rewrite_mapper_config)(const char *fname, int lineno, int argc,
-                                      char **argv);
+typedef void *(rewrite_mapper_config)(const char *fname, int lineno, int argc, char **argv);
 
-typedef int(rewrite_mapper_apply)(void *ctx, const char *arg,
-                                  struct berval *retval);
+typedef int(rewrite_mapper_apply)(void *ctx, const char *arg, struct berval *retval);
 
 typedef int(rewrite_mapper_destroy)(void *ctx);
 

@@ -51,8 +51,7 @@
  * A possible extension will include the handling of multiple suffixes
  */
 
-static metasubtree_t *meta_subtree_match(metatarget_t *mt, struct berval *ndn,
-                                         int scope) {
+static metasubtree_t *meta_subtree_match(metatarget_t *mt, struct berval *ndn, int scope) {
   metasubtree_t *ms = mt->mt_subtree;
 
   for (ms = mt->mt_subtree; ms; ms = ms->ms_next) {
@@ -64,8 +63,7 @@ static metasubtree_t *meta_subtree_match(metatarget_t *mt, struct berval *ndn,
       break;
 
     case META_ST_SUBORDINATE:
-      if (dnIsSuffix(ndn, &ms->ms_dn) &&
-          (ndn->bv_len > ms->ms_dn.bv_len || scope != LDAP_SCOPE_BASE)) {
+      if (dnIsSuffix(ndn, &ms->ms_dn) && (ndn->bv_len > ms->ms_dn.bv_len || scope != LDAP_SCOPE_BASE)) {
         return ms;
       }
       break;
@@ -235,9 +233,8 @@ int meta_clear_one_candidate(Operation *op, metaconn_t *mc, int candidate) {
 #ifdef DEBUG_205
     char buf[BUFSIZ];
 
-    snprintf(buf, sizeof(buf),
-             "meta_clear_one_candidate ldap_unbind_ext[%d] mc=%p ld=%p",
-             candidate, (void *)mc, (void *)msc->msc_ld);
+    snprintf(buf, sizeof(buf), "meta_clear_one_candidate ldap_unbind_ext[%d] mc=%p ld=%p", candidate, (void *)mc,
+             (void *)msc->msc_ld);
     Debug(LDAP_DEBUG_ANY, "### %s %s\n", op ? op->o_log_prefix : "", buf);
 #endif /* DEBUG_205 */
 

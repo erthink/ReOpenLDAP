@@ -82,10 +82,9 @@ retry:
     goto cleanup;
   }
 
-  rs->sr_err = ldap_rename(lc->lc_ld, op->o_req_dn.bv_val, newrdn.bv_val,
-                           newSup, op->orr_deleteoldrdn, ctrls, NULL, &msgid);
-  rc = ldap_back_op_result(lc, op, rs, msgid, li->li_timeout[SLAP_OP_MODRDN],
-                           (LDAP_BACK_SENDRESULT | retrying));
+  rs->sr_err =
+      ldap_rename(lc->lc_ld, op->o_req_dn.bv_val, newrdn.bv_val, newSup, op->orr_deleteoldrdn, ctrls, NULL, &msgid);
+  rc = ldap_back_op_result(lc, op, rs, msgid, li->li_timeout[SLAP_OP_MODRDN], (LDAP_BACK_SENDRESULT | retrying));
   if (rs->sr_err == LDAP_UNAVAILABLE && retrying) {
     retrying &= ~LDAP_BACK_RETRYING;
     if (ldap_back_retry(&lc, op, rs, LDAP_BACK_SENDERR)) {

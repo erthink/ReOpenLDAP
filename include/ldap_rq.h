@@ -39,18 +39,15 @@ typedef struct runqueue_s {
 } runqueue_t;
 
 LDAP_F(struct re_s *)
-ldap_pvt_runqueue_insert_ns(struct runqueue_s *rq, slap_time_t interval,
-                            ldap_pvt_thread_start_t *routine, void *arg,
+ldap_pvt_runqueue_insert_ns(struct runqueue_s *rq, slap_time_t interval, ldap_pvt_thread_start_t *routine, void *arg,
                             char *tname, char *tspec);
 
 LDAP_F(struct re_s *)
-ldap_pvt_runqueue_insert(struct runqueue_s *rq, int interval_seconds,
-                         ldap_pvt_thread_start_t *routine, void *arg,
+ldap_pvt_runqueue_insert(struct runqueue_s *rq, int interval_seconds, ldap_pvt_thread_start_t *routine, void *arg,
                          char *tname, char *tspec);
 
 LDAP_F(struct re_s *)
-ldap_pvt_runqueue_find(struct runqueue_s *rq, ldap_pvt_thread_start_t *routine,
-                       void *arg);
+ldap_pvt_runqueue_find(struct runqueue_s *rq, ldap_pvt_thread_start_t *routine, void *arg);
 
 LDAP_F(void)
 ldap_pvt_runqueue_remove(struct runqueue_s *rq, struct re_s *entry);

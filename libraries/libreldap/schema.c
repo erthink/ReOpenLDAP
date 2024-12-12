@@ -179,9 +179,7 @@ static int append_to_safe_string(safe_string *ss, char *s) {
   return 0;
 }
 
-static int print_literal(safe_string *ss, char *s) {
-  return (append_to_safe_string(ss, s));
-}
+static int print_literal(safe_string *ss, char *s) { return (append_to_safe_string(ss, s)); }
 
 static int print_whsp(safe_string *ss) {
   if (ss->at_whsp)
@@ -308,8 +306,7 @@ static int print_ruleids(safe_string *ss, int n, int *rids) {
   }
 }
 
-static int print_extensions(safe_string *ss,
-                            LDAPSchemaExtensionItem **extensions) {
+static int print_extensions(safe_string *ss, LDAPSchemaExtensionItem **extensions) {
   LDAPSchemaExtensionItem **ext;
 
   if (extensions) {
@@ -433,8 +430,7 @@ char *ldap_matchingruleuse2str(LDAPMatchingRuleUse *mru) {
     return NULL;
 }
 
-struct berval *ldap_matchingruleuse2bv(LDAPMatchingRuleUse *mru,
-                                       struct berval *bv) {
+struct berval *ldap_matchingruleuse2bv(LDAPMatchingRuleUse *mru, struct berval *bv) {
   safe_string *ss;
 
   if (!mru || !bv)
@@ -974,8 +970,7 @@ static tk_t get_token(const char **sp, char **token_val) {
   default:
     kind = TK_BAREWORD;
     p = *sp;
-    while (!LDAP_SPACE(**sp) && **sp != '(' && **sp != ')' && **sp != '$' &&
-           **sp != '\'' &&
+    while (!LDAP_SPACE(**sp) && **sp != '(' && **sp != ')' && **sp != '$' && **sp != '\'' &&
            /* for suggested minimum upper bound on the number
             * of characters (RFC 4517) */
            **sp != '{' && **sp != '\0')
@@ -1067,8 +1062,7 @@ char *ldap_int_parse_numericoid(const char **sp, int *code, const int flags) {
 }
 
 /* Parse a sequence of dot-separated decimal strings */
-int ldap_int_parse_ruleid(const char **sp, int *code, const int flags,
-                          int *ruleid) {
+int ldap_int_parse_ruleid(const char **sp, int *code, const int flags, int *ruleid) {
   *ruleid = 0;
 
   if (!LDAP_DIGIT(**sp)) {
@@ -1326,8 +1320,7 @@ static char **parse_oids(const char **sp, int *code, const int allow_quoted) {
   }
 }
 
-static int add_extension(LDAPSchemaExtensionItem ***extensions, char *name,
-                         char **values) {
+static int add_extension(LDAPSchemaExtensionItem ***extensions, char *name, char **values) {
   int n;
   LDAPSchemaExtensionItem **tmp, *ext;
 
@@ -1347,8 +1340,7 @@ static int add_extension(LDAPSchemaExtensionItem ***extensions, char *name,
   } else {
     for (n = 0; (*extensions)[n] != NULL; n++)
       ;
-    tmp =
-        LDAP_REALLOC(*extensions, (n + 2) * sizeof(LDAPSchemaExtensionItem *));
+    tmp = LDAP_REALLOC(*extensions, (n + 2) * sizeof(LDAPSchemaExtensionItem *));
     if (!tmp) {
       LDAP_FREE(ext);
       return 1;
@@ -1385,8 +1377,7 @@ void ldap_syntax_free(LDAPSyntax *syn) {
   LDAP_FREE(syn);
 }
 
-LDAPSyntax *ldap_str2syntax(const char *s, int *code, const char **errp,
-                            const unsigned flags) {
+LDAPSyntax *ldap_str2syntax(const char *s, int *code, const char **errp, const unsigned flags) {
   tk_t kind;
   const char *ss = s;
   char *sval;
@@ -1525,9 +1516,7 @@ void ldap_matchingrule_free(LDAPMatchingRule *mr) {
   LDAP_FREE(mr);
 }
 
-LDAPMatchingRule *ldap_str2matchingrule(const char *s, int *code,
-                                        const char **errp,
-                                        const unsigned flags) {
+LDAPMatchingRule *ldap_str2matchingrule(const char *s, int *code, const char **errp, const unsigned flags) {
   tk_t kind;
   const char *ss = s;
   char *sval;
@@ -1570,9 +1559,8 @@ LDAPMatchingRule *ldap_str2matchingrule(const char *s, int *code,
       ss = savepos;
       kind = get_token(&ss, &sval);
       if (kind == TK_BAREWORD) {
-        if (!strcasecmp(sval, "NAME") || !strcasecmp(sval, "DESC") ||
-            !strcasecmp(sval, "OBSOLETE") || !strcasecmp(sval, "SYNTAX") ||
-            !strncasecmp(sval, "X-", 2)) {
+        if (!strcasecmp(sval, "NAME") || !strcasecmp(sval, "DESC") || !strcasecmp(sval, "OBSOLETE") ||
+            !strcasecmp(sval, "SYNTAX") || !strncasecmp(sval, "X-", 2)) {
           /* Missing OID, backtrack */
           ss = savepos;
         } else {
@@ -1720,9 +1708,7 @@ void ldap_matchingruleuse_free(LDAPMatchingRuleUse *mru) {
   LDAP_FREE(mru);
 }
 
-LDAPMatchingRuleUse *ldap_str2matchingruleuse(const char *s, int *code,
-                                              const char **errp,
-                                              const unsigned flags) {
+LDAPMatchingRuleUse *ldap_str2matchingruleuse(const char *s, int *code, const char **errp, const unsigned flags) {
   tk_t kind;
   const char *ss = s;
   char *sval;
@@ -1765,9 +1751,8 @@ LDAPMatchingRuleUse *ldap_str2matchingruleuse(const char *s, int *code,
       ss = savepos;
       kind = get_token(&ss, &sval);
       if (kind == TK_BAREWORD) {
-        if (!strcasecmp(sval, "NAME") || !strcasecmp(sval, "DESC") ||
-            !strcasecmp(sval, "OBSOLETE") || !strcasecmp(sval, "APPLIES") ||
-            !strncasecmp(sval, "X-", 2)) {
+        if (!strcasecmp(sval, "NAME") || !strcasecmp(sval, "DESC") || !strcasecmp(sval, "OBSOLETE") ||
+            !strcasecmp(sval, "APPLIES") || !strncasecmp(sval, "X-", 2)) {
           /* Missing OID, backtrack */
           ss = savepos;
         } else {
@@ -1921,9 +1906,7 @@ void ldap_attributetype_free(LDAPAttributeType *at) {
   LDAP_FREE(at);
 }
 
-LDAPAttributeType *ldap_str2attributetype(const char *s, int *code,
-                                          const char **errp,
-                                          const unsigned flags) {
+LDAPAttributeType *ldap_str2attributetype(const char *s, int *code, const char **errp, const unsigned flags) {
   tk_t kind;
   const char *ss = s;
   char *sval;
@@ -1973,19 +1956,15 @@ LDAPAttributeType *ldap_str2attributetype(const char *s, int *code,
   savepos = ss;
   at->at_oid = ldap_int_parse_numericoid(&ss, code, 0);
   if (!at->at_oid) {
-    if ((flags & (LDAP_SCHEMA_ALLOW_NO_OID | LDAP_SCHEMA_ALLOW_OID_MACRO)) &&
-        (ss == savepos)) {
+    if ((flags & (LDAP_SCHEMA_ALLOW_NO_OID | LDAP_SCHEMA_ALLOW_OID_MACRO)) && (ss == savepos)) {
       /* Backtracking */
       ss = savepos;
       kind = get_token(&ss, &sval);
       if (kind == TK_BAREWORD) {
-        if (!strcasecmp(sval, "NAME") || !strcasecmp(sval, "DESC") ||
-            !strcasecmp(sval, "OBSOLETE") || !strcasecmp(sval, "SUP") ||
-            !strcasecmp(sval, "EQUALITY") || !strcasecmp(sval, "ORDERING") ||
-            !strcasecmp(sval, "SUBSTR") || !strcasecmp(sval, "SYNTAX") ||
-            !strcasecmp(sval, "SINGLE-VALUE") ||
-            !strcasecmp(sval, "COLLECTIVE") ||
-            !strcasecmp(sval, "NO-USER-MODIFICATION") ||
+        if (!strcasecmp(sval, "NAME") || !strcasecmp(sval, "DESC") || !strcasecmp(sval, "OBSOLETE") ||
+            !strcasecmp(sval, "SUP") || !strcasecmp(sval, "EQUALITY") || !strcasecmp(sval, "ORDERING") ||
+            !strcasecmp(sval, "SUBSTR") || !strcasecmp(sval, "SYNTAX") || !strcasecmp(sval, "SINGLE-VALUE") ||
+            !strcasecmp(sval, "COLLECTIVE") || !strcasecmp(sval, "NO-USER-MODIFICATION") ||
             !strcasecmp(sval, "USAGE") || !strncasecmp(sval, "X-", 2)) {
           /* Missing OID, backtrack */
           ss = savepos;
@@ -2283,8 +2262,7 @@ void ldap_objectclass_free(LDAPObjectClass *oc) {
   LDAP_FREE(oc);
 }
 
-LDAPObjectClass *ldap_str2objectclass(const char *s, int *code,
-                                      const char **errp, const unsigned flags) {
+LDAPObjectClass *ldap_str2objectclass(const char *s, int *code, const char **errp, const unsigned flags) {
   tk_t kind;
   const char *ss = s;
   char *sval;
@@ -2338,11 +2316,10 @@ LDAPObjectClass *ldap_str2objectclass(const char *s, int *code,
       ss = savepos;
       kind = get_token(&ss, &sval);
       if (kind == TK_BAREWORD) {
-        if (!strcasecmp(sval, "NAME") || !strcasecmp(sval, "DESC") ||
-            !strcasecmp(sval, "OBSOLETE") || !strcasecmp(sval, "SUP") ||
-            !strcasecmp(sval, "ABSTRACT") || !strcasecmp(sval, "STRUCTURAL") ||
-            !strcasecmp(sval, "AUXILIARY") || !strcasecmp(sval, "MUST") ||
-            !strcasecmp(sval, "MAY") || !strncasecmp(sval, "X-", 2)) {
+        if (!strcasecmp(sval, "NAME") || !strcasecmp(sval, "DESC") || !strcasecmp(sval, "OBSOLETE") ||
+            !strcasecmp(sval, "SUP") || !strcasecmp(sval, "ABSTRACT") || !strcasecmp(sval, "STRUCTURAL") ||
+            !strcasecmp(sval, "AUXILIARY") || !strcasecmp(sval, "MUST") || !strcasecmp(sval, "MAY") ||
+            !strncasecmp(sval, "X-", 2)) {
           /* Missing OID, backtrack */
           ss = savepos;
         } else if (flags & LDAP_SCHEMA_ALLOW_OID_MACRO) {
@@ -2563,8 +2540,7 @@ void ldap_contentrule_free(LDAPContentRule *cr) {
   LDAP_FREE(cr);
 }
 
-LDAPContentRule *ldap_str2contentrule(const char *s, int *code,
-                                      const char **errp, const unsigned flags) {
+LDAPContentRule *ldap_str2contentrule(const char *s, int *code, const char **errp, const unsigned flags) {
   tk_t kind;
   const char *ss = s;
   char *sval;
@@ -2613,9 +2589,8 @@ LDAPContentRule *ldap_str2contentrule(const char *s, int *code,
       ss = savepos;
       kind = get_token(&ss, &sval);
       if (kind == TK_BAREWORD) {
-        if (!strcasecmp(sval, "NAME") || !strcasecmp(sval, "DESC") ||
-            !strcasecmp(sval, "OBSOLETE") || !strcasecmp(sval, "AUX") ||
-            !strcasecmp(sval, "MUST") || !strcasecmp(sval, "MAY") ||
+        if (!strcasecmp(sval, "NAME") || !strcasecmp(sval, "DESC") || !strcasecmp(sval, "OBSOLETE") ||
+            !strcasecmp(sval, "AUX") || !strcasecmp(sval, "MUST") || !strcasecmp(sval, "MAY") ||
             !strcasecmp(sval, "NOT") || !strncasecmp(sval, "X-", 2)) {
           /* Missing OID, backtrack */
           ss = savepos;
@@ -2811,9 +2786,7 @@ void ldap_structurerule_free(LDAPStructureRule *sr) {
   LDAP_FREE(sr);
 }
 
-LDAPStructureRule *ldap_str2structurerule(const char *s, int *code,
-                                          const char **errp,
-                                          const unsigned flags) {
+LDAPStructureRule *ldap_str2structurerule(const char *s, int *code, const char **errp, const unsigned flags) {
   tk_t kind;
   int ret;
   const char *ss = s;
@@ -2996,8 +2969,7 @@ void ldap_nameform_free(LDAPNameForm *nf) {
   LDAP_FREE(nf);
 }
 
-LDAPNameForm *ldap_str2nameform(const char *s, int *code, const char **errp,
-                                const unsigned flags) {
+LDAPNameForm *ldap_str2nameform(const char *s, int *code, const char **errp, const unsigned flags) {
   tk_t kind;
   const char *ss = s;
   char *sval;

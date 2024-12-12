@@ -147,8 +147,7 @@ int ber_set_option(void *item, int option, const void *invalue) {
       if (ber_int_memory_fns == NULL) {
         const BerMemoryFunctions *f = (const BerMemoryFunctions *)invalue;
         /* make sure all functions are provided */
-        if (!(f->bmf_malloc && f->bmf_calloc && f->bmf_realloc &&
-              f->bmf_free)) {
+        if (!(f->bmf_malloc && f->bmf_calloc && f->bmf_realloc && f->bmf_free)) {
           ber_errno = LBER_ERROR_PARAM;
           return LBER_OPT_ERROR;
         }

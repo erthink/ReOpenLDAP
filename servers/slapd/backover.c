@@ -30,8 +30,7 @@
 
 static slap_overinst *overlays;
 
-static int over_db_config(BackendDB *be, const char *fname, int lineno,
-                          int argc, char **argv) {
+static int over_db_config(BackendDB *be, const char *fname, int lineno, int argc, char **argv) {
   slap_overinfo *oi = be->bd_info->bi_private;
   slap_overinst *on = oi->oi_list;
   BackendInfo *bi_orig = be->bd_info;
@@ -233,10 +232,8 @@ static int over_back_response(Operation *op, SlapReply *rs) {
   return rc;
 }
 
-static int over_access_allowed(Operation *op, Entry *e,
-                               AttributeDescription *desc, struct berval *val,
-                               slap_access_t access, AccessControlState *state,
-                               slap_mask_t *maskp) {
+static int over_access_allowed(Operation *op, Entry *e, AttributeDescription *desc, struct berval *val,
+                               slap_access_t access, AccessControlState *state, slap_mask_t *maskp) {
   slap_overinfo *oi;
   slap_overinst *on;
   BackendInfo *bi;
@@ -310,8 +307,7 @@ static int over_access_allowed(Operation *op, Entry *e,
   return rc;
 }
 
-int overlay_entry_get_ov(Operation *op, struct berval *dn, ObjectClass *oc,
-                         AttributeDescription *ad, int rw, Entry **e,
+int overlay_entry_get_ov(Operation *op, struct berval *dn, ObjectClass *oc, AttributeDescription *ad, int rw, Entry **e,
                          slap_overinst *on) {
   slap_overinfo *oi = on->on_info;
   BackendDB *be = op->o_bd, db;
@@ -365,8 +361,8 @@ int overlay_entry_get_ov(Operation *op, struct berval *dn, ObjectClass *oc,
   return rc;
 }
 
-static int over_entry_get_rw(Operation *op, struct berval *dn, ObjectClass *oc,
-                             AttributeDescription *ad, int rw, Entry **e) {
+static int over_entry_get_rw(Operation *op, struct berval *dn, ObjectClass *oc, AttributeDescription *ad, int rw,
+                             Entry **e) {
   slap_overinfo *oi;
   slap_overinst *on;
 
@@ -378,8 +374,7 @@ static int over_entry_get_rw(Operation *op, struct berval *dn, ObjectClass *oc,
   return overlay_entry_get_ov(op, dn, oc, ad, rw, e, on);
 }
 
-int overlay_entry_release_ov(Operation *op, Entry *e, int rw,
-                             slap_overinst *on) {
+int overlay_entry_release_ov(Operation *op, Entry *e, int rw, slap_overinst *on) {
   slap_overinfo *oi = on->on_info;
   BackendDB *be = op->o_bd, db;
   BackendInfo *bi = op->o_bd->bd_info;
@@ -445,8 +440,7 @@ static int over_entry_release_rw(Operation *op, Entry *e, int rw) {
   return overlay_entry_release_ov(op, e, rw, on);
 }
 
-static int over_acl_group(Operation *op, Entry *e, struct berval *gr_ndn,
-                          struct berval *op_ndn, ObjectClass *group_oc,
+static int over_acl_group(Operation *op, Entry *e, struct berval *gr_ndn, struct berval *op_ndn, ObjectClass *group_oc,
                           AttributeDescription *group_at) {
   slap_overinfo *oi;
   slap_overinst *on;
@@ -516,10 +510,8 @@ static int over_acl_group(Operation *op, Entry *e, struct berval *gr_ndn,
   return rc;
 }
 
-static int over_acl_attribute(Operation *op, Entry *target,
-                              struct berval *entry_ndn,
-                              AttributeDescription *entry_at, BerVarray *vals,
-                              slap_access_t access) {
+static int over_acl_attribute(Operation *op, Entry *target, struct berval *entry_ndn, AttributeDescription *entry_at,
+                              BerVarray *vals, slap_access_t access) {
   slap_overinfo *oi;
   slap_overinst *on;
   BackendInfo *bi;
@@ -547,8 +539,7 @@ static int over_acl_attribute(Operation *op, Entry *target,
       }
 
       op->o_bd->bd_info = (BackendInfo *)on;
-      rc = on->on_bi.bi_acl_attribute(op, target, entry_ndn, entry_at, vals,
-                                      access);
+      rc = on->on_bi.bi_acl_attribute(op, target, entry_ndn, entry_at, vals, access);
       if (rc != SLAP_CB_CONTINUE)
         break;
     }
@@ -589,8 +580,7 @@ static int over_acl_attribute(Operation *op, Entry *target,
   return rc;
 }
 
-int overlay_callback_after_backover(Operation *op, slap_callback *sc,
-                                    int append) {
+int overlay_callback_after_backover(Operation *op, slap_callback *sc, int append) {
   slap_callback **scp;
 
   for (scp = &op->o_callback; *scp != NULL; scp = &(*scp)->sc_next) {
@@ -630,8 +620,7 @@ static int op_rc[op_last] = {
     SLAP_CB_CONTINUE           /* aux_chk_controls; pass to frontend */
 };
 
-int overlay_op_walk(Operation *op, SlapReply *rs, slap_operation_t which,
-                    slap_overinfo *oi, slap_overinst *on) {
+int overlay_op_walk(Operation *op, SlapReply *rs, slap_operation_t which, slap_overinfo *oi, slap_overinst *on) {
   BackendInfo *bi;
   int rc = SLAP_CB_CONTINUE;
 
@@ -670,8 +659,7 @@ int overlay_op_walk(Operation *op, SlapReply *rs, slap_operation_t which,
   if (rc == LDAP_UNWILLING_TO_PERFORM) {
     slap_callback *sc_next;
   cleanup:
-    for (; op->o_callback && op->o_callback->sc_response != over_back_response;
-         op->o_callback = sc_next) {
+    for (; op->o_callback && op->o_callback->sc_response != over_back_response; op->o_callback = sc_next) {
       sc_next = op->o_callback->sc_next;
       if (op->o_callback->sc_cleanup) {
         op->o_callback->sc_cleanup(op, rs);
@@ -718,8 +706,7 @@ static int over_op_func(Operation *op, SlapReply *rs, slap_operation_t which) {
 
   slap_callback *cb = NULL;
   if (op->o_tag != LDAP_REQ_ABANDON && op->o_tag != LDAP_REQ_UNBIND) {
-    cb = (slap_callback *)op->o_tmpcalloc(1, sizeof(slap_callback),
-                                          op->o_tmpmemctx);
+    cb = (slap_callback *)op->o_tmpcalloc(1, sizeof(slap_callback), op->o_tmpmemctx);
     cb->sc_cleanup = over_op_func_cleanup;
     cb->sc_response = over_back_response;
     cb->sc_writewait = NULL;
@@ -744,66 +731,37 @@ static int over_op_func(Operation *op, SlapReply *rs, slap_operation_t which) {
   return rc;
 }
 
-static int over_op_bind(Operation *op, SlapReply *rs) {
-  return over_op_func(op, rs, op_bind);
-}
+static int over_op_bind(Operation *op, SlapReply *rs) { return over_op_func(op, rs, op_bind); }
 
-static int over_op_unbind(Operation *op, SlapReply *rs) {
-  return over_op_func(op, rs, op_unbind);
-}
+static int over_op_unbind(Operation *op, SlapReply *rs) { return over_op_func(op, rs, op_unbind); }
 
-static int over_op_search(Operation *op, SlapReply *rs) {
-  return over_op_func(op, rs, op_search);
-}
+static int over_op_search(Operation *op, SlapReply *rs) { return over_op_func(op, rs, op_search); }
 
-static int over_op_compare(Operation *op, SlapReply *rs) {
-  return over_op_func(op, rs, op_compare);
-}
+static int over_op_compare(Operation *op, SlapReply *rs) { return over_op_func(op, rs, op_compare); }
 
-static int over_op_modify(Operation *op, SlapReply *rs) {
-  return over_op_func(op, rs, op_modify);
-}
+static int over_op_modify(Operation *op, SlapReply *rs) { return over_op_func(op, rs, op_modify); }
 
-static int over_op_modrdn(Operation *op, SlapReply *rs) {
-  return over_op_func(op, rs, op_modrdn);
-}
+static int over_op_modrdn(Operation *op, SlapReply *rs) { return over_op_func(op, rs, op_modrdn); }
 
-static int over_op_add(Operation *op, SlapReply *rs) {
-  return over_op_func(op, rs, op_add);
-}
+static int over_op_add(Operation *op, SlapReply *rs) { return over_op_func(op, rs, op_add); }
 
-static int over_op_delete(Operation *op, SlapReply *rs) {
-  return over_op_func(op, rs, op_delete);
-}
+static int over_op_delete(Operation *op, SlapReply *rs) { return over_op_func(op, rs, op_delete); }
 
-static int over_op_abandon(Operation *op, SlapReply *rs) {
-  return over_op_func(op, rs, op_abandon);
-}
+static int over_op_abandon(Operation *op, SlapReply *rs) { return over_op_func(op, rs, op_abandon); }
 
-static int over_op_cancel(Operation *op, SlapReply *rs) {
-  return over_op_func(op, rs, op_cancel);
-}
+static int over_op_cancel(Operation *op, SlapReply *rs) { return over_op_func(op, rs, op_cancel); }
 
-static int over_op_extended(Operation *op, SlapReply *rs) {
-  return over_op_func(op, rs, op_extended);
-}
+static int over_op_extended(Operation *op, SlapReply *rs) { return over_op_func(op, rs, op_extended); }
 
-static int over_aux_operational(Operation *op, SlapReply *rs) {
-  return over_op_func(op, rs, op_aux_operational);
-}
+static int over_aux_operational(Operation *op, SlapReply *rs) { return over_op_func(op, rs, op_aux_operational); }
 
-static int over_aux_chk_referrals(Operation *op, SlapReply *rs) {
-  return over_op_func(op, rs, op_aux_chk_referrals);
-}
+static int over_aux_chk_referrals(Operation *op, SlapReply *rs) { return over_op_func(op, rs, op_aux_chk_referrals); }
 
-static int over_aux_chk_controls(Operation *op, SlapReply *rs) {
-  return over_op_func(op, rs, op_aux_chk_controls);
-}
+static int over_aux_chk_controls(Operation *op, SlapReply *rs) { return over_op_func(op, rs, op_aux_chk_controls); }
 
 enum conn_which { conn_init = 0, conn_destroy, conn_last };
 
-static int over_connection_func(BackendDB *bd, Connection *conn,
-                                enum conn_which which) {
+static int over_connection_func(BackendDB *bd, Connection *conn, enum conn_which which) {
   slap_overinfo *oi;
   slap_overinst *on;
   BackendDB db;
@@ -848,9 +806,7 @@ static int over_connection_func(BackendDB *bd, Connection *conn,
   return rc;
 }
 
-static int over_connection_init(BackendDB *bd, Connection *conn) {
-  return over_connection_func(bd, conn, conn_init);
-}
+static int over_connection_init(BackendDB *bd, Connection *conn) { return over_connection_func(bd, conn, conn_init); }
 
 static int over_connection_destroy(BackendDB *bd, Connection *conn) {
   return over_connection_func(bd, conn, conn_destroy);
@@ -878,8 +834,7 @@ int overlay_register(slap_overinst *on) {
                 "overlay_register(\"%s\"): "
                 "obsolete name \"%s\" already in use "
                 "by overlay \"%s\".\n",
-                on->on_bi.bi_type, on->on_bi.bi_obsolete_names[i],
-                tmp->on_bi.bi_type);
+                on->on_bi.bi_type, on->on_bi.bi_obsolete_names[i], tmp->on_bi.bi_type);
           return -1;
         }
       }
@@ -902,14 +857,12 @@ int overlay_register(slap_overinst *on) {
 
         if (on->on_bi.bi_obsolete_names != NULL) {
           for (j = 0; on->on_bi.bi_obsolete_names[j] != NULL; j++) {
-            if (strcmp(on->on_bi.bi_obsolete_names[j],
-                       tmp->on_bi.bi_obsolete_names[i]) == 0) {
+            if (strcmp(on->on_bi.bi_obsolete_names[j], tmp->on_bi.bi_obsolete_names[i]) == 0) {
               Debug(LDAP_DEBUG_ANY,
                     "overlay_register(\"%s\"): "
                     "obsolete name \"%s\" already in use "
                     "as obsolete by overlay \"%s\".\n",
-                    on->on_bi.bi_type, on->on_bi.bi_obsolete_names[j],
-                    tmp->on_bi.bi_type);
+                    on->on_bi.bi_type, on->on_bi.bi_obsolete_names[j], tmp->on_bi.bi_type);
               return -1;
             }
           }
@@ -1160,8 +1113,7 @@ void overlay_remove(BackendDB *be, slap_overinst *on, Operation *op) {
 }
 #endif /* SLAP_CONFIG_DELETE */
 
-void overlay_insert(BackendDB *be, slap_overinst *on2, slap_overinst ***prev,
-                    int idx) {
+void overlay_insert(BackendDB *be, slap_overinst *on2, slap_overinst ***prev, int idx) {
   slap_overinfo *oi = (slap_overinfo *)be->bd_info;
 
   if (idx == -1) {
@@ -1211,8 +1163,7 @@ void overlay_move(BackendDB *be, slap_overinst *on, int idx) {
 }
 
 /* add an overlay to a particular backend. */
-int overlay_config(BackendDB *be, const char *ov, int idx, BackendInfo **res,
-                   ConfigReply *cr) {
+int overlay_config(BackendDB *be, const char *ov, int idx, BackendInfo **res, ConfigReply *cr) {
   slap_overinst *on = NULL, *on2 = NULL, **prev;
   slap_overinfo *oi = NULL;
   BackendInfo *bi = NULL;

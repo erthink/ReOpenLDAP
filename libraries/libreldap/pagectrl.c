@@ -48,9 +48,7 @@
 
    ---------------------------------------------------------------------------*/
 
-int ldap_create_page_control_value(LDAP *ld, ber_int_t pagesize,
-                                   struct berval *cookie,
-                                   struct berval *value) {
+int ldap_create_page_control_value(LDAP *ld, ber_int_t pagesize, struct berval *cookie, struct berval *value) {
   BerElement *ber = NULL;
   ber_tag_t tag;
   struct berval null_cookie = {0, NULL};
@@ -124,9 +122,7 @@ done:;
 
    ---------------------------------------------------------------------------*/
 
-int ldap_create_page_control(LDAP *ld, ber_int_t pagesize,
-                             struct berval *cookie, int iscritical,
-                             LDAPControl **ctrlp) {
+int ldap_create_page_control(LDAP *ld, ber_int_t pagesize, struct berval *cookie, int iscritical, LDAPControl **ctrlp) {
   struct berval value;
 
   if (ctrlp == NULL) {
@@ -136,8 +132,7 @@ int ldap_create_page_control(LDAP *ld, ber_int_t pagesize,
 
   ld->ld_errno = ldap_create_page_control_value(ld, pagesize, cookie, &value);
   if (ld->ld_errno == LDAP_SUCCESS) {
-    ld->ld_errno = ldap_control_create(LDAP_CONTROL_PAGEDRESULTS, iscritical,
-                                       &value, 0, ctrlp);
+    ld->ld_errno = ldap_control_create(LDAP_CONTROL_PAGEDRESULTS, iscritical, &value, 0, ctrlp);
     if (ld->ld_errno != LDAP_SUCCESS) {
       LDAP_FREE(value.bv_val);
     }
@@ -159,8 +154,7 @@ int ldap_create_page_control(LDAP *ld, ber_int_t pagesize,
 
    ---------------------------------------------------------------------------*/
 
-int ldap_parse_pageresponse_control(LDAP *ld, LDAPControl *ctrl,
-                                    ber_int_t *countp, struct berval *cookie) {
+int ldap_parse_pageresponse_control(LDAP *ld, LDAPControl *ctrl, ber_int_t *countp, struct berval *cookie) {
   BerElement *ber;
   ber_tag_t tag;
   ber_int_t count;

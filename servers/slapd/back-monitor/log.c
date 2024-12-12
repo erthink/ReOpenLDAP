@@ -39,12 +39,9 @@ static int monitor_subsys_log_modify(Operation *op, SlapReply *rs, Entry *e);
  */
 ldap_pvt_thread_mutex_t monitor_log_mutex;
 
-static int add_values(Operation *op, Entry *e, Modification *mod,
-                      int *newlevel);
-static int delete_values(Operation *op, Entry *e, Modification *mod,
-                         int *newlevel);
-static int replace_values(Operation *op, Entry *e, Modification *mod,
-                          int *newlevel);
+static int add_values(Operation *op, Entry *e, Modification *mod, int *newlevel);
+static int delete_values(Operation *op, Entry *e, Modification *mod, int *newlevel);
+static int replace_values(Operation *op, Entry *e, Modification *mod, int *newlevel);
 
 /*
  * initializes log subentry
@@ -111,8 +108,7 @@ static int monitor_subsys_log_modify(Operation *op, SlapReply *rs, Entry *e) {
      */
     if (is_at_operational(mod->sm_desc->ad_type)) {
       (void)attr_delete(&e->e_attrs, mod->sm_desc);
-      rc = rs->sr_err =
-          attr_merge(e, mod->sm_desc, mod->sm_values, mod->sm_nvalues);
+      rc = rs->sr_err = attr_merge(e, mod->sm_desc, mod->sm_values, mod->sm_nvalues);
       if (rc != LDAP_SUCCESS) {
         break;
       }
@@ -163,8 +159,7 @@ static int monitor_subsys_log_modify(Operation *op, SlapReply *rs, Entry *e) {
     }
 
     /* check that the entry still obeys the schema */
-    rc = entry_schema_check(op, e, save_attrs, 0, 0, NULL, &text, textbuf,
-                            sizeof(textbuf));
+    rc = entry_schema_check(op, e, save_attrs, 0, 0, NULL, &text, textbuf, sizeof(textbuf));
     if (rc != LDAP_SUCCESS) {
       rs->sr_err = rc;
       goto cleanup;
@@ -226,8 +221,7 @@ static int check_constraints(Modification *mod, int *newlevel) {
   return LDAP_SUCCESS;
 }
 
-static int add_values(Operation *op, Entry *e, Modification *mod,
-                      int *newlevel) {
+static int add_values(Operation *op, Entry *e, Modification *mod, int *newlevel) {
   Attribute *a;
   int i, rc;
   MatchingRule *mr = mod->sm_desc->ad_type->sat_equality;
@@ -253,9 +247,8 @@ static int add_values(Operation *op, Entry *e, Modification *mod,
       const char *text = NULL;
       struct berval asserted;
 
-      rc = asserted_value_validate_normalize(mod->sm_desc, mr, SLAP_MR_EQUALITY,
-                                             &mod->sm_values[i], &asserted,
-                                             &text, op->o_tmpmemctx);
+      rc = asserted_value_validate_normalize(mod->sm_desc, mr, SLAP_MR_EQUALITY, &mod->sm_values[i], &asserted, &text,
+                                             op->o_tmpmemctx);
 
       if (rc != LDAP_SUCCESS) {
         return rc;
@@ -263,8 +256,7 @@ static int add_values(Operation *op, Entry *e, Modification *mod,
 
       for (j = 0; !BER_BVISNULL(&a->a_vals[j]); j++) {
         int match;
-        int rc = value_match(&match, mod->sm_desc, mr, 0, &a->a_nvals[j],
-                             &asserted, &text);
+        int rc = value_match(&match, mod->sm_desc, mr, 0, &a->a_nvals[j], &asserted, &text);
 
         if (rc == LDAP_SUCCESS && match == 0) {
           free(asserted.bv_val);
@@ -285,8 +277,7 @@ static int add_values(Operation *op, Entry *e, Modification *mod,
   return LDAP_SUCCESS;
 }
 
-static int delete_values(Operation *op, Entry *e, Modification *mod,
-                         int *newlevel) {
+static int delete_values(Operation *op, Entry *e, Modification *mod, int *newlevel) {
   int i, j, k, found, rc, nl = 0;
   Attribute *a;
   MatchingRule *mr = mod->sm_desc->ad_type->sat_equality;
@@ -330,8 +321,7 @@ static int delete_values(Operation *op, Entry *e, Modification *mod,
 
     struct berval asserted;
 
-    rc = asserted_value_validate_normalize(mod->sm_desc, mr, SLAP_MR_EQUALITY,
-                                           &mod->sm_values[i], &asserted, &text,
+    rc = asserted_value_validate_normalize(mod->sm_desc, mr, SLAP_MR_EQUALITY, &mod->sm_values[i], &asserted, &text,
                                            op->o_tmpmemctx);
 
     if (rc != LDAP_SUCCESS)
@@ -340,8 +330,7 @@ static int delete_values(Operation *op, Entry *e, Modification *mod,
     found = 0;
     for (j = 0; !BER_BVISNULL(&a->a_vals[j]); j++) {
       int match;
-      int rc = value_match(&match, mod->sm_desc, mr, 0, &a->a_nvals[j],
-                           &asserted, &text);
+      int rc = value_match(&match, mod->sm_desc, mr, 0, &a->a_nvals[j], &asserted, &text);
 
       if (rc == LDAP_SUCCESS && match != 0) {
         continue;
@@ -392,8 +381,7 @@ static int delete_values(Operation *op, Entry *e, Modification *mod,
   return LDAP_SUCCESS;
 }
 
-static int replace_values(Operation *op, Entry *e, Modification *mod,
-                          int *newlevel) {
+static int replace_values(Operation *op, Entry *e, Modification *mod, int *newlevel) {
   int rc;
 
   if (mod->sm_values != NULL) {

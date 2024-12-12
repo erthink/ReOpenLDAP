@@ -42,8 +42,7 @@ int monitor_back_modify(Operation *op, SlapReply *rs) {
   if (e == NULL) {
     rs->sr_err = LDAP_NO_SUCH_OBJECT;
     if (matched) {
-      if (!access_allowed_mask(op, matched, slap_schema.si_ad_entry, NULL,
-                               ACL_DISCLOSE, NULL, NULL)) {
+      if (!access_allowed_mask(op, matched, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL, NULL)) {
         /* do nothing */;
       } else {
         rs->sr_matched = matched->e_dn;
@@ -68,8 +67,7 @@ int monitor_back_modify(Operation *op, SlapReply *rs) {
   }
 
   if (rc != LDAP_SUCCESS) {
-    if (!access_allowed_mask(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE,
-                             NULL, NULL)) {
+    if (!access_allowed_mask(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL, NULL)) {
       rc = LDAP_NO_SUCH_OBJECT;
     }
   }

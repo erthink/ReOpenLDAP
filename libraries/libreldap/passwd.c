@@ -72,8 +72,7 @@ done:;
   return rc;
 }
 
-int ldap_passwd(LDAP *ld, struct berval *user, struct berval *oldpw,
-                struct berval *newpw, LDAPControl **sctrls,
+int ldap_passwd(LDAP *ld, struct berval *user, struct berval *oldpw, struct berval *newpw, LDAPControl **sctrls,
                 LDAPControl **cctrls, int *msgidp) {
   int rc;
   struct berval bv = BER_BVNULL;
@@ -116,16 +115,14 @@ int ldap_passwd(LDAP *ld, struct berval *user, struct berval *oldpw,
     }
   }
 
-  rc = ldap_extended_operation(ld, LDAP_EXOP_MODIFY_PASSWD,
-                               bv.bv_val ? &bv : NULL, sctrls, cctrls, msgidp);
+  rc = ldap_extended_operation(ld, LDAP_EXOP_MODIFY_PASSWD, bv.bv_val ? &bv : NULL, sctrls, cctrls, msgidp);
 
   ber_free(ber, 1);
 
   return rc;
 }
 
-int ldap_passwd_s(LDAP *ld, struct berval *user, struct berval *oldpw,
-                  struct berval *newpw, struct berval *newpasswd,
+int ldap_passwd_s(LDAP *ld, struct berval *user, struct berval *oldpw, struct berval *newpw, struct berval *newpasswd,
                   LDAPControl **sctrls, LDAPControl **cctrls) {
   int rc;
   int msgid;
@@ -136,9 +133,7 @@ int ldap_passwd_s(LDAP *ld, struct berval *user, struct berval *oldpw,
     return rc;
   }
 
-  if (ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res) ==
-          -1 ||
-      !res) {
+  if (ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res) == -1 || !res) {
     return ld->ld_errno;
   }
 

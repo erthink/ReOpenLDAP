@@ -40,8 +40,7 @@
 
 int ldif_debug = 0;
 
-static const char nib2b64[0x40] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static const char nib2b64[0x40] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 /*
  * ldif_parse_line - takes a line of the form "type:[:] value" and splits it
@@ -57,8 +56,7 @@ static const char nib2b64[0x40] =
  * True if the value was malloc'd.
  */
 
-int ldif_parse_line(const char *line, char **typep, char **valuep,
-                    ber_len_t *vlenp) {
+int ldif_parse_line(const char *line, char **typep, char **valuep, ber_len_t *vlenp) {
   struct berval type, value;
   int rc = ldif_parse_line2((char *)line, &type, &value, NULL);
 
@@ -68,8 +66,7 @@ int ldif_parse_line(const char *line, char **typep, char **valuep,
   return rc;
 }
 
-int ldif_parse_line2(char *line, struct berval *type, struct berval *value,
-                     int *freeval) {
+int ldif_parse_line2(char *line, struct berval *type, struct berval *value, int *freeval) {
   char *s, *p, *d;
   int b64, url;
 
@@ -87,8 +84,7 @@ int ldif_parse_line2(char *line, struct berval *type, struct berval *value,
     line = ber_strdup(line);
 
     if (line == NULL) {
-      ber_pvt_log_printf(LDAP_DEBUG_ANY, ldif_debug,
-                         _("ldif_parse_line: line malloc failed\n"));
+      ber_pvt_log_printf(LDAP_DEBUG_ANY, ldif_debug, _("ldif_parse_line: line malloc failed\n"));
       return (-1);
     }
   }
@@ -98,9 +94,7 @@ int ldif_parse_line2(char *line, struct berval *type, struct berval *value,
   s = strchr(type->bv_val, ':');
 
   if (s == NULL) {
-    ber_pvt_log_printf(LDAP_DEBUG_PARSE, ldif_debug,
-                       _("ldif_parse_line: missing ':' after %s\n"),
-                       type->bv_val);
+    ber_pvt_log_printf(LDAP_DEBUG_PARSE, ldif_debug, _("ldif_parse_line: missing ':' after %s\n"), type->bv_val);
     if (!freeval)
       ber_memfree(line);
     return (-1);
@@ -141,9 +135,7 @@ int ldif_parse_line2(char *line, struct berval *type, struct berval *value,
   if (b64) {
     if (*s == '\0') {
       /* no value is present, error out */
-      ber_pvt_log_printf(LDAP_DEBUG_PARSE, ldif_debug,
-                         _("ldif_parse_line: %s missing base64 value\n"),
-                         type->bv_val);
+      ber_pvt_log_printf(LDAP_DEBUG_PARSE, ldif_debug, _("ldif_parse_line: %s missing base64 value\n"), type->bv_val);
       if (!freeval)
         ber_memfree(line);
       return (-1);
@@ -152,9 +144,7 @@ int ldif_parse_line2(char *line, struct berval *type, struct berval *value,
     value->bv_val = s;
     value->bv_len = d - s;
     if (ldap_int_decode_b64_inplace(value) != LDAP_SUCCESS) {
-      ber_pvt_log_printf(LDAP_DEBUG_PARSE, ldif_debug,
-                         _("ldif_parse_line: %s base64 decode failed\n"),
-                         type->bv_val);
+      ber_pvt_log_printf(LDAP_DEBUG_PARSE, ldif_debug, _("ldif_parse_line: %s base64 decode failed\n"), type->bv_val);
       if (!freeval)
         ber_memfree(line);
       return (-1);
@@ -162,18 +152,15 @@ int ldif_parse_line2(char *line, struct berval *type, struct berval *value,
   } else if (url) {
     if (*s == '\0') {
       /* no value is present, error out */
-      ber_pvt_log_printf(LDAP_DEBUG_PARSE, ldif_debug,
-                         _("ldif_parse_line: %s missing URL value\n"),
-                         type->bv_val);
+      ber_pvt_log_printf(LDAP_DEBUG_PARSE, ldif_debug, _("ldif_parse_line: %s missing URL value\n"), type->bv_val);
       if (!freeval)
         ber_memfree(line);
       return (-1);
     }
 
     if (ldif_fetch_url(s, &value->bv_val, &value->bv_len)) {
-      ber_pvt_log_printf(LDAP_DEBUG_ANY, ldif_debug,
-                         _("ldif_parse_line: %s: URL \"%s\" fetch failed\n"),
-                         type->bv_val, s);
+      ber_pvt_log_printf(LDAP_DEBUG_ANY, ldif_debug, _("ldif_parse_line: %s: URL \"%s\" fetch failed\n"), type->bv_val,
+                         s);
       if (!freeval)
         ber_memfree(line);
       return (-1);
@@ -192,8 +179,7 @@ int ldif_parse_line2(char *line, struct berval *type, struct berval *value,
     ber_dupbv(type, &bv);
 
     if (BER_BVISNULL(type)) {
-      ber_pvt_log_printf(LDAP_DEBUG_ANY, ldif_debug,
-                         _("ldif_parse_line: type malloc failed\n"));
+      ber_pvt_log_printf(LDAP_DEBUG_ANY, ldif_debug, _("ldif_parse_line: type malloc failed\n"));
       if (url)
         ber_memfree(value->bv_val);
       ber_memfree(line);
@@ -204,8 +190,7 @@ int ldif_parse_line2(char *line, struct berval *type, struct berval *value,
       bv = *value;
       ber_dupbv(value, &bv);
       if (BER_BVISNULL(value)) {
-        ber_pvt_log_printf(LDAP_DEBUG_ANY, ldif_debug,
-                           _("ldif_parse_line: value malloc failed\n"));
+        ber_pvt_log_printf(LDAP_DEBUG_ANY, ldif_debug, _("ldif_parse_line: value malloc failed\n"));
         ber_memfree(type->bv_val);
         ber_memfree(line);
         return (-1);
@@ -291,8 +276,8 @@ typedef struct must_b64_encode_s {
   struct berval oid;
 } must_b64_encode_s;
 
-static must_b64_encode_s default_must_b64_encode[] = {
-    {BER_BVC("userPassword"), BER_BVC("2.5.4.35")}, {BER_BVNULL, BER_BVNULL}};
+static must_b64_encode_s default_must_b64_encode[] = {{BER_BVC("userPassword"), BER_BVC("2.5.4.35")},
+                                                      {BER_BVNULL, BER_BVNULL}};
 
 static must_b64_encode_s *must_b64_encode = default_must_b64_encode;
 
@@ -389,8 +374,7 @@ static int ldif_must_b64_encode(const char *s) {
   ber_str2bv(s, 0, 0, &bv);
 
   for (i = 0; !BER_BVISNULL(&must_b64_encode[i].name); i++) {
-    if (ber_bvstrcasecmp(&must_b64_encode[i].name, &bv) == 0 ||
-        ber_bvcmp(&must_b64_encode[i].oid, &bv) == 0) {
+    if (ber_bvstrcasecmp(&must_b64_encode[i].name, &bv) == 0 || ber_bvcmp(&must_b64_encode[i].oid, &bv) == 0) {
       return 1;
     }
   }
@@ -402,13 +386,11 @@ static int ldif_must_b64_encode(const char *s) {
 #define LDIF_KLUDGE 2
 
 /* NOTE: only preserved for binary compatibility */
-void ldif_sput(char **out, int type, const char *name, const char *val,
-               ber_len_t vlen) {
+void ldif_sput(char **out, int type, const char *name, const char *val, ber_len_t vlen) {
   ldif_sput_wrap(out, type, name, val, vlen, LDIF_LINE_WIDTH + LDIF_KLUDGE);
 }
 
-void ldif_sput_wrap(char **out, int type, const char *name, const char *val,
-                    ber_len_t vlen, ber_len_t wrap) {
+void ldif_sput_wrap(char **out, int type, const char *name, const char *val, ber_len_t vlen, ber_len_t wrap) {
   const unsigned char *byte, *stop;
   unsigned char buf[3];
   unsigned long bits;
@@ -514,8 +496,8 @@ void ldif_sput_wrap(char **out, int type, const char *name, const char *val,
 
   stop = (const unsigned char *)(val + vlen);
 
-  if (type == LDIF_PUT_VALUE && isgraph((unsigned char)val[0]) &&
-      val[0] != ':' && val[0] != '<' && isgraph((unsigned char)val[vlen - 1])
+  if (type == LDIF_PUT_VALUE && isgraph((unsigned char)val[0]) && val[0] != ':' && val[0] != '<' &&
+      isgraph((unsigned char)val[vlen - 1])
 #ifndef LDAP_BINARY_DEBUG
       && strstr(name, ";binary") == NULL
 #endif
@@ -607,8 +589,7 @@ char *ldif_put(int type, const char *name, const char *val, ber_len_t vlen) {
   return ldif_put_wrap(type, name, val, vlen, LDIF_LINE_WIDTH);
 }
 
-char *ldif_put_wrap(int type, const char *name, const char *val, ber_len_t vlen,
-                    ber_len_t wrap) {
+char *ldif_put_wrap(int type, const char *name, const char *val, ber_len_t vlen, ber_len_t wrap) {
   char *buf, *p;
   ber_len_t nlen;
 
@@ -617,8 +598,7 @@ char *ldif_put_wrap(int type, const char *name, const char *val, ber_len_t vlen,
   buf = (char *)ber_memalloc(LDIF_SIZE_NEEDED_WRAP(nlen, vlen, wrap) + 1);
 
   if (buf == NULL) {
-    ber_pvt_log_printf(LDAP_DEBUG_ANY, ldif_debug,
-                       _("ldif_type_and_value: malloc failed!"));
+    ber_pvt_log_printf(LDAP_DEBUG_ANY, ldif_debug, _("ldif_type_and_value: malloc failed!"));
     return NULL;
   }
 
@@ -634,8 +614,7 @@ int ldif_is_not_printable(const char *val, ber_len_t vlen) {
     return -1;
   }
 
-  if (isgraph((unsigned char)val[0]) && val[0] != ':' && val[0] != '<' &&
-      isgraph((unsigned char)val[vlen - 1])) {
+  if (isgraph((unsigned char)val[0]) && val[0] != ':' && val[0] != '<' && isgraph((unsigned char)val[vlen - 1])) {
     ber_len_t i;
 
     for (i = 0; val[i]; i++) {
@@ -691,10 +670,9 @@ void ldif_close(LDIFFP *lfp) {
  * ldif_read_record - read an ldif record.  Return 1 for success, 0 for EOF,
  * -1 for error.
  */
-int ldif_read_record(LDIFFP *lfp,
-                     unsigned long *lno, /* ptr to line number counter */
-                     char **bufp,  /* ptr to malloced output buffer           */
-                     int *buflenp) /* ptr to length of *bufp                  */
+int ldif_read_record(LDIFFP *lfp, unsigned long *lno, /* ptr to line number counter */
+                     char **bufp,                     /* ptr to malloced output buffer           */
+                     int *buflenp)                    /* ptr to length of *bufp                  */
 {
   char line[LDIF_MAXLINE], *nbufp;
   ber_len_t lcur = 0, len = 0;
@@ -795,9 +773,7 @@ int ldif_read_record(LDIFFP *lfp,
               /* We failed to open the file, this should
                * be reported as an error somehow.
                */
-              ber_pvt_log_printf(LDAP_DEBUG_ANY, ldif_debug,
-                                 _("ldif_read_record: include %s failed\n"),
-                                 ptr);
+              ber_pvt_log_printf(LDAP_DEBUG_ANY, ldif_debug, _("ldif_read_record: include %s failed\n"), ptr);
               return -1;
             }
           }

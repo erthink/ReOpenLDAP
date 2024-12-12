@@ -38,9 +38,7 @@ void asyncmeta_sender_error(Operation *op, SlapReply *rs, slap_callback *cb) {
   send_ldap_result(op, rs);
 }
 
-meta_search_candidate_t asyncmeta_back_add_start(Operation *op, SlapReply *rs,
-                                                 a_metaconn_t *mc,
-                                                 bm_context_t *bc,
+meta_search_candidate_t asyncmeta_back_add_start(Operation *op, SlapReply *rs, a_metaconn_t *mc, bm_context_t *bc,
                                                  int candidate) {
   int isupdate;
   Attribute *a;
@@ -96,14 +94,12 @@ meta_search_candidate_t asyncmeta_back_add_start(Operation *op, SlapReply *rs,
       continue;
     }
 
-    if (a->a_desc == slap_schema.si_ad_objectClass ||
-        a->a_desc == slap_schema.si_ad_structuralObjectClass) {
+    if (a->a_desc == slap_schema.si_ad_objectClass || a->a_desc == slap_schema.si_ad_structuralObjectClass) {
       is_oc = 1;
       mapped = a->a_desc->ad_cname;
 
     } else {
-      asyncmeta_map(&mt->mt_rwmap.rwm_at, &a->a_desc->ad_cname, &mapped,
-                    BACKLDAP_MAP);
+      asyncmeta_map(&mt->mt_rwmap.rwm_at, &a->a_desc->ad_cname, &mapped, BACKLDAP_MAP);
       if (BER_BVISNULL(&mapped) || BER_BVISEMPTY(&mapped)) {
         continue;
       }
@@ -120,13 +116,11 @@ meta_search_candidate_t asyncmeta_back_add_start(Operation *op, SlapReply *rs,
       for (j = 0; !BER_BVISNULL(&a->a_vals[j]); j++)
         ;
 
-      attrs[i]->mod_bvalues =
-          (struct berval **)ch_malloc((j + 1) * sizeof(struct berval *));
+      attrs[i]->mod_bvalues = (struct berval **)ch_malloc((j + 1) * sizeof(struct berval *));
       for (j = 0; !BER_BVISNULL(&a->a_vals[j]);) {
         struct ldapmapping *mapping;
 
-        asyncmeta_mapping(&mt->mt_rwmap.rwm_oc, &a->a_vals[j], &mapping,
-                          BACKLDAP_MAP);
+        asyncmeta_mapping(&mt->mt_rwmap.rwm_oc, &a->a_vals[j], &mapping, BACKLDAP_MAP);
 
         if (mapping == NULL) {
           if (mt->mt_rwmap.rwm_oc.drop_missing) {
@@ -147,8 +141,7 @@ meta_search_candidate_t asyncmeta_back_add_start(Operation *op, SlapReply *rs,
        * to allow their use in ACLs at the back-ldap
        * level.
        */
-      if (a->a_desc->ad_type->sat_syntax ==
-          slap_schema.si_syn_distinguishedName) {
+      if (a->a_desc->ad_type->sat_syntax == slap_schema.si_syn_distinguishedName) {
         (void)asyncmeta_dnattr_rewrite(&dc, a->a_vals);
         if (a->a_vals == NULL) {
           continue;
@@ -179,8 +172,7 @@ retry:;
   ber = ldap_build_add_req(msc->msc_ld, mdn.bv_val, attrs, ctrls, NULL, &msgid);
   if (ber) {
     candidates[candidate].sr_msgid = msgid;
-    rc = ldap_send_initial_request(msc->msc_ld, LDAP_REQ_ADD, mdn.bv_val, ber,
-                                   msgid);
+    rc = ldap_send_initial_request(msc->msc_ld, LDAP_REQ_ADD, mdn.bv_val, ber, msgid);
     if (rc == msgid)
       rc = LDAP_SUCCESS;
     else
@@ -196,8 +188,7 @@ retry:;
       ldap_pvt_thread_mutex_lock(&mc->mc_om_mutex);
       asyncmeta_clear_one_msc(NULL, mc, candidate);
       ldap_pvt_thread_mutex_unlock(&mc->mc_om_mutex);
-      if (nretries &&
-          asyncmeta_retry(op, rs, &mc, candidate, LDAP_BACK_DONTSEND)) {
+      if (nretries && asyncmeta_retry(op, rs, &mc, candidate, LDAP_BACK_DONTSEND)) {
         nretries = 0;
         /* if the identity changed, there might be need to re-authz */
         (void)mi->mi_ldap_extra->controls_free(op, rs, &ctrls);
@@ -225,8 +216,8 @@ done:
   }
 
 doreturn:;
-  Debug(LDAP_DEBUG_TRACE, "%s <<< asyncmeta_back_add_start[%p]=%d\n",
-        op->o_log_prefix, msc, candidates[candidate].sr_msgid);
+  Debug(LDAP_DEBUG_TRACE, "%s <<< asyncmeta_back_add_start[%p]=%d\n", op->o_log_prefix, msc,
+        candidates[candidate].sr_msgid);
   return retcode;
 }
 

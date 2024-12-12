@@ -32,8 +32,7 @@
  */
 #include "lutil.h"
 
-static int do_abandon(LDAP *ld, ber_int_t origid, ber_int_t msgid,
-                      LDAPControl **sctrls, int sendabandon);
+static int do_abandon(LDAP *ld, ber_int_t origid, ber_int_t msgid, LDAPControl **sctrls, int sendabandon);
 
 /*
  * ldap_abandon_ext - perform an ldap extended abandon operation.
@@ -50,8 +49,7 @@ static int do_abandon(LDAP *ld, ber_int_t origid, ber_int_t msgid,
  * Example:
  *	ldap_abandon_ext( ld, msgid, scntrls, ccntrls );
  */
-int ldap_abandon_ext(LDAP *ld, int msgid, LDAPControl **sctrls,
-                     LDAPControl **cctrls) {
+int ldap_abandon_ext(LDAP *ld, int msgid, LDAPControl **sctrls, LDAPControl **cctrls) {
   int rc;
 
   Debug(LDAP_DEBUG_TRACE, "ldap_abandon_ext %d\n", msgid);
@@ -78,8 +76,7 @@ int ldap_pvt_discard(LDAP *ld, ber_int_t msgid) {
   return rc;
 }
 
-static int do_abandon(LDAP *ld, ber_int_t origid, ber_int_t msgid,
-                      LDAPControl **sctrls, int sendabandon) {
+static int do_abandon(LDAP *ld, ber_int_t origid, ber_int_t msgid, LDAPControl **sctrls, int sendabandon) {
   BerElement *ber;
   int i, err;
   Sockbuf *sb;
@@ -253,9 +250,7 @@ start_again:;
 
   /* use bisection */
   i = 0;
-  if (ld->ld_nabandoned == 0 ||
-      ldap_int_bisect_find(ld->ld_abandoned, ld->ld_nabandoned, msgid, &i) ==
-          0) {
+  if (ld->ld_nabandoned == 0 || ldap_int_bisect_find(ld->ld_abandoned, ld->ld_nabandoned, msgid, &i) == 0) {
     ldap_int_bisect_insert(&ld->ld_abandoned, &ld->ld_nabandoned, msgid, i);
   }
 

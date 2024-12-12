@@ -36,25 +36,23 @@ struct ether_addr {
 static struct berval ether_filter = BER_BVC("(objectClass=ieee802Device)");
 
 /* the attributes to request with searches */
-static struct berval ether_keys[] = {BER_BVC("cn"), BER_BVC("macAddress"),
-                                     BER_BVNULL};
+static struct berval ether_keys[] = {BER_BVC("cn"), BER_BVC("macAddress"), BER_BVNULL};
 
 NSSOV_INIT(ether)
 
 NSSOV_CBPRIV(ether, char buf[256]; struct berval name; struct berval addr;);
 
-#define WRITE_ETHER(fp, addr)                                                  \
-  {                                                                            \
-    int ao[6];                                                                 \
-    sscanf(addr.bv_val, "%02x:%02x:%02x:%02x:%02x:%02x", &ao[0], &ao[1],       \
-           &ao[2], &ao[3], &ao[4], &ao[5]);                                    \
-    tmpaddr.ether_addr_octet[0] = ao[0];                                       \
-    tmpaddr.ether_addr_octet[1] = ao[1];                                       \
-    tmpaddr.ether_addr_octet[2] = ao[2];                                       \
-    tmpaddr.ether_addr_octet[3] = ao[3];                                       \
-    tmpaddr.ether_addr_octet[4] = ao[4];                                       \
-    tmpaddr.ether_addr_octet[5] = ao[5];                                       \
-  }                                                                            \
+#define WRITE_ETHER(fp, addr)                                                                                          \
+  {                                                                                                                    \
+    int ao[6];                                                                                                         \
+    sscanf(addr.bv_val, "%02x:%02x:%02x:%02x:%02x:%02x", &ao[0], &ao[1], &ao[2], &ao[3], &ao[4], &ao[5]);              \
+    tmpaddr.ether_addr_octet[0] = ao[0];                                                                               \
+    tmpaddr.ether_addr_octet[1] = ao[1];                                                                               \
+    tmpaddr.ether_addr_octet[2] = ao[2];                                                                               \
+    tmpaddr.ether_addr_octet[3] = ao[3];                                                                               \
+    tmpaddr.ether_addr_octet[4] = ao[4];                                                                               \
+    tmpaddr.ether_addr_octet[5] = ao[5];                                                                               \
+  }                                                                                                                    \
   WRITE(fp, &tmpaddr, sizeof(uint8_t[6]));
 
 static int write_ether(nssov_ether_cbp *cbp, Entry *entry) {
@@ -69,8 +67,7 @@ static int write_ether(nssov_ether_cbp *cbp, Entry *entry) {
   if (BER_BVISNULL(&cbp->name)) {
     a = attr_find(entry->e_attrs, cbp->mi->mi_attrs[0].an_desc);
     if (!a) {
-      Debug(LDAP_DEBUG_ANY, "ether entry %s does not contain %s value\n",
-            entry->e_name.bv_val,
+      Debug(LDAP_DEBUG_ANY, "ether entry %s does not contain %s value\n", entry->e_name.bv_val,
             cbp->mi->mi_attrs[0].an_desc->ad_cname.bv_val);
       return 0;
     }
@@ -84,8 +81,7 @@ static int write_ether(nssov_ether_cbp *cbp, Entry *entry) {
   if (BER_BVISNULL(&cbp->addr)) {
     a = attr_find(entry->e_attrs, cbp->mi->mi_attrs[1].an_desc);
     if (!a) {
-      Debug(LDAP_DEBUG_ANY, "ether entry %s does not contain %s value\n",
-            entry->e_name.bv_val,
+      Debug(LDAP_DEBUG_ANY, "ether entry %s does not contain %s value\n", entry->e_name.bv_val,
             cbp->mi->mi_attrs[1].an_desc->ad_cname.bv_val);
       return 0;
     }
@@ -108,31 +104,20 @@ static int write_ether(nssov_ether_cbp *cbp, Entry *entry) {
 
 NSSOV_CB(ether)
 
-NSSOV_HANDLE(ether, byname, char fbuf[1024];
-             struct berval filter = {sizeof(fbuf)}; filter.bv_val = fbuf;
-             BER_BVZERO(&cbp.addr); READ_STRING(fp, cbp.buf);
-             cbp.name.bv_len = tmpint32; cbp.name.bv_val = cbp.buf;
-             , Debug(LDAP_DEBUG_TRACE, "nssov_ether_byname(%s)\n",
-                     cbp.name.bv_val);
-             , NSLCD_ACTION_ETHER_BYNAME,
-             nssov_filter_byname(cbp.mi, 0, &cbp.name, &filter))
+NSSOV_HANDLE(ether, byname, char fbuf[1024]; struct berval filter = {sizeof(fbuf)}; filter.bv_val = fbuf;
+             BER_BVZERO(&cbp.addr); READ_STRING(fp, cbp.buf); cbp.name.bv_len = tmpint32; cbp.name.bv_val = cbp.buf;
+             , Debug(LDAP_DEBUG_TRACE, "nssov_ether_byname(%s)\n", cbp.name.bv_val);
+             , NSLCD_ACTION_ETHER_BYNAME, nssov_filter_byname(cbp.mi, 0, &cbp.name, &filter))
 
-NSSOV_HANDLE(ether, byether, struct ether_addr addr; char fbuf[1024];
-             struct berval filter = {sizeof(fbuf)}; filter.bv_val = fbuf;
-             BER_BVZERO(&cbp.name); READ(fp, &addr, sizeof(uint8_t[6]));
-             cbp.addr.bv_len =
-                 snprintf(cbp.buf, sizeof(cbp.buf), "%x:%x:%x:%x:%x:%x",
-                          addr.ether_addr_octet[0], addr.ether_addr_octet[1],
-                          addr.ether_addr_octet[2], addr.ether_addr_octet[3],
-                          addr.ether_addr_octet[4], addr.ether_addr_octet[5]);
-             cbp.addr.bv_val = cbp.buf;
-             , Debug(LDAP_DEBUG_TRACE, "nssov_ether_byether(%s)\n",
-                     cbp.addr.bv_val);
-             , NSLCD_ACTION_ETHER_BYETHER,
-             nssov_filter_byid(cbp.mi, 1, &cbp.addr, &filter))
+NSSOV_HANDLE(ether, byether, struct ether_addr addr; char fbuf[1024]; struct berval filter = {sizeof(fbuf)};
+             filter.bv_val = fbuf; BER_BVZERO(&cbp.name); READ(fp, &addr, sizeof(uint8_t[6]));
+             cbp.addr.bv_len = snprintf(cbp.buf, sizeof(cbp.buf), "%x:%x:%x:%x:%x:%x", addr.ether_addr_octet[0],
+                                        addr.ether_addr_octet[1], addr.ether_addr_octet[2], addr.ether_addr_octet[3],
+                                        addr.ether_addr_octet[4], addr.ether_addr_octet[5]);
+             cbp.addr.bv_val = cbp.buf;, Debug(LDAP_DEBUG_TRACE, "nssov_ether_byether(%s)\n", cbp.addr.bv_val);
+             , NSLCD_ACTION_ETHER_BYETHER, nssov_filter_byid(cbp.mi, 1, &cbp.addr, &filter))
 
 NSSOV_HANDLE(ether, all, struct berval filter;
              /* no parameters to read */
-             BER_BVZERO(&cbp.name); BER_BVZERO(&cbp.addr);
-             , Debug(LDAP_DEBUG_TRACE, "nssov_ether_all()\n");
+             BER_BVZERO(&cbp.name); BER_BVZERO(&cbp.addr);, Debug(LDAP_DEBUG_TRACE, "nssov_ether_all()\n");
              , NSLCD_ACTION_ETHER_ALL, (filter = cbp.mi->mi_filter, 0))

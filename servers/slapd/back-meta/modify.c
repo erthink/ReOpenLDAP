@@ -94,14 +94,12 @@ int meta_back_modify(Operation *op, SlapReply *rs) {
       continue;
     }
 
-    if (ml->sml_desc == slap_schema.si_ad_objectClass ||
-        ml->sml_desc == slap_schema.si_ad_structuralObjectClass) {
+    if (ml->sml_desc == slap_schema.si_ad_objectClass || ml->sml_desc == slap_schema.si_ad_structuralObjectClass) {
       is_oc = 1;
       mapped = ml->sml_desc->ad_cname;
 
     } else {
-      ldap_back_map(&mt->mt_rwmap.rwm_at, &ml->sml_desc->ad_cname, &mapped,
-                    BACKLDAP_MAP);
+      ldap_back_map(&mt->mt_rwmap.rwm_at, &ml->sml_desc->ad_cname, &mapped, BACKLDAP_MAP);
       if (BER_BVISNULL(&mapped) || BER_BVISEMPTY(&mapped)) {
         continue;
       }
@@ -120,13 +118,11 @@ int meta_back_modify(Operation *op, SlapReply *rs) {
       if (is_oc) {
         for (j = 0; !BER_BVISNULL(&ml->sml_values[j]); j++)
           ;
-        mods[i].mod_bvalues =
-            (struct berval **)ch_malloc((j + 1) * sizeof(struct berval *));
+        mods[i].mod_bvalues = (struct berval **)ch_malloc((j + 1) * sizeof(struct berval *));
         for (j = 0; !BER_BVISNULL(&ml->sml_values[j]);) {
           struct ldapmapping *mapping;
 
-          ldap_back_mapping(&mt->mt_rwmap.rwm_oc, &ml->sml_values[j], &mapping,
-                            BACKLDAP_MAP);
+          ldap_back_mapping(&mt->mt_rwmap.rwm_oc, &ml->sml_values[j], &mapping, BACKLDAP_MAP);
 
           if (mapping == NULL) {
             if (mt->mt_rwmap.rwm_oc.drop_missing) {
@@ -142,8 +138,7 @@ int meta_back_modify(Operation *op, SlapReply *rs) {
         mods[i].mod_bvalues[j] = NULL;
 
       } else {
-        if (ml->sml_desc->ad_type->sat_syntax ==
-            slap_schema.si_syn_distinguishedName) {
+        if (ml->sml_desc->ad_type->sat_syntax == slap_schema.si_syn_distinguishedName) {
           (void)ldap_dnattr_rewrite(&dc, ml->sml_values);
           if (ml->sml_values == NULL) {
             continue;
@@ -152,8 +147,7 @@ int meta_back_modify(Operation *op, SlapReply *rs) {
 
         for (j = 0; !BER_BVISNULL(&ml->sml_values[j]); j++)
           ;
-        mods[i].mod_bvalues =
-            (struct berval **)ch_malloc((j + 1) * sizeof(struct berval *));
+        mods[i].mod_bvalues = (struct berval **)ch_malloc((j + 1) * sizeof(struct berval *));
         for (j = 0; !BER_BVISNULL(&ml->sml_values[j]); j++) {
           mods[i].mod_bvalues[j] = &ml->sml_values[j];
         }
@@ -176,10 +170,8 @@ retry:;
     goto cleanup;
   }
 
-  rs->sr_err = ldap_modify_ext(mc->mc_conns[candidate].msc_ld, mdn.bv_val, modv,
-                               ctrls, NULL, &msgid);
-  rs->sr_err = meta_back_op_result(mc, op, rs, candidate, msgid,
-                                   mt->mt_timeout[SLAP_OP_MODIFY],
+  rs->sr_err = ldap_modify_ext(mc->mc_conns[candidate].msc_ld, mdn.bv_val, modv, ctrls, NULL, &msgid);
+  rs->sr_err = meta_back_op_result(mc, op, rs, candidate, msgid, mt->mt_timeout[SLAP_OP_MODIFY],
                                    (LDAP_BACK_SENDRESULT | retrying));
   if (rs->sr_err == LDAP_UNAVAILABLE && retrying) {
     retrying &= ~LDAP_BACK_RETRYING;

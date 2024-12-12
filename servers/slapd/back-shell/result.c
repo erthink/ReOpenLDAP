@@ -47,8 +47,7 @@ int read_and_send_results(Operation *op, SlapReply *rs, FILE *fp) {
       if (errno == EINTR)
         continue;
 
-      Debug(LDAP_DEBUG_ANY, "shell: fgets failed: %s (%d)\n",
-            AC_STRERROR_R(errno, ebuf, sizeof ebuf), errno);
+      Debug(LDAP_DEBUG_ANY, "shell: fgets failed: %s (%d)\n", AC_STRERROR_R(errno, ebuf, sizeof ebuf), errno);
       break;
     }
 
@@ -93,8 +92,7 @@ int read_and_send_results(Operation *op, SlapReply *rs, FILE *fp) {
       bp = buf;
     }
   }
-  (void)str2result(buf, &rs->sr_err, (char **)&rs->sr_matched,
-                   (char **)&rs->sr_text);
+  (void)str2result(buf, &rs->sr_err, (char **)&rs->sr_matched, (char **)&rs->sr_text);
 
   /* otherwise, front end will send this result */
   if (rs->sr_err != 0 || op->o_tag != LDAP_REQ_BIND) {

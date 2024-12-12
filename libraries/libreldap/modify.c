@@ -48,8 +48,7 @@
  * (Source: RFC 4511)
  */
 
-BerElement *ldap_build_modify_req(LDAP *ld, const char *dn, LDAPMod **mods,
-                                  LDAPControl **sctrls, LDAPControl **cctrls,
+BerElement *ldap_build_modify_req(LDAP *ld, const char *dn, LDAPMod **mods, LDAPControl **sctrls, LDAPControl **cctrls,
                                   ber_int_t *msgidp) {
   BerElement *ber;
   int i, rc;
@@ -72,12 +71,10 @@ BerElement *ldap_build_modify_req(LDAP *ld, const char *dn, LDAPMod **mods,
     /* for each modification to be performed... */
     for (i = 0; mods[i] != NULL; i++) {
       if ((mods[i]->mod_op & LDAP_MOD_BVALUES) != 0) {
-        rc = ber_printf(ber, "{e{s[V]N}N}",
-                        (ber_int_t)(mods[i]->mod_op & ~LDAP_MOD_BVALUES),
-                        mods[i]->mod_type, mods[i]->mod_bvalues);
+        rc = ber_printf(ber, "{e{s[V]N}N}", (ber_int_t)(mods[i]->mod_op & ~LDAP_MOD_BVALUES), mods[i]->mod_type,
+                        mods[i]->mod_bvalues);
       } else {
-        rc = ber_printf(ber, "{e{s[v]N}N}", (ber_int_t)mods[i]->mod_op,
-                        mods[i]->mod_type, mods[i]->mod_values);
+        rc = ber_printf(ber, "{e{s[v]N}N}", (ber_int_t)mods[i]->mod_op, mods[i]->mod_type, mods[i]->mod_values);
       }
 
       if (rc == -1) {
@@ -133,8 +130,7 @@ BerElement *ldap_build_modify_req(LDAP *ld, const char *dn, LDAPMod **mods,
  *		}
  *	rc=  ldap_modify_ext( ld, dn, mods, sctrls, cctrls, &msgid );
  */
-int ldap_modify_ext(LDAP *ld, const char *dn, LDAPMod **mods,
-                    LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
+int ldap_modify_ext(LDAP *ld, const char *dn, LDAPMod **mods, LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
   BerElement *ber;
   int rc;
   ber_int_t id;
@@ -157,8 +153,7 @@ int ldap_modify_ext(LDAP *ld, const char *dn, LDAPMod **mods,
   return (*msgidp < 0 ? ld->ld_errno : LDAP_SUCCESS);
 }
 
-int ldap_modify_ext_s(LDAP *ld, const char *dn, LDAPMod **mods,
-                      LDAPControl **sctrl, LDAPControl **cctrl) {
+int ldap_modify_ext_s(LDAP *ld, const char *dn, LDAPMod **mods, LDAPControl **sctrl, LDAPControl **cctrl) {
   int rc;
   int msgid;
   LDAPMessage *res;
@@ -168,9 +163,7 @@ int ldap_modify_ext_s(LDAP *ld, const char *dn, LDAPMod **mods,
   if (rc != LDAP_SUCCESS)
     return (rc);
 
-  if (ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res) ==
-          -1 ||
-      !res)
+  if (ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res) == -1 || !res)
     return (ld->ld_errno);
 
   return (ldap_result2error(ld, res, 1));

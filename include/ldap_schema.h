@@ -71,33 +71,33 @@ typedef struct ldap_matchingruleuse {
 } LDAPMatchingRuleUse;
 
 typedef struct ldap_attributetype {
-  char *at_oid;          /* REQUIRED */
-  char **at_names;       /* OPTIONAL */
-  char *at_desc;         /* OPTIONAL */
-  int at_obsolete;       /* 0=no, 1=yes */
-  char *at_sup_oid;      /* OPTIONAL */
-  char *at_equality_oid; /* OPTIONAL */
-  char *at_ordering_oid; /* OPTIONAL */
-  char *at_substr_oid;   /* OPTIONAL */
-  char *at_syntax_oid;   /* OPTIONAL */
-  int at_syntax_len;     /* OPTIONAL */
-  int at_single_value;   /* 0=no, 1=yes */
-  int at_collective;     /* 0=no, 1=yes */
-  int at_no_user_mod;    /* 0=no, 1=yes */
-  int at_usage;          /* 0=userApplications, 1=directoryOperation,
-                            2=distributedOperation, 3=dSAOperation */
+  char *at_oid;                            /* REQUIRED */
+  char **at_names;                         /* OPTIONAL */
+  char *at_desc;                           /* OPTIONAL */
+  int at_obsolete;                         /* 0=no, 1=yes */
+  char *at_sup_oid;                        /* OPTIONAL */
+  char *at_equality_oid;                   /* OPTIONAL */
+  char *at_ordering_oid;                   /* OPTIONAL */
+  char *at_substr_oid;                     /* OPTIONAL */
+  char *at_syntax_oid;                     /* OPTIONAL */
+  int at_syntax_len;                       /* OPTIONAL */
+  int at_single_value;                     /* 0=no, 1=yes */
+  int at_collective;                       /* 0=no, 1=yes */
+  int at_no_user_mod;                      /* 0=no, 1=yes */
+  int at_usage;                            /* 0=userApplications, 1=directoryOperation,
+                                              2=distributedOperation, 3=dSAOperation */
   LDAPSchemaExtensionItem **at_extensions; /* OPTIONAL */
 } LDAPAttributeType;
 
 typedef struct ldap_objectclass {
-  char *oc_oid;           /* REQUIRED */
-  char **oc_names;        /* OPTIONAL */
-  char *oc_desc;          /* OPTIONAL */
-  int oc_obsolete;        /* 0=no, 1=yes */
-  char **oc_sup_oids;     /* OPTIONAL */
-  int oc_kind;            /* 0=ABSTRACT, 1=STRUCTURAL, 2=AUXILIARY */
-  char **oc_at_oids_must; /* OPTIONAL */
-  char **oc_at_oids_may;  /* OPTIONAL */
+  char *oc_oid;                            /* REQUIRED */
+  char **oc_names;                         /* OPTIONAL */
+  char *oc_desc;                           /* OPTIONAL */
+  int oc_obsolete;                         /* 0=no, 1=yes */
+  char **oc_sup_oids;                      /* OPTIONAL */
+  int oc_kind;                             /* 0=ABSTRACT, 1=STRUCTURAL, 2=AUXILIARY */
+  char **oc_at_oids_must;                  /* OPTIONAL */
+  char **oc_at_oids_may;                   /* OPTIONAL */
   LDAPSchemaExtensionItem **oc_extensions; /* OPTIONAL */
 } LDAPObjectClass;
 
@@ -154,16 +154,15 @@ typedef struct ldap_structurerule {
 /*
  * Flags that control how liberal the parsing routines are.
  */
-#define LDAP_SCHEMA_ALLOW_NONE 0x00U         /* Strict parsing               */
-#define LDAP_SCHEMA_ALLOW_NO_OID 0x01U       /* Allow missing oid            */
-#define LDAP_SCHEMA_ALLOW_QUOTED 0x02U       /* Allow bogus extra quotes     */
-#define LDAP_SCHEMA_ALLOW_DESCR 0x04U        /* Allow descr instead of OID   */
-#define LDAP_SCHEMA_ALLOW_DESCR_PREFIX 0x08U /* Allow descr as OID prefix */
-#define LDAP_SCHEMA_ALLOW_OID_MACRO 0x10U    /* Allow OID macros in slapd    */
-#define LDAP_SCHEMA_ALLOW_OUT_OF_ORDER_FIELDS                                  \
-  0x20U                             /* Allow fields in most any order */
-#define LDAP_SCHEMA_ALLOW_ALL 0x3fU /* Be very liberal in parsing   */
-#define LDAP_SCHEMA_SKIP 0x80U      /* Don't malloc any result      */
+#define LDAP_SCHEMA_ALLOW_NONE 0x00U                /* Strict parsing               */
+#define LDAP_SCHEMA_ALLOW_NO_OID 0x01U              /* Allow missing oid            */
+#define LDAP_SCHEMA_ALLOW_QUOTED 0x02U              /* Allow bogus extra quotes     */
+#define LDAP_SCHEMA_ALLOW_DESCR 0x04U               /* Allow descr instead of OID   */
+#define LDAP_SCHEMA_ALLOW_DESCR_PREFIX 0x08U        /* Allow descr as OID prefix */
+#define LDAP_SCHEMA_ALLOW_OID_MACRO 0x10U           /* Allow OID macros in slapd    */
+#define LDAP_SCHEMA_ALLOW_OUT_OF_ORDER_FIELDS 0x20U /* Allow fields in most any order */
+#define LDAP_SCHEMA_ALLOW_ALL 0x3fU                 /* Be very liberal in parsing   */
+#define LDAP_SCHEMA_SKIP 0x80U                      /* Don't malloc any result      */
 
 LDAP_F(const char *)
 ldap_syntax2name(LDAPSyntax *syn);
@@ -214,36 +213,28 @@ LDAP_F(void)
 ldap_structurerule_free(LDAPStructureRule *sr);
 
 LDAP_F(LDAPStructureRule *)
-ldap_str2structurerule(const char *s, int *code, const char **errp,
-                       const unsigned flags);
+ldap_str2structurerule(const char *s, int *code, const char **errp, const unsigned flags);
 
 LDAP_F(LDAPNameForm *)
-ldap_str2nameform(const char *s, int *code, const char **errp,
-                  const unsigned flags);
+ldap_str2nameform(const char *s, int *code, const char **errp, const unsigned flags);
 
 LDAP_F(LDAPContentRule *)
-ldap_str2contentrule(const char *s, int *code, const char **errp,
-                     const unsigned flags);
+ldap_str2contentrule(const char *s, int *code, const char **errp, const unsigned flags);
 
 LDAP_F(LDAPObjectClass *)
-ldap_str2objectclass(const char *s, int *code, const char **errp,
-                     const unsigned flags);
+ldap_str2objectclass(const char *s, int *code, const char **errp, const unsigned flags);
 
 LDAP_F(LDAPAttributeType *)
-ldap_str2attributetype(const char *s, int *code, const char **errp,
-                       const unsigned flags);
+ldap_str2attributetype(const char *s, int *code, const char **errp, const unsigned flags);
 
 LDAP_F(LDAPSyntax *)
-ldap_str2syntax(const char *s, int *code, const char **errp,
-                const unsigned flags);
+ldap_str2syntax(const char *s, int *code, const char **errp, const unsigned flags);
 
 LDAP_F(LDAPMatchingRule *)
-ldap_str2matchingrule(const char *s, int *code, const char **errp,
-                      const unsigned flags);
+ldap_str2matchingrule(const char *s, int *code, const char **errp, const unsigned flags);
 
 LDAP_F(LDAPMatchingRuleUse *)
-ldap_str2matchingruleuse(const char *s, int *code, const char **errp,
-                         const unsigned flags);
+ldap_str2matchingruleuse(const char *s, int *code, const char **errp, const unsigned flags);
 
 LDAP_F(char *)
 ldap_structurerule2str(LDAPStructureRule *sr);

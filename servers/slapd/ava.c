@@ -40,8 +40,7 @@ void ava_free(Operation *op, AttributeAssertion *ava, int freeit) {
     op->o_tmpfree((char *)ava, op->o_tmpmemctx);
 }
 
-int get_ava(Operation *op, BerElement *ber, Filter *f, unsigned usage,
-            const char **text) {
+int get_ava(Operation *op, BerElement *ber, Filter *f, unsigned usage, const char **text) {
   int rc;
   ber_tag_t rtag;
   struct berval type, value;
@@ -70,12 +69,10 @@ int get_ava(Operation *op, BerElement *ber, Filter *f, unsigned usage,
   if (rc != LDAP_SUCCESS) {
     f->f_choice |= SLAPD_FILTER_UNDEFINED;
     *text = NULL;
-    rc = slap_bv2undef_ad(&type, &aa->aa_desc, text,
-                          SLAP_AD_PROXIED | SLAP_AD_NOINSERT);
+    rc = slap_bv2undef_ad(&type, &aa->aa_desc, text, SLAP_AD_PROXIED | SLAP_AD_NOINSERT);
 
     if (rc != LDAP_SUCCESS) {
-      Debug(LDAP_DEBUG_FILTER, "get_ava: unknown attributeType %s\n",
-            type.bv_val);
+      Debug(LDAP_DEBUG_FILTER, "get_ava: unknown attributeType %s\n", type.bv_val);
       aa->aa_desc = slap_bv2tmp_ad(&type, op->o_tmpmemctx);
       ber_dupbv_x(&aa->aa_value, &value, op->o_tmpmemctx);
       f->f_ava = aa;
@@ -83,14 +80,12 @@ int get_ava(Operation *op, BerElement *ber, Filter *f, unsigned usage,
     }
   }
 
-  rc = asserted_value_validate_normalize(aa->aa_desc, ad_mr(aa->aa_desc, usage),
-                                         usage, &value, &aa->aa_value, text,
+  rc = asserted_value_validate_normalize(aa->aa_desc, ad_mr(aa->aa_desc, usage), usage, &value, &aa->aa_value, text,
                                          op->o_tmpmemctx);
 
   if (rc != LDAP_SUCCESS) {
     f->f_choice |= SLAPD_FILTER_UNDEFINED;
-    Debug(LDAP_DEBUG_FILTER, "get_ava: illegal value for attributeType %s\n",
-          type.bv_val);
+    Debug(LDAP_DEBUG_FILTER, "get_ava: illegal value for attributeType %s\n", type.bv_val);
     ber_dupbv_x(&aa->aa_value, &value, op->o_tmpmemctx);
     *text = NULL;
     rc = LDAP_SUCCESS;

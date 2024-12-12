@@ -30,19 +30,18 @@
 #include "back-passwd.h"
 #include "slapconfig.h"
 
-static ConfigTable passwdcfg[] = {
-    {"file", "filename", 2, 2, 0,
+static ConfigTable passwdcfg[] = {{"file", "filename", 2, 2, 0,
 #ifdef HAVE_SETPWFILE
-     ARG_STRING | ARG_OFFSET, NULL,
+                                   ARG_STRING | ARG_OFFSET, NULL,
 #else
-     ARG_IGNORED, NULL,
+                                   ARG_IGNORED, NULL,
 #endif
-     "( OLcfgDbAt:9.1 NAME 'olcPasswdFile' "
-     "DESC 'File containing passwd records' "
-     "EQUALITY caseExactMatch "
-     "SYNTAX OMsDirectoryString SINGLE-VALUE )",
-     NULL, NULL},
-    {NULL, NULL, 0, 0, 0, ARG_IGNORED, NULL, NULL, NULL, NULL}};
+                                   "( OLcfgDbAt:9.1 NAME 'olcPasswdFile' "
+                                   "DESC 'File containing passwd records' "
+                                   "EQUALITY caseExactMatch "
+                                   "SYNTAX OMsDirectoryString SINGLE-VALUE )",
+                                   NULL, NULL},
+                                  {NULL, NULL, 0, 0, 0, ARG_IGNORED, NULL, NULL, NULL, NULL}};
 
 static ConfigOCs passwdocs[] = {{"( OLcfgDbOc:9.1 "
                                  "NAME 'olcPasswdConfig' "

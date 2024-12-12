@@ -85,15 +85,13 @@ static int trace_op_func(Operation *op, SlapReply *rs) {
 
   switch (op->o_tag) {
   case LDAP_REQ_EXTENDED:
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
-        "%s trace op=EXTENDED dn=\"%s\" reqoid=%s\n", op->o_log_prefix,
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_INFO, "%s trace op=EXTENDED dn=\"%s\" reqoid=%s\n", op->o_log_prefix,
         BER_BVISNULL(&op->o_req_ndn) ? "(null)" : op->o_req_ndn.bv_val,
         BER_BVISNULL(&op->ore_reqoid) ? "" : op->ore_reqoid.bv_val);
     break;
 
   default:
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_INFO, "%s trace op=%s dn=\"%s\"\n",
-        op->o_log_prefix, op_str,
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_INFO, "%s trace op=%s dn=\"%s\"\n", op->o_log_prefix, op_str,
         BER_BVISNULL(&op->o_req_ndn) ? "(null)" : op->o_req_ndn.bv_val);
     break;
   }
@@ -108,25 +106,21 @@ static int trace_response(Operation *op, SlapReply *rs) {
 
   switch (op->o_tag) {
   case LDAP_REQ_EXTENDED:
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
-        "%s trace op=EXTENDED RESPONSE dn=\"%s\" reqoid=%s rspoid=%s err=%d\n",
-        op->o_log_prefix,
-        BER_BVISNULL(&op->o_req_ndn) ? "(null)" : op->o_req_ndn.bv_val,
-        BER_BVISNULL(&op->ore_reqoid) ? "" : op->ore_reqoid.bv_val,
-        rs->sr_rspoid == NULL ? "" : rs->sr_rspoid, rs->sr_err);
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_INFO, "%s trace op=EXTENDED RESPONSE dn=\"%s\" reqoid=%s rspoid=%s err=%d\n",
+        op->o_log_prefix, BER_BVISNULL(&op->o_req_ndn) ? "(null)" : op->o_req_ndn.bv_val,
+        BER_BVISNULL(&op->ore_reqoid) ? "" : op->ore_reqoid.bv_val, rs->sr_rspoid == NULL ? "" : rs->sr_rspoid,
+        rs->sr_err);
     break;
 
   case LDAP_REQ_SEARCH:
     switch (rs->sr_type) {
     case REP_SEARCH:
-      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
-          "%s trace op=SEARCH ENTRY dn=\"%s\"\n", op->o_log_prefix,
+      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_INFO, "%s trace op=SEARCH ENTRY dn=\"%s\"\n", op->o_log_prefix,
           rs->sr_entry->e_name.bv_val);
       goto done;
 
     case REP_SEARCHREF:
-      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
-          "%s trace op=SEARCH REFERENCE ref=\"%s\"\n", op->o_log_prefix,
+      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_INFO, "%s trace op=SEARCH REFERENCE ref=\"%s\"\n", op->o_log_prefix,
           rs->sr_ref[0].bv_val);
       goto done;
 
@@ -139,10 +133,8 @@ static int trace_response(Operation *op, SlapReply *rs) {
     /* fallthru */
 
   default:
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
-        "%s trace op=%s RESPONSE dn=\"%s\" err=%d\n", op->o_log_prefix, op_str,
-        BER_BVISNULL(&op->o_req_ndn) ? "(null)" : op->o_req_ndn.bv_val,
-        rs->sr_err);
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_INFO, "%s trace op=%s RESPONSE dn=\"%s\" err=%d\n", op->o_log_prefix, op_str,
+        BER_BVISNULL(&op->o_req_ndn) ? "(null)" : op->o_req_ndn.bv_val, rs->sr_err);
     break;
   }
 
@@ -156,10 +148,8 @@ static int trace_db_init(BackendDB *be, ConfigReply *cr) {
   return 0;
 }
 
-static int trace_db_config(BackendDB *be, const char *fname, int lineno,
-                           int argc, char **argv) {
-  Log(LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
-      "trace DB_CONFIG argc=%d argv[0]=\"%s\"\n", argc, argv[0]);
+static int trace_db_config(BackendDB *be, const char *fname, int lineno, int argc, char **argv) {
+  Log(LDAP_DEBUG_ANY, LDAP_LEVEL_INFO, "trace DB_CONFIG argc=%d argv[0]=\"%s\"\n", argc, argv[0]);
 
   return 0;
 }
@@ -209,6 +199,4 @@ static int trace_initialize() {
   return overlay_register(&trace);
 }
 
-SLAP_MODULE_ENTRY(trace, modinit)(int argc, char *argv[]) {
-  return trace_initialize();
-}
+SLAP_MODULE_ENTRY(trace, modinit)(int argc, char *argv[]) { return trace_initialize(); }

@@ -24,18 +24,12 @@
 #include "slap.h"
 
 static slap_verbmasks idxstr[] = {
-    {BER_BVC("pres"), SLAP_INDEX_PRESENT},
-    {BER_BVC("eq"), SLAP_INDEX_EQUALITY},
-    {BER_BVC("approx"), SLAP_INDEX_APPROX},
-    {BER_BVC("subinitial"), SLAP_INDEX_SUBSTR_INITIAL},
-    {BER_BVC("subany"), SLAP_INDEX_SUBSTR_ANY},
-    {BER_BVC("subfinal"), SLAP_INDEX_SUBSTR_FINAL},
-    {BER_BVC("sub"), SLAP_INDEX_SUBSTR_DEFAULT},
-    {BER_BVC("substr"), 0},
-    {BER_BVC("notags"), SLAP_INDEX_NOTAGS},
-    {BER_BVC("nolang"), 0}, /* backwards compat */
-    {BER_BVC("nosubtypes"), SLAP_INDEX_NOSUBTYPES},
-    {BER_BVNULL, 0}};
+    {BER_BVC("pres"), SLAP_INDEX_PRESENT},          {BER_BVC("eq"), SLAP_INDEX_EQUALITY},
+    {BER_BVC("approx"), SLAP_INDEX_APPROX},         {BER_BVC("subinitial"), SLAP_INDEX_SUBSTR_INITIAL},
+    {BER_BVC("subany"), SLAP_INDEX_SUBSTR_ANY},     {BER_BVC("subfinal"), SLAP_INDEX_SUBSTR_FINAL},
+    {BER_BVC("sub"), SLAP_INDEX_SUBSTR_DEFAULT},    {BER_BVC("substr"), 0},
+    {BER_BVC("notags"), SLAP_INDEX_NOTAGS},         {BER_BVC("nolang"), 0}, /* backwards compat */
+    {BER_BVC("nosubtypes"), SLAP_INDEX_NOSUBTYPES}, {BER_BVNULL, 0}};
 
 int slap_str2index(const char *str, slap_mask_t *idx) {
   int i;
@@ -59,8 +53,7 @@ void slap_index2bvlen(slap_mask_t idx, struct berval *bv) {
     if (!idxstr[i].mask)
       continue;
     if (IS_SLAP_INDEX(idx, idxstr[i].mask)) {
-      if ((idxstr[i].mask & SLAP_INDEX_SUBSTR) &&
-          ((idx & SLAP_INDEX_SUBSTR_DEFAULT) != idxstr[i].mask))
+      if ((idxstr[i].mask & SLAP_INDEX_SUBSTR) && ((idx & SLAP_INDEX_SUBSTR_DEFAULT) != idxstr[i].mask))
         continue;
       if (bv->bv_len)
         bv->bv_len++;
@@ -82,8 +75,7 @@ void slap_index2bv(slap_mask_t idx, struct berval *bv) {
     if (!idxstr[i].mask)
       continue;
     if (IS_SLAP_INDEX(idx, idxstr[i].mask)) {
-      if ((idxstr[i].mask & SLAP_INDEX_SUBSTR) &&
-          ((idx & SLAP_INDEX_SUBSTR_DEFAULT) != idxstr[i].mask))
+      if ((idxstr[i].mask & SLAP_INDEX_SUBSTR) && ((idx & SLAP_INDEX_SUBSTR_DEFAULT) != idxstr[i].mask))
         continue;
       if (ptr != bv->bv_val)
         *ptr++ = ',';

@@ -51,9 +51,7 @@
 
 #undef memcpy
 #undef ishdigit
-#define ishdigit(cc)                                                           \
-  (((cc) >= '0' && (cc) <= '9') || ((cc) >= 'A' && (cc) <= 'F') ||             \
-   ((cc) >= 'a' && (cc) <= 'f'))
+#define ishdigit(cc) (((cc) >= '0' && (cc) <= '9') || ((cc) >= 'A' && (cc) <= 'F') || ((cc) >= 'a' && (cc) <= 'f'))
 
 /*
  * A header written to the output file with the byte-order-mark and the number
@@ -84,14 +82,11 @@ typedef struct {
  * Cp = Defined character
  */
 static _prop_t props[NUMPROPS] = {
-    {"Mn", 2}, {"Mc", 2}, {"Me", 2}, {"Nd", 2}, {"Nl", 2}, {"No", 2}, {"Zs", 2},
-    {"Zl", 2}, {"Zp", 2}, {"Cc", 2}, {"Cf", 2}, {"Cs", 2}, {"Co", 2}, {"Cn", 2},
-    {"Lu", 2}, {"Ll", 2}, {"Lt", 2}, {"Lm", 2}, {"Lo", 2}, {"Pc", 2}, {"Pd", 2},
-    {"Ps", 2}, {"Pe", 2}, {"Po", 2}, {"Sm", 2}, {"Sc", 2}, {"Sk", 2}, {"So", 2},
-    {"L", 1},  {"R", 1},  {"EN", 2}, {"ES", 2}, {"ET", 2}, {"AN", 2}, {"CS", 2},
-    {"B", 1},  {"S", 1},  {"WS", 2}, {"ON", 2}, {"Cm", 2}, {"Nb", 2}, {"Sy", 2},
-    {"Hd", 2}, {"Qm", 2}, {"Mr", 2}, {"Ss", 2}, {"Cp", 2}, {"Pi", 2}, {"Pf", 2},
-    {"AL", 2}};
+    {"Mn", 2}, {"Mc", 2}, {"Me", 2}, {"Nd", 2}, {"Nl", 2}, {"No", 2}, {"Zs", 2}, {"Zl", 2}, {"Zp", 2}, {"Cc", 2},
+    {"Cf", 2}, {"Cs", 2}, {"Co", 2}, {"Cn", 2}, {"Lu", 2}, {"Ll", 2}, {"Lt", 2}, {"Lm", 2}, {"Lo", 2}, {"Pc", 2},
+    {"Pd", 2}, {"Ps", 2}, {"Pe", 2}, {"Po", 2}, {"Sm", 2}, {"Sc", 2}, {"Sk", 2}, {"So", 2}, {"L", 1},  {"R", 1},
+    {"EN", 2}, {"ES", 2}, {"ET", 2}, {"AN", 2}, {"CS", 2}, {"B", 1},  {"S", 1},  {"WS", 2}, {"ON", 2}, {"Cm", 2},
+    {"Nb", 2}, {"Sy", 2}, {"Hd", 2}, {"Qm", 2}, {"Mr", 2}, {"Ss", 2}, {"Cp", 2}, {"Pi", 2}, {"Pf", 2}, {"AL", 2}};
 
 typedef struct {
   uint32_t *ranges;
@@ -249,8 +244,7 @@ static void add_range(uint32_t start, uint32_t end, char *p1, char *p2) {
       if (rlp->size == 0)
         rlp->ranges = (uint32_t *)malloc(sizeof(uint32_t) << 3);
       else
-        rlp->ranges = (uint32_t *)realloc((char *)rlp->ranges,
-                                          sizeof(uint32_t) * (rlp->size + 8));
+        rlp->ranges = (uint32_t *)realloc((char *)rlp->ranges, sizeof(uint32_t) * (rlp->size + 8));
       rlp->size += 8;
     }
 
@@ -321,10 +315,8 @@ static void ordered_range_insert(uint32_t c, char *name, int len) {
    * Deal with directionality codes introduced in Unicode 3.0.
    */
   if ((len == 2 && memcmp(name, "BN", 2) == 0) ||
-      (len == 3 &&
-       (memcmp(name, "NSM", 3) == 0 || memcmp(name, "PDF", 3) == 0 ||
-        memcmp(name, "LRE", 3) == 0 || memcmp(name, "LRO", 3) == 0 ||
-        memcmp(name, "RLE", 3) == 0 || memcmp(name, "RLO", 3) == 0))) {
+      (len == 3 && (memcmp(name, "NSM", 3) == 0 || memcmp(name, "PDF", 3) == 0 || memcmp(name, "LRE", 3) == 0 ||
+                    memcmp(name, "LRO", 3) == 0 || memcmp(name, "RLE", 3) == 0 || memcmp(name, "RLO", 3) == 0))) {
     /*
      * Mark all of these as Other Neutral to preserve compatibility with
      * older versions.
@@ -353,8 +345,7 @@ static void ordered_range_insert(uint32_t c, char *name, int len) {
     if (rlp->size == 0)
       rlp->ranges = (uint32_t *)malloc(sizeof(uint32_t) << 3);
     else
-      rlp->ranges = (uint32_t *)realloc((char *)rlp->ranges,
-                                        sizeof(uint32_t) * (rlp->size + 8));
+      rlp->ranges = (uint32_t *)realloc((char *)rlp->ranges, sizeof(uint32_t) * (rlp->size + 8));
     rlp->size += 8;
   }
 
@@ -466,10 +457,8 @@ static void add_decomp(uint32_t code, short compat) {
     if (*pdecomps_size == 0)
       *pdecomps = (_decomp_t *)malloc(sizeof(_decomp_t) << 3);
     else
-      *pdecomps = (_decomp_t *)realloc(
-          (char *)*pdecomps, sizeof(_decomp_t) * (*pdecomps_size + 8));
-    (void)memset((char *)(*pdecomps + *pdecomps_size), '\0',
-                 sizeof(_decomp_t) << 3);
+      *pdecomps = (_decomp_t *)realloc((char *)*pdecomps, sizeof(_decomp_t) * (*pdecomps_size + 8));
+    (void)memset((char *)(*pdecomps + *pdecomps_size), '\0', sizeof(_decomp_t) << 3);
     *pdecomps_size += 8;
   }
 
@@ -478,8 +467,7 @@ static void add_decomp(uint32_t code, short compat) {
      * Shift the decomps up by one if the codes don't match.
      */
     for (j = *pdecomps_used; j > i; j--)
-      (void)memcpy((char *)&(*pdecomps)[j], (char *)&(*pdecomps)[j - 1],
-                   sizeof(_decomp_t));
+      (void)memcpy((char *)&(*pdecomps)[j], (char *)&(*pdecomps)[j - 1], sizeof(_decomp_t));
   }
 
   /*
@@ -490,8 +478,7 @@ static void add_decomp(uint32_t code, short compat) {
     if ((*pdecomps)[i].size == 0)
       (*pdecomps)[i].decomp = (uint32_t *)malloc(sizeof(uint32_t) * size);
     else
-      (*pdecomps)[i].decomp = (uint32_t *)realloc((char *)(*pdecomps)[i].decomp,
-                                                  sizeof(uint32_t) * size);
+      (*pdecomps)[i].decomp = (uint32_t *)realloc((char *)(*pdecomps)[i].decomp, sizeof(uint32_t) * size);
     (*pdecomps)[i].size = size;
   }
 
@@ -500,8 +487,7 @@ static void add_decomp(uint32_t code, short compat) {
 
   (*pdecomps)[i].code = code;
   (*pdecomps)[i].used = dectmp_size;
-  (void)memcpy((char *)(*pdecomps)[i].decomp, (char *)dectmp,
-               sizeof(uint32_t) * dectmp_size);
+  (void)memcpy((char *)(*pdecomps)[i].decomp, (char *)dectmp, sizeof(uint32_t) * dectmp_size);
 
   /*
    * NOTICE: This needs changing later so it is more general than simply
@@ -530,8 +516,7 @@ static void add_title(uint32_t code) {
     if (title_size == 0)
       title = (_case_t *)malloc(sizeof(_case_t) << 3);
     else
-      title =
-          (_case_t *)realloc((char *)title, sizeof(_case_t) * (title_size + 8));
+      title = (_case_t *)realloc((char *)title, sizeof(_case_t) * (title_size + 8));
     title_size += 8;
   }
 
@@ -575,8 +560,7 @@ static void add_upper(uint32_t code) {
     if (upper_size == 0)
       upper = (_case_t *)malloc(sizeof(_case_t) << 3);
     else
-      upper =
-          (_case_t *)realloc((char *)upper, sizeof(_case_t) * (upper_size + 8));
+      upper = (_case_t *)realloc((char *)upper, sizeof(_case_t) * (upper_size + 8));
     upper_size += 8;
   }
 
@@ -620,8 +604,7 @@ static void add_lower(uint32_t code) {
     if (lower_size == 0)
       lower = (_case_t *)malloc(sizeof(_case_t) << 3);
     else
-      lower =
-          (_case_t *)realloc((char *)lower, sizeof(_case_t) * (lower_size + 8));
+      lower = (_case_t *)realloc((char *)lower, sizeof(_case_t) * (lower_size + 8));
     lower_size += 8;
   }
 
@@ -653,8 +636,7 @@ static void ordered_ccl_insert(uint32_t c, uint32_t ccl_code) {
     if (ccl_size == 0)
       ccl = (uint32_t *)malloc(sizeof(uint32_t) * 24);
     else
-      ccl =
-          (uint32_t *)realloc((char *)ccl, sizeof(uint32_t) * (ccl_size + 24));
+      ccl = (uint32_t *)realloc((char *)ccl, sizeof(uint32_t) * (ccl_size + 24));
     ccl_size += 24;
   }
 
@@ -680,8 +662,7 @@ static void ordered_ccl_insert(uint32_t c, uint32_t ccl_code) {
   /*
    * Handle the special case of adding another range on the end.
    */
-  if (c > ccl[ccl_used - 2] + 1 ||
-      (c == ccl[ccl_used - 2] + 1 && ccl_code != ccl[ccl_used - 1])) {
+  if (c > ccl[ccl_used - 2] + 1 || (c == ccl[ccl_used - 2] + 1 && ccl_code != ccl[ccl_used - 1])) {
     ccl[ccl_used++] = c;
     ccl[ccl_used++] = c;
     ccl[ccl_used++] = ccl_code;
@@ -769,8 +750,7 @@ static void add_number(uint32_t code, short num, short denom) {
     if (ncodes_size == 0)
       ncodes = (_codeidx_t *)malloc(sizeof(_codeidx_t) << 3);
     else
-      ncodes = (_codeidx_t *)realloc((char *)ncodes,
-                                     sizeof(_codeidx_t) * (ncodes_size + 8));
+      ncodes = (_codeidx_t *)realloc((char *)ncodes, sizeof(_codeidx_t) * (ncodes_size + 8));
 
     ncodes_size += 8;
   }
@@ -1243,8 +1223,8 @@ static void write_case(FILE *out, _case_t *tab, int num, int first) {
       first = 0;
     else
       fprintf(out, ",");
-    fprintf(out, "\n\t0x%08lx, 0x%08lx, 0x%08lx", (unsigned long)tab[i].key,
-            (unsigned long)tab[i].other1, (unsigned long)tab[i].other2);
+    fprintf(out, "\n\t0x%08lx, 0x%08lx, 0x%08lx", (unsigned long)tab[i].key, (unsigned long)tab[i].other1,
+            (unsigned long)tab[i].other2);
   }
 }
 
@@ -1385,11 +1365,9 @@ static void write_cdata(char *opath) {
    *****************************************************************/
 
 #if HARDCODE_DATA
-  fprintf(out, PREF "uint32_t _uccase_size = %ld;\n\n",
-          (long)(upper_used + lower_used + title_used));
+  fprintf(out, PREF "uint32_t _uccase_size = %ld;\n\n", (long)(upper_used + lower_used + title_used));
 
-  fprintf(out, PREF "uint16_t _uccase_len[2] = {%ld, %ld};\n\n",
-          (long)upper_used, (long)lower_used);
+  fprintf(out, PREF "uint16_t _uccase_len[2] = {%ld, %ld};\n\n", (long)upper_used, (long)lower_used);
   fprintf(out, PREF "uint32_t _uccase_map[] = {");
 
   if (upper_used > 0)
@@ -1483,9 +1461,8 @@ static void write_cdata(char *opath) {
     for (i = 0; i < comps_used; i++) {
       if (i)
         fprintf(out, ",");
-      fprintf(out, "\n\t0x%08lx, 0x%08lx, 0x%08lx, 0x%08lx",
-              (unsigned long)comps[i].comp, (unsigned long)comps[i].count,
-              (unsigned long)comps[i].code1, (unsigned long)comps[i].code2);
+      fprintf(out, "\n\t0x%08lx, 0x%08lx, 0x%08lx, 0x%08lx", (unsigned long)comps[i].comp,
+              (unsigned long)comps[i].count, (unsigned long)comps[i].code1, (unsigned long)comps[i].code2);
     }
   } else {
     fprintf(out, "\t0");
@@ -1541,8 +1518,7 @@ static void write_cdata(char *opath) {
      * Write the list of decomp nodes.
      */
     for (i = idx = 0; i < decomps_used; i++) {
-      fprintf(out, "\n\t0x%08lx, 0x%08lx,", (unsigned long)decomps[i].code,
-              (unsigned long)idx);
+      fprintf(out, "\n\t0x%08lx, 0x%08lx,", (unsigned long)decomps[i].code, (unsigned long)idx);
       idx += decomps[i].used;
     }
 
@@ -1633,8 +1609,7 @@ static void write_cdata(char *opath) {
      * Write the list of kdecomp nodes.
      */
     for (i = idx = 0; i < kdecomps_used; i++) {
-      fprintf(out, "\n\t0x%08lx, 0x%08lx,", (unsigned long)kdecomps[i].code,
-              (unsigned long)idx);
+      fprintf(out, "\n\t0x%08lx, 0x%08lx,", (unsigned long)kdecomps[i].code, (unsigned long)idx);
       idx += kdecomps[i].used;
     }
 
@@ -1703,8 +1678,7 @@ static void write_cdata(char *opath) {
      * Write the decompositions themselves.
      */
     for (i = 0; i < kdecomps_used; i++)
-      fwrite((char *)kdecomps[i].decomp, sizeof(uint32_t), kdecomps[i].used,
-             out);
+      fwrite((char *)kdecomps[i].decomp, sizeof(uint32_t), kdecomps[i].used, out);
 
     /*
      * Seek back to the beginning and write the byte count.
@@ -1785,8 +1759,7 @@ static void write_cdata(char *opath) {
    *****************************************************************/
 
 #if HARDCODE_DATA
-  fprintf(out, PREF "uint32_t _ucnum_size = %lu;\n\n",
-          (unsigned long)ncodes_used << 1);
+  fprintf(out, PREF "uint32_t _ucnum_size = %lu;\n\n", (unsigned long)ncodes_used << 1);
 
   fprintf(out, PREF "uint32_t _ucnum_nodes[] = {");
 
@@ -1801,8 +1774,7 @@ static void write_cdata(char *opath) {
         fprintf(out, "\n\t");
       else
         fprintf(out, " ");
-      fprintf(out, "0x%08lx, 0x%08lx", (unsigned long)ncodes[i].code,
-              (unsigned long)ncodes[i].idx);
+      fprintf(out, "0x%08lx, 0x%08lx", (unsigned long)ncodes[i].code, (unsigned long)ncodes[i].idx);
     }
     fprintf(out, "\n};\n\n");
 
@@ -1860,11 +1832,9 @@ static void write_cdata(char *opath) {
 }
 
 static void usage(char *prog) {
-  fprintf(stderr, "Usage: %s [-o output-directory|-x composition-exclusions]",
-          prog);
+  fprintf(stderr, "Usage: %s [-o output-directory|-x composition-exclusions]", prog);
   fprintf(stderr, " datafile1 datafile2 ...\n\n");
-  fprintf(stderr,
-          "-o output-directory\n\t\tWrite the output files to a different");
+  fprintf(stderr, "-o output-directory\n\t\tWrite the output files to a different");
   fprintf(stderr, " directory (default: .).\n");
   fprintf(stderr, "-x composition-exclusion\n\t\tFile of composition codes");
   fprintf(stderr, " that should be excluded.\n");
@@ -1895,8 +1865,7 @@ int main(int argc, char *argv[]) {
         argc--;
         argv++;
         if ((in = fopen(argv[0], "r")) == 0) {
-          fprintf(stderr, "%s: unable to open composition exclusion file %s\n",
-                  prog, argv[0]);
+          fprintf(stderr, "%s: unable to open composition exclusion file %s\n", prog, argv[0]);
           return EXIT_FAILURE;
         } else {
           read_compexdata(in);

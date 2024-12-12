@@ -46,8 +46,7 @@ typedef struct allop_t {
   int ao_scope;
 } allop_t;
 
-static int allop_db_config(BackendDB *be, const char *fname, int lineno,
-                           int argc, char **argv) {
+static int allop_db_config(BackendDB *be, const char *fname, int lineno, int argc, char **argv) {
   slap_overinst *on = (slap_overinst *)be->bd_info;
   allop_t *ao = (allop_t *)on->on_bi.bi_private;
 
@@ -197,9 +196,7 @@ static int allop_op_search(Operation *op, SlapReply *rs) {
       ;
   }
 
-  op->ors_attrs = op->o_tmprealloc(
-      op->ors_attrs, sizeof(AttributeName) * (i + add_allUser + 2),
-      op->o_tmpmemctx);
+  op->ors_attrs = op->o_tmprealloc(op->ors_attrs, sizeof(AttributeName) * (i + add_allUser + 2), op->o_tmpmemctx);
 
   if (add_allUser) {
     op->ors_attrs[i] = slap_anlist_all_user_attributes[0];
@@ -226,6 +223,4 @@ static int allop_init() {
   return overlay_register(&allop);
 }
 
-SLAP_MODULE_ENTRY(alltop, modinit)(int argc, char *argv[]) {
-  return allop_init();
-}
+SLAP_MODULE_ENTRY(alltop, modinit)(int argc, char *argv[]) { return allop_init(); }

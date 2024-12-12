@@ -59,8 +59,7 @@ int main(int argc, char **argv) {
 #ifdef LDAP_DEBUG
       ++debugflg;
 #else  /* LDAP_DEBUG */
-      fprintf(stderr, "%s: compile with -DLDAP_DEBUG for debugging\n",
-              progname);
+      fprintf(stderr, "%s: compile with -DLDAP_DEBUG for debugging\n", progname);
 #endif /* LDAP_DEBUG */
       break;
     default:
@@ -82,8 +81,7 @@ int main(int argc, char **argv) {
   }
 
   if (op.ldop_op != LDOP_SEARCH) {
-    write_result(stdout, LDAP_UNWILLING_TO_PERFORM, NULL,
-                 "Command Not Implemented");
+    write_result(stdout, LDAP_UNWILLING_TO_PERFORM, NULL, "Command Not Implemented");
     exit(EXIT_SUCCESS);
   }
 
@@ -133,14 +131,12 @@ static struct ldentry *pw2entry(struct ldop *op, struct passwd *pw) {
     /*
      * X.500 style DN
      */
-    i = snprintf(tmpbuf, sizeof(tmpbuf), "cn=%s, %s", pw->pw_name,
-                 op->ldop_suffixes[0]);
+    i = snprintf(tmpbuf, sizeof(tmpbuf), "cn=%s, %s", pw->pw_name, op->ldop_suffixes[0]);
   } else {
     /*
      * RFC-822 style DN
      */
-    i = snprintf(tmpbuf, sizeof(tmpbuf), "%s@%s", pw->pw_name,
-                 op->ldop_suffixes[0]);
+    i = snprintf(tmpbuf, sizeof(tmpbuf), "%s@%s", pw->pw_name, op->ldop_suffixes[0]);
   }
 
   if (i < 0 || i >= sizeof(tmpbuf)) {

@@ -44,17 +44,14 @@ LDAPControl **asyncmeta_copy_controls(Operation *op) {
     length++;
   }
 
-  new_controls =
-      op->o_tmpalloc(sizeof(LDAPControl *) * length, op->o_tmpmemctx);
+  new_controls = op->o_tmpalloc(sizeof(LDAPControl *) * length, op->o_tmpmemctx);
   for (i = 0; i < length - 1; i++) {
     new_controls[i] = op->o_tmpalloc(sizeof(LDAPControl), op->o_tmpmemctx);
     if (op->o_ctrls[i]->ldctl_value.bv_len > 0) {
-      ber_dupbv_x(&new_controls[i]->ldctl_value, &op->o_ctrls[i]->ldctl_value,
-                  op->o_tmpmemctx);
+      ber_dupbv_x(&new_controls[i]->ldctl_value, &op->o_ctrls[i]->ldctl_value, op->o_tmpmemctx);
     }
     if (op->o_ctrls[i]->ldctl_oid) {
-      new_controls[i]->ldctl_oid =
-          ber_strdup_x(op->o_ctrls[i]->ldctl_oid, op->o_tmpmemctx);
+      new_controls[i]->ldctl_oid = ber_strdup_x(op->o_ctrls[i]->ldctl_oid, op->o_tmpmemctx);
     }
     new_controls[i]->ldctl_iscritical = op->o_ctrls[i]->ldctl_iscritical;
   }
@@ -76,8 +73,7 @@ static void asyncmeta_free_op_controls(Operation *op) {
   free(op->o_ctrls);
 }
 
-static Modifications *asyncmeta_copy_modlist(Operation *op,
-                                             Modifications *modlist) {
+static Modifications *asyncmeta_copy_modlist(Operation *op, Modifications *modlist) {
   Modifications *ml;
   Modifications *new_mods = NULL;
   for (ml = modlist; ml != NULL; ml = ml->sml_next) {
@@ -104,8 +100,7 @@ Operation *asyncmeta_copy_op(Operation *op) {
   char txtbuf[SLAP_TEXT_BUFLEN];
   size_t textlen = sizeof txtbuf;
   Entry *e;
-  Operation *new_op =
-      op->o_tmpcalloc(1, sizeof(OperationBuffer), op->o_tmpmemctx);
+  Operation *new_op = op->o_tmpcalloc(1, sizeof(OperationBuffer), op->o_tmpmemctx);
   *new_op = *op;
   new_op->o_hdr = &((OperationBuffer *)new_op)->ob_hdr;
   *(new_op->o_hdr) = *(op->o_hdr);
@@ -137,8 +132,7 @@ Operation *asyncmeta_copy_op(Operation *op) {
       at_names[i].an_name.bv_len = 0;
       while (--i >= 0) {
         at_names[i] = op->ors_attrs[i];
-        ber_dupbv_x(&at_names[i].an_name, &op->ors_attrs[i].an_name,
-                    op->o_tmpmemctx);
+        ber_dupbv_x(&at_names[i].an_name, &op->ors_attrs[i].an_name, op->o_tmpmemctx);
       }
     } else {
       at_names = NULL;
@@ -153,20 +147,17 @@ Operation *asyncmeta_copy_op(Operation *op) {
     new_op->ora_e = e;
     ber_dupbv_x(&e->e_name, &op->o_req_dn, op->o_tmpmemctx);
     ber_dupbv_x(&e->e_nname, &op->o_req_ndn, op->o_tmpmemctx);
-    int rc = slap_mods2entry(new_op->ora_modlist, &new_op->ora_e, 1, 0, &text,
-                             txtbuf, textlen);
+    int rc = slap_mods2entry(new_op->ora_modlist, &new_op->ora_e, 1, 0, &text, txtbuf, textlen);
     (void)rc;
   } break;
   case LDAP_REQ_MODIFY: {
     new_op->orm_modlist = asyncmeta_copy_modlist(op, op->orm_modlist);
   } break;
   case LDAP_REQ_COMPARE:
-    new_op->orc_ava =
-        (AttributeAssertion *)ch_calloc(1, sizeof(AttributeAssertion));
+    new_op->orc_ava = (AttributeAssertion *)ch_calloc(1, sizeof(AttributeAssertion));
     *new_op->orc_ava = *op->orc_ava;
     if (!BER_BVISNULL(&op->orc_ava->aa_value)) {
-      ber_dupbv_x(&new_op->orc_ava->aa_value, &op->orc_ava->aa_value,
-                  op->o_tmpmemctx);
+      ber_dupbv_x(&new_op->orc_ava->aa_value, &op->orc_ava->aa_value, op->o_tmpmemctx);
     }
     break;
   case LDAP_REQ_MODRDN:
@@ -178,8 +169,7 @@ Operation *asyncmeta_copy_op(Operation *op) {
       ber_dupbv_x(&new_op->orr_nnewrdn, &op->orr_nnewrdn, op->o_tmpmemctx);
     }
     if (op->orr_newSup != NULL) {
-      new_op->orr_newSup =
-          op->o_tmpalloc(sizeof(struct berval), op->o_tmpmemctx);
+      new_op->orr_newSup = op->o_tmpalloc(sizeof(struct berval), op->o_tmpmemctx);
       new_op->orr_newSup->bv_len = 0;
       if (op->orr_newSup->bv_len > 0) {
         ber_dupbv_x(new_op->orr_newSup, op->orr_newSup, op->o_tmpmemctx);
@@ -187,8 +177,7 @@ Operation *asyncmeta_copy_op(Operation *op) {
     }
 
     if (op->orr_nnewSup != NULL) {
-      new_op->orr_nnewSup =
-          op->o_tmpalloc(sizeof(struct berval), op->o_tmpmemctx);
+      new_op->orr_nnewSup = op->o_tmpalloc(sizeof(struct berval), op->o_tmpmemctx);
       new_op->orr_nnewSup->bv_len = 0;
       if (op->orr_nnewSup->bv_len > 0) {
         ber_dupbv_x(new_op->orr_nnewSup, op->orr_nnewSup, op->o_tmpmemctx);
@@ -230,14 +219,12 @@ static void asyncmeta_memctx_destroy(void *key, void *data) {
 static void *asyncmeta_memctx_get(void *threadctx) {
   listhead *lh = NULL;
   listptr *lp = NULL;
-  ldap_pvt_thread_pool_getkey(threadctx, asyncmeta_memctx_get, (void **)&lh,
-                              NULL);
+  ldap_pvt_thread_pool_getkey(threadctx, asyncmeta_memctx_get, (void **)&lh, NULL);
   if (!lh) {
     lh = ch_malloc(sizeof(listhead));
     lh->cnt = 0;
     lh->list = NULL;
-    ldap_pvt_thread_pool_setkey(threadctx, asyncmeta_memctx_get, (void *)lh,
-                                asyncmeta_memctx_destroy, NULL, NULL);
+    ldap_pvt_thread_pool_setkey(threadctx, asyncmeta_memctx_get, (void *)lh, asyncmeta_memctx_destroy, NULL, NULL);
   }
   if (lh->list) {
     lp = lh->list;
@@ -250,14 +237,12 @@ static void *asyncmeta_memctx_get(void *threadctx) {
 
 static void asyncmeta_memctx_put(void *threadctx, void *memctx) {
   listhead *lh = NULL;
-  ldap_pvt_thread_pool_getkey(threadctx, asyncmeta_memctx_get, (void **)&lh,
-                              NULL);
+  ldap_pvt_thread_pool_getkey(threadctx, asyncmeta_memctx_get, (void **)&lh, NULL);
   if (!lh) {
     lh = ch_malloc(sizeof(listhead));
     lh->cnt = 0;
     lh->list = NULL;
-    ldap_pvt_thread_pool_setkey(threadctx, asyncmeta_memctx_get, (void *)lh,
-                                asyncmeta_memctx_destroy, NULL, NULL);
+    ldap_pvt_thread_pool_setkey(threadctx, asyncmeta_memctx_get, (void *)lh, asyncmeta_memctx_destroy, NULL, NULL);
   }
   if (lh->cnt < LH_MAX) {
     listptr *lp = memctx;
@@ -269,8 +254,7 @@ static void asyncmeta_memctx_put(void *threadctx, void *memctx) {
   }
 }
 
-int asyncmeta_new_bm_context(Operation *op, SlapReply *rs,
-                             bm_context_t **new_bc, int ntargets) {
+int asyncmeta_new_bm_context(Operation *op, SlapReply *rs, bm_context_t **new_bc, int ntargets) {
   void *oldctx = op->o_tmpmemctx;
   int i;
   /* prevent old memctx from being destroyed */
@@ -280,8 +264,7 @@ int asyncmeta_new_bm_context(Operation *op, SlapReply *rs,
   *new_bc = op->o_tmpcalloc(1, sizeof(bm_context_t), op->o_tmpmemctx);
 
   (*new_bc)->op = asyncmeta_copy_op(op);
-  (*new_bc)->candidates =
-      op->o_tmpcalloc(ntargets, sizeof(SlapReply), op->o_tmpmemctx);
+  (*new_bc)->candidates = op->o_tmpcalloc(ntargets, sizeof(SlapReply), op->o_tmpmemctx);
   (*new_bc)->msgids = op->o_tmpcalloc(ntargets, sizeof(int), op->o_tmpmemctx);
   for (i = 0; i < ntargets; i++) {
     (*new_bc)->msgids[i] = META_MSGID_UNDEFINED;
@@ -474,13 +457,10 @@ void asyncmeta_clear_bm_context(bm_context_t *bc) {
 
 int asyncmeta_add_message_queue(a_metaconn_t *mc, bm_context_t *bc) {
   a_metainfo_t *mi = mc->mc_info;
-  int max_pending_ops = (mi->mi_max_pending_ops == 0)
-                            ? META_BACK_CFG_MAX_PENDING_OPS
-                            : mi->mi_max_pending_ops;
+  int max_pending_ops = (mi->mi_max_pending_ops == 0) ? META_BACK_CFG_MAX_PENDING_OPS : mi->mi_max_pending_ops;
 
-  Debug(LDAP_DEBUG_TRACE,
-        "add_message_queue: mc %p, pending_ops %d, max_pending %d\n", mc,
-        mc->pending_ops, max_pending_ops);
+  Debug(LDAP_DEBUG_TRACE, "add_message_queue: mc %p, pending_ops %d, max_pending %d\n", mc, mc->pending_ops,
+        max_pending_ops);
 
   if (mc->pending_ops >= max_pending_ops) {
     return LDAP_BUSY;
@@ -508,8 +488,7 @@ void asyncmeta_drop_bc(a_metaconn_t *mc, bm_context_t *bc) {
   }
 }
 
-bm_context_t *asyncmeta_find_message(ber_int_t msgid, a_metaconn_t *mc,
-                                     int candidate) {
+bm_context_t *asyncmeta_find_message(ber_int_t msgid, a_metaconn_t *mc, int candidate) {
   bm_context_t *om;
   LDAP_SLIST_FOREACH(om, &mc->mc_om_list, bc_next) {
     if (om->candidates[candidate].sr_msgid == msgid) {
@@ -519,8 +498,7 @@ bm_context_t *asyncmeta_find_message(ber_int_t msgid, a_metaconn_t *mc,
   return om;
 }
 
-bm_context_t *asyncmeta_find_message_by_opmsguid(ber_int_t msgid,
-                                                 a_metaconn_t *mc, int remove) {
+bm_context_t *asyncmeta_find_message_by_opmsguid(ber_int_t msgid, a_metaconn_t *mc, int remove) {
   bm_context_t *om;
   LDAP_SLIST_FOREACH(om, &mc->mc_om_list, bc_next) {
     if (om->op->o_msgid == msgid) {

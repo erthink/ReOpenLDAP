@@ -48,8 +48,7 @@
  * directional text.  They check for weak and non-spacing, and digits and
  * non-spacing.
  */
-#define ISWEAKSPECIAL(cc)                                                      \
-  ucisprop(cc, UC_EN | UC_ES | UC_MN, UC_ET | UC_AN | UC_CS)
+#define ISWEAKSPECIAL(cc) ucisprop(cc, UC_EN | UC_ES | UC_MN, UC_ET | UC_AN | UC_CS)
 #define ISDIGITSPECIAL(cc) ucisprop(cc, UC_ND | UC_MN, 0)
 
 /*
@@ -68,39 +67,28 @@
  *
  * ISWEAK_NEUTRAL - Test for weak or neutral characters.
  */
-#define ISLTR_LTR(cc)                                                          \
-  ucisprop(cc, UC_L | UC_MN | UC_EN | UC_ES,                                   \
-           UC_ET | UC_CS | UC_B | UC_S | UC_WS | UC_ON)
+#define ISLTR_LTR(cc) ucisprop(cc, UC_L | UC_MN | UC_EN | UC_ES, UC_ET | UC_CS | UC_B | UC_S | UC_WS | UC_ON)
 
-#define ISRTL_RTL(cc)                                                          \
-  ucisprop(cc, UC_R | UC_MN | UC_EN | UC_ES,                                   \
-           UC_ET | UC_AN | UC_CS | UC_B | UC_S | UC_WS | UC_ON)
+#define ISRTL_RTL(cc) ucisprop(cc, UC_R | UC_MN | UC_EN | UC_ES, UC_ET | UC_AN | UC_CS | UC_B | UC_S | UC_WS | UC_ON)
 
 #define ISRTL_NEUTRAL(cc) ucisprop(cc, UC_R, UC_B | UC_S | UC_WS | UC_ON)
-#define ISWEAK_NEUTRAL(cc)                                                     \
-  ucisprop(cc, UC_EN | UC_ES,                                                  \
-           UC_B | UC_S | UC_WS | UC_ON | UC_ET | UC_AN | UC_CS)
+#define ISWEAK_NEUTRAL(cc) ucisprop(cc, UC_EN | UC_ES, UC_B | UC_S | UC_WS | UC_ON | UC_ET | UC_AN | UC_CS)
 
 /*
  * This table is temporarily hard-coded here until it can be constructed
  * automatically somehow.
  */
 static unsigned long _symmetric_pairs[] = {
-    0x0028, 0x0029, 0x0029, 0x0028, 0x003C, 0x003E, 0x003E, 0x003C, 0x005B,
-    0x005D, 0x005D, 0x005B, 0x007B, 0x007D, 0x007D, 0x007B, 0x2045, 0x2046,
-    0x2046, 0x2045, 0x207D, 0x207E, 0x207E, 0x207D, 0x208D, 0x208E, 0x208E,
-    0x208D, 0x3008, 0x3009, 0x3009, 0x3008, 0x300A, 0x300B, 0x300B, 0x300A,
-    0x300C, 0x300D, 0x300D, 0x300C, 0x300E, 0x300F, 0x300F, 0x300E, 0x3010,
-    0x3011, 0x3011, 0x3010, 0x3014, 0x3015, 0x3015, 0x3014, 0x3016, 0x3017,
-    0x3017, 0x3016, 0x3018, 0x3019, 0x3019, 0x3018, 0x301A, 0x301B, 0x301B,
-    0x301A, 0xFD3E, 0xFD3F, 0xFD3F, 0xFD3E, 0xFE59, 0xFE5A, 0xFE5A, 0xFE59,
-    0xFE5B, 0xFE5C, 0xFE5C, 0xFE5B, 0xFE5D, 0xFE5E, 0xFE5E, 0xFE5D, 0xFF08,
-    0xFF09, 0xFF09, 0xFF08, 0xFF3B, 0xFF3D, 0xFF3D, 0xFF3B, 0xFF5B, 0xFF5D,
-    0xFF5D, 0xFF5B, 0xFF62, 0xFF63, 0xFF63, 0xFF62,
+    0x0028, 0x0029, 0x0029, 0x0028, 0x003C, 0x003E, 0x003E, 0x003C, 0x005B, 0x005D, 0x005D, 0x005B, 0x007B, 0x007D,
+    0x007D, 0x007B, 0x2045, 0x2046, 0x2046, 0x2045, 0x207D, 0x207E, 0x207E, 0x207D, 0x208D, 0x208E, 0x208E, 0x208D,
+    0x3008, 0x3009, 0x3009, 0x3008, 0x300A, 0x300B, 0x300B, 0x300A, 0x300C, 0x300D, 0x300D, 0x300C, 0x300E, 0x300F,
+    0x300F, 0x300E, 0x3010, 0x3011, 0x3011, 0x3010, 0x3014, 0x3015, 0x3015, 0x3014, 0x3016, 0x3017, 0x3017, 0x3016,
+    0x3018, 0x3019, 0x3019, 0x3018, 0x301A, 0x301B, 0x301B, 0x301A, 0xFD3E, 0xFD3F, 0xFD3F, 0xFD3E, 0xFE59, 0xFE5A,
+    0xFE5A, 0xFE59, 0xFE5B, 0xFE5C, 0xFE5C, 0xFE5B, 0xFE5D, 0xFE5E, 0xFE5E, 0xFE5D, 0xFF08, 0xFF09, 0xFF09, 0xFF08,
+    0xFF3B, 0xFF3D, 0xFF3D, 0xFF3B, 0xFF5B, 0xFF5D, 0xFF5D, 0xFF5B, 0xFF62, 0xFF63, 0xFF63, 0xFF62,
 };
 
-static int _symmetric_pairs_size =
-    sizeof(_symmetric_pairs) / sizeof(_symmetric_pairs[0]);
+static int _symmetric_pairs_size = sizeof(_symmetric_pairs) / sizeof(_symmetric_pairs[0]);
 
 /*
  * This routine looks up the other form of a symmetric pair.
@@ -120,9 +108,7 @@ static unsigned long _ucsymmetric_pair(unsigned long c) {
  * logical text order chain and returns it to the caller to be linked into
  * the visual text order chain.
  */
-static ucrun_t *_add_run(ucstring_t *str, unsigned long *src,
-                         unsigned long start, unsigned long end,
-                         int direction) {
+static ucrun_t *_add_run(ucstring_t *str, unsigned long *src, unsigned long start, unsigned long end, int direction) {
   long i, t;
   ucrun_t *run;
 
@@ -132,8 +118,7 @@ static ucrun_t *_add_run(ucstring_t *str, unsigned long *src,
 
   run->cursor = ~0;
 
-  run->chars =
-      (unsigned long *)malloc(sizeof(unsigned long) * ((end - start) << 1));
+  run->chars = (unsigned long *)malloc(sizeof(unsigned long) * ((end - start) << 1));
   run->positions = run->chars + (end - start);
 
   run->source = src;
@@ -176,8 +161,7 @@ static ucrun_t *_add_run(ucstring_t *str, unsigned long *src,
   return run;
 }
 
-static void _ucadd_rtl_segment(ucstring_t *str, unsigned long *source,
-                               unsigned long start, unsigned long end) {
+static void _ucadd_rtl_segment(ucstring_t *str, unsigned long *source, unsigned long start, unsigned long end) {
   unsigned long s, e;
   ucrun_t *run, *lrun;
 
@@ -222,8 +206,7 @@ static void _ucadd_rtl_segment(ucstring_t *str, unsigned long *source,
      * depending on whether that number is Arabic or not.
      */
     for (s = e; e < end && ISWEAKSPECIAL(source[e]); e++) {
-      if (!ISDIGITSPECIAL(source[e]) &&
-          (e + 1 == end || !ISDIGITSPECIAL(source[e + 1])))
+      if (!ISDIGITSPECIAL(source[e]) && (e + 1 == end || !ISDIGITSPECIAL(source[e + 1])))
         break;
     }
 
@@ -289,8 +272,7 @@ static void _ucadd_rtl_segment(ucstring_t *str, unsigned long *source,
   }
 }
 
-static void _ucadd_ltr_segment(ucstring_t *str, unsigned long *source,
-                               unsigned long start, unsigned long end) {
+static void _ucadd_ltr_segment(ucstring_t *str, unsigned long *source, unsigned long start, unsigned long end) {
   ucrun_t *run;
 
   run = _add_run(str, source, start, end, UCPGBA_LTR);
@@ -312,8 +294,7 @@ static void _ucadd_ltr_segment(ucstring_t *str, unsigned long *source,
     str->visual_first = str->visual_last = run;
 }
 
-ucstring_t *ucstring_create(unsigned long *source, unsigned long start,
-                            unsigned long end, int default_direction,
+ucstring_t *ucstring_create(unsigned long *source, unsigned long start, unsigned long end, int default_direction,
                             int cursor_motion) {
   int rtl_first;
   unsigned long s, e, ld;
@@ -424,9 +405,7 @@ ucstring_t *ucstring_create(unsigned long *source, unsigned long start,
    */
   str->cursor = str->logical_first;
   if (str != 0)
-    str->cursor->cursor = (str->cursor->direction == UCPGBA_RTL)
-                              ? str->cursor->end - str->cursor->start
-                              : 0;
+    str->cursor->cursor = (str->cursor->direction == UCPGBA_RTL) ? str->cursor->end - str->cursor->start : 0;
 
   return str;
 }
@@ -472,8 +451,7 @@ static int _ucstring_visual_cursor_right(ucstring_t *str, int count) {
   cursor = str->cursor;
   while (cnt > 0) {
     size = cursor->end - cursor->start;
-    if ((cursor->direction == UCPGBA_RTL && cursor->cursor + 1 == size) ||
-        cursor->cursor + 1 > size) {
+    if ((cursor->direction == UCPGBA_RTL && cursor->cursor + 1 == size) || cursor->cursor + 1 > size) {
       /*
        * If the next run is NULL, then the cursor is already on the
        * far right end already.
@@ -572,9 +550,8 @@ static int _ucstring_logical_cursor_right(ucstring_t *str, int count) {
 int ucstring_cursor_right(ucstring_t *str, int count) {
   if (str == 0)
     return 0;
-  return (str->cursor_motion == UCPGBA_CURSOR_VISUAL)
-             ? _ucstring_visual_cursor_right(str, count)
-             : _ucstring_logical_cursor_right(str, count);
+  return (str->cursor_motion == UCPGBA_CURSOR_VISUAL) ? _ucstring_visual_cursor_right(str, count)
+                                                      : _ucstring_logical_cursor_right(str, count);
 }
 
 static int _ucstring_visual_cursor_left(ucstring_t *str, int count) {
@@ -588,8 +565,7 @@ static int _ucstring_visual_cursor_left(ucstring_t *str, int count) {
   cursor = str->cursor;
   while (cnt > 0) {
     size = cursor->end - cursor->start;
-    if ((cursor->direction == UCPGBA_LTR && cursor->cursor == 0) ||
-        cursor->cursor - 1 < -1) {
+    if ((cursor->direction == UCPGBA_LTR && cursor->cursor == 0) || cursor->cursor - 1 < -1) {
       /*
        * If the preceding run is NULL, then the cursor is already on the
        * far left end already.
@@ -688,13 +664,11 @@ static int _ucstring_logical_cursor_left(ucstring_t *str, int count) {
 int ucstring_cursor_left(ucstring_t *str, int count) {
   if (str == 0)
     return 0;
-  return (str->cursor_motion == UCPGBA_CURSOR_VISUAL)
-             ? _ucstring_visual_cursor_left(str, count)
-             : _ucstring_logical_cursor_left(str, count);
+  return (str->cursor_motion == UCPGBA_CURSOR_VISUAL) ? _ucstring_visual_cursor_left(str, count)
+                                                      : _ucstring_logical_cursor_left(str, count);
 }
 
-void ucstring_cursor_info(ucstring_t *str, int *direction,
-                          unsigned long *position) {
+void ucstring_cursor_info(ucstring_t *str, int *direction, unsigned long *position) {
   long c;
   unsigned long size;
   ucrun_t *cursor;
@@ -710,8 +684,7 @@ void ucstring_cursor_info(ucstring_t *str, int *direction,
   size = cursor->end - cursor->start;
 
   if (c == size)
-    *position = (cursor->direction == UCPGBA_RTL) ? cursor->start
-                                                  : cursor->positions[c - 1];
+    *position = (cursor->direction == UCPGBA_RTL) ? cursor->start : cursor->positions[c - 1];
   else if (c == -1)
     *position = (cursor->direction == UCPGBA_RTL) ? cursor->end : cursor->start;
   else

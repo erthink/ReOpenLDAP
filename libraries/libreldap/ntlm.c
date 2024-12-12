@@ -27,8 +27,8 @@
 
 #include "ldap-int.h"
 
-int ldap_ntlm_bind(LDAP *ld, const char *dn, ber_tag_t tag, struct berval *cred,
-                   LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
+int ldap_ntlm_bind(LDAP *ld, const char *dn, ber_tag_t tag, struct berval *cred, LDAPControl **sctrls,
+                   LDAPControl **cctrls, int *msgidp) {
   BerElement *ber;
   int rc;
   ber_int_t id;
@@ -53,12 +53,10 @@ int ldap_ntlm_bind(LDAP *ld, const char *dn, ber_tag_t tag, struct berval *cred,
   assert(LBER_VALID(ber));
 
   LDAP_NEXT_MSGID(ld, id);
-  rc = ber_printf(ber, "{it{istON}" /*}*/, id, LDAP_REQ_BIND, ld->ld_version,
-                  dn, tag, cred);
+  rc = ber_printf(ber, "{it{istON}" /*}*/, id, LDAP_REQ_BIND, ld->ld_version, dn, tag, cred);
 
   /* Put Server Controls */
-  if (rc != LDAP_SUCCESS ||
-      ldap_int_put_controls(ld, sctrls, ber) != LDAP_SUCCESS) {
+  if (rc != LDAP_SUCCESS || ldap_int_put_controls(ld, sctrls, ber) != LDAP_SUCCESS) {
     ber_free(ber, 1);
     return ld->ld_errno;
   }
@@ -78,8 +76,7 @@ int ldap_ntlm_bind(LDAP *ld, const char *dn, ber_tag_t tag, struct berval *cred,
   return LDAP_SUCCESS;
 }
 
-int ldap_parse_ntlm_bind_result(LDAP *ld, LDAPMessage *res,
-                                struct berval *challenge) {
+int ldap_parse_ntlm_bind_result(LDAP *ld, LDAPMessage *res, struct berval *challenge) {
   ber_int_t errcode;
   ber_tag_t tag;
   BerElement *ber;

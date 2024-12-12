@@ -37,8 +37,7 @@ struct paminfo {
 
 static int pam_bindcb(Operation *op, SlapReply *rs) {
   struct paminfo *pi = op->o_callback->sc_private;
-  LDAPControl *ctrl = ldap_control_find(LDAP_CONTROL_PASSWORDPOLICYRESPONSE,
-                                        rs->sr_ctrls, NULL);
+  LDAPControl *ctrl = ldap_control_find(LDAP_CONTROL_PASSWORDPOLICYRESPONSE, rs->sr_ctrls, NULL);
   if (ctrl) {
     LDAP *ld;
     ber_int_t expire, grace;
@@ -46,8 +45,7 @@ static int pam_bindcb(Operation *op, SlapReply *rs) {
 
     ldap_create(&ld);
     if (ld) {
-      int rc =
-          ldap_parse_passwordpolicy_control(ld, ctrl, &expire, &grace, &error);
+      int rc = ldap_parse_passwordpolicy_control(ld, ctrl, &expire, &grace, &error);
       if (rc == LDAP_SUCCESS) {
         if (expire >= 0) {
           char *unit = "seconds";
@@ -77,13 +75,9 @@ static int pam_bindcb(Operation *op, SlapReply *rs) {
 						unit = "years";
 					}
 #endif
-          pi->msg.bv_len =
-              sprintf(pi->msg.bv_val, "\nWARNING: Password expires in %d %s\n",
-                      expire, unit);
+          pi->msg.bv_len = sprintf(pi->msg.bv_val, "\nWARNING: Password expires in %d %s\n", expire, unit);
         } else if (grace > 0) {
-          pi->msg.bv_len =
-              sprintf(pi->msg.bv_val,
-                      "Password expired; %d grace logins remaining", grace);
+          pi->msg.bv_len = sprintf(pi->msg.bv_val, "Password expired; %d grace logins remaining", grace);
           pi->authz = NSLCD_PAM_NEW_AUTHTOK_REQD;
         } else if (error != PP_noError) {
           ber_str2bv(ldap_passwordpolicy_err2txt(error), 0, 0, &pi->msg);
@@ -110,8 +104,7 @@ static int pam_uid2dn(nssov_info *ni, Operation *op, struct paminfo *pi) {
   BER_BVZERO(&pi->dn);
 
   if (!isvalidusername(&pi->uid)) {
-    Debug(LDAP_DEBUG_ANY, "nssov_pam_uid2dn(%s): invalid user name\n",
-          pi->uid.bv_val ? pi->uid.bv_val : "NULL");
+    Debug(LDAP_DEBUG_ANY, "nssov_pam_uid2dn(%s): invalid user name\n", pi->uid.bv_val ? pi->uid.bv_val : "NULL");
     return NSLCD_PAM_USER_UNKNOWN;
   }
 
@@ -119,11 +112,9 @@ static int pam_uid2dn(nssov_info *ni, Operation *op, struct paminfo *pi) {
     int hlen = global_host_bv.bv_len;
 
     /* cn=<service>+uid=<user>,cn=<host>,cn=pam,cn=auth */
-    sdn.bv_len = pi->uid.bv_len + pi->svc.bv_len + hlen +
-                 STRLENOF("cn=+uid=,cn=,cn=pam,cn=auth");
+    sdn.bv_len = pi->uid.bv_len + pi->svc.bv_len + hlen + STRLENOF("cn=+uid=,cn=,cn=pam,cn=auth");
     sdn.bv_val = op->o_tmpalloc(sdn.bv_len + 1, op->o_tmpmemctx);
-    sprintf(sdn.bv_val, "cn=%s+uid=%s,cn=%s,cn=pam,cn=auth", pi->svc.bv_val,
-            pi->uid.bv_val, global_host_bv.bv_val);
+    sprintf(sdn.bv_val, "cn=%s+uid=%s,cn=%s,cn=pam,cn=auth", pi->svc.bv_val, pi->uid.bv_val, global_host_bv.bv_val);
     slap_sasl2dn(op, &sdn, &pi->dn, 0);
     op->o_tmpfree(sdn.bv_val, op->o_tmpmemctx);
   }
@@ -166,8 +157,7 @@ int pam_do_bind(nssov_info *ni, TFILE *fp, Operation *op, struct paminfo *pi) {
      * the possibility that ppolicy will get loaded later.
      */
     if (!ppolicy_cid) {
-      rc = slap_find_control_id(LDAP_CONTROL_PASSWORDPOLICYREQUEST,
-                                &ppolicy_cid);
+      rc = slap_find_control_id(LDAP_CONTROL_PASSWORDPOLICYREQUEST, &ppolicy_cid);
     }
     /* of course, 0 is a valid cid, but it won't be ppolicy... */
     if (ppolicy_cid) {
@@ -208,8 +198,7 @@ int pam_do_bind(nssov_info *ni, TFILE *fp, Operation *op, struct paminfo *pi) {
     break;
   }
 finish:
-  Debug(LDAP_DEBUG_ANY, "pam_do_bind (%s): rc (%d)\n",
-        pi->dn.bv_val ? pi->dn.bv_val : "NULL", rc);
+  Debug(LDAP_DEBUG_ANY, "pam_do_bind (%s): rc (%d)\n", pi->dn.bv_val ? pi->dn.bv_val : "NULL", rc);
   return rc;
 }
 
@@ -243,18 +232,15 @@ int pam_authc(nssov_info *ni, TFILE *fp, Operation *op, uid_t calleruid) {
   pi.pwd.bv_val = pwdc;
   pi.pwd.bv_len = tmpint32;
 
-  Debug(LDAP_DEBUG_TRACE, "nssov_pam_authc(%s)\n",
-        pi.uid.bv_val ? pi.uid.bv_val : "NULL");
+  Debug(LDAP_DEBUG_TRACE, "nssov_pam_authc(%s)\n", pi.uid.bv_val ? pi.uid.bv_val : "NULL");
 
   BER_BVZERO(&pi.msg);
   pi.ispwdmgr = 0;
 
   /* if service is "passwd" and "nssov-pam-password-prohibit-message */
   /* is set, deny the auth request */
-  if (!strcmp(svcc, "passwd") &&
-      !BER_BVISEMPTY(&ni->ni_pam_password_prohibit_message)) {
-    Debug(LDAP_DEBUG_TRACE, "nssov_pam_authc(): %s (%s)\n",
-          "password_prohibit_message for passwd",
+  if (!strcmp(svcc, "passwd") && !BER_BVISEMPTY(&ni->ni_pam_password_prohibit_message)) {
+    Debug(LDAP_DEBUG_TRACE, "nssov_pam_authc(): %s (%s)\n", "password_prohibit_message for passwd",
           ni->ni_pam_password_prohibit_message.bv_val);
     ber_str2bv(ni->ni_pam_password_prohibit_message.bv_val, 0, 0, &pi.msg);
     pi.authz = NSLCD_PAM_PERM_DENIED;
@@ -266,15 +252,13 @@ int pam_authc(nssov_info *ni, TFILE *fp, Operation *op, uid_t calleruid) {
   if (BER_BVISEMPTY(&pi.uid)) {
     if (BER_BVISEMPTY(&ni->ni_pam_pwdmgr_dn)) {
       /* pwdmgr dn not configured */
-      Debug(LDAP_DEBUG_TRACE, "nssov_pam_authc(prelim check): %s\n",
-            "pwdmgr dn not configured");
+      Debug(LDAP_DEBUG_TRACE, "nssov_pam_authc(prelim check): %s\n", "pwdmgr dn not configured");
       ber_str2bv("pwdmgr dn not configured", 0, 0, &pi.msg);
       pi.authz = NSLCD_PAM_PERM_DENIED;
       rc = NSLCD_PAM_PERM_DENIED;
       goto finish;
     } else if (calleruid != 0) {
-      Debug(LDAP_DEBUG_TRACE, "nssov_pam_authc(prelim check): %s\n",
-            "caller is not root");
+      Debug(LDAP_DEBUG_TRACE, "nssov_pam_authc(prelim check): %s\n", "caller is not root");
       ber_str2bv("only root may do that", 0, 0, &pi.msg);
       pi.authz = NSLCD_PAM_PERM_DENIED;
       rc = NSLCD_PAM_PERM_DENIED;
@@ -287,8 +271,7 @@ int pam_authc(nssov_info *ni, TFILE *fp, Operation *op, uid_t calleruid) {
     /* use pwdmgr pwd if configured */
     if (BER_BVISEMPTY(&pi.pwd)) {
       if (BER_BVISEMPTY(&ni->ni_pam_pwdmgr_pwd)) {
-        Debug(LDAP_DEBUG_TRACE, "nssov_pam_authc(prelim check): %s\n",
-              "no pwdmgr pwd");
+        Debug(LDAP_DEBUG_TRACE, "nssov_pam_authc(prelim check): %s\n", "no pwdmgr pwd");
         ber_str2bv("pwdmgr pwd not configured", 0, 0, &pi.msg);
         pi.authz = NSLCD_PAM_PERM_DENIED;
         rc = NSLCD_PAM_PERM_DENIED;
@@ -296,8 +279,7 @@ int pam_authc(nssov_info *ni, TFILE *fp, Operation *op, uid_t calleruid) {
       }
       /* use configured pwdmgr pwd */
       memset((void *)pwdc, 0, 256);
-      strncpy(pi.pwd.bv_val, ni->ni_pam_pwdmgr_pwd.bv_val,
-              ni->ni_pam_pwdmgr_pwd.bv_len);
+      strncpy(pi.pwd.bv_val, ni->ni_pam_pwdmgr_pwd.bv_val, ni->ni_pam_pwdmgr_pwd.bv_len);
       pi.pwd.bv_len = ni->ni_pam_pwdmgr_pwd.bv_len;
     }
     pi.ispwdmgr = 1;
@@ -306,8 +288,7 @@ int pam_authc(nssov_info *ni, TFILE *fp, Operation *op, uid_t calleruid) {
   rc = pam_do_bind(ni, fp, op, &pi);
 
 finish:
-  Debug(LDAP_DEBUG_TRACE, "nssov_pam_authc(%s): rc (%d)\n",
-        pi.dn.bv_val ? pi.dn.bv_val : "NULL", rc);
+  Debug(LDAP_DEBUG_TRACE, "nssov_pam_authc(%s): rc (%d)\n", pi.dn.bv_val ? pi.dn.bv_val : "NULL", rc);
   WRITE_INT32(fp, NSLCD_VERSION);
   WRITE_INT32(fp, NSLCD_ACTION_PAM_AUTHC);
   WRITE_INT32(fp, NSLCD_RESULT_BEGIN);
@@ -364,8 +345,7 @@ int pam_authz(nssov_info *ni, TFILE *fp, Operation *op) {
   if (rc)
     goto finish;
 
-  Debug(LDAP_DEBUG_TRACE, "nssov_pam_authz(%s)\n",
-        pi.dn.bv_val ? pi.dn.bv_val : "NULL");
+  Debug(LDAP_DEBUG_TRACE, "nssov_pam_authz(%s)\n", pi.dn.bv_val ? pi.dn.bv_val : "NULL");
 
   /* See if they have access to the host and service */
   if ((ni->ni_pam_opts & NI_PAM_HOSTSVC) && nssov_pam_svc_ad) {
@@ -435,8 +415,7 @@ int pam_authz(nssov_info *ni, TFILE *fp, Operation *op) {
   }
 
   /* See if they're a member of the group */
-  if ((ni->ni_pam_opts & NI_PAM_USERGRP) &&
-      !BER_BVISEMPTY(&ni->ni_pam_group_dn) && ni->ni_pam_group_ad) {
+  if ((ni->ni_pam_opts & NI_PAM_USERGRP) && !BER_BVISEMPTY(&ni->ni_pam_group_dn) && ni->ni_pam_group_ad) {
     AttributeAssertion ava = ATTRIBUTEASSERTION_INIT;
     SlapReply rs = {REP_RESULT};
     op->o_callback = &cb;
@@ -457,8 +436,8 @@ int pam_authz(nssov_info *ni, TFILE *fp, Operation *op) {
   }
 
   /* We need to check the user's entry for these bits */
-  if ((ni->ni_pam_opts & (NI_PAM_USERHOST | NI_PAM_USERSVC)) ||
-      ni->ni_pam_template_ad || ni->ni_pam_min_uid || ni->ni_pam_max_uid) {
+  if ((ni->ni_pam_opts & (NI_PAM_USERHOST | NI_PAM_USERSVC)) || ni->ni_pam_template_ad || ni->ni_pam_min_uid ||
+      ni->ni_pam_max_uid) {
     rc = be_entry_get_rw(op, &pi.dn, NULL, NULL, 0, &e);
     if (rc != LDAP_SUCCESS) {
       rc = NSLCD_PAM_USER_UNKNOWN;
@@ -467,10 +446,8 @@ int pam_authz(nssov_info *ni, TFILE *fp, Operation *op) {
   }
   if ((ni->ni_pam_opts & NI_PAM_USERHOST) && nssov_pam_host_ad) {
     a = attr_find(e->e_attrs, nssov_pam_host_ad);
-    if (!a || attr_valfind(a,
-                           SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH |
-                               SLAP_MR_VALUE_OF_SYNTAX,
-                           &global_host_bv, NULL, op->o_tmpmemctx)) {
+    if (!a || attr_valfind(a, SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH | SLAP_MR_VALUE_OF_SYNTAX, &global_host_bv, NULL,
+                           op->o_tmpmemctx)) {
       rc = NSLCD_PAM_PERM_DENIED;
       authzmsg = hostmsg;
       goto finish;
@@ -478,10 +455,8 @@ int pam_authz(nssov_info *ni, TFILE *fp, Operation *op) {
   }
   if ((ni->ni_pam_opts & NI_PAM_USERSVC) && nssov_pam_svc_ad) {
     a = attr_find(e->e_attrs, nssov_pam_svc_ad);
-    if (!a || attr_valfind(a,
-                           SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH |
-                               SLAP_MR_VALUE_OF_SYNTAX,
-                           &pi.svc, NULL, op->o_tmpmemctx)) {
+    if (!a || attr_valfind(a, SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH | SLAP_MR_VALUE_OF_SYNTAX, &pi.svc, NULL,
+                           op->o_tmpmemctx)) {
       rc = NSLCD_PAM_PERM_DENIED;
       authzmsg = svcmsg;
       goto finish;
@@ -507,8 +482,7 @@ int pam_authz(nssov_info *ni, TFILE *fp, Operation *op) {
       authzmsg = uidmsg;
       goto finish;
     }
-    if ((ni->ni_pam_min_uid && id < ni->ni_pam_min_uid) ||
-        (ni->ni_pam_max_uid && id > ni->ni_pam_max_uid)) {
+    if ((ni->ni_pam_min_uid && id < ni->ni_pam_min_uid) || (ni->ni_pam_max_uid && id > ni->ni_pam_max_uid)) {
       rc = NSLCD_PAM_PERM_DENIED;
       authzmsg = uidmsg;
       goto finish;
@@ -539,12 +513,10 @@ finish:
     Debug(LDAP_DEBUG_TRACE, "nssov_pam_authz(): success\n");
     break;
   case NSLCD_PAM_PERM_DENIED:
-    Debug(LDAP_DEBUG_TRACE, "nssov_pam_authz(): %s\n",
-          authzmsg.bv_val ? authzmsg.bv_val : "NULL");
+    Debug(LDAP_DEBUG_TRACE, "nssov_pam_authz(): %s\n", authzmsg.bv_val ? authzmsg.bv_val : "NULL");
     break;
   default:
-    Debug(LDAP_DEBUG_TRACE, "nssov_pam_authz(): permission denied, rc (%d)\n",
-          rc);
+    Debug(LDAP_DEBUG_TRACE, "nssov_pam_authz(): permission denied, rc (%d)\n", rc);
   }
   return 0;
 }
@@ -598,12 +570,10 @@ static int pam_sess(nssov_info *ni, TFILE *fp, Operation *op, int action) {
   if (rc)
     goto done;
 
-  Debug(LDAP_DEBUG_TRACE, "nssov_pam_sess_%c(%s)\n",
-        action == NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c', pi.dn.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "nssov_pam_sess_%c(%s)\n", action == NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c', pi.dn.bv_val);
 
   if (!ni->ni_pam_sessions) {
-    Debug(LDAP_DEBUG_TRACE, "nssov_pam_sess_%c(): %s\n",
-          action == NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c',
+    Debug(LDAP_DEBUG_TRACE, "nssov_pam_sess_%c(): %s\n", action == NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c',
           "pam session(s) not configured, ignored");
     rc = -1;
     goto done;
@@ -620,24 +590,21 @@ static int pam_sess(nssov_info *ni, TFILE *fp, Operation *op, int action) {
       }
     }
     if (!found) {
-      Debug(LDAP_DEBUG_TRACE,
-            "nssov_pam_sess_%c(): service(%s) not configured, ignored\n",
+      Debug(LDAP_DEBUG_TRACE, "nssov_pam_sess_%c(): service(%s) not configured, ignored\n",
             action == NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c', pi.svc.bv_val);
       rc = -1;
       goto done;
     }
   }
 
-  bv[0].bv_len = timestamp.bv_len + global_host_bv.bv_len + pi.svc.bv_len +
-                 pi.tty.bv_len + pi.ruser.bv_len + pi.rhost.bv_len +
-                 STRLENOF("    (@)");
+  bv[0].bv_len = timestamp.bv_len + global_host_bv.bv_len + pi.svc.bv_len + pi.tty.bv_len + pi.ruser.bv_len +
+                 pi.rhost.bv_len + STRLENOF("    (@)");
   bv[0].bv_val = op->o_tmpalloc(bv[0].bv_len + 1, op->o_tmpmemctx);
-  sprintf(bv[0].bv_val, "%s %s %s %s (%s@%s)", timestamp.bv_val,
-          global_host_bv.bv_val, pi.svc.bv_val, pi.tty.bv_val, pi.ruser.bv_val,
-          pi.rhost.bv_val);
+  sprintf(bv[0].bv_val, "%s %s %s %s (%s@%s)", timestamp.bv_val, global_host_bv.bv_val, pi.svc.bv_val, pi.tty.bv_val,
+          pi.ruser.bv_val, pi.rhost.bv_val);
 
-  Debug(LDAP_DEBUG_TRACE, "nssov_pam_sess_%c(): loginStatus (%s) \n",
-        action == NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c', bv[0].bv_val);
+  Debug(LDAP_DEBUG_TRACE, "nssov_pam_sess_%c(): loginStatus (%s) \n", action == NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c',
+        bv[0].bv_val);
 
   mod.sml_numvals = 1;
   mod.sml_values = bv;
@@ -645,8 +612,7 @@ static int pam_sess(nssov_info *ni, TFILE *fp, Operation *op, int action) {
   attr_normalize(ad_loginStatus, bv, &nbv, op->o_tmpmemctx);
   mod.sml_nvalues = nbv;
   mod.sml_desc = ad_loginStatus;
-  mod.sml_op =
-      action == NSLCD_ACTION_PAM_SESS_O ? LDAP_MOD_ADD : LDAP_MOD_DELETE;
+  mod.sml_op = action == NSLCD_ACTION_PAM_SESS_O ? LDAP_MOD_ADD : LDAP_MOD_DELETE;
   mod.sml_flags = SLAP_MOD_INTERNAL;
   mod.sml_next = NULL;
 
@@ -660,8 +626,7 @@ static int pam_sess(nssov_info *ni, TFILE *fp, Operation *op, int action) {
   op->o_req_dn = pi.dn;
   op->o_req_ndn = pi.dn;
   if (op->o_bd->be_modify(op, &rs) != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_TRACE, "nssov_pam_sess_%c(): modify op failed\n",
-          action == NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c');
+    Debug(LDAP_DEBUG_TRACE, "nssov_pam_sess_%c(): modify op failed\n", action == NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c');
     rc = -1;
   }
 
@@ -673,8 +638,7 @@ static int pam_sess(nssov_info *ni, TFILE *fp, Operation *op, int action) {
 done:;
 
   if (rc == 0) {
-    Debug(LDAP_DEBUG_TRACE, "nssov_pam_sess_%c(): success\n",
-          action == NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c');
+    Debug(LDAP_DEBUG_TRACE, "nssov_pam_sess_%c(): success\n", action == NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c');
   }
   WRITE_INT32(fp, NSLCD_VERSION);
   WRITE_INT32(fp, action);
@@ -685,13 +649,9 @@ done:;
   return 0;
 }
 
-int pam_sess_o(nssov_info *ni, TFILE *fp, Operation *op) {
-  return pam_sess(ni, fp, op, NSLCD_ACTION_PAM_SESS_O);
-}
+int pam_sess_o(nssov_info *ni, TFILE *fp, Operation *op) { return pam_sess(ni, fp, op, NSLCD_ACTION_PAM_SESS_O); }
 
-int pam_sess_c(nssov_info *ni, TFILE *fp, Operation *op) {
-  return pam_sess(ni, fp, op, NSLCD_ACTION_PAM_SESS_C);
-}
+int pam_sess_c(nssov_info *ni, TFILE *fp, Operation *op) { return pam_sess(ni, fp, op, NSLCD_ACTION_PAM_SESS_C); }
 
 int pam_pwmod(nssov_info *ni, TFILE *fp, Operation *op, uid_t calleruid) {
   struct berval npw;
@@ -734,8 +694,7 @@ int pam_pwmod(nssov_info *ni, TFILE *fp, Operation *op, uid_t calleruid) {
   if (rc)
     goto done;
 
-  Debug(LDAP_DEBUG_TRACE, "nssov_pam_pwmod(%s), %s %s\n",
-        pi.dn.bv_val ? pi.dn.bv_val : "NULL",
+  Debug(LDAP_DEBUG_TRACE, "nssov_pam_pwmod(%s), %s %s\n", pi.dn.bv_val ? pi.dn.bv_val : "NULL",
         pi.uid.bv_val ? pi.uid.bv_val : "NULL", asroot ? "as root" : "as user");
 
   BER_BVZERO(&pi.msg);
@@ -743,8 +702,7 @@ int pam_pwmod(nssov_info *ni, TFILE *fp, Operation *op, uid_t calleruid) {
 
   /* nssov_pam prohibits password mod */
   if (!BER_BVISEMPTY(&ni->ni_pam_password_prohibit_message)) {
-    Debug(LDAP_DEBUG_TRACE, "nssov_pam_pwmod(): %s (%s)\n",
-          "password_prohibit_message",
+    Debug(LDAP_DEBUG_TRACE, "nssov_pam_pwmod(): %s (%s)\n", "password_prohibit_message",
           ni->ni_pam_password_prohibit_message.bv_val);
     ber_str2bv(ni->ni_pam_password_prohibit_message.bv_val, 0, 0, &pi.msg);
     rc = NSLCD_PAM_PERM_DENIED;
@@ -753,8 +711,7 @@ int pam_pwmod(nssov_info *ni, TFILE *fp, Operation *op, uid_t calleruid) {
 
   if (asroot) {
     if (BER_BVISEMPTY(&ni->ni_pam_pwdmgr_dn)) {
-      Debug(LDAP_DEBUG_TRACE, "nssov_pam_pwmod(), %s\n",
-            "pwdmgr not configured");
+      Debug(LDAP_DEBUG_TRACE, "nssov_pam_pwmod(), %s\n", "pwdmgr not configured");
       ber_str2bv("pwdmgr not configured", 0, 0, &pi.msg);
       rc = NSLCD_PAM_PERM_DENIED;
       goto done;
@@ -770,8 +727,7 @@ int pam_pwmod(nssov_info *ni, TFILE *fp, Operation *op, uid_t calleruid) {
   }
 
   if (!pi.ispwdmgr && BER_BVISEMPTY(&pi.pwd)) {
-    Debug(LDAP_DEBUG_TRACE, "nssov_pam_pwmod(), %s\n",
-          "not pwdmgr and old pwd empty");
+    Debug(LDAP_DEBUG_TRACE, "nssov_pam_pwmod(), %s\n", "not pwdmgr and old pwd empty");
     ber_str2bv("must provide old password", 0, 0, &pi.msg);
     rc = NSLCD_PAM_PERM_DENIED;
     goto done;

@@ -117,8 +117,8 @@ typedef struct _ucstring_t {
  * cursor motion should be provided.
  */
 LDAP_LUNICODE_F(ucstring_t *)
-ucstring_create(unsigned long *source, unsigned long start, unsigned long end,
-                int default_direction, int cursor_motion);
+ucstring_create(unsigned long *source, unsigned long start, unsigned long end, int default_direction,
+                int cursor_motion);
 /*
  * This releases the string.
  */
@@ -155,8 +155,7 @@ ucstring_cursor_left(ucstring_t *string, int count);
  * and the actual position in the original text string.
  */
 LDAP_LUNICODE_F(void)
-ucstring_cursor_info(ucstring_t *string, int *direction,
-                     unsigned long *position);
+ucstring_cursor_info(ucstring_t *string, int *direction, unsigned long *position);
 
 LDAP_END_DECL
 

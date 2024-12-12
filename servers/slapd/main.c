@@ -49,8 +49,7 @@ static void wait4child(int sig);
 #endif
 
 typedef int(MainFunc)(int argc, char *argv[]);
-extern MainFunc slapadd, slapcat, slapdn, slapindex, slappasswd, slaptest,
-    slapauth, slapacl, slapschema, slapmodify;
+extern MainFunc slapadd, slapcat, slapdn, slapindex, slappasswd, slaptest, slapauth, slapacl, slapschema, slapmodify;
 
 static struct {
   char *name;
@@ -79,8 +78,7 @@ static struct {
  */
 
 const char SlapdVersionStr[] =
-    REOPENLDAP_PACKAGE " " REOPENLDAP_VERSION REOPENLDAP_BUILDID_SUFFIX
-                       " (" RELEASE_DATE ", " RELEASE_STAMP "), "
+    REOPENLDAP_PACKAGE " " REOPENLDAP_VERSION REOPENLDAP_BUILDID_SUFFIX " (" RELEASE_DATE ", " RELEASE_STAMP "), "
                        "Standalone LDAP Server (slapd)";
 
 extern OverlayInit slap_oinfo[];
@@ -138,10 +136,8 @@ struct option_helper {
   int (*oh_fnc)(const char *val, void *arg);
   void *oh_arg;
   const char *oh_usage;
-} option_helpers[] = {
-    {BER_BVC("slp"), slapd_opt_slp, NULL,
-     "slp[={on|off|(attrs)}] enable/disable SLP using (attrs)"},
-    {BER_BVNULL, 0, NULL, NULL}};
+} option_helpers[] = {{BER_BVC("slp"), slapd_opt_slp, NULL, "slp[={on|off|(attrs)}] enable/disable SLP using (attrs)"},
+                      {BER_BVNULL, 0, NULL, NULL}};
 
 #ifdef LDAP_SYSLOG
 #ifdef LOG_LOCAL4
@@ -175,15 +171,10 @@ int parse_syslog_user(const char *arg, int *syslogUser) {
 #endif /* LOG_LOCAL4 */
 
 int parse_syslog_severity(const char *arg, int *severity) {
-  static slap_verbmasks str2syslog_level[] = {{BER_BVC("EMERG"), LOG_EMERG},
-                                              {BER_BVC("ALERT"), LOG_ALERT},
-                                              {BER_BVC("CRIT"), LOG_CRIT},
-                                              {BER_BVC("ERR"), LOG_ERR},
-                                              {BER_BVC("WARNING"), LOG_WARNING},
-                                              {BER_BVC("NOTICE"), LOG_NOTICE},
-                                              {BER_BVC("INFO"), LOG_INFO},
-                                              {BER_BVC("DEBUG"), LOG_DEBUG},
-                                              {BER_BVNULL, 0}};
+  static slap_verbmasks str2syslog_level[] = {
+      {BER_BVC("EMERG"), LOG_EMERG}, {BER_BVC("ALERT"), LOG_ALERT},     {BER_BVC("CRIT"), LOG_CRIT},
+      {BER_BVC("ERR"), LOG_ERR},     {BER_BVC("WARNING"), LOG_WARNING}, {BER_BVC("NOTICE"), LOG_NOTICE},
+      {BER_BVC("INFO"), LOG_INFO},   {BER_BVC("DEBUG"), LOG_DEBUG},     {BER_BVNULL, 0}};
   int i = verb_to_mask(arg, str2syslog_level);
   if (BER_BVISNULL(&str2syslog_level[i].word)) {
     Debug(LDAP_DEBUG_ANY, "unknown syslog level \"%s\".\n", arg);
@@ -225,8 +216,7 @@ int parse_debug_level(const char *arg, int *levelp, char ***unknowns) {
       if (str2loglevel(levels[i], &level)) {
         /* remember this for later */
         ldap_charray_add(unknowns, levels[i]);
-        fprintf(stderr, "unrecognized log level \"%s\" (deferred)\n",
-                levels[i]);
+        fprintf(stderr, "unrecognized log level \"%s\" (deferred)\n", levels[i]);
       } else {
         *levelp |= level;
       }
@@ -477,8 +467,7 @@ int main(int argc, char **argv) {
       slap_set_debug_level(mask);
 #else
       if (mask != 0 || debug_unknowns)
-        fputs("must be configured with '--enable-debug' for debugging\n",
-              stderr);
+        fputs("must be configured with '--enable-debug' for debugging\n", stderr);
 #endif /* LDAP_DEBUG */
     } break;
 
@@ -507,8 +496,7 @@ int main(int argc, char **argv) {
       for (i = 0; !BER_BVISNULL(&option_helpers[i].oh_name); i++) {
         if (ber_bvstrcasecmp(&option_helpers[i].oh_name, &opt) == 0) {
           assert(option_helpers[i].oh_fnc != NULL);
-          if ((*option_helpers[i].oh_fnc)(val, option_helpers[i].oh_arg) ==
-              -1) {
+          if ((*option_helpers[i].oh_fnc)(val, option_helpers[i].oh_arg) == -1) {
             /* we assume the option parsing helper
              * issues appropriate and self-explanatory
              * error messages... */

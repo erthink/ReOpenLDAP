@@ -63,11 +63,9 @@ static int ainfo_insert(struct bdb_info *bdb, AttrInfo *a) {
   if (i >= 0)
     return -1;
 
-  bdb->bi_attrs =
-      ch_realloc(bdb->bi_attrs, (bdb->bi_nattrs + 1) * sizeof(AttrInfo *));
+  bdb->bi_attrs = ch_realloc(bdb->bi_attrs, (bdb->bi_nattrs + 1) * sizeof(AttrInfo *));
   if (x < bdb->bi_nattrs)
-    memmove(&bdb->bi_attrs[x + 1], &bdb->bi_attrs[x],
-            (bdb->bi_nattrs - x) * sizeof(AttrInfo *));
+    memmove(&bdb->bi_attrs[x + 1], &bdb->bi_attrs[x], (bdb->bi_nattrs - x) * sizeof(AttrInfo *));
   bdb->bi_attrs[x] = a;
   bdb->bi_nattrs++;
   return 0;
@@ -78,8 +76,7 @@ AttrInfo *bdb_attr_mask(struct bdb_info *bdb, AttributeDescription *desc) {
   return i < 0 ? NULL : bdb->bi_attrs[i];
 }
 
-int bdb_attr_index_config(struct bdb_info *bdb, const char *fname, int lineno,
-                          int argc, char **argv,
+int bdb_attr_index_config(struct bdb_info *bdb, const char *fname, int lineno, int argc, char **argv,
                           struct config_reply_s *c_reply) {
   int rc = 0;
   int i;
@@ -122,8 +119,7 @@ int bdb_attr_index_config(struct bdb_info *bdb, const char *fname, int lineno,
 
       if (rc != LDAP_SUCCESS) {
         if (c_reply) {
-          snprintf(c_reply->msg, sizeof(c_reply->msg),
-                   "index type \"%s\" undefined", indexes[i]);
+          snprintf(c_reply->msg, sizeof(c_reply->msg), "index type \"%s\" undefined", indexes[i]);
 
           fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
         }
@@ -163,8 +159,7 @@ int bdb_attr_index_config(struct bdb_info *bdb, const char *fname, int lineno,
       rc = extract_component_reference(attrs[i], &cr);
       if (rc != LDAP_SUCCESS) {
         if (c_reply) {
-          snprintf(c_reply->msg, sizeof(c_reply->msg),
-                   "index component reference\"%s\" undefined", attrs[i]);
+          snprintf(c_reply->msg, sizeof(c_reply->msg), "index component reference\"%s\" undefined", attrs[i]);
           fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
         }
         goto done;
@@ -183,8 +178,7 @@ int bdb_attr_index_config(struct bdb_info *bdb, const char *fname, int lineno,
 
     if (rc != LDAP_SUCCESS) {
       if (c_reply) {
-        snprintf(c_reply->msg, sizeof(c_reply->msg),
-                 "index attribute \"%s\" undefined", attrs[i]);
+        snprintf(c_reply->msg, sizeof(c_reply->msg), "index attribute \"%s\" undefined", attrs[i]);
 
         fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
       }
@@ -197,8 +191,7 @@ int bdb_attr_index_config(struct bdb_info *bdb, const char *fname, int lineno,
 
     if (ad == slap_schema.si_ad_entryDN || slap_ad_is_binary(ad)) {
       if (c_reply) {
-        snprintf(c_reply->msg, sizeof(c_reply->msg),
-                 "index of attribute \"%s\" disallowed", attrs[i]);
+        snprintf(c_reply->msg, sizeof(c_reply->msg), "index of attribute \"%s\" disallowed", attrs[i]);
         fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
       }
       rc = LDAP_UNWILLING_TO_PERFORM;
@@ -206,11 +199,9 @@ int bdb_attr_index_config(struct bdb_info *bdb, const char *fname, int lineno,
     }
 
     if (IS_SLAP_INDEX(mask, SLAP_INDEX_APPROX) &&
-        !(ad->ad_type->sat_approx && ad->ad_type->sat_approx->smr_indexer &&
-          ad->ad_type->sat_approx->smr_filter)) {
+        !(ad->ad_type->sat_approx && ad->ad_type->sat_approx->smr_indexer && ad->ad_type->sat_approx->smr_filter)) {
       if (c_reply) {
-        snprintf(c_reply->msg, sizeof(c_reply->msg),
-                 "approx index of attribute \"%s\" disallowed", attrs[i]);
+        snprintf(c_reply->msg, sizeof(c_reply->msg), "approx index of attribute \"%s\" disallowed", attrs[i]);
         fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
       }
       rc = LDAP_INAPPROPRIATE_MATCHING;
@@ -221,8 +212,7 @@ int bdb_attr_index_config(struct bdb_info *bdb, const char *fname, int lineno,
         !(ad->ad_type->sat_equality && ad->ad_type->sat_equality->smr_indexer &&
           ad->ad_type->sat_equality->smr_filter)) {
       if (c_reply) {
-        snprintf(c_reply->msg, sizeof(c_reply->msg),
-                 "equality index of attribute \"%s\" disallowed", attrs[i]);
+        snprintf(c_reply->msg, sizeof(c_reply->msg), "equality index of attribute \"%s\" disallowed", attrs[i]);
         fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
       }
       rc = LDAP_INAPPROPRIATE_MATCHING;
@@ -230,11 +220,9 @@ int bdb_attr_index_config(struct bdb_info *bdb, const char *fname, int lineno,
     }
 
     if (IS_SLAP_INDEX(mask, SLAP_INDEX_SUBSTR) &&
-        !(ad->ad_type->sat_substr && ad->ad_type->sat_substr->smr_indexer &&
-          ad->ad_type->sat_substr->smr_filter)) {
+        !(ad->ad_type->sat_substr && ad->ad_type->sat_substr->smr_indexer && ad->ad_type->sat_substr->smr_filter)) {
       if (c_reply) {
-        snprintf(c_reply->msg, sizeof(c_reply->msg),
-                 "substr index of attribute \"%s\" disallowed", attrs[i]);
+        snprintf(c_reply->msg, sizeof(c_reply->msg), "substr index of attribute \"%s\" disallowed", attrs[i]);
         fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
       }
       rc = LDAP_INAPPROPRIATE_MATCHING;
@@ -270,8 +258,7 @@ int bdb_attr_index_config(struct bdb_info *bdb, const char *fname, int lineno,
         ch_free(a);
         rc = insert_component_reference(cr, &a_cr->ai_cr);
         if (rc != LDAP_SUCCESS) {
-          fprintf(stderr, " error during inserting component reference in %s ",
-                  attrs[i]);
+          fprintf(stderr, " error during inserting component reference in %s ", attrs[i]);
           rc = LDAP_PARAM_ERROR;
           goto fail;
         }
@@ -279,8 +266,7 @@ int bdb_attr_index_config(struct bdb_info *bdb, const char *fname, int lineno,
       } else {
         rc = insert_component_reference(cr, &a->ai_cr);
         if (rc != LDAP_SUCCESS) {
-          fprintf(stderr, " error during inserting component reference in %s ",
-                  attrs[i]);
+          fprintf(stderr, " error during inserting component reference in %s ", attrs[i]);
           rc = LDAP_PARAM_ERROR;
           ch_free(a);
           goto fail;
@@ -308,8 +294,7 @@ int bdb_attr_index_config(struct bdb_info *bdb, const char *fname, int lineno,
         }
       }
       if (c_reply) {
-        snprintf(c_reply->msg, sizeof(c_reply->msg),
-                 "duplicate index definition for attr \"%s\"", attrs[i]);
+        snprintf(c_reply->msg, sizeof(c_reply->msg), "duplicate index definition for attr \"%s\"", attrs[i]);
         fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
       }
 

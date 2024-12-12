@@ -298,8 +298,7 @@ unsigned int slapi_entry_attr_get_uint(const Slapi_Entry *e, const char *type) {
   return slapi_value_get_uint(attr->a_vals);
 }
 
-unsigned long slapi_entry_attr_get_ulong(const Slapi_Entry *e,
-                                         const char *type) {
+unsigned long slapi_entry_attr_get_ulong(const Slapi_Entry *e, const char *type) {
   AttributeDescription *ad = NULL;
   const char *text;
   int rc;
@@ -318,8 +317,7 @@ unsigned long slapi_entry_attr_get_ulong(const Slapi_Entry *e,
   return slapi_value_get_ulong(attr->a_vals);
 }
 
-int slapi_entry_attr_hasvalue(Slapi_Entry *e, const char *type,
-                              const char *value) {
+int slapi_entry_attr_hasvalue(Slapi_Entry *e, const char *type, const char *value) {
   struct berval bv;
   AttributeDescription *ad = NULL;
   const char *text;
@@ -342,8 +340,7 @@ int slapi_entry_attr_hasvalue(Slapi_Entry *e, const char *type,
   return (slapi_attr_value_find(attr, &bv) != -1);
 }
 
-void slapi_entry_attr_set_charptr(Slapi_Entry *e, const char *type,
-                                  const char *value) {
+void slapi_entry_attr_set_charptr(Slapi_Entry *e, const char *type, const char *value) {
   AttributeDescription *ad = NULL;
   const char *text;
   int rc;
@@ -369,8 +366,7 @@ void slapi_entry_attr_set_int(Slapi_Entry *e, const char *type, int l) {
   slapi_entry_attr_set_charptr(e, type, buf);
 }
 
-void slapi_entry_attr_set_uint(Slapi_Entry *e, const char *type,
-                               unsigned int l) {
+void slapi_entry_attr_set_uint(Slapi_Entry *e, const char *type, unsigned int l) {
   char buf[64];
 
   snprintf(buf, sizeof(buf), "%u", l);
@@ -384,8 +380,7 @@ void slapi_entry_attr_set_long(Slapi_Entry *e, const char *type, long l) {
   slapi_entry_attr_set_charptr(e, type, buf);
 }
 
-void slapi_entry_attr_set_ulong(Slapi_Entry *e, const char *type,
-                                unsigned long l) {
+void slapi_entry_attr_set_ulong(Slapi_Entry *e, const char *type, unsigned long l) {
   char buf[64];
 
   snprintf(buf, sizeof(buf), "%lu", l);
@@ -452,8 +447,7 @@ size_t slapi_entry_size(Slapi_Entry *e) {
  *	LDAP_TYPE_OR_VALUE_EXISTS	One or more values exist in entry
  *already LDAP_CONSTRAINT_VIOLATION	Any other error (odd, but it's the spec)
  */
-int slapi_entry_add_values(Slapi_Entry *e, const char *type,
-                           struct berval **vals) {
+int slapi_entry_add_values(Slapi_Entry *e, const char *type, struct berval **vals) {
   Modification mod;
   const char *text;
   int rc;
@@ -492,13 +486,11 @@ int slapi_entry_add_values(Slapi_Entry *e, const char *type,
   return (rc == LDAP_SUCCESS) ? LDAP_SUCCESS : LDAP_CONSTRAINT_VIOLATION;
 }
 
-int slapi_entry_add_values_sv(Slapi_Entry *e, const char *type,
-                              Slapi_Value **vals) {
+int slapi_entry_add_values_sv(Slapi_Entry *e, const char *type, Slapi_Value **vals) {
   return slapi_entry_add_values(e, type, vals);
 }
 
-int slapi_entry_add_valueset(Slapi_Entry *e, const char *type,
-                             Slapi_ValueSet *vs) {
+int slapi_entry_add_valueset(Slapi_Entry *e, const char *type, Slapi_ValueSet *vs) {
   AttributeDescription *ad = NULL;
   const char *text;
   int rc;
@@ -511,8 +503,7 @@ int slapi_entry_add_valueset(Slapi_Entry *e, const char *type,
   return attr_merge_normalize(e, ad, *vs, NULL);
 }
 
-int slapi_entry_delete_values(Slapi_Entry *e, const char *type,
-                              struct berval **vals) {
+int slapi_entry_delete_values(Slapi_Entry *e, const char *type, struct berval **vals) {
   Modification mod;
   const char *text;
   int rc;
@@ -552,18 +543,15 @@ int slapi_entry_delete_values(Slapi_Entry *e, const char *type,
   return rc;
 }
 
-int slapi_entry_delete_values_sv(Slapi_Entry *e, const char *type,
-                                 Slapi_Value **vals) {
+int slapi_entry_delete_values_sv(Slapi_Entry *e, const char *type, Slapi_Value **vals) {
   return slapi_entry_delete_values(e, type, vals);
 }
 
-int slapi_entry_merge_values_sv(Slapi_Entry *e, const char *type,
-                                Slapi_Value **vals) {
+int slapi_entry_merge_values_sv(Slapi_Entry *e, const char *type, Slapi_Value **vals) {
   return slapi_entry_attr_merge(e, (char *)type, vals);
 }
 
-int slapi_entry_add_value(Slapi_Entry *e, const char *type,
-                          const Slapi_Value *value) {
+int slapi_entry_add_value(Slapi_Entry *e, const char *type, const Slapi_Value *value) {
   AttributeDescription *ad = NULL;
   int rc;
   const char *text;
@@ -581,8 +569,7 @@ int slapi_entry_add_value(Slapi_Entry *e, const char *type,
   return 0;
 }
 
-int slapi_entry_add_string(Slapi_Entry *e, const char *type,
-                           const char *value) {
+int slapi_entry_add_string(Slapi_Entry *e, const char *type, const char *value) {
   Slapi_Value val;
 
   val.bv_val = (char *)value;
@@ -591,8 +578,7 @@ int slapi_entry_add_string(Slapi_Entry *e, const char *type,
   return slapi_entry_add_value(e, type, &val);
 }
 
-int slapi_entry_delete_string(Slapi_Entry *e, const char *type,
-                              const char *value) {
+int slapi_entry_delete_string(Slapi_Entry *e, const char *type, const char *value) {
   Slapi_Value *vals[2];
   Slapi_Value val;
 
@@ -604,8 +590,7 @@ int slapi_entry_delete_string(Slapi_Entry *e, const char *type,
   return slapi_entry_delete_values_sv(e, type, vals);
 }
 
-int slapi_entry_attr_merge_sv(Slapi_Entry *e, const char *type,
-                              Slapi_Value **vals) {
+int slapi_entry_attr_merge_sv(Slapi_Entry *e, const char *type, Slapi_Value **vals) {
   return slapi_entry_attr_merge(e, (char *)type, vals);
 }
 
@@ -619,8 +604,7 @@ int slapi_entry_first_attr(const Slapi_Entry *e, Slapi_Attr **attr) {
   return (*attr != NULL) ? 0 : -1;
 }
 
-int slapi_entry_next_attr(const Slapi_Entry *e, Slapi_Attr *prevattr,
-                          Slapi_Attr **attr) {
+int slapi_entry_next_attr(const Slapi_Entry *e, Slapi_Attr *prevattr, Slapi_Attr **attr) {
   if (e == NULL) {
     return -1;
   }
@@ -634,8 +618,7 @@ int slapi_entry_next_attr(const Slapi_Entry *e, Slapi_Attr *prevattr,
   return (*attr != NULL) ? 0 : -1;
 }
 
-int slapi_entry_attr_replace_sv(Slapi_Entry *e, const char *type,
-                                Slapi_Value **vals) {
+int slapi_entry_attr_replace_sv(Slapi_Entry *e, const char *type, Slapi_Value **vals) {
   AttributeDescription *ad = NULL;
   const char *text;
   int rc;
@@ -764,24 +747,21 @@ int slapi_dn_isparent(const char *parentdn, const char *childdn) {
   assertedParentDN.bv_val = (char *)parentdn;
   assertedParentDN.bv_len = strlen(parentdn);
 
-  if (dnNormalize(0, NULL, NULL, &assertedParentDN, &normalizedAssertedParentDN,
-                  NULL) != LDAP_SUCCESS) {
+  if (dnNormalize(0, NULL, NULL, &assertedParentDN, &normalizedAssertedParentDN, NULL) != LDAP_SUCCESS) {
     return 0;
   }
 
   childDN.bv_val = (char *)childdn;
   childDN.bv_len = strlen(childdn);
 
-  if (dnNormalize(0, NULL, NULL, &childDN, &normalizedChildDN, NULL) !=
-      LDAP_SUCCESS) {
+  if (dnNormalize(0, NULL, NULL, &childDN, &normalizedChildDN, NULL) != LDAP_SUCCESS) {
     slapi_ch_free((void **)&normalizedAssertedParentDN.bv_val);
     return 0;
   }
 
   dnParent(&normalizedChildDN, &normalizedParentDN);
 
-  if (dnMatch(&match, 0, slap_schema.si_syn_distinguishedName, NULL,
-              &normalizedParentDN,
+  if (dnMatch(&match, 0, slap_schema.si_syn_distinguishedName, NULL, &normalizedParentDN,
               (void *)&normalizedAssertedParentDN) != LDAP_SUCCESS) {
     match = -1;
   }
@@ -873,8 +853,7 @@ char *slapi_dn_beparent(Slapi_PBlock *pb, const char *ldn) {
   dn.bv_val = (char *)ldn;
   dn.bv_len = strlen(ldn);
 
-  if (dnPrettyNormal(NULL, &dn, &prettyDN, &normalizedDN, NULL) !=
-      LDAP_SUCCESS) {
+  if (dnPrettyNormal(NULL, &dn, &prettyDN, &normalizedDN, NULL) != LDAP_SUCCESS) {
     return NULL;
   }
 
@@ -917,9 +896,7 @@ void slapi_ch_array_free(char **arrayp) {
   }
 }
 
-struct berval *slapi_ch_bvdup(const struct berval *v) {
-  return ber_dupbv(NULL, (struct berval *)v);
-}
+struct berval *slapi_ch_bvdup(const struct berval *v) { return ber_dupbv(NULL, (struct berval *)v); }
 
 struct berval **slapi_ch_bvecdup(const struct berval **v) {
   int i;
@@ -942,20 +919,15 @@ struct berval **slapi_ch_bvecdup(const struct berval **v) {
   return rv;
 }
 
-char *slapi_ch_calloc(unsigned long nelem, unsigned long size) {
-  return ch_calloc(nelem, size);
-}
+char *slapi_ch_calloc(unsigned long nelem, unsigned long size) { return ch_calloc(nelem, size); }
 
-char *slapi_ch_realloc(char *block, unsigned long size) {
-  return ch_realloc(block, size);
-}
+char *slapi_ch_realloc(char *block, unsigned long size) { return ch_realloc(block, size); }
 
 char *slapi_ch_strdup(const char *s) { return ch_strdup(s); }
 
 size_t slapi_ch_stlen(const char *s) { return strlen(s); }
 
-int slapi_control_present(LDAPControl **controls, char *oid,
-                          struct berval **val, int *iscritical) {
+int slapi_control_present(LDAPControl **controls, char *oid, struct berval **val, int *iscritical) {
   int i;
   int rc = 0;
 
@@ -989,8 +961,7 @@ int slapi_control_present(LDAPControl **controls, char *oid,
   return rc;
 }
 
-static void slapControlMask2SlapiControlOp(slap_mask_t slap_mask,
-                                           unsigned long *slapi_mask) {
+static void slapControlMask2SlapiControlOp(slap_mask_t slap_mask, unsigned long *slapi_mask) {
   *slapi_mask = SLAPI_OPERATION_NONE;
 
   if (slap_mask & SLAP_CTRL_ABANDON)
@@ -1021,8 +992,7 @@ static void slapControlMask2SlapiControlOp(slap_mask_t slap_mask,
     *slapi_mask |= SLAPI_OPERATION_UNBIND;
 }
 
-static void slapiControlOp2SlapControlMask(unsigned long slapi_mask,
-                                           slap_mask_t *slap_mask) {
+static void slapiControlOp2SlapControlMask(unsigned long slapi_mask, slap_mask_t *slap_mask) {
   *slap_mask = 0;
 
   if (slapi_mask & SLAPI_OPERATION_BIND)
@@ -1055,21 +1025,18 @@ static void slapiControlOp2SlapControlMask(unsigned long slapi_mask,
   *slap_mask |= SLAP_CTRL_GLOBAL;
 }
 
-static int slapi_int_parse_control(Operation *op, SlapReply *rs,
-                                   LDAPControl *ctrl) {
+static int slapi_int_parse_control(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   /* Plugins must deal with controls themselves. */
 
   return LDAP_SUCCESS;
 }
 
-void slapi_register_supported_control(char *controloid,
-                                      unsigned long controlops) {
+void slapi_register_supported_control(char *controloid, unsigned long controlops) {
   slap_mask_t controlmask;
 
   slapiControlOp2SlapControlMask(controlops, &controlmask);
 
-  register_supported_control(controloid, controlmask, NULL,
-                             slapi_int_parse_control, NULL);
+  register_supported_control(controloid, controlmask, NULL, slapi_int_parse_control, NULL);
 }
 
 int slapi_get_supported_controls(char ***ctrloidsp, unsigned long **ctrlopsp) {
@@ -1101,9 +1068,8 @@ LDAPControl *slapi_dup_control(LDAPControl *ctrl) {
 
 void slapi_register_supported_saslmechanism(char *mechanism) {
   /* FIXME -- can not add saslmechanism to OpenLDAP dynamically */
-  slapi_log_error(
-      SLAPI_LOG_FATAL, "slapi_register_supported_saslmechanism",
-      "OpenLDAP does not support dynamic registration of SASL mechanisms\n");
+  slapi_log_error(SLAPI_LOG_FATAL, "slapi_register_supported_saslmechanism",
+                  "OpenLDAP does not support dynamic registration of SASL mechanisms\n");
 }
 
 char **slapi_get_supported_saslmechanisms(void) {
@@ -1155,8 +1121,7 @@ char **slapi_get_supported_extended_ops(void) {
   return ppExtOpOID;
 }
 
-void slapi_send_ldap_result(Slapi_PBlock *pb, int err, char *matched,
-                            char *text, int nentries, struct berval **urls) {
+void slapi_send_ldap_result(Slapi_PBlock *pb, int err, char *matched, char *text, int nentries, struct berval **urls) {
   SlapReply *rs;
 
   PBLOCK_ASSERT_OP(pb, 0);
@@ -1185,9 +1150,7 @@ void slapi_send_ldap_result(Slapi_PBlock *pb, int err, char *matched,
   }
 }
 
-int slapi_send_ldap_search_entry(Slapi_PBlock *pb, Slapi_Entry *e,
-                                 LDAPControl **ectrls, char **attrs,
-                                 int attrsonly) {
+int slapi_send_ldap_search_entry(Slapi_PBlock *pb, Slapi_Entry *e, LDAPControl **ectrls, char **attrs, int attrsonly) {
   SlapReply rs = {REP_SEARCH};
   int i = 0, j = 0;
   AttributeName *an = NULL;
@@ -1234,9 +1197,7 @@ int slapi_send_ldap_search_entry(Slapi_PBlock *pb, Slapi_Entry *e,
   return rc;
 }
 
-int slapi_send_ldap_search_reference(Slapi_PBlock *pb, Slapi_Entry *e,
-                                     struct berval **references,
-                                     LDAPControl **ectrls,
+int slapi_send_ldap_search_reference(Slapi_PBlock *pb, Slapi_Entry *e, struct berval **references, LDAPControl **ectrls,
                                      struct berval **v2refs) {
   SlapReply rs = {REP_SEARCHREF};
   int rc;
@@ -1277,9 +1238,7 @@ Slapi_Filter *slapi_str2filter(char *str) { return str2filter(str); }
 
 void slapi_filter_free(Slapi_Filter *f, int recurse) { filter_free(f); }
 
-Slapi_Filter *slapi_filter_dup(Slapi_Filter *filter) {
-  return filter_dup(filter, NULL);
-}
+Slapi_Filter *slapi_filter_dup(Slapi_Filter *filter) { return filter_dup(filter, NULL); }
 
 int slapi_filter_get_choice(Slapi_Filter *f) {
   int rc;
@@ -1304,8 +1263,8 @@ int slapi_filter_get_ava(Slapi_Filter *f, char **type, struct berval **bval) {
   *bval = NULL;
 
   ftype = f->f_choice;
-  if (ftype == LDAP_FILTER_EQUALITY || ftype == LDAP_FILTER_GE ||
-      ftype == LDAP_FILTER_LE || ftype == LDAP_FILTER_APPROX) {
+  if (ftype == LDAP_FILTER_EQUALITY || ftype == LDAP_FILTER_GE || ftype == LDAP_FILTER_LE ||
+      ftype == LDAP_FILTER_APPROX) {
     /*
      * According to the SLAPI Reference Manual these are
      * not duplicated.
@@ -1327,8 +1286,7 @@ Slapi_Filter *slapi_filter_list_first(Slapi_Filter *f) {
   }
 
   ftype = f->f_choice;
-  if (ftype == LDAP_FILTER_AND || ftype == LDAP_FILTER_OR ||
-      ftype == LDAP_FILTER_NOT) {
+  if (ftype == LDAP_FILTER_AND || ftype == LDAP_FILTER_OR || ftype == LDAP_FILTER_NOT) {
     return (Slapi_Filter *)f->f_list;
   } else {
     return NULL;
@@ -1343,8 +1301,7 @@ Slapi_Filter *slapi_filter_list_next(Slapi_Filter *f, Slapi_Filter *fprev) {
   }
 
   ftype = f->f_choice;
-  if (ftype == LDAP_FILTER_AND || ftype == LDAP_FILTER_OR ||
-      ftype == LDAP_FILTER_NOT) {
+  if (ftype == LDAP_FILTER_AND || ftype == LDAP_FILTER_OR || ftype == LDAP_FILTER_NOT) {
     return fprev->f_next;
   }
 
@@ -1418,8 +1375,7 @@ int slapi_x_filter_set_attribute_type(Slapi_Filter *f, const char *type) {
   return (rc == LDAP_SUCCESS) ? 0 : -1;
 }
 
-int slapi_filter_get_subfilt(Slapi_Filter *f, char **type, char **initial,
-                             char ***any, char **final) {
+int slapi_filter_get_subfilt(Slapi_Filter *f, char **type, char **initial, char ***any, char **final) {
   int i;
 
   if (f->f_choice != LDAP_FILTER_SUBSTRINGS) {
@@ -1433,8 +1389,7 @@ int slapi_filter_get_subfilt(Slapi_Filter *f, char **type, char **initial,
    * XXX
    */
   *type = f->f_sub_desc->ad_cname.bv_val;
-  *initial =
-      f->f_sub_initial.bv_val ? slapi_ch_strdup(f->f_sub_initial.bv_val) : NULL;
+  *initial = f->f_sub_initial.bv_val ? slapi_ch_strdup(f->f_sub_initial.bv_val) : NULL;
   if (f->f_sub_any != NULL) {
     for (i = 0; f->f_sub_any[i].bv_val != NULL; i++)
       ;
@@ -1446,8 +1401,7 @@ int slapi_filter_get_subfilt(Slapi_Filter *f, char **type, char **initial,
   } else {
     *any = NULL;
   }
-  *final =
-      f->f_sub_final.bv_val ? slapi_ch_strdup(f->f_sub_final.bv_val) : NULL;
+  *final = f->f_sub_final.bv_val ? slapi_ch_strdup(f->f_sub_final.bv_val) : NULL;
 
   return 0;
 }
@@ -1455,8 +1409,7 @@ int slapi_filter_get_subfilt(Slapi_Filter *f, char **type, char **initial,
 Slapi_Filter *slapi_filter_join(int ftype, Slapi_Filter *f1, Slapi_Filter *f2) {
   Slapi_Filter *f = NULL;
 
-  if (ftype == LDAP_FILTER_AND || ftype == LDAP_FILTER_OR ||
-      ftype == LDAP_FILTER_NOT) {
+  if (ftype == LDAP_FILTER_AND || ftype == LDAP_FILTER_OR || ftype == LDAP_FILTER_NOT) {
     f = (Slapi_Filter *)slapi_ch_malloc(sizeof(*f));
     f->f_choice = ftype;
     f->f_list = f1;
@@ -1467,14 +1420,11 @@ Slapi_Filter *slapi_filter_join(int ftype, Slapi_Filter *f1, Slapi_Filter *f2) {
   return f;
 }
 
-int slapi_x_filter_append(
-    int ftype, Slapi_Filter **pContainingFilter, /* NULL on first call */
-    Slapi_Filter **pNextFilter, Slapi_Filter *filterToAppend) {
-  if (ftype == LDAP_FILTER_AND || ftype == LDAP_FILTER_OR ||
-      ftype == LDAP_FILTER_NOT) {
+int slapi_x_filter_append(int ftype, Slapi_Filter **pContainingFilter, /* NULL on first call */
+                          Slapi_Filter **pNextFilter, Slapi_Filter *filterToAppend) {
+  if (ftype == LDAP_FILTER_AND || ftype == LDAP_FILTER_OR || ftype == LDAP_FILTER_NOT) {
     if (*pContainingFilter == NULL) {
-      *pContainingFilter =
-          (Slapi_Filter *)slapi_ch_malloc(sizeof(Slapi_Filter));
+      *pContainingFilter = (Slapi_Filter *)slapi_ch_malloc(sizeof(Slapi_Filter));
       (*pContainingFilter)->f_choice = ftype;
       (*pContainingFilter)->f_list = filterToAppend;
       (*pContainingFilter)->f_next = NULL;
@@ -1492,8 +1442,7 @@ int slapi_x_filter_append(
   return -1;
 }
 
-int slapi_filter_test(Slapi_PBlock *pb, Slapi_Entry *e, Slapi_Filter *f,
-                      int verify_access) {
+int slapi_filter_test(Slapi_PBlock *pb, Slapi_Entry *e, Slapi_Filter *f, int verify_access) {
   Operation *op;
   int rc;
 
@@ -1533,12 +1482,9 @@ int slapi_filter_test(Slapi_PBlock *pb, Slapi_Entry *e, Slapi_Filter *f,
   return rc;
 }
 
-int slapi_filter_test_simple(Slapi_Entry *e, Slapi_Filter *f) {
-  return slapi_filter_test(NULL, e, f, 0);
-}
+int slapi_filter_test_simple(Slapi_Entry *e, Slapi_Filter *f) { return slapi_filter_test(NULL, e, f, 0); }
 
-int slapi_filter_apply(Slapi_Filter *f, FILTER_APPLY_FN fn, void *arg,
-                       int *error_code) {
+int slapi_filter_apply(Slapi_Filter *f, FILTER_APPLY_FN fn, void *arg, int *error_code) {
   switch (f->f_choice) {
   case LDAP_FILTER_AND:
   case LDAP_FILTER_NOT:
@@ -1572,8 +1518,7 @@ int slapi_filter_apply(Slapi_Filter *f, FILTER_APPLY_FN fn, void *arg,
     *error_code = SLAPI_FILTER_UNKNOWN_FILTER_TYPE;
   }
 
-  if (*error_code == SLAPI_FILTER_SCAN_NOMORE ||
-      *error_code == SLAPI_FILTER_SCAN_CONTINUE) {
+  if (*error_code == SLAPI_FILTER_SCAN_NOMORE || *error_code == SLAPI_FILTER_SCAN_CONTINUE) {
     return 0;
   }
 
@@ -1609,8 +1554,7 @@ int slapi_get_client_ip(Slapi_PBlock *pb, char **clientIP) {
 
   if (pb == NULL || pb->pb_conn == NULL)
     return (LDAP_PARAM_ERROR);
-  if ((s = (char *)slapi_ch_malloc(pb->pb_conn->c_peer_name.bv_len + 1)) ==
-      NULL) {
+  if ((s = (char *)slapi_ch_malloc(pb->pb_conn->c_peer_name.bv_len + 1)) == NULL) {
     return (LDAP_NO_MEMORY);
   }
 
@@ -1637,8 +1581,7 @@ char *slapi_get_hostname(void) {
   if (!been_here) {
     static_hn = (char *)slapi_ch_malloc(MAX_HOSTNAME);
     if (static_hn == NULL) {
-      slapi_log_error(SLAPI_LOG_FATAL, "slapi_get_hostname",
-                      "Cannot allocate memory for hostname\n");
+      slapi_log_error(SLAPI_LOG_FATAL, "slapi_get_hostname", "Cannot allocate memory for hostname\n");
       static_hn = NULL;
       ldap_pvt_thread_mutex_unlock(&slapi_hn_mutex);
 
@@ -1668,8 +1611,7 @@ char *slapi_get_hostname(void) {
 /*
  * FIXME: this should go in an appropriate header ...
  */
-extern int slapi_int_log_error(int level, char *subsystem, char *fmt,
-                               va_list arglist);
+extern int slapi_int_log_error(int level, char *subsystem, char *fmt, va_list arglist);
 
 int slapi_log_error(int severity, char *subsystem, char *fmt, ...) {
   int rc = LDAP_SUCCESS;
@@ -1809,9 +1751,7 @@ void slapi_attr_free(Slapi_Attr **a) {
   *a = NULL;
 }
 
-Slapi_Attr *slapi_attr_dup(const Slapi_Attr *attr) {
-  return attr_dup((Slapi_Attr *)attr);
-}
+Slapi_Attr *slapi_attr_dup(const Slapi_Attr *attr) { return attr_dup((Slapi_Attr *)attr); }
 
 int slapi_attr_add_value(Slapi_Attr *a, const Slapi_Value *v) {
   struct berval nval;
@@ -1819,11 +1759,9 @@ int slapi_attr_add_value(Slapi_Attr *a, const Slapi_Value *v) {
   int rc;
   AttributeDescription *desc = a->a_desc;
 
-  if (desc->ad_type->sat_equality &&
-      desc->ad_type->sat_equality->smr_normalize) {
-    rc = (*desc->ad_type->sat_equality->smr_normalize)(
-        SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, desc->ad_type->sat_syntax,
-        desc->ad_type->sat_equality, (Slapi_Value *)v, &nval, NULL);
+  if (desc->ad_type->sat_equality && desc->ad_type->sat_equality->smr_normalize) {
+    rc = (*desc->ad_type->sat_equality->smr_normalize)(SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, desc->ad_type->sat_syntax,
+                                                       desc->ad_type->sat_equality, (Slapi_Value *)v, &nval, NULL);
     if (rc != LDAP_SUCCESS) {
       return rc;
     }
@@ -1866,16 +1804,14 @@ int slapi_attr_get_oid_copy(const Slapi_Attr *attr, char **oidp) {
   return LDAP_SUCCESS;
 }
 
-int slapi_attr_value_cmp(const Slapi_Attr *a, const struct berval *v1,
-                         const struct berval *v2) {
+int slapi_attr_value_cmp(const Slapi_Attr *a, const struct berval *v1, const struct berval *v2) {
   MatchingRule *mr;
   int ret;
   int rc;
   const char *text;
 
   mr = a->a_desc->ad_type->sat_equality;
-  rc = value_match(&ret, a->a_desc, mr, SLAP_MR_VALUE_OF_ASSERTION_SYNTAX,
-                   (struct berval *)v1, (void *)v2, &text);
+  rc = value_match(&ret, a->a_desc, mr, SLAP_MR_VALUE_OF_ASSERTION_SYNTAX, (struct berval *)v1, (void *)v2, &text);
   if (rc != LDAP_SUCCESS)
     return -1;
 
@@ -1888,8 +1824,7 @@ int slapi_attr_value_find(const Slapi_Attr *a, struct berval *v) {
   if (a->a_vals == NULL) {
     return -1;
   }
-  rc = attr_valfind((Attribute *)a, SLAP_MR_VALUE_OF_ASSERTION_SYNTAX, v, NULL,
-                    NULL);
+  rc = attr_valfind((Attribute *)a, SLAP_MR_VALUE_OF_ASSERTION_SYNTAX, v, NULL, NULL);
   return rc == 0 ? 0 : -1;
 }
 
@@ -1907,13 +1842,12 @@ int slapi_attr_type_cmp(const char *t1, const char *t2, int opt) {
     return 1;
   }
 
-#define ad_base_cmp(l, r)                                                      \
-  (((l)->ad_type->sat_cname.bv_len < (r)->ad_type->sat_cname.bv_len)           \
-       ? -1                                                                    \
-       : (((l)->ad_type->sat_cname.bv_len > (r)->ad_type->sat_cname.bv_len)    \
-              ? 1                                                              \
-              : strcasecmp((l)->ad_type->sat_cname.bv_val,                     \
-                           (r)->ad_type->sat_cname.bv_val)))
+#define ad_base_cmp(l, r)                                                                                              \
+  (((l)->ad_type->sat_cname.bv_len < (r)->ad_type->sat_cname.bv_len)                                                   \
+       ? -1                                                                                                            \
+       : (((l)->ad_type->sat_cname.bv_len > (r)->ad_type->sat_cname.bv_len)                                            \
+              ? 1                                                                                                      \
+              : strcasecmp((l)->ad_type->sat_cname.bv_val, (r)->ad_type->sat_cname.bv_val)))
 
   switch (opt) {
   case SLAPI_TYPE_CMP_EXACT:
@@ -1937,9 +1871,7 @@ int slapi_attr_types_equivalent(const char *t1, const char *t2) {
   return (slapi_attr_type_cmp(t1, t2, SLAPI_TYPE_CMP_EXACT) == 0);
 }
 
-int slapi_attr_first_value(Slapi_Attr *a, Slapi_Value **v) {
-  return slapi_valueset_first_value(&a->a_vals, v);
-}
+int slapi_attr_first_value(Slapi_Attr *a, Slapi_Value **v) { return slapi_valueset_first_value(&a->a_vals, v); }
 
 int slapi_attr_next_value(Slapi_Attr *a, int hint, Slapi_Value **v) {
   return slapi_valueset_next_value(&a->a_vals, hint, v);
@@ -1957,9 +1889,7 @@ int slapi_attr_get_valueset(const Slapi_Attr *a, Slapi_ValueSet **vs) {
   return 0;
 }
 
-int slapi_attr_get_bervals_copy(Slapi_Attr *a, struct berval ***vals) {
-  return slapi_attr_get_values(a, vals);
-}
+int slapi_attr_get_bervals_copy(Slapi_Attr *a, struct berval ***vals) { return slapi_attr_get_values(a, vals); }
 
 char *slapi_attr_syntax_normalize(const char *s) {
   AttributeDescription *ad = NULL;
@@ -1980,13 +1910,9 @@ Slapi_Value *slapi_value_new(void) {
   return bv;
 }
 
-Slapi_Value *slapi_value_new_berval(const struct berval *bval) {
-  return ber_dupbv(NULL, (struct berval *)bval);
-}
+Slapi_Value *slapi_value_new_berval(const struct berval *bval) { return ber_dupbv(NULL, (struct berval *)bval); }
 
-Slapi_Value *slapi_value_new_value(const Slapi_Value *v) {
-  return slapi_value_new_berval(v);
-}
+Slapi_Value *slapi_value_new_value(const Slapi_Value *v) { return slapi_value_new_berval(v); }
 
 Slapi_Value *slapi_value_new_string(const char *s) {
   struct berval bv;
@@ -2004,9 +1930,7 @@ Slapi_Value *slapi_value_init(Slapi_Value *val) {
   return val;
 }
 
-Slapi_Value *slapi_value_init_berval(Slapi_Value *v, struct berval *bval) {
-  return ber_dupbv(v, bval);
-}
+Slapi_Value *slapi_value_init_berval(Slapi_Value *v, struct berval *bval) { return ber_dupbv(v, bval); }
 
 Slapi_Value *slapi_value_init_string(Slapi_Value *v, const char *s) {
   v->bv_val = slapi_ch_strdup(s);
@@ -2015,9 +1939,7 @@ Slapi_Value *slapi_value_init_string(Slapi_Value *v, const char *s) {
   return v;
 }
 
-Slapi_Value *slapi_value_dup(const Slapi_Value *v) {
-  return slapi_value_new_value(v);
-}
+Slapi_Value *slapi_value_dup(const Slapi_Value *v) { return slapi_value_new_value(v); }
 
 void slapi_value_free(Slapi_Value **value) {
   if (value == NULL) {
@@ -2030,12 +1952,9 @@ void slapi_value_free(Slapi_Value **value) {
   }
 }
 
-const struct berval *slapi_value_get_berval(const Slapi_Value *value) {
-  return value;
-}
+const struct berval *slapi_value_get_berval(const Slapi_Value *value) { return value; }
 
-Slapi_Value *slapi_value_set_berval(Slapi_Value *value,
-                                    const struct berval *bval) {
+Slapi_Value *slapi_value_set_berval(Slapi_Value *value, const struct berval *bval) {
   if (value == NULL) {
     return NULL;
   }
@@ -2047,8 +1966,7 @@ Slapi_Value *slapi_value_set_berval(Slapi_Value *value,
   return value;
 }
 
-Slapi_Value *slapi_value_set_value(Slapi_Value *value,
-                                   const Slapi_Value *vfrom) {
+Slapi_Value *slapi_value_set_value(Slapi_Value *value, const Slapi_Value *vfrom) {
   if (value == NULL) {
     return NULL;
   }
@@ -2147,8 +2065,7 @@ size_t slapi_value_get_length(const Slapi_Value *value) {
   return (size_t)value->bv_len;
 }
 
-int slapi_value_compare(const Slapi_Attr *a, const Slapi_Value *v1,
-                        const Slapi_Value *v2) {
+int slapi_value_compare(const Slapi_Attr *a, const Slapi_Value *v1, const Slapi_Value *v2) {
   return slapi_attr_value_cmp(a, v1, v2);
 }
 
@@ -2201,9 +2118,7 @@ void slapi_valueset_add_value(Slapi_ValueSet *vs, const Slapi_Value *addval) {
   ber_bvarray_add(vs, &bv);
 }
 
-int slapi_valueset_first_value(Slapi_ValueSet *vs, Slapi_Value **v) {
-  return slapi_valueset_next_value(vs, 0, v);
-}
+int slapi_valueset_first_value(Slapi_ValueSet *vs, Slapi_Value **v) { return slapi_valueset_next_value(vs, 0, v); }
 
 int slapi_valueset_next_value(Slapi_ValueSet *vs, int index, Slapi_Value **v) {
   int i;
@@ -2242,8 +2157,7 @@ int slapi_valueset_count(const Slapi_ValueSet *vs) {
   return i;
 }
 
-void slapi_valueset_set_valueset(Slapi_ValueSet *vs1,
-                                 const Slapi_ValueSet *vs2) {
+void slapi_valueset_set_valueset(Slapi_ValueSet *vs1, const Slapi_ValueSet *vs2) {
   BerVarray vp;
 
   for (vp = *vs2; vp->bv_val != NULL; vp++) {
@@ -2251,8 +2165,7 @@ void slapi_valueset_set_valueset(Slapi_ValueSet *vs1,
   }
 }
 
-int slapi_access_allowed(Slapi_PBlock *pb, Slapi_Entry *e, char *attr,
-                         struct berval *val, int access) {
+int slapi_access_allowed(Slapi_PBlock *pb, Slapi_Entry *e, char *attr, struct berval *val, int access) {
   int rc;
   slap_access_t slap_access;
   AttributeDescription *ad = NULL;
@@ -2302,8 +2215,7 @@ int slapi_access_allowed(Slapi_PBlock *pb, Slapi_Entry *e, char *attr,
   return LDAP_INSUFFICIENT_ACCESS;
 }
 
-int slapi_acl_check_mods(Slapi_PBlock *pb, Slapi_Entry *e, LDAPMod **mods,
-                         char **errbuf) {
+int slapi_acl_check_mods(Slapi_PBlock *pb, Slapi_Entry *e, LDAPMod **mods, char **errbuf) {
   int rc = LDAP_SUCCESS;
   Modifications *ml;
 
@@ -2316,8 +2228,7 @@ int slapi_acl_check_mods(Slapi_PBlock *pb, Slapi_Entry *e, LDAPMod **mods,
   }
 
   if (rc == LDAP_SUCCESS) {
-    rc = acl_check_modlist(pb->pb_op, e, ml) ? LDAP_SUCCESS
-                                             : LDAP_INSUFFICIENT_ACCESS;
+    rc = acl_check_modlist(pb->pb_op, e, ml) ? LDAP_SUCCESS : LDAP_INSUFFICIENT_ACCESS;
   }
 
   slap_mods_free(ml, 1);
@@ -2354,11 +2265,9 @@ LDAPMod **slapi_int_modifications2ldapmods(Modifications *modlist) {
     if (ml->sml_values != NULL) {
       for (j = 0; ml->sml_values[j].bv_val != NULL; j++)
         ;
-      modp->mod_bvalues =
-          (struct berval **)slapi_ch_malloc((j + 1) * sizeof(struct berval *));
+      modp->mod_bvalues = (struct berval **)slapi_ch_malloc((j + 1) * sizeof(struct berval *));
       for (j = 0; ml->sml_values[j].bv_val != NULL; j++) {
-        modp->mod_bvalues[j] =
-            (struct berval *)slapi_ch_malloc(sizeof(struct berval));
+        modp->mod_bvalues[j] = (struct berval *)slapi_ch_malloc(sizeof(struct berval));
         ber_dupbv(modp->mod_bvalues[j], &ml->sml_values[j]);
       }
       modp->mod_bvalues[j] = NULL;
@@ -2427,8 +2336,7 @@ Modifications *slapi_int_ldapmods2modifications(Operation *op, LDAPMod **mods) {
     if (i == 0) {
       mod->sml_values = NULL;
     } else {
-      mod->sml_values =
-          (BerVarray)slapi_ch_malloc((i + 1) * sizeof(struct berval));
+      mod->sml_values = (BerVarray)slapi_ch_malloc((i + 1) * sizeof(struct berval));
 
       /* NB: This implicitly trusts a plugin to return valid modifications. */
       if (lmod->mod_op & LDAP_MOD_BVALUES) {
@@ -2450,8 +2358,7 @@ Modifications *slapi_int_ldapmods2modifications(Operation *op, LDAPMod **mods) {
     modtail = &mod->sml_next;
   }
 
-  if (slap_mods_check(op, modlist, &text, textbuf, sizeof(textbuf), NULL) !=
-      LDAP_SUCCESS) {
+  if (slap_mods_check(op, modlist, &text, textbuf, sizeof(textbuf), NULL) != LDAP_SUCCESS) {
     slap_mods_free(modlist, 1);
     modlist = NULL;
   }
@@ -2490,8 +2397,7 @@ int slapi_compute_add_evaluator(slapi_compute_callback_t function) {
     goto done;
   }
 
-  rc = slapi_pblock_set(pPlugin, SLAPI_PLUGIN_COMPUTE_EVALUATOR_FN,
-                        (void *)function);
+  rc = slapi_pblock_set(pPlugin, SLAPI_PLUGIN_COMPUTE_EVALUATOR_FN, (void *)function);
   if (rc != LDAP_SUCCESS) {
     goto done;
   }
@@ -2516,8 +2422,7 @@ done:
 /*
  * See notes above regarding slapi_compute_add_evaluator().
  */
-int slapi_compute_add_search_rewriter(
-    slapi_search_rewrite_callback_t function) {
+int slapi_compute_add_search_rewriter(slapi_search_rewrite_callback_t function) {
   Slapi_PBlock *pPlugin = NULL;
   int rc;
   int type = SLAPI_PLUGIN_OBJECT;
@@ -2533,8 +2438,7 @@ int slapi_compute_add_search_rewriter(
     goto done;
   }
 
-  rc = slapi_pblock_set(pPlugin, SLAPI_PLUGIN_COMPUTE_SEARCH_REWRITER_FN,
-                        (void *)function);
+  rc = slapi_pblock_set(pPlugin, SLAPI_PLUGIN_COMPUTE_SEARCH_REWRITER_FN, (void *)function);
   if (rc != LDAP_SUCCESS) {
     goto done;
   }
@@ -2559,13 +2463,11 @@ done:
 /*
  * Call compute evaluators
  */
-int compute_evaluator(computed_attr_context *c, char *type, Slapi_Entry *e,
-                      slapi_compute_output_t outputfn) {
+int compute_evaluator(computed_attr_context *c, char *type, Slapi_Entry *e, slapi_compute_output_t outputfn) {
   int rc = 0;
   slapi_compute_callback_t *pGetPlugin, *tmpPlugin;
 
-  rc = slapi_int_get_plugins(frontendDB, SLAPI_PLUGIN_COMPUTE_EVALUATOR_FN,
-                             (SLAPI_FUNC **)&tmpPlugin);
+  rc = slapi_int_get_plugins(frontendDB, SLAPI_PLUGIN_COMPUTE_EVALUATOR_FN, (SLAPI_FUNC **)&tmpPlugin);
   if (rc != LDAP_SUCCESS || tmpPlugin == NULL) {
     /* Nothing to do; front-end should ignore. */
     return 0;
@@ -2592,8 +2494,7 @@ int compute_rewrite_search_filter(Slapi_PBlock *pb) {
   if (pb == NULL || pb->pb_op == NULL)
     return LDAP_PARAM_ERROR;
 
-  return slapi_int_call_plugins(pb->pb_op->o_bd,
-                                SLAPI_PLUGIN_COMPUTE_SEARCH_REWRITER_FN, pb);
+  return slapi_int_call_plugins(pb->pb_op->o_bd, SLAPI_PLUGIN_COMPUTE_SEARCH_REWRITER_FN, pb);
 }
 
 /*
@@ -2631,13 +2532,9 @@ void slapi_destroy_mutex(Slapi_Mutex *mutex) {
   }
 }
 
-void slapi_lock_mutex(Slapi_Mutex *mutex) {
-  ldap_pvt_thread_mutex_lock(&mutex->mutex);
-}
+void slapi_lock_mutex(Slapi_Mutex *mutex) { ldap_pvt_thread_mutex_lock(&mutex->mutex); }
 
-int slapi_unlock_mutex(Slapi_Mutex *mutex) {
-  return ldap_pvt_thread_mutex_unlock(&mutex->mutex);
-}
+int slapi_unlock_mutex(Slapi_Mutex *mutex) { return ldap_pvt_thread_mutex_unlock(&mutex->mutex); }
 
 Slapi_CondVar *slapi_new_condvar(Slapi_Mutex *mutex) {
   Slapi_CondVar *cv;
@@ -2684,8 +2581,7 @@ int slapi_notify_condvar(Slapi_CondVar *cvar, int notify_all) {
   return ldap_pvt_thread_cond_signal(&cvar->cond);
 }
 
-int slapi_int_access_allowed(Operation *op, Entry *entry,
-                             AttributeDescription *desc, struct berval *val,
+int slapi_int_access_allowed(Operation *op, Entry *entry, AttributeDescription *desc, struct berval *val,
                              slap_access_t access, AccessControlState *state) {
   int rc, slap_access = 0;
   slapi_acl_callback_t *pGetPlugin, *tmpPlugin;
@@ -2720,8 +2616,7 @@ int slapi_int_access_allowed(Operation *op, Entry *entry,
     break;
   }
 
-  rc = slapi_int_get_plugins(frontendDB, SLAPI_PLUGIN_ACL_ALLOW_ACCESS,
-                             (SLAPI_FUNC **)&tmpPlugin);
+  rc = slapi_int_get_plugins(frontendDB, SLAPI_PLUGIN_ACL_ALLOW_ACCESS, (SLAPI_FUNC **)&tmpPlugin);
   if (rc != LDAP_SUCCESS || tmpPlugin == NULL) {
     /* nothing to do; allowed access */
     return 1;
@@ -2734,8 +2629,7 @@ int slapi_int_access_allowed(Operation *op, Entry *entry,
      * 0	access denied
      * 1	access granted
      */
-    rc = (*pGetPlugin)(pb, entry, desc->ad_cname.bv_val, val, slap_access,
-                       (void *)state);
+    rc = (*pGetPlugin)(pb, entry, desc->ad_cname.bv_val, val, slap_access, (void *)state);
     if (rc == 0) {
       break;
     }
@@ -2808,8 +2702,7 @@ int slapi_entry_schema_check(Slapi_PBlock *pb, Slapi_Entry *e) {
 
   pb->pb_op->o_bd = select_backend(&e->e_nname, 0);
   if (pb->pb_op->o_bd != NULL) {
-    rc = entry_schema_check(pb->pb_op, e, NULL, 0, 0, NULL, &text, textbuf,
-                            textlen);
+    rc = entry_schema_check(pb->pb_op, e, NULL, 0, 0, NULL, &text, textbuf, textlen);
   }
   pb->pb_op->o_bd = be_orig;
 
@@ -2833,8 +2726,7 @@ int slapi_entry_rdn_values_present(const Slapi_Entry *e) {
       LDAPAVA *ava = &rdn[0][i];
       Slapi_Attr *a = NULL;
 
-      if (slapi_entry_attr_find((Slapi_Entry *)e, ava->la_attr.bv_val, &a) ==
-              0 &&
+      if (slapi_entry_attr_find((Slapi_Entry *)e, ava->la_attr.bv_val, &a) == 0 &&
           slapi_attr_value_find(a, &ava->la_value) == 0)
         match++;
     }
@@ -2862,8 +2754,7 @@ int slapi_entry_add_rdn_values(Slapi_Entry *e) {
       LDAPAVA *ava = &rdn[0][i];
       Slapi_Attr *a = NULL;
 
-      if (slapi_entry_attr_find(e, ava->la_attr.bv_val, &a) == 0 &&
-          slapi_attr_value_find(a, &ava->la_value) == 0)
+      if (slapi_entry_attr_find(e, ava->la_attr.bv_val, &a) == 0 && slapi_attr_value_find(a, &ava->la_value) == 0)
         continue;
 
       vals[0] = &ava->la_value;
@@ -2921,8 +2812,7 @@ LDAP *slapi_ldap_init(char *ldaphost, int ldapport, int secure, int shared) {
   url = slapi_ch_malloc(size);
 
   if (ldapport != 0) {
-    rc = snprintf(url, size, "ldap%s://%s:%d/", (secure ? "s" : ""), ldaphost,
-                  ldapport);
+    rc = snprintf(url, size, "ldap%s://%s:%d/", (secure ? "s" : ""), ldaphost, ldapport);
   } else {
     rc = snprintf(url, size, "ldap%s://%s/", (secure ? "s" : ""), ldaphost);
   }
@@ -3064,8 +2954,7 @@ int slapi_be_get_readonly(Slapi_Backend *be) {
   if (be == NULL)
     return 0;
 
-  return ((be->be_restrictops & SLAP_RESTRICT_OP_WRITES) ==
-          SLAP_RESTRICT_OP_WRITES);
+  return ((be->be_restrictops & SLAP_RESTRICT_OP_WRITES) == SLAP_RESTRICT_OP_WRITES);
 }
 
 const char *slapi_x_be_get_updatedn(Slapi_Backend *be) {

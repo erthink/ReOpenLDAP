@@ -144,8 +144,7 @@ static struct berval *select_value(Attribute *attr, sort_key *key) {
     }
   }
 
-  Debug(LDAP_DEBUG_TRACE, "%s: value selected for compare: %s\n", debug_header,
-        SAFESTR(ber1->bv_val, "<Empty>"));
+  Debug(LDAP_DEBUG_TRACE, "%s: value selected for compare: %s\n", debug_header, SAFESTR(ber1->bv_val, "<Empty>"));
 
   return ber1;
 }
@@ -156,8 +155,7 @@ static int node_cmp(const void *val1, const void *val2) {
   sort_ctrl *sc;
   MatchingRule *mr;
   int i, cmp = 0;
-  assert(sort_conns[sn1->sn_conn] &&
-         sort_conns[sn1->sn_conn][sn1->sn_session] &&
+  assert(sort_conns[sn1->sn_conn] && sort_conns[sn1->sn_conn][sn1->sn_session] &&
          sort_conns[sn1->sn_conn][sn1->sn_session]->so_ctrl);
   sc = sort_conns[sn1->sn_conn][sn1->sn_session]->so_ctrl;
 
@@ -171,8 +169,7 @@ static int node_cmp(const void *val1, const void *val2) {
       cmp = sc->sc_keys[i].sk_direction * -1;
     } else {
       mr = sc->sc_keys[i].sk_ordering;
-      mr->smr_match(&cmp, 0, mr->smr_syntax, mr, &sn1->sn_vals[i],
-                    &sn2->sn_vals[i]);
+      mr->smr_match(&cmp, 0, mr->smr_syntax, mr, &sn1->sn_vals[i], &sn2->sn_vals[i]);
       if (cmp)
         cmp *= sc->sc_keys[i].sk_direction;
     }
@@ -185,8 +182,7 @@ static int node_insert(const void *val1, const void *val2) {
   return node_cmp(val1, val2) < 0 ? -1 : 1;
 }
 
-static int pack_vlv_response_control(Operation *op, SlapReply *rs, sort_op *so,
-                                     LDAPControl **ctrlsp) {
+static int pack_vlv_response_control(Operation *op, SlapReply *rs, sort_op *so, LDAPControl **ctrlsp) {
   LDAPControl *ctrl;
   BerElementBuffer berbuf;
   BerElement *ber = (BerElement *)&berbuf;
@@ -196,8 +192,7 @@ static int pack_vlv_response_control(Operation *op, SlapReply *rs, sort_op *so,
   ber_init2(ber, NULL, LBER_USE_DER);
   ber_set_option(ber, LBER_OPT_BER_MEMCTX, &op->o_tmpmemctx);
 
-  rc = ber_printf(ber, "{iie", so->so_vlv_target, so->so_nentries,
-                  so->so_vlv_rc);
+  rc = ber_printf(ber, "{iie", so->so_vlv_target, so->so_nentries, so->so_vlv_rc);
 
   if (rc != -1 && so->so_vcontext) {
     cookie.bv_val = (char *)&so->so_vcontext;
@@ -214,8 +209,7 @@ static int pack_vlv_response_control(Operation *op, SlapReply *rs, sort_op *so,
   }
 
   if (rc != -1) {
-    ctrl = (LDAPControl *)op->o_tmpalloc(sizeof(LDAPControl) + bv.bv_len,
-                                         op->o_tmpmemctx);
+    ctrl = (LDAPControl *)op->o_tmpalloc(sizeof(LDAPControl) + bv.bv_len, op->o_tmpmemctx);
     ctrl->ldctl_oid = LDAP_CONTROL_VLVRESPONSE;
     ctrl->ldctl_iscritical = 0;
     ctrl->ldctl_value.bv_val = (char *)(ctrl + 1);
@@ -232,9 +226,7 @@ static int pack_vlv_response_control(Operation *op, SlapReply *rs, sort_op *so,
   return rs->sr_err;
 }
 
-static int pack_pagedresult_response_control(Operation *op, SlapReply *rs,
-                                             sort_op *so,
-                                             LDAPControl **ctrlsp) {
+static int pack_pagedresult_response_control(Operation *op, SlapReply *rs, sort_op *so, LDAPControl **ctrlsp) {
   LDAPControl *ctrl;
   BerElementBuffer berbuf;
   BerElement *ber = (BerElement *)&berbuf;
@@ -256,8 +248,7 @@ static int pack_pagedresult_response_control(Operation *op, SlapReply *rs,
 
   op->o_conn->c_pagedresults_state.ps_cookie = resp_cookie;
   op->o_conn->c_pagedresults_state.ps_count =
-      ((PagedResultsState *)op->o_pagedresults_state)->ps_count +
-      rs->sr_nentries;
+      ((PagedResultsState *)op->o_pagedresults_state)->ps_count + rs->sr_nentries;
 
   rc = ber_printf(ber, "{iO}", so->so_nentries, &cookie);
   if (rc != -1) {
@@ -265,8 +256,7 @@ static int pack_pagedresult_response_control(Operation *op, SlapReply *rs,
   }
 
   if (rc != -1) {
-    ctrl = (LDAPControl *)op->o_tmpalloc(sizeof(LDAPControl) + bv.bv_len,
-                                         op->o_tmpmemctx);
+    ctrl = (LDAPControl *)op->o_tmpalloc(sizeof(LDAPControl) + bv.bv_len, op->o_tmpmemctx);
     ctrl->ldctl_oid = LDAP_CONTROL_PAGEDRESULTS;
     ctrl->ldctl_iscritical = 0;
     ctrl->ldctl_value.bv_val = (char *)(ctrl + 1);
@@ -283,8 +273,7 @@ static int pack_pagedresult_response_control(Operation *op, SlapReply *rs,
   return rs->sr_err;
 }
 
-static int pack_sss_response_control(Operation *op, SlapReply *rs,
-                                     LDAPControl **ctrlsp) {
+static int pack_sss_response_control(Operation *op, SlapReply *rs, LDAPControl **ctrlsp) {
   LDAPControl *ctrl;
   BerElementBuffer berbuf;
   BerElement *ber = (BerElement *)&berbuf;
@@ -301,8 +290,7 @@ static int pack_sss_response_control(Operation *op, SlapReply *rs,
     rc = ber_flatten2(ber, &bv, 0);
 
   if (rc != -1) {
-    ctrl = (LDAPControl *)op->o_tmpalloc(sizeof(LDAPControl) + bv.bv_len,
-                                         op->o_tmpmemctx);
+    ctrl = (LDAPControl *)op->o_tmpalloc(sizeof(LDAPControl) + bv.bv_len, op->o_tmpmemctx);
     ctrl->ldctl_oid = LDAP_CONTROL_SORTRESPONSE;
     ctrl->ldctl_iscritical = 0;
     ctrl->ldctl_value.bv_val = (char *)(ctrl + 1);
@@ -334,9 +322,7 @@ static int find_session_by_so(int svi_max_percon, int conn_id, sort_op *so) {
 }
 
 /* Return the session id or -1 if unknown */
-static int find_session_by_context(int svi_max_percon, int conn_id,
-                                   size_t vc_context,
-                                   PagedResultsCookie ps_cookie) {
+static int find_session_by_context(int svi_max_percon, int conn_id, size_t vc_context, PagedResultsCookie ps_cookie) {
   assert(vc_context != 0 && conn_id >= 0);
   if (vc_context == 0 || conn_id < 0)
     return -1;
@@ -345,8 +331,7 @@ static int find_session_by_context(int svi_max_percon, int conn_id,
   for (sess_id = 0; sess_id < svi_max_percon; sess_id++) {
     if (sort_conns[conn_id] && sort_conns[conn_id][sess_id] &&
         (sort_conns[conn_id][sess_id]->so_vcontext == vc_context ||
-         (PagedResultsCookie)sort_conns[conn_id][sess_id]->so_tree ==
-             ps_cookie))
+         (PagedResultsCookie)sort_conns[conn_id][sess_id]->so_tree == ps_cookie))
       return sess_id;
   }
   return -1;
@@ -369,8 +354,7 @@ static int find_next_session(int svi_max_percon, int conn_id) {
 
 static void free_sort_op(Connection *conn, sort_op *so) {
   ldap_pvt_thread_mutex_lock(&sort_conns_mutex);
-  int sess_id =
-      find_session_by_so(so->so_info->svi_max_percon, conn->c_conn_idx, so);
+  int sess_id = find_session_by_so(so->so_info->svi_max_percon, conn->c_conn_idx, so);
 
   if (sess_id < 0 || !so) {
     ldap_pvt_thread_mutex_unlock(&sort_conns_mutex);
@@ -475,8 +459,7 @@ static void send_list(Operation *op, SlapReply *rs, sort_op *so) {
     struct berval bv;
 
     if (mr->smr_normalize) {
-      rc = mr->smr_normalize(SLAP_MR_VALUE_OF_SYNTAX, mr->smr_syntax, mr,
-                             &vc->vc_value, &bv, op->o_tmpmemctx);
+      rc = mr->smr_normalize(SLAP_MR_VALUE_OF_SYNTAX, mr->smr_syntax, mr, &vc->vc_value, &bv, op->o_tmpmemctx);
       if (rc) {
         so->so_vlv_rc = LDAP_INAPPROPRIATE_MATCHING;
         pack_vlv_response_control(op, rs, so, ctrls);
@@ -489,13 +472,10 @@ static void send_list(Operation *op, SlapReply *rs, sort_op *so) {
       bv = vc->vc_value;
     }
 
-    sn =
-        op->o_tmpalloc(sizeof(sort_node) + sc->sc_nkeys * sizeof(struct berval),
-                       op->o_tmpmemctx);
+    sn = op->o_tmpalloc(sizeof(sort_node) + sc->sc_nkeys * sizeof(struct berval), op->o_tmpmemctx);
     sn->sn_vals = (struct berval *)(sn + 1);
     sn->sn_conn = op->o_conn->c_conn_idx;
-    sn->sn_session = find_session_by_so(so->so_info->svi_max_percon,
-                                        op->o_conn->c_conn_idx, so);
+    sn->sn_session = find_session_by_so(so->so_info->svi_max_percon, op->o_conn->c_conn_idx, so);
     sn->sn_vals[0] = bv;
     for (i = 1; i < sc->sc_nkeys; i++) {
       BER_BVZERO(&sn->sn_vals[i]);
@@ -521,8 +501,7 @@ static void send_list(Operation *op, SlapReply *rs, sort_op *so) {
         tmp_node = tavl_end(so->so_tree, TAVL_DIR_LEFT);
         dir = TAVL_DIR_RIGHT;
       }
-      for (i = 0; tmp_node != cur_node;
-           tmp_node = tavl_next(tmp_node, dir), i++)
+      for (i = 0; tmp_node != cur_node; tmp_node = tavl_next(tmp_node, dir), i++)
         ;
       so->so_vlv_target = (dir == TAVL_DIR_RIGHT) ? i + 1 : so->so_nentries - i;
     }
@@ -614,8 +593,8 @@ static void send_page(Operation *op, SlapReply *rs, sort_op *so) {
 }
 
 static void send_entry(Operation *op, SlapReply *rs, sort_op *so) {
-  Debug(LDAP_DEBUG_TRACE, "%s: response control: status=%d, text=%s\n",
-        debug_header, rs->sr_err, SAFESTR(rs->sr_text, "<None>"));
+  Debug(LDAP_DEBUG_TRACE, "%s: response control: status=%d, text=%s\n", debug_header, rs->sr_err,
+        SAFESTR(rs->sr_text, "<None>"));
 
   if (!so->so_tree)
     return;
@@ -624,8 +603,7 @@ static void send_entry(Operation *op, SlapReply *rs, sort_op *so) {
    * successfully sorted.  If non-critical send all entries
    * whether they were sorted or not.
    */
-  if ((op->o_ctrlflag[sss_cid] != SLAP_CONTROL_CRITICAL) ||
-      (rs->sr_err == LDAP_SUCCESS)) {
+  if ((op->o_ctrlflag[sss_cid] != SLAP_CONTROL_CRITICAL) || (rs->sr_err == LDAP_SUCCESS)) {
     if (so->so_vlv > SLAP_CONTROL_IGNORED) {
       send_list(op, rs, so);
     } else {
@@ -687,8 +665,7 @@ static int sssvlv_op_response(Operation *op, SlapReply *rs) {
     struct berval *bv;
     char *ptr;
 
-    len = sizeof(sort_node) + sc->sc_nkeys * sizeof(struct berval) +
-          rs->sr_entry->e_nname.bv_len + 1;
+    len = sizeof(sort_node) + sc->sc_nkeys * sizeof(struct berval) + rs->sr_entry->e_nname.bv_len + 1;
     sn = op->o_tmpalloc(len, op->o_tmpmemctx);
     sn->sn_vals = (struct berval *)(sn + 1);
 
@@ -730,8 +707,7 @@ static int sssvlv_op_response(Operation *op, SlapReply *rs) {
     op->o_tmpfree(sn, op->o_tmpmemctx);
     sn = sn2;
     sn->sn_conn = op->o_conn->c_conn_idx;
-    sn->sn_session = find_session_by_so(so->so_info->svi_max_percon,
-                                        op->o_conn->c_conn_idx, so);
+    sn->sn_session = find_session_by_so(so->so_info->svi_max_percon, op->o_conn->c_conn_idx, so);
 
     /* Insert into the AVL tree */
     tavl_insert(&(so->so_tree), sn, node_insert, avl_dup_error);
@@ -792,8 +768,8 @@ static int sssvlv_op_search(Operation *op, SlapReply *rs) {
     return SLAP_CB_CONTINUE;
   }
 
-  Debug(LDAP_DEBUG_TRACE, "==> sssvlv_search: <%s> %s, control flag: %d\n",
-        op->o_req_dn.bv_val, op->ors_filterstr.bv_val, op->o_ctrlflag[sss_cid]);
+  Debug(LDAP_DEBUG_TRACE, "==> sssvlv_search: <%s> %s, control flag: %d\n", op->o_req_dn.bv_val,
+        op->ors_filterstr.bv_val, op->o_ctrlflag[sss_cid]);
 
   sc = op->o_controls[sss_cid];
   if (sc->sc_nkeys > si->svi_max_keys) {
@@ -802,11 +778,8 @@ static int sssvlv_op_search(Operation *op, SlapReply *rs) {
     goto leave;
   }
 
-  ps = (op->o_pagedresults > SLAP_CONTROL_IGNORED)
-           ? (PagedResultsState *)(op->o_pagedresults_state)
-           : NULL;
-  vc = op->o_ctrlflag[vlv_cid] > SLAP_CONTROL_IGNORED ? op->o_controls[vlv_cid]
-                                                      : NULL;
+  ps = (op->o_pagedresults > SLAP_CONTROL_IGNORED) ? (PagedResultsState *)(op->o_pagedresults_state) : NULL;
+  vc = op->o_ctrlflag[vlv_cid] > SLAP_CONTROL_IGNORED ? op->o_controls[vlv_cid] : NULL;
 
   if (ps && vc) {
     rs->sr_text = "VLV incompatible with PagedResults";
@@ -819,8 +792,7 @@ static int sssvlv_op_search(Operation *op, SlapReply *rs) {
   sort_op *so = NULL;
 
   /* Is there already a sort running on this conn? */
-  sess_id = find_session_by_context(si->svi_max_percon, op->o_conn->c_conn_idx,
-                                    vc ? vc->vc_context : NO_VC_CONTEXT,
+  sess_id = find_session_by_context(si->svi_max_percon, op->o_conn->c_conn_idx, vc ? vc->vc_context : NO_VC_CONTEXT,
                                     ps ? ps->ps_cookie : NO_PS_COOKIE);
   if (sess_id >= 0) {
     so = sort_conns[op->o_conn->c_conn_idx][sess_id];
@@ -830,8 +802,7 @@ static int sssvlv_op_search(Operation *op, SlapReply *rs) {
       so = NULL;
     } else {
       /* Is it a continuation of a VLV search? */
-      if (!vc || so->so_vlv <= SLAP_CONTROL_IGNORED ||
-          vc->vc_context != so->so_vcontext) {
+      if (!vc || so->so_vlv <= SLAP_CONTROL_IGNORED || vc->vc_context != so->so_vcontext) {
         /* Is it a continuation of a paged search? */
         if (!ps || so->so_paged <= SLAP_CONTROL_IGNORED ||
             op->o_conn->c_pagedresults_state.ps_cookie != ps->ps_cookie) {
@@ -843,8 +814,7 @@ static int sssvlv_op_search(Operation *op, SlapReply *rs) {
           rs->sr_err = LDAP_SUCCESS;
         }
       }
-      if ((vc && so->so_paged > SLAP_CONTROL_IGNORED) ||
-          (ps && so->so_vlv > SLAP_CONTROL_IGNORED)) {
+      if ((vc && so->so_paged > SLAP_CONTROL_IGNORED) || (ps && so->so_vlv > SLAP_CONTROL_IGNORED)) {
         /* changed from paged to vlv or vice versa, abandon */
         ok = 0;
         so->so_nentries = 0;
@@ -858,8 +828,7 @@ static int sssvlv_op_search(Operation *op, SlapReply *rs) {
     /* Are there too many running overall? */
   } else if (si->svi_num >= si->svi_max) {
     ok = 0;
-  } else if ((sess_id = find_next_session(si->svi_max_percon,
-                                          op->o_conn->c_conn_idx)) < 0) {
+  } else if ((sess_id = find_next_session(si->svi_max_percon, op->o_conn->c_conn_idx)) < 0) {
     ok = 0;
   } else {
     /* OK, this connection going a sort running as the sess_id */
@@ -902,8 +871,7 @@ static int sssvlv_op_search(Operation *op, SlapReply *rs) {
       assert(so == NULL);
 
       so = ch_calloc(1, sizeof(sort_op));
-      slap_callback *cb =
-          op->o_tmpcalloc(1, sizeof(slap_callback), op->o_tmpmemctx);
+      slap_callback *cb = op->o_tmpcalloc(1, sizeof(slap_callback), op->o_tmpmemctx);
       LDAP_ENSURE(so != NULL && cb != NULL); /* FIXME: LDAP_OTHER */
 
       cb->sc_response = sssvlv_op_response;
@@ -960,8 +928,8 @@ static int sssvlv_op_search(Operation *op, SlapReply *rs) {
   return rc;
 }
 
-static int get_ordering_rule(AttributeDescription *ad, struct berval *matchrule,
-                             SlapReply *rs, MatchingRule **ordering) {
+static int get_ordering_rule(AttributeDescription *ad, struct berval *matchrule, SlapReply *rs,
+                             MatchingRule **ordering) {
   MatchingRule *mr;
 
   if (matchrule && matchrule->bv_val) {
@@ -969,8 +937,7 @@ static int get_ordering_rule(AttributeDescription *ad, struct berval *matchrule,
     if (mr == NULL) {
       rs->sr_err = LDAP_INAPPROPRIATE_MATCHING;
       rs->sr_text = "serverSort control: No ordering rule";
-      Debug(LDAP_DEBUG_TRACE, "%s: no ordering rule function for %s\n",
-            debug_header, matchrule->bv_val);
+      Debug(LDAP_DEBUG_TRACE, "%s: no ordering rule function for %s\n", debug_header, matchrule->bv_val);
     }
   } else {
     mr = ad->ad_type->sat_ordering;
@@ -995,8 +962,7 @@ static int count_key(BerElement *ber) {
   int count = 0;
 
   /* Server Side Sort Control is a SEQUENCE of SEQUENCE */
-  for (tag = ber_first_element(ber, &len, &end); tag == LBER_SEQUENCE;
-       tag = ber_next_element(ber, &len, end)) {
+  for (tag = ber_first_element(ber, &len, &end); tag == LBER_SEQUENCE; tag = ber_next_element(ber, &len, end)) {
     tag = ber_skip_tag(ber, &len);
     ber_skip_data(ber, len);
     ++count;
@@ -1054,8 +1020,8 @@ static int build_key(BerElement *ber, SlapReply *rs, sort_key *key) {
 
   if (slap_bv2ad(&attr, &ad, &text) != LDAP_SUCCESS) {
     rs->sr_text = "serverSort control: Unrecognized attribute type in sort key";
-    Debug(LDAP_DEBUG_TRACE, "%s: Unrecognized attribute type in sort key: %s\n",
-          debug_header, SAFESTR(attr.bv_val, "<None>"));
+    Debug(LDAP_DEBUG_TRACE, "%s: Unrecognized attribute type in sort key: %s\n", debug_header,
+          SAFESTR(attr.bv_val, "<None>"));
     rs->sr_err = LDAP_NO_SUCH_ATTRIBUTE;
     return rs->sr_err;
   }
@@ -1098,15 +1064,13 @@ static int sss_parseCtrl(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   if (rs->sr_err != LDAP_SUCCESS)
     return rs->sr_err;
 
-  op->o_ctrlflag[sss_cid] =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_ctrlflag[sss_cid] = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   ber = (BerElement *)&berbuf;
   ber_init2(ber, &ctrl->ldctl_value, 0);
   i = count_key(ber);
 
-  sc = op->o_tmpalloc(sizeof(sort_ctrl) + (i - 1) * sizeof(sort_key),
-                      op->o_tmpmemctx);
+  sc = op->o_tmpalloc(sizeof(sort_ctrl) + (i - 1) * sizeof(sort_key), op->o_tmpmemctx);
   sc->sc_nkeys = i;
   op->o_controls[sss_cid] = sc;
 
@@ -1144,8 +1108,7 @@ static int vlv_parseCtrl(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   if (rs->sr_text != NULL)
     return rs->sr_err;
 
-  op->o_ctrlflag[vlv_cid] =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_ctrlflag[vlv_cid] = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   ber = (BerElement *)&berbuf;
   ber_init2(ber, &ctrl->ldctl_value, 0);
@@ -1227,22 +1190,19 @@ static int sssvlv_db_open(BackendDB *be, ConfigReply *cr) {
 }
 
 static ConfigTable sssvlv_cfg[] = {
-    {"sssvlv-max", "num", 2, 2, 0, ARG_INT | ARG_OFFSET,
-     (void *)offsetof(sssvlv_info, svi_max),
+    {"sssvlv-max", "num", 2, 2, 0, ARG_INT | ARG_OFFSET, (void *)offsetof(sssvlv_info, svi_max),
      "( OLcfgOvAt:21.1 NAME 'olcSssVlvMax' "
      "DESC 'Maximum number of concurrent Sort requests' "
      "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-    {"sssvlv-maxkeys", "num", 2, 2, 0, ARG_INT | ARG_OFFSET,
-     (void *)offsetof(sssvlv_info, svi_max_keys),
+    {"sssvlv-maxkeys", "num", 2, 2, 0, ARG_INT | ARG_OFFSET, (void *)offsetof(sssvlv_info, svi_max_keys),
      "( OLcfgOvAt:21.2 NAME 'olcSssVlvMaxKeys' "
      "DESC 'Maximum number of Keys in a Sort request' "
      "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-    {"sssvlv-maxperconn", "num", 2, 2, 0, ARG_INT | ARG_OFFSET,
-     (void *)offsetof(sssvlv_info, svi_max_percon),
+    {"sssvlv-maxperconn", "num", 2, 2, 0, ARG_INT | ARG_OFFSET, (void *)offsetof(sssvlv_info, svi_max_percon),
      "( OLcfgOvAt:21.3 NAME 'olcSssVlvMaxPerConn' "
      "DESC 'Maximum number of concurrent paged search requests per connection' "
      "EQUALITY integerMatch "
@@ -1250,14 +1210,13 @@ static ConfigTable sssvlv_cfg[] = {
      NULL, NULL},
     {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
 
-static ConfigOCs sssvlv_ocs[] = {
-    {"( OLcfgOvOc:21.1 "
-     "NAME 'olcSssVlvConfig' "
-     "DESC 'SSS VLV configuration' "
-     "SUP olcOverlayConfig "
-     "MAY ( olcSssVlvMax $ olcSssVlvMaxKeys $ olcSssVlvMaxPerConn ) )",
-     Cft_Overlay, sssvlv_cfg, NULL, NULL},
-    {NULL, 0, NULL}};
+static ConfigOCs sssvlv_ocs[] = {{"( OLcfgOvOc:21.1 "
+                                  "NAME 'olcSssVlvConfig' "
+                                  "DESC 'SSS VLV configuration' "
+                                  "SUP olcOverlayConfig "
+                                  "MAY ( olcSssVlvMax $ olcSssVlvMaxKeys $ olcSssVlvMaxPerConn ) )",
+                                  Cft_Overlay, sssvlv_cfg, NULL, NULL},
+                                 {NULL, 0, NULL}};
 
 static int sssvlv_db_init(BackendDB *be, ConfigReply *cr) {
   slap_overinst *on = (slap_overinst *)be->bd_info;
@@ -1266,23 +1225,17 @@ static int sssvlv_db_init(BackendDB *be, ConfigReply *cr) {
   if (ov_count == 0) {
     int rc;
 
-    rc = register_supported_control2(LDAP_CONTROL_SORTREQUEST, SLAP_CTRL_SEARCH,
-                                     NULL, sss_parseCtrl, 1 /* replace */,
+    rc = register_supported_control2(LDAP_CONTROL_SORTREQUEST, SLAP_CTRL_SEARCH, NULL, sss_parseCtrl, 1 /* replace */,
                                      &sss_cid);
     if (rc != LDAP_SUCCESS) {
-      Debug(LDAP_DEBUG_ANY,
-            "Failed to register Sort Request control '%s' (%d)\n",
-            LDAP_CONTROL_SORTREQUEST, rc);
+      Debug(LDAP_DEBUG_ANY, "Failed to register Sort Request control '%s' (%d)\n", LDAP_CONTROL_SORTREQUEST, rc);
       return rc;
     }
 
-    rc = register_supported_control2(LDAP_CONTROL_VLVREQUEST, SLAP_CTRL_SEARCH,
-                                     NULL, vlv_parseCtrl, 1 /* replace */,
+    rc = register_supported_control2(LDAP_CONTROL_VLVREQUEST, SLAP_CTRL_SEARCH, NULL, vlv_parseCtrl, 1 /* replace */,
                                      &vlv_cid);
     if (rc != LDAP_SUCCESS) {
-      Debug(LDAP_DEBUG_ANY,
-            "Failed to register VLV Request control '%s' (%d)\n",
-            LDAP_CONTROL_VLVREQUEST, rc);
+      Debug(LDAP_DEBUG_ANY, "Failed to register VLV Request control '%s' (%d)\n", LDAP_CONTROL_VLVREQUEST, rc);
 #ifdef SLAP_CONFIG_DELETE
       overlay_unregister_control(be, LDAP_CONTROL_SORTREQUEST);
       unregister_supported_control(LDAP_CONTROL_SORTREQUEST);

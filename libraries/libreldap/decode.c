@@ -289,9 +289,7 @@ int ber_decode_int(const struct berval *bv, ber_int_t *num) {
   return 0;
 }
 
-ber_tag_t ber_get_enum(BerElement *ber, ber_int_t *num) {
-  return ber_get_int(ber, num);
-}
+ber_tag_t ber_get_enum(BerElement *ber, ber_int_t *num) { return ber_get_int(ber, num); }
 
 ber_tag_t ber_get_stringb(BerElement *ber, char *buf, ber_len_t *len) {
   struct berval bv;
@@ -457,8 +455,7 @@ ber_tag_t ber_get_stringbv(BerElement *ber, struct berval *bv, int option) {
   char *data;
 
   tag = ber_skip_element(ber, bv);
-  if (tag == LBER_DEFAULT || ((option & LBER_BV_STRING) && bv->bv_len &&
-                              memchr(bv->bv_val, 0, bv->bv_len - 1))) {
+  if (tag == LBER_DEFAULT || ((option & LBER_BV_STRING) && bv->bv_len && memchr(bv->bv_val, 0, bv->bv_len - 1))) {
     bv->bv_val = NULL;
     return LBER_DEFAULT;
   }
@@ -481,8 +478,7 @@ ber_tag_t ber_get_stringbv(BerElement *ber, struct berval *bv, int option) {
   return tag;
 }
 
-ber_tag_t ber_get_stringbv_null(BerElement *ber, struct berval *bv,
-                                int option) {
+ber_tag_t ber_get_stringbv_null(BerElement *ber, struct berval *bv, int option) {
   ber_tag_t tag;
   char *data;
 
@@ -601,9 +597,7 @@ ber_tag_t ber_get_null(BerElement *ber) {
   return (len == 0 ? tag : LBER_DEFAULT);
 }
 
-ber_tag_t ber_get_boolean(BerElement *ber, ber_int_t *boolval) {
-  return ber_get_int(ber, boolval);
-}
+ber_tag_t ber_get_boolean(BerElement *ber, ber_int_t *boolval) { return ber_get_int(ber, boolval); }
 
 ber_tag_t ber_first_element(BerElement *ber, ber_len_t *len, char **last) {
   assert(last != NULL);
@@ -656,8 +650,7 @@ ber_tag_t ber_scanf(BerElement *ber, const char *fmt, ...) {
   fmt_reset = fmt;
 
   if (ber->ber_debug & (LDAP_DEBUG_TRACE | LDAP_DEBUG_BER)) {
-    ber_log_printf(LDAP_DEBUG_TRACE, ber->ber_debug,
-                   "ber_scanf fmt (%s) ber:\n", fmt);
+    ber_log_printf(LDAP_DEBUG_TRACE, ber->ber_debug, "ber_scanf fmt (%s) ber:\n", fmt);
     ber_log_dump(LDAP_DEBUG_BER, ber->ber_debug, ber, 1);
   }
 
@@ -808,8 +801,7 @@ ber_tag_t ber_scanf(BerElement *ber, const char *fmt, ...) {
 
     default:
       if (ber->ber_debug) {
-        ber_log_printf(LDAP_DEBUG_ANY, ber->ber_debug,
-                       "ber_scanf: unknown fmt %c\n", *fmt);
+        ber_log_printf(LDAP_DEBUG_ANY, ber->ber_debug, "ber_scanf: unknown fmt %c\n", *fmt);
       }
       rc = LBER_DEFAULT;
       break;

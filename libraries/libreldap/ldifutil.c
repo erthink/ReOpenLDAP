@@ -52,8 +52,7 @@ static struct berval BV_NEWRDN = BER_BVC("newrdn");
 static struct berval BV_DELETEOLDRDN = BER_BVC("deleteoldrdn");
 static struct berval BV_NEWSUP = BER_BVC("newsuperior");
 
-#define BV_CASEMATCH(a, b)                                                     \
-  ((a)->bv_len == (b)->bv_len && 0 == strcasecmp((a)->bv_val, (b)->bv_val))
+#define BV_CASEMATCH(a, b) ((a)->bv_len == (b)->bv_len && 0 == strcasecmp((a)->bv_val, (b)->bv_val))
 
 static int parse_ldif_control(struct berval *bval, LDAPControl ***ppctrls);
 
@@ -94,8 +93,7 @@ void ldap_ldif_record_done(LDIFRecord *lr) {
  * LDIF_ENTRIES_ONLY LDIF_NO_CONTROLS ctx is the memory allocation context - if
  * NULL, use the standard memory allocator
  */
-int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
-                             LDIFRecord *lr, const char *errstr,
+int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum, LDIFRecord *lr, const char *errstr,
                              unsigned int flags, void *ctx) {
   char *line, *dn;
   int rc, modop;
@@ -122,8 +120,7 @@ int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
   dn = NULL;
 
   lr->lr_lines = ldif_countlines(rbuf->bv_val);
-  lr->lr_btype = ber_memcalloc_x(
-      1, (lr->lr_lines + 1) * 2 * sizeof(struct berval) + lr->lr_lines, ctx);
+  lr->lr_btype = ber_memcalloc_x(1, (lr->lr_lines + 1) * 2 * sizeof(struct berval) + lr->lr_lines, ctx);
   if (!lr->lr_btype)
     return LDAP_NO_MEMORY;
 
@@ -146,10 +143,8 @@ int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
       continue;
     }
 
-    if ((rc = ldif_parse_line2(line, lr->lr_btype + i, lr->lr_vals + i,
-                               &freev)) < 0) {
-      fprintf(stderr, _("%s: invalid format (line %lu) entry: \"%s\"\n"),
-              errstr, linenum + i, dn == NULL ? "" : dn);
+    if ((rc = ldif_parse_line2(line, lr->lr_btype + i, lr->lr_vals + i, &freev)) < 0) {
+      fprintf(stderr, _("%s: invalid format (line %lu) entry: \"%s\"\n"), errstr, linenum + i, dn == NULL ? "" : dn);
       rc = LDAP_PARAM_ERROR;
       goto leave;
     }
@@ -166,10 +161,8 @@ int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
 #endif
         static const struct berval version1 = {1, "1"};
         if (lr->lr_vals[i].bv_len != version1.bv_len ||
-            strncmp(lr->lr_vals[i].bv_val, version1.bv_val, version1.bv_len) !=
-                0) {
-          fprintf(stderr, _("%s: invalid version %s, line %lu (ignored)\n"),
-                  errstr, lr->lr_vals[i].bv_val, linenum);
+            strncmp(lr->lr_vals[i].bv_val, version1.bv_val, version1.bv_len) != 0) {
+          fprintf(stderr, _("%s: invalid version %s, line %lu (ignored)\n"), errstr, lr->lr_vals[i].bv_val, linenum);
         }
         version++;
 
@@ -207,15 +200,15 @@ int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
     if (!(flags & LDIF_NO_CONTROLS)) {
       rc = parse_ldif_control(lr->lr_vals + i, &pctrls);
       if (rc != 0) {
-        fprintf(stderr, _("%s: Error processing %s line, line %lu: %s\n"),
-                errstr, BV_CONTROL.bv_val, linenum + i, ldap_err2string(rc));
+        fprintf(stderr, _("%s: Error processing %s line, line %lu: %s\n"), errstr, BV_CONTROL.bv_val, linenum + i,
+                ldap_err2string(rc));
       }
     }
     i++;
     if (i >= lr->lr_lines) {
     short_input:
-      fprintf(stderr, _("%s: Expecting more input after %s line, line %lu\n"),
-              errstr, lr->lr_btype[i - 1].bv_val, linenum + i);
+      fprintf(stderr, _("%s: Expecting more input after %s line, line %lu\n"), errstr, lr->lr_btype[i - 1].bv_val,
+              linenum + i);
 
       rc = LDAP_PARAM_ERROR;
       goto leave;
@@ -237,8 +230,7 @@ int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
       fprintf(stderr,
               _("%s: illegal trailing space after"
                 " \"%s: %s\" trimmed (line %lu, entry \"%s\")\n"),
-              errstr, BV_CHANGETYPE.bv_val, lr->lr_vals[i].bv_val, linenum + i,
-              dn);
+              errstr, BV_CHANGETYPE.bv_val, lr->lr_vals[i].bv_val, linenum + i, dn);
       lr->lr_vals[i].bv_val[icnt] = '\0';
     }
 #endif /* LIBERAL_CHANGETYPE_MODOP */
@@ -247,12 +239,10 @@ int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
        there must be no changetype, and the flag LDIF_DEFAULT_ADD must be set */
     if (flags & LDIF_ENTRIES_ONLY) {
       if (!(BV_CASEMATCH(lr->lr_vals + i, &BV_ADDCT))) {
-        ber_pvt_log_printf(
-            LDAP_DEBUG_ANY, ldif_debug,
-            _("%s: skipping LDIF record beginning at line %lu: "
-              "changetype '%.*s' found but entries only was requested\n"),
-            errstr, linenum, (int)lr->lr_vals[i].bv_len,
-            (const char *)lr->lr_vals[i].bv_val);
+        ber_pvt_log_printf(LDAP_DEBUG_ANY, ldif_debug,
+                           _("%s: skipping LDIF record beginning at line %lu: "
+                             "changetype '%.*s' found but entries only was requested\n"),
+                           errstr, linenum, (int)lr->lr_vals[i].bv_len, (const char *)lr->lr_vals[i].bv_val);
         goto leave;
       }
     }
@@ -263,8 +253,7 @@ int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
     } else if (BV_CASEMATCH(lr->lr_vals + i, &BV_ADDCT)) {
       new_entry = 1;
       modop = LDAP_MOD_ADD;
-    } else if (BV_CASEMATCH(lr->lr_vals + i, &BV_MODRDNCT) ||
-               BV_CASEMATCH(lr->lr_vals + i, &BV_MODDNCT) ||
+    } else if (BV_CASEMATCH(lr->lr_vals + i, &BV_MODRDNCT) || BV_CASEMATCH(lr->lr_vals + i, &BV_MODDNCT) ||
                BV_CASEMATCH(lr->lr_vals + i, &BV_RENAMECT)) {
       i++;
       if (i >= lr->lr_lines)
@@ -273,8 +262,7 @@ int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
         fprintf(stderr,
                 _("%s: expecting \"%s:\" but saw"
                   " \"%s:\" (line %lu, entry \"%s\")\n"),
-                errstr, BV_NEWRDN.bv_val, lr->lr_btype[i].bv_val, linenum + i,
-                dn);
+                errstr, BV_NEWRDN.bv_val, lr->lr_btype[i].bv_val, linenum + i, dn);
         rc = LDAP_PARAM_ERROR;
         goto leave;
       }
@@ -286,8 +274,7 @@ int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
         fprintf(stderr,
                 _("%s: expecting \"%s:\" but saw"
                   " \"%s:\" (line %lu, entry \"%s\")\n"),
-                errstr, BV_DELETEOLDRDN.bv_val, lr->lr_btype[i].bv_val,
-                linenum + i, dn);
+                errstr, BV_DELETEOLDRDN.bv_val, lr->lr_btype[i].bv_val, linenum + i, dn);
         rc = LDAP_PARAM_ERROR;
         goto leave;
       }
@@ -298,8 +285,7 @@ int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
           fprintf(stderr,
                   _("%s: expecting \"%s:\" but saw"
                     " \"%s:\" (line %lu, entry \"%s\")\n"),
-                  errstr, BV_NEWSUP.bv_val, lr->lr_btype[i].bv_val, linenum + i,
-                  dn);
+                  errstr, BV_NEWSUP.bv_val, lr->lr_btype[i].bv_val, linenum + i, dn);
           rc = LDAP_PARAM_ERROR;
           goto leave;
         }
@@ -310,9 +296,8 @@ int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
     } else if (BV_CASEMATCH(lr->lr_vals + i, &BV_DELETECT)) {
       got_all = delete_entry = 1;
     } else {
-      fprintf(stderr, _("%s:  unknown %s \"%s\" (line %lu, entry \"%s\")\n"),
-              errstr, BV_CHANGETYPE.bv_val, lr->lr_vals[i].bv_val, linenum + i,
-              dn);
+      fprintf(stderr, _("%s:  unknown %s \"%s\" (line %lu, entry \"%s\")\n"), errstr, BV_CHANGETYPE.bv_val,
+              lr->lr_vals[i].bv_val, linenum + i, dn);
       rc = LDAP_PARAM_ERROR;
       goto leave;
     }
@@ -324,12 +309,11 @@ int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
     /* if LDIF_ENTRIES_ONLY, then either the changetype must be add, or
        there must be no changetype, and the flag LDIF_DEFAULT_ADD must be set */
     if (flags & LDIF_ENTRIES_ONLY) {
-      ber_pvt_log_printf(
-          LDAP_DEBUG_ANY, ldif_debug,
-          _("%s: skipping LDIF record beginning at line %lu: "
-            "no changetype found but entries only was requested and "
-            "the default setting for missing changetype is modify\n"),
-          errstr, linenum);
+      ber_pvt_log_printf(LDAP_DEBUG_ANY, ldif_debug,
+                         _("%s: skipping LDIF record beginning at line %lu: "
+                           "no changetype found but entries only was requested and "
+                           "the default setting for missing changetype is modify\n"),
+                         errstr, linenum);
       goto leave;
     }
     expect_modop = 1; /* missing changetype => modify */
@@ -337,8 +321,7 @@ int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
 
   if (got_all) {
     if (i < lr->lr_lines) {
-      fprintf(stderr, _("%s: extra lines at end (line %lu, entry \"%s\")\n"),
-              errstr, linenum + i, dn);
+      fprintf(stderr, _("%s: extra lines at end (line %lu, entry \"%s\")\n"), errstr, linenum + i, dn);
       rc = LDAP_PARAM_ERROR;
       goto leave;
     }
@@ -355,10 +338,7 @@ int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
     for (; i < lr->lr_lines; i++) {
       for (j = i + 1; j < lr->lr_lines; j++) {
         if (!lr->lr_btype[j].bv_val) {
-          fprintf(
-              stderr,
-              _("%s: missing attributeDescription (line %lu, entry \"%s\")\n"),
-              errstr, linenum + j, dn);
+          fprintf(stderr, _("%s: missing attributeDescription (line %lu, entry \"%s\")\n"), errstr, linenum + j, dn);
           rc = LDAP_PARAM_ERROR;
           goto leave;
         }
@@ -386,10 +366,9 @@ int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
      * and array of pointers to values, allowing for NULL terminators
      * for the pointer arrays...
      */
-    lr->lr_lm = ber_memalloc_x(
-        nmods * sizeof(LDAPMod) + (nmods + 1) * sizeof(LDAPMod *) +
-            (lr->lr_lines + nmods - idn) * sizeof(struct berval *),
-        ctx);
+    lr->lr_lm = ber_memalloc_x(nmods * sizeof(LDAPMod) + (nmods + 1) * sizeof(LDAPMod *) +
+                                   (lr->lr_lines + nmods - idn) * sizeof(struct berval *),
+                               ctx);
     pmods = (LDAPMod **)(lr->lr_lm + nmods);
     bvl = (struct berval **)(pmods + nmods + 1);
 
@@ -493,8 +472,7 @@ int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
       /* If prev op was deferred and matches this type,
        * clear the flag
        */
-      if ((lr->lr_mops[i - 1] & LDAP_MOD_BVALUES) &&
-          BV_CASEMATCH(lr->lr_btype + i, lr->lr_btype + i - 1)) {
+      if ((lr->lr_mops[i - 1] & LDAP_MOD_BVALUES) && BV_CASEMATCH(lr->lr_btype + i, lr->lr_btype + i - 1)) {
         lr->lr_mops[i - 1] = M_SEP;
         nmods--;
       }
@@ -505,10 +483,9 @@ int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
    * and array of pointers to values, allowing for NULL terminators
    * for the pointer arrays...
    */
-  lr->lr_lm =
-      ber_memalloc_x(nmods * sizeof(LDAPMod) + (nmods + 1) * sizeof(LDAPMod *) +
-                         (lr->lr_lines + nmods - idn) * sizeof(struct berval *),
-                     ctx);
+  lr->lr_lm = ber_memalloc_x(nmods * sizeof(LDAPMod) + (nmods + 1) * sizeof(LDAPMod *) +
+                                 (lr->lr_lines + nmods - idn) * sizeof(struct berval *),
+                             ctx);
   pmods = (LDAPMod **)(lr->lr_lm + nmods);
   bvl = (struct berval **)(pmods + nmods + 1);
 
@@ -519,8 +496,7 @@ int ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
   for (i = idn; i < lr->lr_lines; i++) {
     if (lr->lr_mops[i] == M_SEP)
       continue;
-    if (lr->lr_mops[i] != lr->lr_mops[i - 1] ||
-        !BV_CASEMATCH(lr->lr_btype + i, &bv)) {
+    if (lr->lr_mops[i] != lr->lr_mops[i - 1] || !BV_CASEMATCH(lr->lr_btype + i, &bv)) {
       bvl[k++] = NULL;
       bv = lr->lr_btype[i];
       lr->lr_lm[j].mod_op = lr->lr_mops[i] | LDAP_MOD_BVALUES;
@@ -567,8 +543,7 @@ leave:
 /* Same as ldap_parse_ldif_record_x()
  * public API does not expose memory context
  */
-int ldap_parse_ldif_record(struct berval *rbuf, unsigned long linenum,
-                           LDIFRecord *lr, const char *errstr,
+int ldap_parse_ldif_record(struct berval *rbuf, unsigned long linenum, LDIFRecord *lr, const char *errstr,
                            unsigned int flags) {
   return ldap_parse_ldif_record_x(rbuf, linenum, lr, errstr, flags, NULL);
 }
@@ -673,8 +648,7 @@ static int parse_ldif_control(struct berval *bval, LDAPControl ***ppctrls) {
     }
   }
   /* Allocate 1 more slot for the new control and 1 for the NULL. */
-  pctrls =
-      (LDAPControl **)ber_memrealloc(pctrls, (i + 2) * (sizeof(LDAPControl *)));
+  pctrls = (LDAPControl **)ber_memrealloc(pctrls, (i + 2) * (sizeof(LDAPControl *)));
   if (pctrls == NULL) {
     rc = LDAP_NO_MEMORY;
     goto cleanup;

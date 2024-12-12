@@ -68,9 +68,7 @@ dn2entry_retry:
   case DB_LOCK_NOTGRANTED:
     goto dn2entry_retry;
   default:
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(bdb_referrals) ": dn2entry failed: %s (%d)\n",
-          db_strerror(rc), rc);
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_referrals) ": dn2entry failed: %s (%d)\n", db_strerror(rc), rc);
     rs->sr_text = "internal error";
     return LDAP_OTHER;
   }
@@ -79,16 +77,13 @@ dn2entry_retry:
     rc = LDAP_SUCCESS;
     rs->sr_matched = NULL;
     if (e != NULL) {
-      Debug(LDAP_DEBUG_TRACE,
-            LDAP_XSTRING(
-                bdb_referrals) ": tag=%lu target=\"%s\" matched=\"%s\"\n",
+      Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_referrals) ": tag=%lu target=\"%s\" matched=\"%s\"\n",
             (unsigned long)op->o_tag, op->o_req_dn.bv_val, e->e_name.bv_val);
 
       if (is_entry_referral(e)) {
         BerVarray ref = get_entry_referrals(op, e);
         rc = LDAP_OTHER;
-        rs->sr_ref = referral_rewrite(ref, &e->e_name, &op->o_req_dn,
-                                      LDAP_SCOPE_DEFAULT);
+        rs->sr_ref = referral_rewrite(ref, &e->e_name, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
         ber_bvarray_free(ref);
         if (rs->sr_ref) {
           rs->sr_matched = ch_strdup(e->e_name.bv_val);
@@ -115,14 +110,11 @@ dn2entry_retry:
   if (is_entry_referral(e)) {
     /* entry is a referral */
     BerVarray refs = get_entry_referrals(op, e);
-    rs->sr_ref =
-        referral_rewrite(refs, &e->e_name, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
+    rs->sr_ref = referral_rewrite(refs, &e->e_name, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
     ber_bvarray_free(refs);
 
-    Debug(
-        LDAP_DEBUG_TRACE,
-        LDAP_XSTRING(bdb_referrals) ": tag=%lu target=\"%s\" matched=\"%s\"\n",
-        (unsigned long)op->o_tag, op->o_req_dn.bv_val, e->e_name.bv_val);
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_referrals) ": tag=%lu target=\"%s\" matched=\"%s\"\n",
+          (unsigned long)op->o_tag, op->o_req_dn.bv_val, e->e_name.bv_val);
 
     if (rs->sr_ref != NULL) {
       rc = rs->sr_err = LDAP_REFERRAL;

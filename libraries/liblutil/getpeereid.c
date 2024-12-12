@@ -64,8 +64,7 @@ int lutil_getpeereid(int s, uid_t *euid, gid_t *egid
   struct ucred peercred;
   ber_socklen_t peercredlen = sizeof peercred;
 
-  if ((getsockopt(s, SOL_SOCKET, SO_PEERCRED, (void *)&peercred,
-                  &peercredlen) == 0) &&
+  if ((getsockopt(s, SOL_SOCKET, SO_PEERCRED, (void *)&peercred, &peercredlen) == 0) &&
       (peercredlen == sizeof peercred)) {
     *euid = peercred.uid;
     *egid = peercred.gid;
@@ -76,8 +75,7 @@ int lutil_getpeereid(int s, uid_t *euid, gid_t *egid
   struct xucred peercred;
   ber_socklen_t peercredlen = sizeof peercred;
 
-  if ((getsockopt(s, LOCAL_PEERCRED, 1, (void *)&peercred, &peercredlen) ==
-       0) &&
+  if ((getsockopt(s, LOCAL_PEERCRED, 1, (void *)&peercred, &peercredlen) == 0) &&
       (peercred.cr_version == XUCRED_VERSION)) {
     *euid = peercred.cr_uid;
     *egid = peercred.cr_gid;
@@ -133,8 +131,7 @@ int lutil_getpeereid(int s, uid_t *euid, gid_t *egid
   err = recvmsg(s, &msg, MSG_WAITALL);
   if (err >= 0 &&
 #ifdef HAVE_STRUCT_MSGHDR_MSG_CONTROL
-      cmsg->cmsg_len == CMSG_LEN(sizeof(int)) &&
-      cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_RIGHTS
+      cmsg->cmsg_len == CMSG_LEN(sizeof(int)) && cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_RIGHTS
 #else
       msg.msg_accrightslen == sizeof(int)
 #endif /* HAVE_STRUCT_MSGHDR_MSG_CONTROL*/
@@ -153,8 +150,7 @@ int lutil_getpeereid(int s, uid_t *euid, gid_t *egid
     if (err == 0)
       rlen = read(fd, &rname, rlen);
     close(fd);
-    if (err == 0 && st.st_mode == mode && llen == rlen &&
-        !memcmp(&lname, &rname, llen)) {
+    if (err == 0 && st.st_mode == mode && llen == rlen && !memcmp(&lname, &rname, llen)) {
       *euid = st.st_uid;
       *egid = st.st_gid;
       return 0;

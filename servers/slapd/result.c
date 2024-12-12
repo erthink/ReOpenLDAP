@@ -29,19 +29,18 @@
 #include "slap.h"
 
 #if SLAP_STATS_ETIME
-#define ETIME_SETUP                                                            \
-  struct timeval now;                                                          \
-  (void)gettimeofday(&now, NULL);                                              \
-  now.tv_sec -= op->o_time;                                                    \
-  now.tv_usec -= op->o_tincr;                                                  \
-  if (now.tv_usec < 0) {                                                       \
-    --now.tv_sec;                                                              \
-    now.tv_usec += 1000000;                                                    \
+#define ETIME_SETUP                                                                                                    \
+  struct timeval now;                                                                                                  \
+  (void)gettimeofday(&now, NULL);                                                                                      \
+  now.tv_sec -= op->o_time;                                                                                            \
+  now.tv_usec -= op->o_tincr;                                                                                          \
+  if (now.tv_usec < 0) {                                                                                               \
+    --now.tv_sec;                                                                                                      \
+    now.tv_usec += 1000000;                                                                                            \
   }
 #define ETIME_LOGFMT "etime=%d.%06d "
-#define StatslogEtime(lvl, fmt, pfx, tag, err, ...)                            \
-  Statslog(lvl, fmt, pfx, tag, err, (int)now.tv_sec, (int)now.tv_usec,         \
-           __VA_ARGS__)
+#define StatslogEtime(lvl, fmt, pfx, tag, err, ...)                                                                    \
+  Statslog(lvl, fmt, pfx, tag, err, (int)now.tv_sec, (int)now.tv_usec, __VA_ARGS__)
 #else
 #define ETIME_SETUP
 #define ETIME_LOGFMT ""
@@ -142,8 +141,7 @@ ber_tag_t slap_req2res(ber_tag_t tag) {
 int rs_suppress_assert = 0;
 
 /* RS_ASSERT() helper function */
-void rs_assert_(const char *file, unsigned line, const char *fn,
-                const char *cond) {
+void rs_assert_(const char *file, unsigned line, const char *fn, const char *cond) {
   int no_assert = rs_suppress_assert, save_errno = errno;
   const char *s;
 
@@ -178,12 +176,10 @@ void(rs_assert_ok)(const SlapReply *rs) {
   const slap_mask_t flags = rs->sr_flags;
 
   if (flags & REP_ENTRY_MASK) {
-    RS_ASSERT(!(flags & REP_ENTRY_MUSTRELEASE) ||
-              !(flags & (REP_ENTRY_MASK ^ REP_ENTRY_MUSTRELEASE)));
+    RS_ASSERT(!(flags & REP_ENTRY_MUSTRELEASE) || !(flags & (REP_ENTRY_MASK ^ REP_ENTRY_MUSTRELEASE)));
     RS_ASSERT(rs->sr_entry != NULL);
     RS_ASSERT((1 << rs->sr_type) &
-              ((1 << REP_SEARCH) | (1 << REP_SEARCHREF) | (1 << REP_RESULT) |
-               (1 << REP_GLUE_RESULT)));
+              ((1 << REP_SEARCH) | (1 << REP_SEARCHREF) | (1 << REP_RESULT) | (1 << REP_GLUE_RESULT)));
   }
 #if USE_RS_ASSERT > 1 /* TODO: Enable when safe */
   if ((flags & (REP_MATCHED_MASK | REP_REF_MASK | REP_CTRLS_MASK))) {
@@ -231,9 +227,7 @@ void(rs_assert_done)(const SlapReply *rs) {
 #endif /* USE_RS_ASSERT */
 
 /* Reset a used SlapReply whose contents has been flushed (freed/released) */
-void(rs_reinit)(SlapReply *rs, slap_reply_t type) {
-  rs_reinit(rs, type); /* proto-slap.h macro */
-}
+void(rs_reinit)(SlapReply *rs, slap_reply_t type) { rs_reinit(rs, type); /* proto-slap.h macro */ }
 
 /* Obey and clear rs->sr_flags & REP_ENTRY_MASK.  Clear sr_entry if freed. */
 void rs_flush_entry(Operation *op, SlapReply *rs, slap_overinst *on) {
@@ -254,8 +248,7 @@ void rs_flush_entry(Operation *op, SlapReply *rs, slap_overinst *on) {
 }
 
 /* Set rs->sr_entry after obeying and clearing sr_flags & REP_ENTRY_MASK. */
-void rs_replace_entry(Operation *op, SlapReply *rs, slap_overinst *on,
-                      Entry *e) {
+void rs_replace_entry(Operation *op, SlapReply *rs, slap_overinst *on, Entry *e) {
   rs_flush_entry(op, rs, on);
   rs->sr_entry = e;
 }
@@ -316,9 +309,7 @@ enum counters_send_update_mode {
   crutch_search_reference /* sc_refs += 1, sc_pdu += 1 */
 };
 
-static void
-send_ldap_ber__update_counters(Operation *op, int bytes,
-                               enum counters_send_update_mode crutch) {
+static void send_ldap_ber__update_counters(Operation *op, int bytes, enum counters_send_update_mode crutch) {
   assert(bytes > 0);
   ldap_pvt_thread_mutex_lock(&op->o_counters->sc_mutex);
   ldap_pvt_mp_add_ulong(op->o_counters->sc_bytes, (unsigned long)bytes);
@@ -338,8 +329,7 @@ send_ldap_ber__update_counters(Operation *op, int bytes,
   ldap_pvt_thread_mutex_unlock(&op->o_counters->sc_mutex);
 }
 
-static long send_ldap_ber(Operation *op, BerElement *ber,
-                          enum counters_send_update_mode crutch) {
+static long send_ldap_ber(Operation *op, BerElement *ber, enum counters_send_update_mode crutch) {
   Connection *conn = op->o_conn;
   ber_len_t bytes;
   long ret = -1;
@@ -350,8 +340,7 @@ static long send_ldap_ber(Operation *op, BerElement *ber,
   ldap_pvt_thread_mutex_lock(&conn->c_mutex);
   ldap_pvt_thread_mutex_lock(&conn->c_write1_mutex);
 
-  if ((slap_get_op_abandon(op) && !slap_get_op_cancel(op)) ||
-      !connection_valid(conn) || conn->c_writers < 0) {
+  if ((slap_get_op_abandon(op) && !slap_get_op_cancel(op)) || !connection_valid(conn) || conn->c_writers < 0) {
     ldap_pvt_thread_mutex_unlock(&conn->c_write1_mutex);
     ldap_pvt_thread_mutex_unlock(&conn->c_mutex);
     return ret;
@@ -398,8 +387,7 @@ static long send_ldap_ber(Operation *op, BerElement *ber,
      * it's a hard error and return.
      */
 
-    Debug(LDAP_DEBUG_CONNS, "ber_flush2 failed errno=%d reason=\"%s\"\n", err,
-          sock_errstr(err));
+    Debug(LDAP_DEBUG_CONNS, "ber_flush2 failed errno=%d reason=\"%s\"\n", err, sock_errstr(err));
 
     if (err != EWOULDBLOCK && err != EAGAIN) {
       close_reason = "connection lost on write";
@@ -653,18 +641,15 @@ static int send_ldap_response(Operation *op, SlapReply *rs) {
   if (rc == SLAPD_ABANDON && slap_get_op_cancel(op))
     rc = LDAP_CANCELLED;
 
-  Debug(LDAP_DEBUG_TRACE, "send_ldap_response: msgid=%d tag=%lu err=%d\n",
-        rs->sr_msgid, rs->sr_tag, rc);
+  Debug(LDAP_DEBUG_TRACE, "send_ldap_response: msgid=%d tag=%lu err=%d\n", rs->sr_msgid, rs->sr_tag, rc);
 
   if (rs->sr_ref) {
-    Debug(LDAP_DEBUG_ARGS, "send_ldap_response: ref=\"%s\"\n",
-          rs->sr_ref[0].bv_val ? rs->sr_ref[0].bv_val : "NULL");
+    Debug(LDAP_DEBUG_ARGS, "send_ldap_response: ref=\"%s\"\n", rs->sr_ref[0].bv_val ? rs->sr_ref[0].bv_val : "NULL");
   }
 
 #ifdef LDAP_CONNECTIONLESS
   if (op->o_conn && op->o_conn->c_is_udp && op->o_protocol == LDAP_VERSION2) {
-    rc = ber_printf(ber, "t{ess" /*"}"*/, rs->sr_tag, rc,
-                    rs->sr_matched == NULL ? "" : rs->sr_matched,
+    rc = ber_printf(ber, "t{ess" /*"}"*/, rs->sr_tag, rc, rs->sr_matched == NULL ? "" : rs->sr_matched,
                     rs->sr_text == NULL ? "" : rs->sr_text);
   } else
 #endif
@@ -672,8 +657,7 @@ static int send_ldap_response(Operation *op, SlapReply *rs) {
     rc = ber_printf(ber, "{it{" /*"}}"*/, rs->sr_msgid, rs->sr_tag);
 
   } else {
-    rc = ber_printf(ber, "{it{ess" /*"}}"*/, rs->sr_msgid, rs->sr_tag, rc,
-                    rs->sr_matched == NULL ? "" : rs->sr_matched,
+    rc = ber_printf(ber, "{it{ess" /*"}}"*/, rs->sr_msgid, rs->sr_tag, rc, rs->sr_matched == NULL ? "" : rs->sr_matched,
                     rs->sr_text == NULL ? "" : rs->sr_text);
   }
 
@@ -690,18 +674,13 @@ static int send_ldap_response(Operation *op, SlapReply *rs) {
     rc = ber_printf(ber, "tO", LDAP_TAG_SASL_RES_CREDS, rs->sr_sasldata);
   }
 
-  if (rc != -1 &&
-      (rs->sr_type == REP_EXTENDED || rs->sr_type == REP_INTERMEDIATE)) {
+  if (rc != -1 && (rs->sr_type == REP_EXTENDED || rs->sr_type == REP_INTERMEDIATE)) {
     if (rs->sr_rspoid != NULL) {
-      rc = ber_printf(ber, "ts",
-                      rs->sr_type == REP_EXTENDED ? LDAP_TAG_EXOP_RES_OID
-                                                  : LDAP_TAG_IM_RES_OID,
+      rc = ber_printf(ber, "ts", rs->sr_type == REP_EXTENDED ? LDAP_TAG_EXOP_RES_OID : LDAP_TAG_IM_RES_OID,
                       rs->sr_rspoid);
     }
     if (rc != -1 && rs->sr_rspdata != NULL) {
-      rc = ber_printf(ber, "tO",
-                      rs->sr_type == REP_EXTENDED ? LDAP_TAG_EXOP_RES_VALUE
-                                                  : LDAP_TAG_IM_RES_VALUE,
+      rc = ber_printf(ber, "tO", rs->sr_type == REP_EXTENDED ? LDAP_TAG_EXOP_RES_VALUE : LDAP_TAG_IM_RES_VALUE,
                       rs->sr_rspdata);
     }
   }
@@ -719,8 +698,7 @@ static int send_ldap_response(Operation *op, SlapReply *rs) {
   }
 
 #ifdef LDAP_CONNECTIONLESS
-  if (op->o_conn && op->o_conn->c_is_udp && op->o_protocol == LDAP_VERSION2 &&
-      rc != -1) {
+  if (op->o_conn && op->o_conn->c_is_udp && op->o_protocol == LDAP_VERSION2 && rc != -1) {
     rc = ber_printf(ber, /*"{"*/ "N}");
   }
 #endif
@@ -792,12 +770,10 @@ clean2:;
 }
 
 void send_ldap_disconnect(Operation *op, SlapReply *rs) {
-#define LDAP_UNSOLICITED_ERROR(e)                                              \
-  ((e) == LDAP_PROTOCOL_ERROR || (e) == LDAP_STRONG_AUTH_REQUIRED ||           \
-   (e) == LDAP_UNAVAILABLE)
+#define LDAP_UNSOLICITED_ERROR(e)                                                                                      \
+  ((e) == LDAP_PROTOCOL_ERROR || (e) == LDAP_STRONG_AUTH_REQUIRED || (e) == LDAP_UNAVAILABLE)
 
-  Debug(LDAP_DEBUG_TRACE, "send_ldap_disconnect %d:%s\n", rs->sr_err,
-        rs->sr_text ? rs->sr_text : "");
+  Debug(LDAP_DEBUG_TRACE, "send_ldap_disconnect %d:%s\n", rs->sr_err, rs->sr_text ? rs->sr_text : "");
   assert(LDAP_UNSOLICITED_ERROR(rs->sr_err));
 
   /* TODO: Flush the entry if sr_type == REP_SEARCH/REP_SEARCHREF? */
@@ -820,10 +796,8 @@ void send_ldap_disconnect(Operation *op, SlapReply *rs) {
 
   if (send_ldap_response(op, rs) == SLAP_CB_CONTINUE) {
     ETIME_SETUP;
-    StatslogEtime(LDAP_DEBUG_STATS,
-                  "%s DISCONNECT tag=%lu err=%d " ETIME_LOGFMT "text=%s\n",
-                  op->o_log_prefix, rs->sr_tag, rs->sr_err,
-                  rs->sr_text ? rs->sr_text : "");
+    StatslogEtime(LDAP_DEBUG_STATS, "%s DISCONNECT tag=%lu err=%d " ETIME_LOGFMT "text=%s\n", op->o_log_prefix,
+                  rs->sr_tag, rs->sr_err, rs->sr_text ? rs->sr_text : "");
   }
 }
 
@@ -840,14 +814,11 @@ void slap_send_ldap_result(Operation *op, SlapReply *rs) {
     goto abandon;
   }
 
-  Debug(LDAP_DEBUG_TRACE, "send_ldap_result: %s p=%d\n", op->o_log_prefix,
-        op->o_protocol);
-  Debug(LDAP_DEBUG_ARGS,
-        "send_ldap_result: err=%d matched=\"%s\" text=\"%s\"\n", rs->sr_err,
+  Debug(LDAP_DEBUG_TRACE, "send_ldap_result: %s p=%d\n", op->o_log_prefix, op->o_protocol);
+  Debug(LDAP_DEBUG_ARGS, "send_ldap_result: err=%d matched=\"%s\" text=\"%s\"\n", rs->sr_err,
         rs->sr_matched ? rs->sr_matched : "", rs->sr_text ? rs->sr_text : "");
   if (rs->sr_ref) {
-    Debug(LDAP_DEBUG_ARGS, "send_ldap_result: referral=\"%s\"\n",
-          rs->sr_ref[0].bv_val ? rs->sr_ref[0].bv_val : "NULL");
+    Debug(LDAP_DEBUG_ARGS, "send_ldap_result: referral=\"%s\"\n", rs->sr_ref[0].bv_val ? rs->sr_ref[0].bv_val : "NULL");
   }
   assert(!LDAP_API_ERROR(rs->sr_err));
   assert(rs->sr_err != LDAP_PARTIAL_RESULTS);
@@ -882,16 +853,11 @@ abandon:
   if (send_ldap_response(op, rs) == SLAP_CB_CONTINUE) {
     ETIME_SETUP;
     if (op->o_tag == LDAP_REQ_SEARCH) {
-      StatslogEtime(LDAP_DEBUG_STATS,
-                    "%s SEARCH RESULT tag=%lu err=%d " ETIME_LOGFMT
-                    "nentries=%d text=%s\n",
-                    op->o_log_prefix, rs->sr_tag, rs->sr_err, rs->sr_nentries,
-                    rs->sr_text ? rs->sr_text : "");
+      StatslogEtime(LDAP_DEBUG_STATS, "%s SEARCH RESULT tag=%lu err=%d " ETIME_LOGFMT "nentries=%d text=%s\n",
+                    op->o_log_prefix, rs->sr_tag, rs->sr_err, rs->sr_nentries, rs->sr_text ? rs->sr_text : "");
     } else {
-      StatslogEtime(LDAP_DEBUG_STATS,
-                    "%s RESULT tag=%lu err=%d " ETIME_LOGFMT "text=%s\n",
-                    op->o_log_prefix, rs->sr_tag, rs->sr_err,
-                    rs->sr_text ? rs->sr_text : "");
+      StatslogEtime(LDAP_DEBUG_STATS, "%s RESULT tag=%lu err=%d " ETIME_LOGFMT "text=%s\n", op->o_log_prefix,
+                    rs->sr_tag, rs->sr_err, rs->sr_text ? rs->sr_text : "");
     }
   }
 
@@ -913,16 +879,13 @@ void send_ldap_sasl(Operation *op, SlapReply *rs) {
 
   if (send_ldap_response(op, rs) == SLAP_CB_CONTINUE) {
     ETIME_SETUP;
-    StatslogEtime(LDAP_DEBUG_STATS,
-                  "%s RESULT tag=%lu err=%d " ETIME_LOGFMT "text=%s\n",
-                  op->o_log_prefix, rs->sr_tag, rs->sr_err,
-                  rs->sr_text ? rs->sr_text : "");
+    StatslogEtime(LDAP_DEBUG_STATS, "%s RESULT tag=%lu err=%d " ETIME_LOGFMT "text=%s\n", op->o_log_prefix, rs->sr_tag,
+                  rs->sr_err, rs->sr_text ? rs->sr_text : "");
   }
 }
 
 void slap_send_ldap_extended(Operation *op, SlapReply *rs) {
-  Debug(LDAP_DEBUG_TRACE, "send_ldap_extended: err=%d oid=%s len=%ld\n",
-        rs->sr_err, rs->sr_rspoid ? rs->sr_rspoid : "",
+  Debug(LDAP_DEBUG_TRACE, "send_ldap_extended: err=%d oid=%s len=%ld\n", rs->sr_err, rs->sr_rspoid ? rs->sr_rspoid : "",
         rs->sr_rspdata != NULL ? rs->sr_rspdata->bv_len : 0);
 
   RS_ASSERT(!(rs->sr_flags & REP_ENTRY_MASK));
@@ -934,17 +897,14 @@ void slap_send_ldap_extended(Operation *op, SlapReply *rs) {
 
   if (send_ldap_response(op, rs) == SLAP_CB_CONTINUE) {
     ETIME_SETUP;
-    StatslogEtime(LDAP_DEBUG_STATS,
-                  "%s RESULT oid=%s err=%d " ETIME_LOGFMT "text=%s\n",
-                  op->o_log_prefix, rs->sr_rspoid ? rs->sr_rspoid : "",
-                  rs->sr_err, rs->sr_text ? rs->sr_text : "");
+    StatslogEtime(LDAP_DEBUG_STATS, "%s RESULT oid=%s err=%d " ETIME_LOGFMT "text=%s\n", op->o_log_prefix,
+                  rs->sr_rspoid ? rs->sr_rspoid : "", rs->sr_err, rs->sr_text ? rs->sr_text : "");
   }
 }
 
 void slap_send_ldap_intermediate(Operation *op, SlapReply *rs) {
-  Debug(LDAP_DEBUG_TRACE, "send_ldap_intermediate: err=%d oid=%s len=%ld\n",
-        rs->sr_err, rs->sr_rspoid ? rs->sr_rspoid : "",
-        rs->sr_rspdata != NULL ? rs->sr_rspdata->bv_len : 0);
+  Debug(LDAP_DEBUG_TRACE, "send_ldap_intermediate: err=%d oid=%s len=%ld\n", rs->sr_err,
+        rs->sr_rspoid ? rs->sr_rspoid : "", rs->sr_rspdata != NULL ? rs->sr_rspdata->bv_len : 0);
 
   RS_ASSERT(!(rs->sr_flags & REP_ENTRY_MASK));
   rs->sr_flags &= ~REP_ENTRY_MASK; /* paranoia */
@@ -953,15 +913,14 @@ void slap_send_ldap_intermediate(Operation *op, SlapReply *rs) {
   rs->sr_tag = LDAP_RES_INTERMEDIATE;
   rs->sr_msgid = op->o_msgid;
   if (send_ldap_response(op, rs) == SLAP_CB_CONTINUE) {
-    Statslog(LDAP_DEBUG_STATS2, "%s INTERM oid=%s\n", op->o_log_prefix,
-             rs->sr_rspoid ? rs->sr_rspoid : "");
+    Statslog(LDAP_DEBUG_STATS2, "%s INTERM oid=%s\n", op->o_log_prefix, rs->sr_rspoid ? rs->sr_rspoid : "");
   }
 }
 
-#define set_ldap_error(rs, err, text)                                          \
-  do {                                                                         \
-    (rs)->sr_err = err;                                                        \
-    (rs)->sr_text = text;                                                      \
+#define set_ldap_error(rs, err, text)                                                                                  \
+  do {                                                                                                                 \
+    (rs)->sr_err = err;                                                                                                \
+    (rs)->sr_text = text;                                                                                              \
   } while (0)
 
 /*
@@ -999,8 +958,7 @@ int slap_send_search_entry(Operation *op, SlapReply *rs) {
   }
 
   /* Every 64 entries, check for thread pool pause */
-  if (((rs->sr_nentries & 0x3f) == 0x3f) &&
-      ldap_pvt_thread_pool_pausing(&connection_pool) > 0) {
+  if (((rs->sr_nentries & 0x3f) == 0x3f) && ldap_pvt_thread_pool_pausing(&connection_pool) > 0) {
     rc = LDAP_BUSY;
     goto error_return;
   }
@@ -1028,16 +986,14 @@ int slap_send_search_entry(Operation *op, SlapReply *rs) {
     }
   }
 
-  Debug(LDAP_DEBUG_TRACE, "=> send_search_entry: conn %lu dn=\"%s\"%s\n",
-        op->o_connid, rs->sr_entry->e_name.bv_val,
+  Debug(LDAP_DEBUG_TRACE, "=> send_search_entry: conn %lu dn=\"%s\"%s\n", op->o_connid, rs->sr_entry->e_name.bv_val,
         op->ors_attrsonly ? " (attrsOnly)" : "");
 
   attrsonly = op->ors_attrsonly;
 
   if (!access_allowed(op, rs->sr_entry, ad_entry, NULL, ACL_READ, NULL)) {
-    Debug(LDAP_DEBUG_ACL,
-          "send_search_entry: conn %lu access to entry (%s) not allowed\n",
-          op->o_connid, rs->sr_entry->e_name.bv_val);
+    Debug(LDAP_DEBUG_ACL, "send_search_entry: conn %lu access to entry (%s) not allowed\n", op->o_connid,
+          rs->sr_entry->e_name.bv_val);
 
     rc = LDAP_INSUFFICIENT_ACCESS;
     goto error_return;
@@ -1060,26 +1016,21 @@ int slap_send_search_entry(Operation *op, SlapReply *rs) {
   if (op->o_conn && op->o_conn->c_is_udp) {
     /* CONNECTIONLESS */
     if (op->o_protocol == LDAP_VERSION2) {
-      rc = ber_printf(ber, "t{O{" /*}}*/, LDAP_RES_SEARCH_ENTRY,
-                      &rs->sr_entry->e_name);
+      rc = ber_printf(ber, "t{O{" /*}}*/, LDAP_RES_SEARCH_ENTRY, &rs->sr_entry->e_name);
     } else {
-      rc = ber_printf(ber, "{it{O{" /*}}}*/, op->o_msgid, LDAP_RES_SEARCH_ENTRY,
-                      &rs->sr_entry->e_name);
+      rc = ber_printf(ber, "{it{O{" /*}}}*/, op->o_msgid, LDAP_RES_SEARCH_ENTRY, &rs->sr_entry->e_name);
     }
   } else
 #endif
       if (op->o_res_ber) {
     /* read back control */
-    rc = ber_printf(ber, "t{O{" /*}}*/, LDAP_RES_SEARCH_ENTRY,
-                    &rs->sr_entry->e_name);
+    rc = ber_printf(ber, "t{O{" /*}}*/, LDAP_RES_SEARCH_ENTRY, &rs->sr_entry->e_name);
   } else {
-    rc = ber_printf(ber, "{it{O{" /*}}}*/, op->o_msgid, LDAP_RES_SEARCH_ENTRY,
-                    &rs->sr_entry->e_name);
+    rc = ber_printf(ber, "{it{O{" /*}}}*/, op->o_msgid, LDAP_RES_SEARCH_ENTRY, &rs->sr_entry->e_name);
   }
 
   if (rc == -1) {
-    Debug(LDAP_DEBUG_ANY, "send_search_entry: conn %lu  ber_printf failed\n",
-          op->o_connid);
+    Debug(LDAP_DEBUG_ANY, "send_search_entry: conn %lu  ber_printf failed\n", op->o_connid);
 
     if (op->o_res_ber == NULL)
       ber_free_buf(ber);
@@ -1109,9 +1060,7 @@ int slap_send_search_entry(Operation *op, SlapReply *rs) {
       char *a_flags;
       e_flags = slap_sl_calloc(1, i * sizeof(char *) + k, op->o_tmpmemctx);
       if (e_flags == NULL) {
-        Debug(LDAP_DEBUG_ANY,
-              "send_search_entry: conn %lu slap_sl_calloc failed\n",
-              op->o_connid);
+        Debug(LDAP_DEBUG_ANY, "send_search_entry: conn %lu slap_sl_calloc failed\n", op->o_connid);
         ber_free(ber, 1);
 
         set_ldap_error(rs, LDAP_OTHER, "out of memory");
@@ -1160,8 +1109,7 @@ int slap_send_search_entry(Operation *op, SlapReply *rs) {
           if (!SLAP_OPATTRS(rs->sr_attr_flags))
             continue;
           /* if DSA-specific and replicating, skip */
-          if (op->o_sync != SLAP_CONTROL_NONE &&
-              desc->ad_type->sat_usage == LDAP_SCHEMA_DSA_OPERATION)
+          if (op->o_sync != SLAP_CONTROL_NONE && desc->ad_type->sat_usage == LDAP_SCHEMA_DSA_OPERATION)
             continue;
         }
       } else {
@@ -1181,8 +1129,7 @@ int slap_send_search_entry(Operation *op, SlapReply *rs) {
       }
 
       if ((rc = ber_printf(ber, "{O[" /*]}*/, &desc->ad_cname)) == -1) {
-        Debug(LDAP_DEBUG_ANY,
-              "send_search_entry: conn %lu  ber_printf failed\n", op->o_connid);
+        Debug(LDAP_DEBUG_ANY, "send_search_entry: conn %lu  ber_printf failed\n", op->o_connid);
 
         if (op->o_res_ber == NULL)
           ber_free_buf(ber);
@@ -1195,8 +1142,7 @@ int slap_send_search_entry(Operation *op, SlapReply *rs) {
     } else {
       int first = 1;
       for (i = 0; a->a_nvals[i].bv_val != NULL; i++) {
-        if (!access_allowed(op, rs->sr_entry, desc, &a->a_nvals[i], ACL_READ,
-                            &acl_state)) {
+        if (!access_allowed(op, rs->sr_entry, desc, &a->a_nvals[i], ACL_READ, &acl_state)) {
           Debug(LDAP_DEBUG_ACL,
                 "send_search_entry: conn %lu "
                 "access to attribute %s, value #%d not allowed\n",
@@ -1213,9 +1159,7 @@ int slap_send_search_entry(Operation *op, SlapReply *rs) {
           first = 0;
           finish = 1;
           if ((rc = ber_printf(ber, "{O[" /*]}*/, &desc->ad_cname)) == -1) {
-            Debug(LDAP_DEBUG_ANY,
-                  "send_search_entry: conn %lu  ber_printf failed\n",
-                  op->o_connid);
+            Debug(LDAP_DEBUG_ANY, "send_search_entry: conn %lu  ber_printf failed\n", op->o_connid);
 
             if (op->o_res_ber == NULL)
               ber_free_buf(ber);
@@ -1240,8 +1184,7 @@ int slap_send_search_entry(Operation *op, SlapReply *rs) {
     }
 
     if (finish && (rc = ber_printf(ber, /*{[*/ "]N}")) == -1) {
-      Debug(LDAP_DEBUG_ANY, "send_search_entry: conn %lu ber_printf failed\n",
-            op->o_connid);
+      Debug(LDAP_DEBUG_ANY, "send_search_entry: conn %lu ber_printf failed\n", op->o_connid);
 
       if (op->o_res_ber == NULL)
         ber_free_buf(ber);
@@ -1279,8 +1222,7 @@ int slap_send_search_entry(Operation *op, SlapReply *rs) {
               op->o_connid);
         if (op->o_res_ber == NULL)
           ber_free_buf(ber);
-        set_ldap_error(rs, LDAP_OTHER,
-                       "not enough memory for matched values filtering");
+        set_ldap_error(rs, LDAP_OTHER, "not enough memory for matched values filtering");
         goto error_return;
       }
       e_flags = tmp;
@@ -1320,13 +1262,11 @@ int slap_send_search_entry(Operation *op, SlapReply *rs) {
     } else {
       /* specific attrs requested */
       if (is_at_operational(desc->ad_type)) {
-        if (!SLAP_OPATTRS(rs->sr_attr_flags) &&
-            !ad_inlist(desc, rs->sr_attrs)) {
+        if (!SLAP_OPATTRS(rs->sr_attr_flags) && !ad_inlist(desc, rs->sr_attrs)) {
           continue;
         }
         /* if DSA-specific and replicating, skip */
-        if (op->o_sync != SLAP_CONTROL_NONE &&
-            desc->ad_type->sat_usage == LDAP_SCHEMA_DSA_OPERATION)
+        if (op->o_sync != SLAP_CONTROL_NONE && desc->ad_type->sat_usage == LDAP_SCHEMA_DSA_OPERATION)
           continue;
       } else {
         if (!userattrs && !ad_inlist(desc, rs->sr_attrs)) {
@@ -1360,8 +1300,7 @@ int slap_send_search_entry(Operation *op, SlapReply *rs) {
 
     if (!attrsonly) {
       for (i = 0; a->a_vals[i].bv_val != NULL; i++) {
-        if (!access_allowed(op, rs->sr_entry, desc, &a->a_vals[i], ACL_READ,
-                            &acl_state)) {
+        if (!access_allowed(op, rs->sr_entry, desc, &a->a_vals[i], ACL_READ, &acl_state)) {
           Debug(LDAP_DEBUG_ACL,
                 "send_search_entry: conn %lu "
                 "access to %s, value %d not allowed\n",
@@ -1375,9 +1314,7 @@ int slap_send_search_entry(Operation *op, SlapReply *rs) {
         }
 
         if ((rc = ber_printf(ber, "O", &a->a_vals[i])) == -1) {
-          Debug(LDAP_DEBUG_ANY,
-                "send_search_entry: conn %lu  ber_printf failed\n",
-                op->o_connid);
+          Debug(LDAP_DEBUG_ANY, "send_search_entry: conn %lu  ber_printf failed\n", op->o_connid);
 
           if (op->o_res_ber == NULL)
             ber_free_buf(ber);
@@ -1389,8 +1326,7 @@ int slap_send_search_entry(Operation *op, SlapReply *rs) {
     }
 
     if ((rc = ber_printf(ber, /*{[*/ "]N}")) == -1) {
-      Debug(LDAP_DEBUG_ANY, "send_search_entry: conn %lu  ber_printf failed\n",
-            op->o_connid);
+      Debug(LDAP_DEBUG_ANY, "send_search_entry: conn %lu  ber_printf failed\n", op->o_connid);
 
       if (op->o_res_ber == NULL)
         ber_free_buf(ber);
@@ -1435,8 +1371,7 @@ int slap_send_search_entry(Operation *op, SlapReply *rs) {
     goto error_return;
   }
 
-  Statslog(LDAP_DEBUG_STATS2, "%s ENTRY dn=\"%s\"\n", op->o_log_prefix,
-           rs->sr_entry->e_nname.bv_val);
+  Statslog(LDAP_DEBUG_STATS2, "%s ENTRY dn=\"%s\"\n", op->o_log_prefix, rs->sr_entry->e_nname.bv_val);
 
   rs_flush_entry(op, rs, NULL);
 
@@ -1445,8 +1380,7 @@ int slap_send_search_entry(Operation *op, SlapReply *rs) {
     ber_free_buf(ber);
 
     if (bytes < 0) {
-      Debug(LDAP_DEBUG_ANY, "send_search_entry: conn %lu  ber write failed.\n",
-            op->o_connid);
+      Debug(LDAP_DEBUG_ANY, "send_search_entry: conn %lu  ber write failed.\n", op->o_connid);
 
       rc = LDAP_UNAVAILABLE;
       goto error_return;
@@ -1454,8 +1388,7 @@ int slap_send_search_entry(Operation *op, SlapReply *rs) {
     rs->sr_nentries++;
   }
 
-  Debug(LDAP_DEBUG_TRACE, "<= send_search_entry: conn %lu exit.\n",
-        op->o_connid);
+  Debug(LDAP_DEBUG_TRACE, "<= send_search_entry: conn %lu exit.\n", op->o_connid);
 
   rc = LDAP_SUCCESS;
 
@@ -1514,16 +1447,13 @@ int slap_send_search_reference(Operation *op, SlapReply *rs) {
 
   Debug(LDAP_DEBUG_TRACE, "=> send_search_reference: dn=\"%s\"\n", edn);
 
-  if (rs->sr_entry &&
-      !access_allowed(op, rs->sr_entry, ad_entry, NULL, ACL_READ, NULL)) {
-    Debug(LDAP_DEBUG_ACL,
-          "send_search_reference: access to entry not allowed\n");
+  if (rs->sr_entry && !access_allowed(op, rs->sr_entry, ad_entry, NULL, ACL_READ, NULL)) {
+    Debug(LDAP_DEBUG_ACL, "send_search_reference: access to entry not allowed\n");
     rc = 1;
     goto rel;
   }
 
-  if (rs->sr_entry &&
-      !access_allowed(op, rs->sr_entry, ad_ref, NULL, ACL_READ, NULL)) {
+  if (rs->sr_entry && !access_allowed(op, rs->sr_entry, ad_ref, NULL, ACL_READ, NULL)) {
     Debug(LDAP_DEBUG_ACL, "send_search_reference: access "
                           "to reference not allowed\n");
     rc = 1;
@@ -1531,8 +1461,7 @@ int slap_send_search_reference(Operation *op, SlapReply *rs) {
   }
 
   if (op->o_domain_scope) {
-    Debug(LDAP_DEBUG_ANY,
-          "send_search_reference: domainScope control in (%s)\n", edn);
+    Debug(LDAP_DEBUG_ANY, "send_search_reference: domainScope control in (%s)\n", edn);
     rc = 0;
     goto rel;
   }
@@ -1563,8 +1492,7 @@ int slap_send_search_reference(Operation *op, SlapReply *rs) {
     ber_set_option(ber, LBER_OPT_BER_MEMCTX, &op->o_tmpmemctx);
   }
 
-  rc = ber_printf(ber, "{it{W}" /*"}"*/, op->o_msgid, LDAP_RES_SEARCH_REFERENCE,
-                  rs->sr_ref);
+  rc = ber_printf(ber, "{it{W}" /*"}"*/, op->o_msgid, LDAP_RES_SEARCH_REFERENCE, rs->sr_ref);
 
   if (rc != -1) {
     rc = send_ldap_controls(op, ber, rs->sr_ctrls);
@@ -1603,8 +1531,7 @@ int slap_send_search_reference(Operation *op, SlapReply *rs) {
     int r;
 
     for (r = 0; !BER_BVISNULL(&rs->sr_ref[r]); r++) {
-      Statslog(LDAP_DEBUG_STATS2, "%s REF #%d \"%s\"\n", op->o_log_prefix, r,
-               rs->sr_ref[0].bv_val);
+      Statslog(LDAP_DEBUG_STATS2, "%s REF #%d \"%s\"\n", op->o_log_prefix, r, rs->sr_ref[0].bv_val);
     }
 
   } else {
@@ -1711,8 +1638,7 @@ int str2result(char *s, int *code, char **matched, char **info) {
   return (rc);
 }
 
-int slap_read_controls(Operation *op, SlapReply *rs, Entry *e,
-                       const struct berval *oid, LDAPControl **ctrl) {
+int slap_read_controls(Operation *op, SlapReply *rs, Entry *e, const struct berval *oid, LDAPControl **ctrl) {
   int rc;
   struct berval bv;
   BerElementBuffer berbuf;
@@ -1720,12 +1646,10 @@ int slap_read_controls(Operation *op, SlapReply *rs, Entry *e,
   LDAPControl c;
   Operation myop;
 
-  Debug(LDAP_DEBUG_ANY, "%s slap_read_controls: (%s) %s\n", op->o_log_prefix,
-        oid->bv_val, e->e_dn);
+  Debug(LDAP_DEBUG_ANY, "%s slap_read_controls: (%s) %s\n", op->o_log_prefix, oid->bv_val, e->e_dn);
 
   rs->sr_entry = e;
-  rs->sr_attrs =
-      (oid == &slap_pre_read_bv) ? op->o_preread_attrs : op->o_postread_attrs;
+  rs->sr_attrs = (oid == &slap_pre_read_bv) ? op->o_preread_attrs : op->o_postread_attrs;
 
   bv.bv_len = entry_flatsize(rs->sr_entry, 0);
   bv.bv_val = op->o_tmpalloc(bv.bv_len, op->o_tmpmemctx);
@@ -1818,10 +1742,8 @@ slap_mask_t slap_attr_flags(AttributeName *an) {
     flags |= (SLAP_OPATTRS_NO | SLAP_USERATTRS_YES);
 
   } else {
-    flags |= an_find(an, slap_bv_all_operational_attrs) ? SLAP_OPATTRS_YES
-                                                        : SLAP_OPATTRS_NO;
-    flags |= an_find(an, slap_bv_all_user_attrs) ? SLAP_USERATTRS_YES
-                                                 : SLAP_USERATTRS_NO;
+    flags |= an_find(an, slap_bv_all_operational_attrs) ? SLAP_OPATTRS_YES : SLAP_OPATTRS_NO;
+    flags |= an_find(an, slap_bv_all_user_attrs) ? SLAP_USERATTRS_YES : SLAP_USERATTRS_NO;
   }
 
   return flags;

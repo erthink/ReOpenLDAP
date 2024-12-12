@@ -111,8 +111,7 @@ typedef struct syncops {
 #endif /* SLAP_NO_SL_MALLOC */
 
 /* LY: safely check is it abandoned, without deref so->s_op */
-static ATTRIBUTE_NO_SANITIZE_THREAD_INLINE int
-is_syncops_abandoned(const syncops *so) {
+static ATTRIBUTE_NO_SANITIZE_THREAD_INLINE int is_syncops_abandoned(const syncops *so) {
   return so->s_next == so || slap_get_op_abandon(so->s_op);
 }
 
@@ -126,8 +125,7 @@ typedef struct sync_control {
 #define SLAP_SYNC_NONE (LDAP_SYNC_NONE << SLAP_CONTROL_SHIFT)
 #define SLAP_SYNC_REFRESH (LDAP_SYNC_REFRESH_ONLY << SLAP_CONTROL_SHIFT)
 #define SLAP_SYNC_PERSIST (LDAP_SYNC_RESERVED << SLAP_CONTROL_SHIFT)
-#define SLAP_SYNC_REFRESH_AND_PERSIST                                          \
-  (LDAP_SYNC_REFRESH_AND_PERSIST << SLAP_CONTROL_SHIFT)
+#define SLAP_SYNC_REFRESH_AND_PERSIST (LDAP_SYNC_REFRESH_AND_PERSIST << SLAP_CONTROL_SHIFT)
 
 /* Record of which searches matched at premodify step */
 typedef struct syncmatches {
@@ -197,24 +195,20 @@ typedef struct opcookie {
 typedef struct fbase_cookie {
   struct berval *fdn; /* DN of a modified entry, for scope testing */
   syncops *fss;       /* persistent search we're testing against */
-  int fbase;  /* if TRUE we found the search base and it's still valid */
-  int fscope; /* if TRUE then fdn is within the psearch scope */
+  int fbase;          /* if TRUE we found the search base and it's still valid */
+  int fscope;         /* if TRUE then fdn is within the psearch scope */
 } fbase_cookie;
 
 static AttributeName csn_anlist[3];
 static AttributeName uuid_anlist[2];
 
-static void syncprov_compose_cookie(Operation *op, struct berval *cookie,
-                                    BerVarray csns, int rid) {
-  slap_cookie_compose(
-      cookie, csns, rid,
-      (reopenldap_mode_righteous() || slap_serverID) ? slap_serverID : -1,
-      op ? op->o_tmpmemctx : NULL);
+static void syncprov_compose_cookie(Operation *op, struct berval *cookie, BerVarray csns, int rid) {
+  slap_cookie_compose(cookie, csns, rid, (reopenldap_mode_righteous() || slap_serverID) ? slap_serverID : -1,
+                      op ? op->o_tmpmemctx : NULL);
 }
 
 /* Build a LDAPsync intermediate state control */
-static int syncprov_state_ctrl(Operation *op, SlapReply *rs, Entry *e,
-                               int entry_sync_state, LDAPControl **ctrls,
+static int syncprov_state_ctrl(Operation *op, SlapReply *rs, Entry *e, int entry_sync_state, LDAPControl **ctrls,
                                int num_ctrls, BerValue *csn, int rid) {
   Attribute *a;
   struct berval entryuuid_bv = BER_BVNULL;
@@ -227,8 +221,7 @@ static int syncprov_state_ctrl(Operation *op, SlapReply *rs, Entry *e,
     if (csn) {
       assert(slap_csn_match(csn, a->a_nvals));
     } else {
-      assert(entry_sync_state == LDAP_SYNC_ADD ||
-             entry_sync_state == LDAP_SYNC_MODIFY);
+      assert(entry_sync_state == LDAP_SYNC_ADD || entry_sync_state == LDAP_SYNC_MODIFY);
     }
   }
 
@@ -237,9 +230,7 @@ static int syncprov_state_ctrl(Operation *op, SlapReply *rs, Entry *e,
     entryuuid_bv = a->a_nvals[0];
 
   if (entryuuid_bv.bv_val == NULL || entryuuid_bv.bv_len != 16) {
-    Debug(LDAP_DEBUG_TRACE,
-          "syncprov_state_ctrl: DN-UUID is empty or invalid (%s)\n",
-          e->e_nname.bv_val);
+    Debug(LDAP_DEBUG_TRACE, "syncprov_state_ctrl: DN-UUID is empty or invalid (%s)\n", e->e_nname.bv_val);
     send_ldap_error(op, rs, LDAP_OTHER, "DN-UUID is empty or invalid");
     return LDAP_OTHER;
   }
@@ -249,9 +240,8 @@ static int syncprov_state_ctrl(Operation *op, SlapReply *rs, Entry *e,
         "syncprov_state_ctrl: rid=%03d, %s, %s, "
         "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x, "
         "%s\n",
-        rid, ldap_sync_state2str(entry_sync_state), e->e_nname.bv_val, u[0],
-        u[1], u[2], u[3], u[4], u[5], u[6], u[7], u[8], u[9], u[10], u[11],
-        u[12], u[13], u[14], u[15], csn ? csn->bv_val : "no-CSN");
+        rid, ldap_sync_state2str(entry_sync_state), e->e_nname.bv_val, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7],
+        u[8], u[9], u[10], u[11], u[12], u[13], u[14], u[15], csn ? csn->bv_val : "no-CSN");
 
   BerElementBuffer berbuf;
   BerElement *ber = (BerElement *)&berbuf;
@@ -286,8 +276,7 @@ static int syncprov_state_ctrl(Operation *op, SlapReply *rs, Entry *e,
   ber_free_buf(ber);
 
   if (ret < 0) {
-    Debug(LDAP_DEBUG_TRACE, "syncprov_state_ctrl: ber_flatten2 failed (%d)\n",
-          ret);
+    Debug(LDAP_DEBUG_TRACE, "syncprov_state_ctrl: ber_flatten2 failed (%d)\n", ret);
     send_ldap_error(op, rs, LDAP_OTHER, "internal error");
     return LDAP_OTHER;
   }
@@ -296,8 +285,7 @@ static int syncprov_state_ctrl(Operation *op, SlapReply *rs, Entry *e,
 }
 
 /* Build a LDAPsync final state control */
-static int syncprov_done_ctrl(Operation *op, SlapReply *rs, LDAPControl **ctrls,
-                              int num_ctrls, struct berval *cookie,
+static int syncprov_done_ctrl(Operation *op, SlapReply *rs, LDAPControl **ctrls, int num_ctrls, struct berval *cookie,
                               int refreshDeletes) {
   int ret;
   BerElementBuffer berbuf;
@@ -305,8 +293,8 @@ static int syncprov_done_ctrl(Operation *op, SlapReply *rs, LDAPControl **ctrls,
   LDAPControl *cp;
   struct berval bv;
 
-  Debug(LDAP_DEBUG_SYNC, "syncprov_done_ctrl: %s, refreshDeletes=%d\n",
-        cookie ? cookie->bv_val : "no-cookie", refreshDeletes);
+  Debug(LDAP_DEBUG_SYNC, "syncprov_done_ctrl: %s, refreshDeletes=%d\n", cookie ? cookie->bv_val : "no-cookie",
+        refreshDeletes);
 
   ber_init2(ber, NULL, LBER_USE_DER);
   ber_set_option(ber, LBER_OPT_BER_MEMCTX, &op->o_tmpmemctx);
@@ -334,8 +322,7 @@ static int syncprov_done_ctrl(Operation *op, SlapReply *rs, LDAPControl **ctrls,
   ber_free_buf(ber);
 
   if (ret < 0) {
-    Debug(LDAP_DEBUG_TRACE, "syncprov_done_ctrl: ber_flatten2 failed (%d)\n",
-          ret);
+    Debug(LDAP_DEBUG_TRACE, "syncprov_done_ctrl: ber_flatten2 failed (%d)\n", ret);
     send_ldap_error(op, rs, LDAP_OTHER, "internal error");
     return LDAP_OTHER;
   }
@@ -343,8 +330,7 @@ static int syncprov_done_ctrl(Operation *op, SlapReply *rs, LDAPControl **ctrls,
   return LDAP_SUCCESS;
 }
 
-static int syncprov_sendinfo(Operation *op, int type, struct berval *cookie,
-                             int refreshDone, BerVarray syncUUIDs,
+static int syncprov_sendinfo(Operation *op, int type, struct berval *cookie, int refreshDone, BerVarray syncUUIDs,
                              int refreshDeletes) {
   BerElementBuffer berbuf;
   BerElement *ber = (BerElement *)&berbuf;
@@ -360,17 +346,15 @@ static int syncprov_sendinfo(Operation *op, int type, struct berval *cookie,
   if (type) {
     switch (type) {
     case LDAP_TAG_SYNC_NEW_COOKIE:
-      Debug(LDAP_DEBUG_SYNC,
-            "syncprov_sendinfo: LDAP_TAG_SYNC_NEW_COOKIE, %s\n",
+      Debug(LDAP_DEBUG_SYNC, "syncprov_sendinfo: LDAP_TAG_SYNC_NEW_COOKIE, %s\n",
             cookie ? cookie->bv_val : "no-cookie!?");
       ber_printf(ber, "tO", type, cookie);
       break;
     case LDAP_TAG_SYNC_REFRESH_DELETE:
     case LDAP_TAG_SYNC_REFRESH_PRESENT:
-      Debug(LDAP_DEBUG_SYNC,
-            "syncprov_sendinfo: LDAP_TAG_SYNC_REFRESH_%s, %s, refreshDone=%d\n",
-            (type == LDAP_TAG_SYNC_REFRESH_DELETE) ? "DELETE" : "PRESENT",
-            cookie ? cookie->bv_val : "no-cookie", refreshDone);
+      Debug(LDAP_DEBUG_SYNC, "syncprov_sendinfo: LDAP_TAG_SYNC_REFRESH_%s, %s, refreshDone=%d\n",
+            (type == LDAP_TAG_SYNC_REFRESH_DELETE) ? "DELETE" : "PRESENT", cookie ? cookie->bv_val : "no-cookie",
+            refreshDone);
       ber_printf(ber, "t{", type);
       if (cookie) {
         ber_printf(ber, "O", cookie);
@@ -399,8 +383,7 @@ static int syncprov_sendinfo(Operation *op, int type, struct berval *cookie,
       ber_printf(ber, "N}");
       break;
     default:
-      Debug(LDAP_DEBUG_TRACE, "syncprov_sendinfo: invalid syncinfo type (%d)\n",
-            type);
+      Debug(LDAP_DEBUG_TRACE, "syncprov_sendinfo: invalid syncinfo type (%d)\n", type);
       return LDAP_OTHER;
     }
   }
@@ -408,8 +391,7 @@ static int syncprov_sendinfo(Operation *op, int type, struct berval *cookie,
   ret = ber_flatten2(ber, &rspdata, 0);
 
   if (ret < 0) {
-    Debug(LDAP_DEBUG_TRACE, "syncprov_sendinfo: ber_flatten2 failed (%d)\n",
-          ret);
+    Debug(LDAP_DEBUG_TRACE, "syncprov_sendinfo: ber_flatten2 failed (%d)\n", ret);
     send_ldap_error(op, &rs, LDAP_OTHER, "internal error");
     return LDAP_OTHER;
   }
@@ -458,8 +440,7 @@ static int findbase_cb(Operation *op, SlapReply *rs) {
       fc->fbase = 2;
       fc->fss->s_eid = rs->sr_entry->e_id;
       ber_dupbv(&fc->fss->s_base, &rs->sr_entry->e_nname);
-    } else if (rs->sr_entry->e_id == fc->fss->s_eid &&
-               dn_match(&rs->sr_entry->e_nname, &fc->fss->s_base)) {
+    } else if (rs->sr_entry->e_id == fc->fss->s_eid && dn_match(&rs->sr_entry->e_nname, &fc->fss->s_base)) {
       /* OK, the DN is the same and the entryID is the same. */
       fc->fbase = 1;
     }
@@ -534,8 +515,7 @@ static int syncprov_findbase(Operation *op, fbase_cookie *fc) {
       fc->fscope = dnIsSuffix(fc->fdn, &fc->fss->s_base);
       break;
     case LDAP_SCOPE_SUBORDINATE:
-      fc->fscope = dnIsSuffix(fc->fdn, &fc->fss->s_base) &&
-                   !dn_match(fc->fdn, &fc->fss->s_base);
+      fc->fscope = dnIsSuffix(fc->fdn, &fc->fss->s_base) && !dn_match(fc->fdn, &fc->fss->s_base);
       break;
     }
   }
@@ -564,19 +544,14 @@ static int syncprov_findbase(Operation *op, fbase_cookie *fc) {
  * CSN, and generate Present records for them. We always collect this result
  * in SyncID sets, even if there's only one match.
  */
-typedef enum find_csn_t {
-  FIND_MAXCSN = 1,
-  FIND_CSN = 2,
-  FIND_PRESENT = 3
-} find_csn_t;
+typedef enum find_csn_t { FIND_MAXCSN = 1, FIND_CSN = 2, FIND_PRESENT = 3 } find_csn_t;
 
 static int findmax_cb(Operation *op, SlapReply *rs) {
   if (rs->sr_type == REP_SEARCH && rs->sr_err == LDAP_SUCCESS) {
     struct berval *maxcsn = op->o_callback->sc_private;
     Attribute *a = attr_find(rs->sr_entry->e_attrs, slap_schema.si_ad_entryCSN);
 
-    if (a && slap_csn_compare_ts(&a->a_vals[0], maxcsn) > 0 &&
-        slap_csn_get_sid(&a->a_vals[0]) == slap_serverID) {
+    if (a && slap_csn_compare_ts(&a->a_vals[0], maxcsn) > 0 && slap_csn_get_sid(&a->a_vals[0]) == slap_serverID) {
       maxcsn->bv_len = a->a_vals[0].bv_len;
       strcpy(maxcsn->bv_val, a->a_vals[0].bv_val);
     }
@@ -590,8 +565,7 @@ static int findcsn_cb(Operation *op, SlapReply *rs) {
   /* We just want to know that at least one exists, so it's OK if
    * we exceed the unchecked limit.
    */
-  if (rs->sr_err == LDAP_ADMINLIMIT_EXCEEDED ||
-      (rs->sr_type == REP_SEARCH && rs->sr_err == LDAP_SUCCESS)) {
+  if (rs->sr_err == LDAP_ADMINLIMIT_EXCEEDED || (rs->sr_type == REP_SEARCH && rs->sr_err == LDAP_SUCCESS)) {
     sc->sc_private = (void *)1;
   }
   return LDAP_SUCCESS;
@@ -640,8 +614,7 @@ static int findpres_cb(Operation *op, SlapReply *rs) {
     if (pc->num) {
       pc->uuids[pc->num].bv_val = NULL;
       pc->uuids[pc->num].bv_len = 0;
-      pc->rc =
-          syncprov_sendinfo(op, LDAP_TAG_SYNC_ID_SET, NULL, 0, pc->uuids, 0);
+      pc->rc = syncprov_sendinfo(op, LDAP_TAG_SYNC_ID_SET, NULL, 0, pc->uuids, 0);
       pc->num = 0;
       pc->last = (char *)(pc->uuids + SLAP_SYNCUUID_SET_SIZE + 1);
       if (pc->rc != LDAP_SUCCESS) {
@@ -656,8 +629,7 @@ static int findpres_cb(Operation *op, SlapReply *rs) {
   }
 }
 
-static int syncprov_findcsn(Operation *op, find_csn_t mode,
-                            struct berval *pivot) {
+static int syncprov_findcsn(Operation *op, find_csn_t mode, struct berval *pivot) {
   slap_overinst *on = (slap_overinst *)op->o_bd->bd_info;
   syncprov_info_t *si = on->on_bi.bi_private;
 
@@ -718,8 +690,7 @@ again:
       return LDAP_NO_SUCH_OBJECT;
     }
     cf.f_av_value = si->si_cookie.ctxcsn[maxid];
-    fop.ors_filterstr.bv_len =
-        snprintf(buf, sizeof(buf), "(entryCSN>=%s)", cf.f_av_value.bv_val);
+    fop.ors_filterstr.bv_len = snprintf(buf, sizeof(buf), "(entryCSN>=%s)", cf.f_av_value.bv_val);
     if (fop.ors_filterstr.bv_len >= sizeof(buf)) {
       ldap_pvt_thread_rdwr_wunlock(&si->si_csn_rwlock);
       return LDAP_OTHER;
@@ -744,16 +715,14 @@ again:
     /* Look for exact match the first time */
     if (findcsn_retry) {
       cf.f_choice = LDAP_FILTER_EQUALITY;
-      fop.ors_filterstr.bv_len =
-          snprintf(buf, sizeof(buf), "(entryCSN=%s)", cf.f_av_value.bv_val);
+      fop.ors_filterstr.bv_len = snprintf(buf, sizeof(buf), "(entryCSN=%s)", cf.f_av_value.bv_val);
       /* On retry, look for <= */
     } else {
       cf.f_choice = LDAP_FILTER_LE;
       fop.ors_limit = &fc_limits;
       memset(&fc_limits, 0, sizeof(fc_limits));
       fc_limits.lms_s_unchecked = 1;
-      fop.ors_filterstr.bv_len =
-          snprintf(buf, sizeof(buf), "(entryCSN<=%s)", cf.f_av_value.bv_val);
+      fop.ors_filterstr.bv_len = snprintf(buf, sizeof(buf), "(entryCSN<=%s)", cf.f_av_value.bv_val);
     }
     if (fop.ors_filterstr.bv_len >= sizeof(buf)) {
       return LDAP_OTHER;
@@ -777,10 +746,8 @@ again:
     pcookie.rc = LDAP_SUCCESS;
 
     /* preallocate storage for a full set */
-    pcookie.uuids =
-        op->o_tmpalloc((SLAP_SYNCUUID_SET_SIZE + 1) * sizeof(struct berval) +
-                           SLAP_SYNCUUID_SET_SIZE * UUID_LEN,
-                       op->o_tmpmemctx);
+    pcookie.uuids = op->o_tmpalloc(
+        (SLAP_SYNCUUID_SET_SIZE + 1) * sizeof(struct berval) + SLAP_SYNCUUID_SET_SIZE * UUID_LEN, op->o_tmpmemctx);
     pcookie.last = (char *)(pcookie.uuids + SLAP_SYNCUUID_SET_SIZE + 1);
     break;
   }
@@ -821,8 +788,7 @@ again:
         rs_reinit(&frs, REP_RESULT);
         goto again;
       }
-      Debug(LDAP_DEBUG_SYNC, "syncprov-findcsn: sid %d, pivot %s, not-found\n",
-            srs->sr_state.sid, pivot->bv_val);
+      Debug(LDAP_DEBUG_SYNC, "syncprov-findcsn: sid %d, pivot %s, not-found\n", srs->sr_state.sid, pivot->bv_val);
       if (rc == LDAP_SUCCESS)
         rc = LDAP_NO_SUCH_OBJECT;
     } else {
@@ -834,11 +800,9 @@ again:
       rc = pcookie.rc;
     if (DebugTest(LDAP_DEBUG_SYNC)) {
       ldap_pvt_thread_rdwr_rlock(&si->si_csn_rwlock);
-      Debug(LDAP_DEBUG_SYNC,
-            "syncprov-findpresent: sid %d, pivot %s, find-present %u, rc %d\n",
-            srs->sr_state.sid, pivot->bv_val, pcookie.total, rc);
-      slap_cookie_debug_pair("syncprov-findpresent:", "provider",
-                             &si->si_cookie, "consumer", &srs->sr_state, -1);
+      Debug(LDAP_DEBUG_SYNC, "syncprov-findpresent: sid %d, pivot %s, find-present %u, rc %d\n", srs->sr_state.sid,
+            pivot->bv_val, pcookie.total, rc);
+      slap_cookie_debug_pair("syncprov-findpresent:", "provider", &si->si_cookie, "consumer", &srs->sr_state, -1);
       ldap_pvt_thread_rdwr_runlock(&si->si_csn_rwlock);
     }
     op->o_tmpfree(pcookie.uuids, op->o_tmpmemctx);
@@ -882,8 +846,7 @@ static void syncprov_refresh_end(syncprov_info_t *si, syncops *so);
 #define SO_LOCKED_SIOP 1
 #define SO_LOCKED_CONN 2
 
-static void syncprov_unlink_syncop(syncops *so, int unlink_flags,
-                                   int locked_flags) {
+static void syncprov_unlink_syncop(syncops *so, int unlink_flags, int locked_flags) {
   syncprov_info_t *si = so->s_si;
   assert(unlink_flags && !(unlink_flags & ~OS_REF_MASK));
   assert((slap_tsan__read_int(&so->s_flags) & unlink_flags) > 0);
@@ -956,8 +919,7 @@ static void syncprov_unlink_syncop(syncops *so, int unlink_flags,
       } else {
         assert(so->s_op->o_conn == NULL);
       }
-      if ((so->s_flags & OS_REF_ABANDON) == 0 &&
-          LDAP_STAILQ_EMPTY(&conn->c_ops) &&
+      if ((so->s_flags & OS_REF_ABANDON) == 0 && LDAP_STAILQ_EMPTY(&conn->c_ops) &&
           LDAP_STAILQ_EMPTY(&conn->c_pending_ops)) {
         /* LY: If ops-queues are empty
          *        and we called NOT from connection_abandon(),
@@ -969,8 +931,7 @@ static void syncprov_unlink_syncop(syncops *so, int unlink_flags,
       if ((locked_flags & SO_LOCKED_CONN) == 0)
         ldap_pvt_thread_mutex_unlock(&conn->c_mutex);
     }
-  } else if ((unlink_flags & OS_REF_OP_SEARCH) != 0 &&
-             (locked_flags & SO_LOCKED_SIOP) == 0) {
+  } else if ((unlink_flags & OS_REF_OP_SEARCH) != 0 && (locked_flags & SO_LOCKED_SIOP) == 0) {
     ldap_pvt_thread_mutex_unlock(&si->si_ops_mutex);
   }
 
@@ -1014,8 +975,7 @@ skip_conn_unlink:
 }
 
 /* Send a persistent search response */
-static int syncprov_sendresp(Operation *op, resinfo *ri, syncops *so,
-                             int mode) {
+static int syncprov_sendresp(Operation *op, resinfo *ri, syncops *so, int mode) {
   SlapReply rs = {REP_SEARCH};
   Entry e_uuid = {0};
   Attribute a_uuid = {0};
@@ -1032,10 +992,9 @@ static int syncprov_sendresp(Operation *op, resinfo *ri, syncops *so,
         "syncprov_sendresp: %s, %s, to=%03x, "
         "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x, "
         "%s\n",
-        ldap_sync_state2str(mode),
-        ri->ri_e ? ri->ri_e->e_nname.bv_val : op->o_bd->be_nsuffix->bv_val,
-        so->s_sid, u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], u[8], u[9],
-        u[10], u[11], u[12], u[13], u[14], u[15], ri->ri_csn.bv_val);
+        ldap_sync_state2str(mode), ri->ri_e ? ri->ri_e->e_nname.bv_val : op->o_bd->be_nsuffix->bv_val, so->s_sid, u[0],
+        u[1], u[2], u[3], u[4], u[5], u[6], u[7], u[8], u[9], u[10], u[11], u[12], u[13], u[14], u[15],
+        ri->ri_csn.bv_val);
 
   if (mode != LDAP_SYNC_DELETE && !ri->ri_isref && ri->ri_csn.bv_len) {
     Attribute *a = attr_find(ri->ri_e->e_attrs, slap_schema.si_ad_entryCSN);
@@ -1046,9 +1005,7 @@ static int syncprov_sendresp(Operation *op, resinfo *ri, syncops *so,
             "biglock enabled?!\n",
             a->a_nvals->bv_val, ri->ri_csn.bv_val);
       if (reopenldap_mode_strict()) {
-        send_ldap_error(
-            op, &rs, LDAP_OTHER,
-            "syncprov: out.entryCSN != out.cookieCSN, is biglock enabled?!");
+        send_ldap_error(op, &rs, LDAP_OTHER, "syncprov: out.entryCSN != out.cookieCSN, is biglock enabled?!");
         return SLAPD_DISCONNECT;
       }
       if (reopenldap_mode_righteous()) {
@@ -1065,8 +1022,7 @@ static int syncprov_sendresp(Operation *op, resinfo *ri, syncops *so,
   e_uuid.e_attrs = &a_uuid;
   a_uuid.a_desc = slap_schema.si_ad_entryUUID;
   a_uuid.a_nvals = &ri->ri_uuid;
-  rs.sr_err = syncprov_state_ctrl(op, &rs, &e_uuid, mode, rs.sr_ctrls, 0,
-                                  &ri->ri_csn, so->s_rid);
+  rs.sr_err = syncprov_state_ctrl(op, &rs, &e_uuid, mode, rs.sr_ctrls, 0, &ri->ri_csn, so->s_rid);
 
   rs.sr_entry = &e_uuid;
   if (mode == LDAP_SYNC_ADD || mode == LDAP_SYNC_MODIFY) {
@@ -1121,12 +1077,10 @@ static int syncprov_playback_locked(Operation *op, syncops *so) {
       so->s_rltail = NULL;
     ldap_pvt_thread_mutex_unlock(&so->s_mutex);
 
-    if (is_syncops_abandoned(so) ||
-        (slap_tsan__read_int(&so->s_flags) & PS_DEAD)) {
+    if (is_syncops_abandoned(so) || (slap_tsan__read_int(&so->s_flags) & PS_DEAD)) {
       rc = SLAPD_ABANDON;
     } else if (rl->rl_mode == LDAP_SYNC_NEW_COOKIE) {
-      rc = syncprov_sendinfo(op, LDAP_TAG_SYNC_NEW_COOKIE,
-                             &rl->rl_info->ri_cookie, 0, NULL, 0);
+      rc = syncprov_sendinfo(op, LDAP_TAG_SYNC_NEW_COOKIE, &rl->rl_info->ri_cookie, 0, NULL, 0);
     } else {
       rc = syncprov_sendresp(op, rl->rl_info, so, rl->rl_mode);
     }
@@ -1153,8 +1107,7 @@ static int syncprov_playback_locked(Operation *op, syncops *so) {
 
   if ((so->s_flags & PS_LOST_BASE) && !is_syncops_abandoned(so)) {
     SlapReply rs = {REP_RESULT};
-    send_ldap_error(so->s_op, &rs, LDAP_SYNC_REFRESH_REQUIRED,
-                    "search base has changed");
+    send_ldap_error(so->s_op, &rs, LDAP_SYNC_REFRESH_REQUIRED, "search base has changed");
   }
 
   return -1;
@@ -1188,13 +1141,9 @@ static void *syncprov_playback_dequeue(void *ctx, void *arg) {
   ldap_pvt_thread_mutex_unlock(&so->s_mutex);
 
   if (resubmit > 0)
-    ldap_pvt_thread_pool_submit2(&connection_pool, syncprov_playback_dequeue,
-                                 so, &so->s_pool_cookie);
+    ldap_pvt_thread_pool_submit2(&connection_pool, syncprov_playback_dequeue, so, &so->s_pool_cookie);
   else
-    syncprov_unlink_syncop(so,
-                           (resubmit < 0) ? OS_REF_PLAYBACK | OS_REF_OP_SEARCH
-                                          : OS_REF_PLAYBACK,
-                           SO_LOCKED_NONE);
+    syncprov_unlink_syncop(so, (resubmit < 0) ? OS_REF_PLAYBACK | OS_REF_OP_SEARCH : OS_REF_PLAYBACK, SO_LOCKED_NONE);
 
   return NULL;
 }
@@ -1203,8 +1152,7 @@ static void *syncprov_playback_dequeue(void *ctx, void *arg) {
 static void syncprov_playback_enqueue(syncops *so) {
   assert(!(so->s_flags & OS_REF_PLAYBACK));
   so->s_flags |= OS_REF_PLAYBACK;
-  ldap_pvt_thread_pool_submit2(&connection_pool, syncprov_playback_dequeue, so,
-                               &so->s_pool_cookie);
+  ldap_pvt_thread_pool_submit2(&connection_pool, syncprov_playback_dequeue, so, &so->s_pool_cookie);
 }
 
 /* Queue a persistent search response */
@@ -1213,8 +1161,7 @@ static void syncprov_qresp(opcookie *opc, syncops *so, int mode) {
   resinfo *ri;
   struct berval csn = opc->sctxcsn;
 
-  if (unlikely(is_syncops_abandoned(so) ||
-               (slap_tsan__read_int(&so->s_flags) & PS_DEAD)))
+  if (unlikely(is_syncops_abandoned(so) || (slap_tsan__read_int(&so->s_flags) & PS_DEAD)))
     return;
 
   rl = ch_malloc(sizeof(reslink));
@@ -1242,8 +1189,7 @@ static void syncprov_qresp(opcookie *opc, syncops *so, int mode) {
         memcpy(ri->ri_csn.bv_val, csn.bv_val, csn.bv_len);
         ri->ri_csn.bv_val[csn.bv_len] = '\0';
       } else {
-        assert(mode == LDAP_SYNC_ADD || mode == LDAP_SYNC_MODIFY ||
-               mode == LDAP_SYNC_NEW_COOKIE);
+        assert(mode == LDAP_SYNC_ADD || mode == LDAP_SYNC_MODIFY || mode == LDAP_SYNC_NEW_COOKIE);
         ri->ri_csn.bv_val = NULL;
       }
     } else {
@@ -1253,8 +1199,7 @@ static void syncprov_qresp(opcookie *opc, syncops *so, int mode) {
       ri->ri_dn.bv_len = opc->sdn.bv_len;
       ri->ri_ndn.bv_val = lutil_strcopy(ri->ri_dn.bv_val, opc->sdn.bv_val) + 1;
       ri->ri_ndn.bv_len = opc->sndn.bv_len;
-      ri->ri_uuid.bv_val =
-          lutil_strcopy(ri->ri_ndn.bv_val, opc->sndn.bv_val) + 1;
+      ri->ri_uuid.bv_val = lutil_strcopy(ri->ri_ndn.bv_val, opc->sndn.bv_val) + 1;
       ri->ri_uuid.bv_len = opc->suuid.bv_len;
       memcpy(ri->ri_uuid.bv_val, opc->suuid.bv_val, opc->suuid.bv_len);
       if (csn.bv_len) {
@@ -1294,8 +1239,7 @@ static void syncprov_qresp(opcookie *opc, syncops *so, int mode) {
         assert(i >= 0);
       }
     }
-    syncprov_compose_cookie(NULL, &ri->ri_cookie, si->si_cookie.ctxcsn,
-                            so->s_rid);
+    syncprov_compose_cookie(NULL, &ri->ri_cookie, si->si_cookie.ctxcsn, so->s_rid);
     ldap_pvt_thread_rdwr_runlock(&si->si_csn_rwlock);
   }
   ldap_pvt_thread_mutex_unlock(&ri->ri_mutex);
@@ -1322,8 +1266,7 @@ static void syncprov_qresp(opcookie *opc, syncops *so, int mode) {
 static int syncprov_abandon_cleanup(Operation *op, SlapReply *rs) {
   slap_callback *sc = op->o_callback;
   op->o_callback = sc->sc_next;
-  syncprov_unlink_syncop(sc->sc_private, OS_REF_OP_SEARCH | OS_REF_ABANDON,
-                         SO_LOCKED_CONN);
+  syncprov_unlink_syncop(sc->sc_private, OS_REF_OP_SEARCH | OS_REF_ABANDON, SO_LOCKED_CONN);
   op->o_tmpfree(sc, op->o_tmpmemctx);
   return 0;
 }
@@ -1352,8 +1295,7 @@ static int syncprov_op_abandon(Operation *op, SlapReply *rs) {
   ldap_pvt_thread_mutex_lock(&si->si_ops_mutex);
   for (pso = &si->si_ops; (so = *pso) != NULL; pso = &so->s_next) {
     assert(so->s_next != so);
-    if (so->s_op && so->s_op->o_connid == op->o_connid &&
-        so->s_op->o_msgid == op->orn_msgid) {
+    if (so->s_op && so->s_op->o_connid == op->o_connid && so->s_op->o_msgid == op->orn_msgid) {
       ldap_pvt_thread_mutex_lock(&so->s_mutex);
       so->s_flags |= PS_DEAD | OS_REF_ABANDON;
       *pso = so->s_next;
@@ -1384,8 +1326,7 @@ static int syncprov_op_abandon(Operation *op, SlapReply *rs) {
         return SLAP_CB_CONTINUE;
       }
     }
-    syncprov_unlink_syncop(so, OS_REF_OP_SEARCH | OS_REF_ABANDON,
-                           SO_LOCKED_CONN);
+    syncprov_unlink_syncop(so, OS_REF_OP_SEARCH | OS_REF_ABANDON, SO_LOCKED_CONN);
   }
   return SLAP_CB_CONTINUE;
 }
@@ -1462,26 +1403,22 @@ static void syncprov_matchops(Operation *op, opcookie *opc, int saveit) {
     int found = 0;
     snext = so->s_next;
 
-    if (unlikely(is_syncops_abandoned(so) ||
-                 (slap_tsan__read_int(&so->s_flags) & PS_DEAD)))
+    if (unlikely(is_syncops_abandoned(so) || (slap_tsan__read_int(&so->s_flags) & PS_DEAD)))
       continue;
 
     assert(slap_tsan__read_int(&so->s_flags) & OS_REF_OP_SEARCH);
 
     /* Don't send ops back to the originator */
-    if (op->o_tag != LDAP_REQ_DELETE && opc->osid > 0 &&
-        opc->osid == so->s_sid) {
-      Debug(LDAP_DEBUG_SYNC,
-            "syncprov_matchops: %s skipping original sid 0x%03x\n",
-            op->o_bd->be_nsuffix->bv_val, opc->osid);
+    if (op->o_tag != LDAP_REQ_DELETE && opc->osid > 0 && opc->osid == so->s_sid) {
+      Debug(LDAP_DEBUG_SYNC, "syncprov_matchops: %s skipping original sid 0x%03x\n", op->o_bd->be_nsuffix->bv_val,
+            opc->osid);
       continue;
     }
 
     /* Don't send ops back to the messenger */
     if (opc->rsid > 0 && opc->rsid == so->s_sid) {
-      Debug(LDAP_DEBUG_SYNC,
-            "syncprov_matchops: %s skipping relayed sid 0x%03x\n",
-            op->o_bd->be_nsuffix->bv_val, opc->rsid);
+      Debug(LDAP_DEBUG_SYNC, "syncprov_matchops: %s skipping relayed sid 0x%03x\n", op->o_bd->be_nsuffix->bv_val,
+            opc->rsid);
       continue;
     }
 
@@ -1510,8 +1447,7 @@ static void syncprov_matchops(Operation *op, opcookie *opc, int saveit) {
          */
         if (!is_syncops_abandoned(so)) {
           SlapReply rs = {REP_RESULT};
-          send_ldap_error(so->s_op_safe, &rs, LDAP_SYNC_REFRESH_REQUIRED,
-                          "search base has changed");
+          send_ldap_error(so->s_op_safe, &rs, LDAP_SYNC_REFRESH_REQUIRED, "search base has changed");
         }
         ldap_pvt_thread_mutex_unlock(&so->s_mutex);
         syncprov_unlink_syncop(so, OS_REF_OP_SEARCH, SO_LOCKED_SIOP);
@@ -1531,8 +1467,7 @@ static void syncprov_matchops(Operation *op, opcookie *opc, int saveit) {
         ldap_pvt_thread_mutex_unlock(&so->s_mutex);
       }
 
-      for (sm = opc->smatches, old = (syncmatches *)&opc->smatches; sm;
-           old = sm, sm = sm->sm_next) {
+      for (sm = opc->smatches, old = (syncmatches *)&opc->smatches; sm; old = sm, sm = sm->sm_next) {
         assert(slap_tsan__read_int(&sm->sm_op->s_matchops_inuse) > 0);
         assert(slap_tsan__read_int(&sm->sm_op->s_flags) & OS_REF_OP_MATCH);
         if (sm->sm_op == so) {
@@ -1570,8 +1505,7 @@ static void syncprov_matchops(Operation *op, opcookie *opc, int saveit) {
       ldap_pvt_thread_mutex_unlock(&so->s_mutex);
     }
 
-    Debug(LDAP_DEBUG_TRACE, "syncprov_matchops: sid 0x%03x fscope %d rc %d\n",
-          so->s_sid, fc.fscope, rc);
+    Debug(LDAP_DEBUG_TRACE, "syncprov_matchops: sid 0x%03x fscope %d rc %d\n", so->s_sid, fc.fscope, rc);
 
     assert(rc != SLAPD_ABANDON);
     /* check if current o_req_dn is in scope and matches filter */
@@ -1592,8 +1526,7 @@ static void syncprov_matchops(Operation *op, opcookie *opc, int saveit) {
       } else {
         /* if found send UPDATE else send ADD */
         if (found)
-          assert(op->o_tag == LDAP_REQ_MODIFY ||
-                 op->o_tag == LDAP_REQ_EXTENDED || op->o_tag == LDAP_REQ_MODDN);
+          assert(op->o_tag == LDAP_REQ_MODIFY || op->o_tag == LDAP_REQ_EXTENDED || op->o_tag == LDAP_REQ_MODDN);
         else
           assert(op->o_tag == LDAP_REQ_ADD);
         syncprov_qresp(opc, so, found ? LDAP_SYNC_MODIFY : LDAP_SYNC_ADD);
@@ -1603,10 +1536,8 @@ static void syncprov_matchops(Operation *op, opcookie *opc, int saveit) {
       assert(op->o_tag == LDAP_REQ_DELETE);
       syncprov_qresp(opc, so, LDAP_SYNC_DELETE);
     } else if (!saveit) {
-      assert((!fc.fscope && rc == LDAP_SUCCESS) ||
-             (fc.fscope && rc != LDAP_COMPARE_TRUE && rc != LDAP_SUCCESS));
-      assert(op->o_tag == LDAP_REQ_MODIFY || op->o_tag == LDAP_REQ_EXTENDED ||
-             op->o_tag == LDAP_REQ_ADD);
+      assert((!fc.fscope && rc == LDAP_SUCCESS) || (fc.fscope && rc != LDAP_COMPARE_TRUE && rc != LDAP_SUCCESS));
+      assert(op->o_tag == LDAP_REQ_MODIFY || op->o_tag == LDAP_REQ_EXTENDED || op->o_tag == LDAP_REQ_ADD);
       syncprov_qresp(opc, so, LDAP_SYNC_NEW_COOKIE);
     }
 
@@ -1850,8 +1781,7 @@ static void syncprov_add_slog(Operation *op) {
           break;
       if (i == sl->sl_cookie.numcsns || sl->sl_cookie.sids[i] != se->se_sid) {
         slap_insert_csn_sids(&sl->sl_cookie, i, se->se_sid, &se->se_csn);
-      } else if (slap_csn_compare_ts(&sl->sl_cookie.ctxcsn[i], &se->se_csn) <
-                 0) {
+      } else if (slap_csn_compare_ts(&sl->sl_cookie.ctxcsn[i], &se->se_csn) < 0) {
         ber_bvreplace(&sl->sl_cookie.ctxcsn[i], &se->se_csn);
       }
       ch_free(se);
@@ -1870,8 +1800,8 @@ static int playlog_cb(Operation *op, SlapReply *rs) {
 }
 
 /* enter with sl->sl_mutex locked, release before returning */
-static int syncprov_playlog(Operation *op, sessionlog *sl, sync_control *srs,
-                            BerVarray ctxcsn, int numcsns, int *sids) {
+static int syncprov_playlog(Operation *op, sessionlog *sl, sync_control *srs, BerVarray ctxcsn, int numcsns,
+                            int *sids) {
   slap_overinst *on = (slap_overinst *)op->o_bd->bd_info;
   slog_entry *se;
   int i, j, ndel, num, nmods, mmods;
@@ -1891,8 +1821,7 @@ static int syncprov_playlog(Operation *op, sessionlog *sl, sync_control *srs,
   sl->sl_playing++;
   ldap_pvt_thread_mutex_unlock(&sl->sl_mutex);
 
-  uuids = op->o_tmpalloc((num + 1) * sizeof(struct berval) + num * UUID_LEN,
-                         op->o_tmpmemctx);
+  uuids = op->o_tmpalloc((num + 1) * sizeof(struct berval) + num * UUID_LEN, op->o_tmpmemctx);
   uuids[0].bv_val = (char *)(uuids + num + 1);
 
   delcsn[0].bv_len = 0;
@@ -2035,8 +1964,7 @@ static int syncprov_playlog(Operation *op, sessionlog *sl, sync_control *srs,
     }
 
     uuids[ndel].bv_val = NULL;
-    rc = syncprov_sendinfo(op, LDAP_TAG_SYNC_ID_SET,
-                           delcsn[0].bv_len ? &cookie : NULL, 0, uuids, 1);
+    rc = syncprov_sendinfo(op, LDAP_TAG_SYNC_ID_SET, delcsn[0].bv_len ? &cookie : NULL, 0, uuids, 1);
     if (delcsn[0].bv_len) {
       op->o_tmpfree(cookie.bv_val, op->o_tmpmemctx);
     }
@@ -2045,17 +1973,12 @@ static int syncprov_playlog(Operation *op, sessionlog *sl, sync_control *srs,
   return rc;
 }
 
-static int syncprov_new_ctxcsn_and_mayrwunlock(opcookie *opc,
-                                               syncprov_info_t *si,
-                                               BerVarray vals,
-                                               int csn_changed) {
+static int syncprov_new_ctxcsn_and_mayrwunlock(opcookie *opc, syncprov_info_t *si, BerVarray vals, int csn_changed) {
   if (slap_cookie_merge_csnset(NULL, &si->si_cookie, vals) > 0) {
     Debug(LDAP_DEBUG_SYNC, "syncprov_op_response: cookie-forward\n");
     csn_changed = 1;
   } else {
-    Debug(LDAP_DEBUG_SYNC,
-          "syncprov_op_response: cookie-kept (mod-context-csn '%s')\n",
-          vals->bv_val);
+    Debug(LDAP_DEBUG_SYNC, "syncprov_op_response: cookie-kept (mod-context-csn '%s')\n", vals->bv_val);
   }
 
   if (csn_changed) {
@@ -2118,8 +2041,7 @@ static int syncprov_op_response(Operation *op, SlapReply *rs) {
     Modifications *mod;
     entry_dn = &op->o_req_ndn;
     for (mod = op->orm_modlist; mod; mod = mod->sml_next) {
-      if (mod->sml_mod.sm_op != LDAP_MOD_REPLACE &&
-          mod->sml_mod.sm_op != LDAP_MOD_ADD)
+      if (mod->sml_mod.sm_op != LDAP_MOD_REPLACE && mod->sml_mod.sm_op != LDAP_MOD_ADD)
         continue;
       if (mod->sml_mod.sm_desc == slap_schema.si_ad_entryCSN)
         entry_csn = mod->sml_mod.sm_nvalues;
@@ -2138,10 +2060,8 @@ static int syncprov_op_response(Operation *op, SlapReply *rs) {
   }
 
   Debug(LDAP_DEBUG_SYNC, "syncprov_op_response: %s entry%s %s, %s, %s\n", oper,
-        op->o_dont_replicate ? "-dont-replicate" : "",
-        entry_dn ? entry_dn->bv_val : NULL,
-        entry_csn ? entry_csn->bv_val : NULL,
-        entry_uuid ? entry_uuid->bv_val : NULL);
+        op->o_dont_replicate ? "-dont-replicate" : "", entry_dn ? entry_dn->bv_val : NULL,
+        entry_csn ? entry_csn->bv_val : NULL, entry_uuid ? entry_uuid->bv_val : NULL);
 
   ldap_pvt_thread_mutex_lock(&si->si_resp_mutex);
   ldap_pvt_thread_rdwr_wlock(&si->si_csn_rwlock);
@@ -2165,28 +2085,23 @@ static int syncprov_op_response(Operation *op, SlapReply *rs) {
   }
 
   int csn_changed = 0;
-  if (!BER_BVISEMPTY(&maxcsn) &&
-      slap_cookie_merge_csn(op->o_bd, &si->si_cookie, maxcsn_sid, &maxcsn) >
-          0) {
+  if (!BER_BVISEMPTY(&maxcsn) && slap_cookie_merge_csn(op->o_bd, &si->si_cookie, maxcsn_sid, &maxcsn) > 0) {
     Debug(LDAP_DEBUG_SYNC,
           "syncprov_op_response: cookie-forward, opc->sctxcsn => %s, n-dirty "
           "was %d\n",
           maxcsn.bv_val, si->si_dirty);
     csn_changed = 1;
   } else {
-    Debug(LDAP_DEBUG_SYNC, "syncprov_op_response: cookie-kept (maxcsn '%s')\n",
-          maxcsn.bv_val);
+    Debug(LDAP_DEBUG_SYNC, "syncprov_op_response: cookie-kept (maxcsn '%s')\n", maxcsn.bv_val);
   }
 
   /* Don't do any processing for consumer contextCSN updates */
-  if (SLAPD_SYNC_IS_SYNCCONN(op->o_connid) && op->o_tag == LDAP_REQ_MODIFY &&
-      op->orm_modlist && op->orm_modlist->sml_op == LDAP_MOD_REPLACE &&
-      op->orm_modlist->sml_desc == slap_schema.si_ad_contextCSN) {
+  if (SLAPD_SYNC_IS_SYNCCONN(op->o_connid) && op->o_tag == LDAP_REQ_MODIFY && op->orm_modlist &&
+      op->orm_modlist->sml_op == LDAP_MOD_REPLACE && op->orm_modlist->sml_desc == slap_schema.si_ad_contextCSN) {
     /* Catch contextCSN updates from syncrepl. We have to look at
      * all the attribute values, as there may be more than one csn
      * that changed, and only one can be passed in the csn queue. */
-    if (!syncprov_new_ctxcsn_and_mayrwunlock(
-            opc, si, op->orm_modlist->sml_values, csn_changed))
+    if (!syncprov_new_ctxcsn_and_mayrwunlock(opc, si, op->orm_modlist->sml_values, csn_changed))
       ldap_pvt_thread_rdwr_wunlock(&si->si_csn_rwlock);
     goto leave;
   }
@@ -2197,12 +2112,10 @@ static int syncprov_op_response(Operation *op, SlapReply *rs) {
     goto leave;
   }
 
-  if (op->o_tag == LDAP_REQ_ADD &&
-      dn_match(&op->o_req_ndn, &si->si_contextdn)) {
+  if (op->o_tag == LDAP_REQ_ADD && dn_match(&op->o_req_ndn, &si->si_contextdn)) {
     /* If we're adding the context entry, parse all of its contextCSNs */
     Attribute *a = attr_find(op->ora_e->e_attrs, slap_schema.si_ad_contextCSN);
-    if (a &&
-        syncprov_new_ctxcsn_and_mayrwunlock(opc, si, a->a_vals, csn_changed)) {
+    if (a && syncprov_new_ctxcsn_and_mayrwunlock(opc, si, a->a_vals, csn_changed)) {
       /* LY: update maxcsn from a->a_vals here ? */
       goto skip_unlock;
     }
@@ -2265,8 +2178,7 @@ static int syncprov_op_compare(Operation *op, SlapReply *rs) {
   syncprov_info_t *si = on->on_bi.bi_private;
   int rc = SLAP_CB_CONTINUE;
 
-  if (dn_match(&op->o_req_ndn, &si->si_contextdn) &&
-      op->oq_compare.rs_ava->aa_desc == slap_schema.si_ad_contextCSN) {
+  if (dn_match(&op->o_req_ndn, &si->si_contextdn) && op->oq_compare.rs_ava->aa_desc == slap_schema.si_ad_contextCSN) {
     Entry e = {0};
     Attribute a = {0};
 
@@ -2285,26 +2197,21 @@ static int syncprov_op_compare(Operation *op, SlapReply *rs) {
     a.a_numvals = si->si_cookie.numcsns;
 
     rs->sr_err =
-        access_allowed(op, &e, op->oq_compare.rs_ava->aa_desc,
-                       &op->oq_compare.rs_ava->aa_value, ACL_COMPARE, NULL);
+        access_allowed(op, &e, op->oq_compare.rs_ava->aa_desc, &op->oq_compare.rs_ava->aa_value, ACL_COMPARE, NULL);
     if (!rs->sr_err) {
       rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
       goto return_results;
     }
 
-    if (get_assert(op) &&
-        (test_filter(op, &e, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
+    if (get_assert(op) && (test_filter(op, &e, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
       rs->sr_err = LDAP_ASSERTION_FAILED;
       goto return_results;
     }
 
     rs->sr_err = LDAP_COMPARE_FALSE;
 
-    if (attr_valfind(&a,
-                     SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH |
-                         SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH,
-                     &op->oq_compare.rs_ava->aa_value, NULL,
-                     op->o_tmpmemctx) == 0) {
+    if (attr_valfind(&a, SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH | SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH,
+                     &op->oq_compare.rs_ava->aa_value, NULL, op->o_tmpmemctx) == 0) {
       rs->sr_err = LDAP_COMPARE_TRUE;
     }
 
@@ -2337,8 +2244,7 @@ static int syncprov_op_mod(Operation *op, SlapReply *rs) {
   LDAP_ENSURE(__sync_fetch_and_add(&si->si_active, 1) >= 0);
   ldap_pvt_thread_mutex_unlock(&si->si_ops_mutex);
 
-  cbsize = sizeof(slap_callback) + sizeof(opcookie) +
-           (have_psearches ? sizeof(modinst) : 0);
+  cbsize = sizeof(slap_callback) + sizeof(opcookie) + (have_psearches ? sizeof(modinst) : 0);
 
   cb = op->o_tmpcalloc(1, cbsize, op->o_tmpmemctx);
   opc = (opcookie *)(cb + 1);
@@ -2369,22 +2275,18 @@ static int syncprov_op_mod(Operation *op, SlapReply *rs) {
     ldap_pvt_thread_rdwr_runlock(&si->si_csn_rwlock);
   }
 
-  if (op->o_tag == LDAP_REQ_MODIFY &&
-      dn_match(&op->o_req_ndn, &si->si_contextdn)) {
+  if (op->o_tag == LDAP_REQ_MODIFY && dn_match(&op->o_req_ndn, &si->si_contextdn)) {
     Modifications *mod;
     for (mod = op->orm_modlist; mod; mod = mod->sml_next) {
       if (mod->sml_mod.sm_desc == slap_schema.si_ad_contextCSN) {
         if (mod->sml_op == LDAP_MOD_REPLACE) {
           ldap_pvt_thread_rdwr_rlock(&si->si_csn_rwlock);
-          int vector =
-              slap_cookie_compare_csnset(&si->si_cookie, mod->sml_values);
+          int vector = slap_cookie_compare_csnset(&si->si_cookie, mod->sml_values);
           if (vector <= 0 && mod->sml_next == NULL) {
             /* LY: actually here no any changes,
              * allow to backend skip it if no penging updates. */
             if (si->si_numops == 0) {
-              Debug(LDAP_DEBUG_SYNC,
-                    "syncprov_op_mod: hollow contextCSN update %s\n",
-                    op->o_req_ndn.bv_val);
+              Debug(LDAP_DEBUG_SYNC, "syncprov_op_mod: hollow contextCSN update %s\n", op->o_req_ndn.bv_val);
               op->o_hollow = 1;
             }
           }
@@ -2470,8 +2372,7 @@ static int syncprov_op_mod(Operation *op, SlapReply *rs) {
               break;
             }
           }
-          for (pcb = &op->o_callback; /* *pcb != NULL */;
-               pcb = &(*pcb)->sc_next) {
+          for (pcb = &op->o_callback; /* *pcb != NULL */; pcb = &(*pcb)->sc_next) {
             if (*pcb == cb) {
               *pcb = cb->sc_next;
               break;
@@ -2534,10 +2435,8 @@ static void syncprov_detach_op(Operation *op, syncops *so, slap_overinst *on) {
     alen += op->ors_attrs[i].an_name.bv_len + 1;
   }
   /* Make a new copy of the operation */
-  size = offsetof(SyncOperationBuffer, sob_extra) +
-         (i ? ((i + 1) * sizeof(AttributeName) + alen) : 0) +
-         op->o_req_dn.bv_len + 1 + op->o_req_ndn.bv_len + 1 + op->o_ndn.bv_len +
-         1 + so->s_filterstr.bv_len + 1;
+  size = offsetof(SyncOperationBuffer, sob_extra) + (i ? ((i + 1) * sizeof(AttributeName) + alen) : 0) +
+         op->o_req_dn.bv_len + 1 + op->o_req_ndn.bv_len + 1 + op->o_ndn.bv_len + 1 + so->s_filterstr.bv_len + 1;
   sopbuf2 = ch_calloc(1, size);
   op2 = &sopbuf2->sob_op;
   op2->o_hdr = &sopbuf2->sob_hdr;
@@ -2621,8 +2520,7 @@ static void syncprov_refresh_end(syncprov_info_t *si, syncops *so) {
   /* Turn off the refreshing flag */
   so->s_flags -= PS_IS_REFRESHING;
   si->si_prefresh -= 1;
-  Debug(LDAP_DEBUG_SYNC, "syncprov-search: sid 0x%03x, refresh-end\n",
-        so->s_sid);
+  Debug(LDAP_DEBUG_SYNC, "syncprov-search: sid 0x%03x, refresh-end\n", so->s_sid);
 }
 
 static int syncprov_search_cleanup(Operation *op, SlapReply *rs) {
@@ -2630,15 +2528,13 @@ static int syncprov_search_cleanup(Operation *op, SlapReply *rs) {
   searchstate *ss = cb->sc_private;
   syncops *so = ss->ss_so;
 
-  if (rs->sr_err != LDAP_SUCCESS && rs->sr_type == REP_RESULT &&
-      !slap_get_op_abandon(op) && so != NULL) {
+  if (rs->sr_err != LDAP_SUCCESS && rs->sr_type == REP_RESULT && !slap_get_op_abandon(op) && so != NULL) {
     ss->ss_so = NULL;
     cb->sc_cleanup = NULL;
     ldap_pvt_thread_mutex_lock(&op->o_conn->c_mutex);
     if (!slap_get_op_abandon(op)) {
-      Debug(LDAP_DEBUG_SYNC,
-            "syncprov-search: sid 0x%03x, refresh-abort, type %d, rc %d\n",
-            so->s_sid, rs->sr_type, rs->sr_err);
+      Debug(LDAP_DEBUG_SYNC, "syncprov-search: sid 0x%03x, refresh-abort, type %d, rc %d\n", so->s_sid, rs->sr_type,
+            rs->sr_err);
       syncprov_unlink_syncop(so, OS_REF_OP_SEARCH, SO_LOCKED_CONN);
     } else {
       /* LY: rare race with abandon */
@@ -2669,8 +2565,7 @@ static int syncprov_search_response(Operation *op, SlapReply *rs) {
       return SLAP_CB_CONTINUE;
     }
     if (rs->sr_operational_attrs != NULL)
-      entryCSN =
-          attr_find(rs->sr_operational_attrs, slap_schema.si_ad_entryCSN);
+      entryCSN = attr_find(rs->sr_operational_attrs, slap_schema.si_ad_entryCSN);
     if (entryCSN == NULL)
       entryCSN = attr_find(rs->sr_entry->e_attrs, slap_schema.si_ad_entryCSN);
     if (entryCSN) {
@@ -2681,14 +2576,11 @@ static int syncprov_search_response(Operation *op, SlapReply *rs) {
       if (!(op->o_sync & SLAP_SYNC_PERSIST)) {
         /* Make sure entry is less than the snapshot'd contextCSN */
         for (i = 0; i < ss->ss_numcsns; i++) {
-          if (sid == ss->ss_sids[i] &&
-              slap_csn_compare_ts(&entryCSN->a_nvals[0], &ss->ss_ctxcsn[i]) >
-                  0) {
+          if (sid == ss->ss_sids[i] && slap_csn_compare_ts(&entryCSN->a_nvals[0], &ss->ss_ctxcsn[i]) > 0) {
             Debug(LDAP_DEBUG_SYNC,
                   "syncprov-response: sid 0x%03x, Entry %s, %s > snapshot %s, "
                   "skip\n",
-                  srs->sr_state.sid, rs->sr_entry->e_name.bv_val,
-                  entryCSN->a_nvals[0].bv_val, ss->ss_ctxcsn[i].bv_val);
+                  srs->sr_state.sid, rs->sr_entry->e_name.bv_val, entryCSN->a_nvals[0].bv_val, ss->ss_ctxcsn[i].bv_val);
             return LDAP_SUCCESS;
           }
         }
@@ -2696,13 +2588,9 @@ static int syncprov_search_response(Operation *op, SlapReply *rs) {
 
       /* Don't send old entries twice */
       for (i = 0; i < srs->sr_state.numcsns; i++) {
-        if (sid == srs->sr_state.sids[i] &&
-            slap_csn_compare_ts(&entryCSN->a_nvals[0],
-                                &srs->sr_state.ctxcsn[i]) <= 0) {
-          Debug(LDAP_DEBUG_SYNC,
-                "syncprov-response: %03x, Entry %s, %s <= consumer %s, skip\n",
-                srs->sr_state.sid, rs->sr_entry->e_name.bv_val,
-                entryCSN->a_nvals[0].bv_val, srs->sr_state.ctxcsn[i].bv_val);
+        if (sid == srs->sr_state.sids[i] && slap_csn_compare_ts(&entryCSN->a_nvals[0], &srs->sr_state.ctxcsn[i]) <= 0) {
+          Debug(LDAP_DEBUG_SYNC, "syncprov-response: %03x, Entry %s, %s <= consumer %s, skip\n", srs->sr_state.sid,
+                rs->sr_entry->e_name.bv_val, entryCSN->a_nvals[0].bv_val, srs->sr_state.ctxcsn[i].bv_val);
           return LDAP_SUCCESS;
         }
       }
@@ -2712,18 +2600,15 @@ static int syncprov_search_response(Operation *op, SlapReply *rs) {
     rs->sr_flags |= REP_CTRLS_MUSTBEFREED;
     /* If we're in delta-sync mode, always send a cookie */
     if (si->si_nopres && si->si_usehint && entryCSN) {
-      rs->sr_err =
-          syncprov_state_ctrl(op, rs, rs->sr_entry, LDAP_SYNC_ADD, rs->sr_ctrls,
-                              0, entryCSN->a_nvals, srs->sr_state.rid);
+      rs->sr_err = syncprov_state_ctrl(op, rs, rs->sr_entry, LDAP_SYNC_ADD, rs->sr_ctrls, 0, entryCSN->a_nvals,
+                                       srs->sr_state.rid);
     } else {
-      rs->sr_err = syncprov_state_ctrl(op, rs, rs->sr_entry, LDAP_SYNC_ADD,
-                                       rs->sr_ctrls, 0, NULL, 0);
+      rs->sr_err = syncprov_state_ctrl(op, rs, rs->sr_entry, LDAP_SYNC_ADD, rs->sr_ctrls, 0, NULL, 0);
     }
   } else if (rs->sr_type == REP_RESULT && rs->sr_err == LDAP_SUCCESS) {
     struct berval cookie = BER_BVNULL;
 
-    if (((ss->ss_flags & (SS_CHANGED | SS_PRESENT)) && ss->ss_ctxcsn &&
-         !BER_BVISNULL(&ss->ss_ctxcsn[0]))) {
+    if (((ss->ss_flags & (SS_CHANGED | SS_PRESENT)) && ss->ss_ctxcsn && !BER_BVISNULL(&ss->ss_ctxcsn[0]))) {
       syncprov_compose_cookie(op, &cookie, ss->ss_ctxcsn, srs->sr_state.rid);
       Debug(LDAP_DEBUG_SYNC, "syncprov-response: cookie=%s\n", cookie.bv_val);
     }
@@ -2735,18 +2620,15 @@ static int syncprov_search_response(Operation *op, SlapReply *rs) {
       rs->sr_ctrls = op->o_tmpalloc(sizeof(LDAPControl *) * 2, op->o_tmpmemctx);
       rs->sr_ctrls[1] = NULL;
       rs->sr_flags |= REP_CTRLS_MUSTBEFREED;
-      rs->sr_err = syncprov_done_ctrl(op, rs, rs->sr_ctrls, 0, &cookie,
-                                      (ss->ss_flags & SS_PRESENT)
-                                          ? LDAP_SYNC_REFRESH_PRESENTS
-                                          : LDAP_SYNC_REFRESH_DELETES);
+      rs->sr_err =
+          syncprov_done_ctrl(op, rs, rs->sr_ctrls, 0, &cookie,
+                             (ss->ss_flags & SS_PRESENT) ? LDAP_SYNC_REFRESH_PRESENTS : LDAP_SYNC_REFRESH_DELETES);
       if (!BER_BVISNULL(&cookie))
         op->o_tmpfree(cookie.bv_val, op->o_tmpmemctx);
     } else {
       /* It's RefreshAndPersist, transition to Persist phase */
       rs->sr_err = syncprov_sendinfo(
-          op,
-          (ss->ss_flags & SS_PRESENT) ? LDAP_TAG_SYNC_REFRESH_PRESENT
-                                      : LDAP_TAG_SYNC_REFRESH_DELETE,
+          op, (ss->ss_flags & SS_PRESENT) ? LDAP_TAG_SYNC_REFRESH_PRESENT : LDAP_TAG_SYNC_REFRESH_DELETE,
           BER_BVISNULL(&cookie) ? NULL : &cookie, 1, NULL, 0);
       if (!BER_BVISNULL(&cookie))
         op->o_tmpfree(cookie.bv_val, op->o_tmpmemctx);
@@ -2792,12 +2674,9 @@ static int syncprov_search_response(Operation *op, SlapReply *rs) {
     }
 
     if (srs->sr_jammed && rs->sr_err == LDAP_SUCCESS) {
-      Debug(LDAP_DEBUG_SYNC,
-            "syncprov-response: sid 0x%03x,%s%s, force resync\n",
-            srs->sr_state.sid, srs->sr_jammed ? " jammed" : "",
-            (ss->ss_flags & SS_PRESENT) ? "" : " no-present");
-      send_ldap_error(op, rs, LDAP_SYNC_REFRESH_REQUIRED,
-                      "unable to provide robust sync (jammed)");
+      Debug(LDAP_DEBUG_SYNC, "syncprov-response: sid 0x%03x,%s%s, force resync\n", srs->sr_state.sid,
+            srs->sr_jammed ? " jammed" : "", (ss->ss_flags & SS_PRESENT) ? "" : " no-present");
+      send_ldap_error(op, rs, LDAP_SYNC_REFRESH_REQUIRED, "unable to provide robust sync (jammed)");
     }
     if (rs->sr_err != LDAP_SUCCESS) {
       /* LY: return error if have, otherwise just continue */
@@ -2826,8 +2705,7 @@ static int syncprov_op_search(Operation *op, SlapReply *rs) {
     return SLAP_CB_CONTINUE;
 
   if (op->ors_deref & LDAP_DEREF_SEARCHING) {
-    send_ldap_error(op, rs, LDAP_PROTOCOL_ERROR,
-                    "illegal value for derefAliases");
+    send_ldap_error(op, rs, LDAP_PROTOCOL_ERROR, "illegal value for derefAliases");
     return rs->sr_err;
   }
 
@@ -2909,12 +2787,9 @@ static int syncprov_op_search(Operation *op, SlapReply *rs) {
   dirty = si->si_dirty;
 
   if (DebugTest(LDAP_DEBUG_SYNC)) {
-    ldap_debug_print(
-        "syncprov-search: %srid=%03d, sid=%03d, hint %d, srs %p, sop %p\n",
-        so ? "PERSISTENT, " : "", srs->sr_state.rid, srs->sr_state.sid,
-        srs->sr_rhint, srs, so);
-    slap_cookie_debug_pair("syncprov-search: cookie", "provider",
-                           &si->si_cookie, "consumer", &srs->sr_state, -1);
+    ldap_debug_print("syncprov-search: %srid=%03d, sid=%03d, hint %d, srs %p, sop %p\n", so ? "PERSISTENT, " : "",
+                     srs->sr_state.rid, srs->sr_state.sid, srs->sr_rhint, srs, so);
+    slap_cookie_debug_pair("syncprov-search: cookie", "provider", &si->si_cookie, "consumer", &srs->sr_state, -1);
   }
 
   ldap_pvt_thread_rdwr_runlock(&si->si_csn_rwlock);
@@ -2962,9 +2837,7 @@ static int syncprov_op_search(Operation *op, SlapReply *rs) {
       /* not found */
       if (j == numcsns || srs->sr_state.sids[i] != sids[j]) {
         char *tmp = srs->sr_state.ctxcsn[i].bv_val;
-        Debug(LDAP_DEBUG_SYNC,
-              "syncprov_op_search: sid 0x%03x, drop consumer's[%d] %s\n",
-              srs->sr_state.sid, i, tmp);
+        Debug(LDAP_DEBUG_SYNC, "syncprov_op_search: sid 0x%03x, drop consumer's[%d] %s\n", srs->sr_state.sid, i, tmp);
         srs->sr_state.numcsns--;
         for (j = i; j < srs->sr_state.numcsns; j++) {
           srs->sr_state.ctxcsn[j] = srs->sr_state.ctxcsn[j + 1];
@@ -2976,8 +2849,7 @@ static int syncprov_op_search(Operation *op, SlapReply *rs) {
       }
 
       /* LY: Find the smallest consumer CSN */
-      if (BER_BVISEMPTY(&pivot_csn) ||
-          slap_csn_compare_ts(&pivot_csn, &srs->sr_state.ctxcsn[i]) > 0) {
+      if (BER_BVISEMPTY(&pivot_csn) || slap_csn_compare_ts(&pivot_csn, &srs->sr_state.ctxcsn[i]) > 0) {
         pivot_csn = srs->sr_state.ctxcsn[i];
         pivot_sid = srs->sr_state.sids[i];
       }
@@ -3000,16 +2872,14 @@ static int syncprov_op_search(Operation *op, SlapReply *rs) {
         Debug(LDAP_DEBUG_SYNC,
               "syncprov_op_search: consumer sid 0x%03x state %s "
               "is newer than provider 0x%03x state %s\n",
-              sids[i], srs->sr_state.ctxcsn[i].bv_val, slap_serverID,
-              ctxcsn[j].bv_val);
+              sids[i], srs->sr_state.ctxcsn[i].bv_val, slap_serverID, ctxcsn[j].bv_val);
       bailout:
         if (ctxcsn)
           ber_bvarray_free_x(ctxcsn, op->o_tmpmemctx);
         if (sids)
           op->o_tmpfree(sids, op->o_tmpmemctx);
         if (so)
-          syncprov_unlink_syncop(so, OS_REF_PREPARE | OS_REF_OP_SEARCH,
-                                 SO_LOCKED_NONE);
+          syncprov_unlink_syncop(so, OS_REF_PREPARE | OS_REF_OP_SEARCH, SO_LOCKED_NONE);
         rs->sr_ctrls = NULL;
         send_ldap_result(op, rs);
         return rs->sr_err;
@@ -3020,26 +2890,18 @@ static int syncprov_op_search(Operation *op, SlapReply *rs) {
       /* consumer doesn't have the right set of CSNs */
       changed = SS_CHANGED;
       srs->sr_state.numcsns = 0; /* sr_state.ctxcsn is shared with pivot_csn */
-      Debug(LDAP_DEBUG_SYNC,
-            "syncprov_op_search: sid 0x%03x, useless consumer-cookie\n",
-            srs->sr_state.sid);
+      Debug(LDAP_DEBUG_SYNC, "syncprov_op_search: sid 0x%03x, useless consumer-cookie\n", srs->sr_state.sid);
       srs->sr_jammed = reopenldap_mode_strict();
       goto shortcut;
     }
 
-    Debug(
-        LDAP_DEBUG_SYNC,
-        "syncprov_op_search: sid 0x%03x, provider's state is %s%s, pivot %s\n",
-        srs->sr_state.sid, (changed == SS_CHANGED) ? "newer" : "the same",
-        dirty ? " and dirty" : "", pivot_csn.bv_val);
+    Debug(LDAP_DEBUG_SYNC, "syncprov_op_search: sid 0x%03x, provider's state is %s%s, pivot %s\n", srs->sr_state.sid,
+          (changed == SS_CHANGED) ? "newer" : "the same", dirty ? " and dirty" : "", pivot_csn.bv_val);
 
     /* If nothing has changed, shortcut it */
     if (!changed && !dirty) {
-      if (reopenldap_mode_righteous() && SLAP_MULTIMASTER(op->o_bd->bd_self) &&
-          !si->si_nopres && !si->si_logs) {
-        Debug(LDAP_DEBUG_SYNC,
-              "syncprov_op_search: sid 0x%03x, force present-check\n",
-              srs->sr_state.sid);
+      if (reopenldap_mode_righteous() && SLAP_MULTIMASTER(op->o_bd->bd_self) && !si->si_nopres && !si->si_logs) {
+        Debug(LDAP_DEBUG_SYNC, "syncprov_op_search: sid 0x%03x, force present-check\n", srs->sr_state.sid);
         do_present = SS_PRESENT;
         goto shortcut;
       }
@@ -3050,17 +2912,14 @@ static int syncprov_op_search(Operation *op, SlapReply *rs) {
 
         /* LY: cookie for quorum's auto-sids */
         if (reopenldap_mode_righteous()) {
-          syncprov_compose_cookie(op, &cookie, srs->sr_state.ctxcsn,
-                                  srs->sr_state.rid);
-          Debug(LDAP_DEBUG_SYNC, "syncprov_op_search: cookie=%s\n",
-                cookie.bv_val);
+          syncprov_compose_cookie(op, &cookie, srs->sr_state.ctxcsn, srs->sr_state.rid);
+          Debug(LDAP_DEBUG_SYNC, "syncprov_op_search: cookie=%s\n", cookie.bv_val);
         }
 
         ctrls[0] = NULL;
         ctrls[1] = NULL;
-        rs->sr_err = syncprov_done_ctrl(op, rs, ctrls, 0,
-                                        BER_BVISNULL(&cookie) ? NULL : &cookie,
-                                        LDAP_SYNC_REFRESH_DELETES);
+        rs->sr_err =
+            syncprov_done_ctrl(op, rs, ctrls, 0, BER_BVISNULL(&cookie) ? NULL : &cookie, LDAP_SYNC_REFRESH_DELETES);
         if (!BER_BVISNULL(&cookie))
           op->o_tmpfree(cookie.bv_val, op->o_tmpmemctx);
         rs->sr_ctrls = ctrls;
@@ -3128,16 +2987,13 @@ static int syncprov_op_search(Operation *op, SlapReply *rs) {
         j = -1;
         for (i = 0; i < srs->sr_state.numcsns; ++i) {
           if (slap_csn_compare_ts(&pivot_csn, &srs->sr_state.ctxcsn[i]) < 0 &&
-              (j < 0 || slap_csn_compare_ts(&srs->sr_state.ctxcsn[j],
-                                            &srs->sr_state.ctxcsn[i]) > 0))
+              (j < 0 || slap_csn_compare_ts(&srs->sr_state.ctxcsn[j], &srs->sr_state.ctxcsn[i]) > 0))
             j = i;
         }
         if (j >= 0) {
           pivot_csn = srs->sr_state.ctxcsn[j];
           pivot_sid = srs->sr_state.sids[j];
-          Debug(LDAP_DEBUG_SYNC,
-                "syncprov_op_search: try use %s as pivon-csn\n",
-                pivot_csn.bv_val);
+          Debug(LDAP_DEBUG_SYNC, "syncprov_op_search: try use %s as pivon-csn\n", pivot_csn.bv_val);
           goto retry_pivot;
         }
       }
@@ -3151,8 +3007,7 @@ static int syncprov_op_search(Operation *op, SlapReply *rs) {
       }
       if (!reopenldap_mode_righteous()) {
         /* LY: Hm, why we should clean cookie in this case ? */
-        srs->sr_state.numcsns =
-            0; /* sr_state.ctxcsn is shared with pivot_csn */
+        srs->sr_state.numcsns = 0; /* sr_state.ctxcsn is shared with pivot_csn */
       }
     } else {
       gotstate = 1;
@@ -3216,8 +3071,7 @@ shortcut:
   }
 
   /* Let our callback add needed info to returned entries */
-  cb = op->o_tmpcalloc(1, sizeof(slap_callback) + sizeof(searchstate),
-                       op->o_tmpmemctx);
+  cb = op->o_tmpcalloc(1, sizeof(slap_callback) + sizeof(searchstate), op->o_tmpmemctx);
   ss = (searchstate *)(cb + 1);
   ss->ss_on = on;
   ss->ss_flags = do_present | changed;
@@ -3241,8 +3095,7 @@ shortcut:
       ldap_pvt_thread_mutex_unlock(&so->s_mutex);
     } else {
       /* LY: race with async abandon - is this enough ? */
-      Debug(LDAP_DEBUG_ANY,
-            "syncprov: rare-case race op_search with abandon.\n");
+      Debug(LDAP_DEBUG_ANY, "syncprov: rare-case race op_search with abandon.\n");
       assert(so->s_next == so);
       op->o_callback = NULL;
       ldap_pvt_thread_mutex_unlock(&so->s_mutex);
@@ -3270,10 +3123,9 @@ shortcut:
   return SLAP_CB_CONTINUE;
 }
 
-#define SS_NONE 0 /* LY: no mock contextCSN */
-#define SS_RUNNING                                                             \
-  1 /* LY: show mock contextCSN for running (connected) syncrepl(s) */
-#define SS_ALL 2 /* LY: show mock contextCSN for any dirty syncrepl(s) */
+#define SS_NONE 0    /* LY: no mock contextCSN */
+#define SS_RUNNING 1 /* LY: show mock contextCSN for running (connected) syncrepl(s) */
+#define SS_ALL 2     /* LY: show mock contextCSN for any dirty syncrepl(s) */
 
 static int syncprov_operational(Operation *op, SlapReply *rs) {
   slap_overinst *on = (slap_overinst *)op->o_bd->bd_info;
@@ -3287,8 +3139,7 @@ static int syncprov_operational(Operation *op, SlapReply *rs) {
 
   if (rs->sr_entry && dn_match(&rs->sr_entry->e_nname, &si->si_contextdn)) {
 
-    if (SLAP_OPATTRS(rs->sr_attr_flags) ||
-        ad_inlist(slap_schema.si_ad_contextCSN, rs->sr_attrs)) {
+    if (SLAP_OPATTRS(rs->sr_attr_flags) || ad_inlist(slap_schema.si_ad_contextCSN, rs->sr_attrs)) {
       Attribute *a, **ap = NULL;
 
       for (a = rs->sr_entry->e_attrs; a; a = a->a_next) {
@@ -3299,10 +3150,8 @@ static int syncprov_operational(Operation *op, SlapReply *rs) {
       BerValue status = {0};
       int mock = 0;
       if (!op->o_dont_replicate && si->si_showstatus != SS_NONE) {
-        mock = quorum_query_status(op->o_bd, si->si_showstatus == SS_RUNNING,
-                                   &status, op) |
-               slap_tsan__read_int(&si->si_prefresh) |
-               slap_tsan__read_int(&si->si_active);
+        mock = quorum_query_status(op->o_bd, si->si_showstatus == SS_RUNNING, &status, op) |
+               slap_tsan__read_int(&si->si_prefresh) | slap_tsan__read_int(&si->si_active);
 
         Debug(LDAP_DEBUG_SYNC, "syncprov_gate: %s\n", mock ? "dirty" : "clean");
       }
@@ -3333,8 +3182,7 @@ static int syncprov_operational(Operation *op, SlapReply *rs) {
           a->a_numvals = 0;
         }
         if (si->si_cookie.numcsns)
-          attr_valadd(a, si->si_cookie.ctxcsn, si->si_cookie.ctxcsn,
-                      si->si_cookie.numcsns);
+          attr_valadd(a, si->si_cookie.ctxcsn, si->si_cookie.ctxcsn, si->si_cookie.numcsns);
         if (mock)
           attr_valadd(a, &status, &status, 1);
       }
@@ -3348,43 +3196,38 @@ enum { SP_CHKPT = 1, SP_SESSL, SP_NOPRES, SP_USEHINT, SP_SHOWSTATUS };
 
 static ConfigDriver sp_cf_gen;
 
-static ConfigTable spcfg[] = {
-    {"syncprov-checkpoint", "ops> <minutes", 3, 3, 0, ARG_MAGIC | SP_CHKPT,
-     sp_cf_gen,
-     "( OLcfgOvAt:1.1 NAME 'olcSpCheckpoint' "
-     "DESC 'ContextCSN checkpoint interval in ops and minutes' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString SINGLE-VALUE )",
-     NULL, NULL},
-    {"syncprov-sessionlog", "ops", 2, 2, 0, ARG_INT | ARG_MAGIC | SP_SESSL,
-     sp_cf_gen,
-     "( OLcfgOvAt:1.2 NAME 'olcSpSessionlog' "
-     "DESC 'Session log size in ops' "
-     "EQUALITY integerMatch "
-     "SYNTAX OMsInteger SINGLE-VALUE )",
-     NULL, NULL},
-    {"syncprov-nopresent", NULL, 2, 2, 0, ARG_ON_OFF | ARG_MAGIC | SP_NOPRES,
-     sp_cf_gen,
-     "( OLcfgOvAt:1.3 NAME 'olcSpNoPresent' "
-     "DESC 'Omit Present phase processing' "
-     "EQUALITY booleanMatch "
-     "SYNTAX OMsBoolean SINGLE-VALUE )",
-     NULL, NULL},
-    {"syncprov-reloadhint", NULL, 2, 2, 0, ARG_ON_OFF | ARG_MAGIC | SP_USEHINT,
-     sp_cf_gen,
-     "( OLcfgOvAt:1.4 NAME 'olcSpReloadHint' "
-     "DESC 'Observe Reload Hint in Request control' "
-     "EQUALITY booleanMatch "
-     "SYNTAX OMsBoolean SINGLE-VALUE )",
-     NULL, NULL},
-    {"syncprov-showstatus", "mode", 2, 2, 0,
-     ARG_STRING | ARG_MAGIC | SP_SHOWSTATUS, sp_cf_gen,
-     "( OLcfgOvAt:1.9 NAME 'olcSpShowStatus' "
-     "DESC 'Show a Mock contextCSN Until Synchronization is Perfect' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString SINGLE-VALUE )",
-     NULL, NULL},
-    {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
+static ConfigTable spcfg[] = {{"syncprov-checkpoint", "ops> <minutes", 3, 3, 0, ARG_MAGIC | SP_CHKPT, sp_cf_gen,
+                               "( OLcfgOvAt:1.1 NAME 'olcSpCheckpoint' "
+                               "DESC 'ContextCSN checkpoint interval in ops and minutes' "
+                               "EQUALITY caseIgnoreMatch "
+                               "SYNTAX OMsDirectoryString SINGLE-VALUE )",
+                               NULL, NULL},
+                              {"syncprov-sessionlog", "ops", 2, 2, 0, ARG_INT | ARG_MAGIC | SP_SESSL, sp_cf_gen,
+                               "( OLcfgOvAt:1.2 NAME 'olcSpSessionlog' "
+                               "DESC 'Session log size in ops' "
+                               "EQUALITY integerMatch "
+                               "SYNTAX OMsInteger SINGLE-VALUE )",
+                               NULL, NULL},
+                              {"syncprov-nopresent", NULL, 2, 2, 0, ARG_ON_OFF | ARG_MAGIC | SP_NOPRES, sp_cf_gen,
+                               "( OLcfgOvAt:1.3 NAME 'olcSpNoPresent' "
+                               "DESC 'Omit Present phase processing' "
+                               "EQUALITY booleanMatch "
+                               "SYNTAX OMsBoolean SINGLE-VALUE )",
+                               NULL, NULL},
+                              {"syncprov-reloadhint", NULL, 2, 2, 0, ARG_ON_OFF | ARG_MAGIC | SP_USEHINT, sp_cf_gen,
+                               "( OLcfgOvAt:1.4 NAME 'olcSpReloadHint' "
+                               "DESC 'Observe Reload Hint in Request control' "
+                               "EQUALITY booleanMatch "
+                               "SYNTAX OMsBoolean SINGLE-VALUE )",
+                               NULL, NULL},
+                              {"syncprov-showstatus", "mode", 2, 2, 0, ARG_STRING | ARG_MAGIC | SP_SHOWSTATUS,
+                               sp_cf_gen,
+                               "( OLcfgOvAt:1.9 NAME 'olcSpShowStatus' "
+                               "DESC 'Show a Mock contextCSN Until Synchronization is Perfect' "
+                               "EQUALITY caseIgnoreMatch "
+                               "SYNTAX OMsDirectoryString SINGLE-VALUE )",
+                               NULL, NULL},
+                              {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
 
 static ConfigOCs spocs[] = {{"( OLcfgOvOc:1.1 "
                              "NAME 'olcSyncProvConfig' "
@@ -3412,8 +3255,7 @@ static int sp_cf_gen(ConfigArgs *c) {
         /* we assume si_chktime is a multiple of 60
          * because the parsed value was originally
          * multiplied by 60 */
-        bv.bv_len = snprintf(c->cr_msg, sizeof(c->cr_msg), "%d %d",
-                             si->si_chkops, si->si_chktime / 60);
+        bv.bv_len = snprintf(c->cr_msg, sizeof(c->cr_msg), "%d %d", si->si_chkops, si->si_chktime / 60);
         if (bv.bv_len >= sizeof(c->cr_msg)) {
           rc = 1;
         } else {
@@ -3487,28 +3329,22 @@ static int sp_cf_gen(ConfigArgs *c) {
   switch (c->type) {
   case SP_CHKPT:
     if (lutil_atoi(&si->si_chkops, c->argv[1]) != 0) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "%s unable to parse checkpoint ops # \"%s\"", c->argv[0],
-               c->argv[1]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "%s unable to parse checkpoint ops # \"%s\"", c->argv[0], c->argv[1]);
       Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log, c->cr_msg);
       return ARG_BAD_CONF;
     }
     if (si->si_chkops <= 0) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "%s invalid checkpoint ops # \"%d\"", c->argv[0], si->si_chkops);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "%s invalid checkpoint ops # \"%d\"", c->argv[0], si->si_chkops);
       Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log, c->cr_msg);
       return ARG_BAD_CONF;
     }
     if (lutil_atoi(&si->si_chktime, c->argv[2]) != 0) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "%s unable to parse checkpoint time \"%s\"", c->argv[0],
-               c->argv[1]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "%s unable to parse checkpoint time \"%s\"", c->argv[0], c->argv[1]);
       Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log, c->cr_msg);
       return ARG_BAD_CONF;
     }
     if (si->si_chktime <= 0) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "%s invalid checkpoint time \"%d\"", c->argv[0], si->si_chkops);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "%s invalid checkpoint time \"%d\"", c->argv[0], si->si_chkops);
       Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log, c->cr_msg);
       return ARG_BAD_CONF;
     }
@@ -3516,8 +3352,7 @@ static int sp_cf_gen(ConfigArgs *c) {
     break;
   case SP_SESSL:
     if (c->value_int < 0) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg), "%s size %d is negative",
-               c->argv[0], c->value_int);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "%s size %d is negative", c->argv[0], c->value_int);
       Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log, c->cr_msg);
       return ARG_BAD_CONF;
     }
@@ -3541,9 +3376,7 @@ static int sp_cf_gen(ConfigArgs *c) {
     else if (strcasecmp(c->value_string, "all") == 0)
       si->si_showstatus = SS_ALL;
     else {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "%s invalid mode \"%s\" (none|running|all)", c->argv[0],
-               c->value_string);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "%s invalid mode \"%s\" (none|running|all)", c->argv[0], c->value_string);
       Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log, c->cr_msg);
       return ARG_BAD_CONF;
     }
@@ -3576,8 +3409,7 @@ static int syncprov_db_open(BackendDB *be, ConfigReply *cr) {
   void *thrctx = NULL;
 
   if (!SLAP_LASTMOD(be)) {
-    Debug(LDAP_DEBUG_ANY,
-          "syncprov_db_open: invalid config, lastmod must be enabled\n");
+    Debug(LDAP_DEBUG_ANY, "syncprov_db_open: invalid config, lastmod must be enabled\n");
     return -1;
   }
 
@@ -3598,13 +3430,11 @@ static int syncprov_db_open(BackendDB *be, ConfigReply *cr) {
   op->o_ndn = be->be_rootndn;
 
   if (SLAP_SYNC_SUBENTRY(be)) {
-    build_new_dn(&si->si_contextdn, be->be_nsuffix,
-                 (struct berval *)&slap_ldapsync_cn_bv, NULL);
+    build_new_dn(&si->si_contextdn, be->be_nsuffix, (struct berval *)&slap_ldapsync_cn_bv, NULL);
   } else {
     si->si_contextdn = be->be_nsuffix[0];
   }
-  rc = overlay_entry_get_ov(op, &si->si_contextdn, NULL,
-                            slap_schema.si_ad_contextCSN, 0, &e, on);
+  rc = overlay_entry_get_ov(op, &si->si_contextdn, NULL, slap_schema.si_ad_contextCSN, 0, &e, on);
 
   if (e) {
     a = attr_find(e->e_attrs, slap_schema.si_ad_contextCSN);
@@ -3617,8 +3447,7 @@ static int syncprov_db_open(BackendDB *be, ConfigReply *cr) {
     overlay_entry_release_ov(op, e, 0, on);
   }
 
-  if (!SLAP_DBCLEAN(be) &&
-      (si->si_cookie.numcsns || reopenldap_mode_righteous())) {
+  if (!SLAP_DBCLEAN(be) && (si->si_cookie.numcsns || reopenldap_mode_righteous())) {
     ldap_pvt_thread_t tid;
 
     op->o_tag = LDAP_REQ_SEARCH;
@@ -3645,8 +3474,7 @@ static int syncprov_db_open(BackendDB *be, ConfigReply *cr) {
       rc = slap_cookie_stubself(&si->si_cookie);
       if (rc < 0)
         goto out;
-      Debug(LDAP_DEBUG_SYNC, "syncprov: %s force stub-csn for self-sid %d\n",
-            be->be_nsuffix->bv_val, slap_serverID);
+      Debug(LDAP_DEBUG_SYNC, "syncprov: %s force stub-csn for self-sid %d\n", be->be_nsuffix->bv_val, slap_serverID);
       rc = 0;
     } else {
       char csnbuf[LDAP_PVT_CSNSTR_BUFSIZE];
@@ -3714,14 +3542,12 @@ static int syncprov_db_close(BackendDB *be, ConfigReply *cr) {
       si->si_ops = so->s_next;
       so->s_next = so; /* LY: safely mark it as unlinked */
       so->s_flags |= PS_DEAD | OS_REF_CLOSE;
-      if ((so->s_flags & PS_TASK_QUEUED) &&
-          ldap_pvt_thread_pool_retract(so->s_pool_cookie) > 0)
+      if ((so->s_flags & PS_TASK_QUEUED) && ldap_pvt_thread_pool_retract(so->s_pool_cookie) > 0)
         so->s_flags -= PS_TASK_QUEUED;
       ldap_pvt_thread_mutex_unlock(&so->s_mutex);
       ldap_pvt_thread_mutex_unlock(&si->si_ops_mutex);
 
-      syncprov_unlink_syncop(so, OS_REF_OP_SEARCH | OS_REF_CLOSE,
-                             SO_LOCKED_NONE);
+      syncprov_unlink_syncop(so, OS_REF_OP_SEARCH | OS_REF_CLOSE, SO_LOCKED_NONE);
       ldap_pvt_thread_mutex_lock(&si->si_ops_mutex);
     }
     ldap_pvt_thread_mutex_unlock(&si->si_ops_mutex);
@@ -3777,8 +3603,7 @@ static int syncprov_db_destroy(BackendDB *be, ConfigReply *cr) {
         paused = slap_biglock_pool_pause(be);
       ldap_pvt_thread_mutex_lock(&si->si_ops_mutex);
       drained = 0;
-      if (si->si_ops == NULL && slap_tsan__read_int(&si->si_psearches) == 0 &&
-          slap_tsan__read_int(&si->si_active) == 0)
+      if (si->si_ops == NULL && slap_tsan__read_int(&si->si_psearches) == 0 && slap_tsan__read_int(&si->si_active) == 0)
         drained = 1;
       ldap_pvt_thread_mutex_unlock(&si->si_ops_mutex);
       if (paused == LDAP_SUCCESS)
@@ -3912,8 +3737,7 @@ static int syncprov_parseCtrl(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
 
   op->o_controls[slap_cids.sc_LDAPsync] = sr;
 
-  op->o_sync =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_sync = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   op->o_sync |= mode;
 
@@ -3930,8 +3754,8 @@ static slap_overinst syncprov;
 int syncprov_over_initialize() {
   int rc;
 
-  rc = register_supported_control(LDAP_CONTROL_SYNC, SLAP_CTRL_SEARCH, NULL,
-                                  syncprov_parseCtrl, &slap_cids.sc_LDAPsync);
+  rc =
+      register_supported_control(LDAP_CONTROL_SYNC, SLAP_CTRL_SEARCH, NULL, syncprov_parseCtrl, &slap_cids.sc_LDAPsync);
   if (rc != LDAP_SUCCESS) {
     Debug(LDAP_DEBUG_ANY, "syncprov_init: Failed to register control %d\n", rc);
     return rc;

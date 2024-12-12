@@ -55,11 +55,11 @@ LDAP_BEGIN_DECL
 #define LDAP_LEVEL_ENTRY (0x08)   /* log function entry points */
 #define LDAP_LEVEL_ARGS (0x10)    /* log function call parameters */
 #define LDAP_LEVEL_RESULTS (0x20) /* Log function results */
-#define LDAP_LEVEL_DETAIL1                                                     \
-  (0x40) /* log level 1 function operational details                           \
+#define LDAP_LEVEL_DETAIL1                                                                                             \
+  (0x40) /* log level 1 function operational details                                                                   \
           */
-#define LDAP_LEVEL_DETAIL2                                                     \
-  (0x80) /* Log level 2 function operational details                           \
+#define LDAP_LEVEL_DETAIL2                                                                                             \
+  (0x80) /* Log level 2 function operational details                                                                   \
           */
 	/* in case we need to reuse the unused bits of severity */
 #define LDAP_LEVEL_MASK(s) ((s) & 0x7)
@@ -108,9 +108,7 @@ struct ldapoptions_prefix {
 };
 struct ldapoptions;
 LDAP_V(struct ldapoptions) ldap_int_global_options;
-#define ldap_debug_mask                                                        \
-  (*(int *)((char *)&ldap_int_global_options +                                 \
-            offsetof(struct ldapoptions_prefix, ldo_debug)))
+#define ldap_debug_mask (*(int *)((char *)&ldap_int_global_options + offsetof(struct ldapoptions_prefix, ldo_debug)))
 #endif /* LDAP_DEBUG */
 
 #if defined(LDAP_SYSLOG) && defined(SLAP_INSIDE)
@@ -125,41 +123,41 @@ LDAP_SLAPD_V(int) slap_syslog_severity;
 #endif /* LDAP_SYSLOG */
 
 #if defined(LDAP_DEBUG) && (defined(LDAP_SYSLOG) && defined(SLAP_INSIDE))
-#define Log(level, severity, ...)                                              \
-  do {                                                                         \
-    if (ldap_debug_mask & (level))                                             \
-      ldap_debug_print(__VA_ARGS__);                                           \
-    else if (slap_syslog_mask & (level))                                       \
-      syslog(LDAP_LEVEL_MASK((severity)), __VA_ARGS__);                        \
+#define Log(level, severity, ...)                                                                                      \
+  do {                                                                                                                 \
+    if (ldap_debug_mask & (level))                                                                                     \
+      ldap_debug_print(__VA_ARGS__);                                                                                   \
+    else if (slap_syslog_mask & (level))                                                                               \
+      syslog(LDAP_LEVEL_MASK((severity)), __VA_ARGS__);                                                                \
   } while (0)
-#define vLog(level, severity, fmt, ap)                                         \
-  do {                                                                         \
-    if (ldap_debug_mask & (level))                                             \
-      ldap_debug_va(fmt, ap);                                                  \
-    else if (slap_syslog_mask & (level))                                       \
-      vsyslog(LDAP_LEVEL_MASK((severity)), fmt, ap);                           \
+#define vLog(level, severity, fmt, ap)                                                                                 \
+  do {                                                                                                                 \
+    if (ldap_debug_mask & (level))                                                                                     \
+      ldap_debug_va(fmt, ap);                                                                                          \
+    else if (slap_syslog_mask & (level))                                                                               \
+      vsyslog(LDAP_LEVEL_MASK((severity)), fmt, ap);                                                                   \
   } while (0)
 #elif !defined(LDAP_DEBUG) && (defined(LDAP_SYSLOG) && defined(SLAP_INSIDE))
-#define Log(level, severity, ...)                                              \
-  do {                                                                         \
-    if (slap_syslog_mask & (level))                                            \
-      syslog(LDAP_LEVEL_MASK((severity)), __VA_ARGS__);                        \
+#define Log(level, severity, ...)                                                                                      \
+  do {                                                                                                                 \
+    if (slap_syslog_mask & (level))                                                                                    \
+      syslog(LDAP_LEVEL_MASK((severity)), __VA_ARGS__);                                                                \
   } while (0)
-#define vLog(level, severity, fmt, ap)                                         \
-  do {                                                                         \
-    if (slap_syslog_mask & (level))                                            \
-      vsyslog(LDAP_LEVEL_MASK((severity)), fmt, ap);                           \
+#define vLog(level, severity, fmt, ap)                                                                                 \
+  do {                                                                                                                 \
+    if (slap_syslog_mask & (level))                                                                                    \
+      vsyslog(LDAP_LEVEL_MASK((severity)), fmt, ap);                                                                   \
   } while (0)
 #else
-#define Log(level, severity, ...)                                              \
-  do {                                                                         \
-    if (ldap_debug_mask & (level))                                             \
-      ldap_debug_print(__VA_ARGS__);                                           \
+#define Log(level, severity, ...)                                                                                      \
+  do {                                                                                                                 \
+    if (ldap_debug_mask & (level))                                                                                     \
+      ldap_debug_print(__VA_ARGS__);                                                                                   \
   } while (0)
-#define vLog(level, severity, fmt, ap)                                         \
-  do {                                                                         \
-    if (ldap_debug_mask & (level))                                             \
-      ldap_debug_va(fmt, ap);                                                  \
+#define vLog(level, severity, fmt, ap)                                                                                 \
+  do {                                                                                                                 \
+    if (ldap_debug_mask & (level))                                                                                     \
+      ldap_debug_va(fmt, ap);                                                                                          \
   } while (0)
 #endif /* LDAP_DEBUG && LDAP_SYSLOG */
 
@@ -171,8 +169,7 @@ LDAP_SLAPD_V(int) slap_syslog_severity;
 LDAP_LUTIL_F(int) ldap_debug_file(FILE *file);
 
 LDAP_LUTIL_F(void)
-ldap_debug_log(int debug, int level, const char *fmt, ...)
-    __attribute__((format(printf, 3, 4)));
+ldap_debug_log(int debug, int level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
 LDAP_LUTIL_F(void)
 ldap_debug_print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));

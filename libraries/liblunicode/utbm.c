@@ -106,8 +106,7 @@ static unsigned long _utbm_skip(utbm_pattern_t p, ucs2_t *start, ucs2_t *end) {
   return p->patlen;
 }
 
-static int _utbm_match(utbm_pattern_t pat, ucs2_t *text, ucs2_t *start,
-                       ucs2_t *end, unsigned long *match_start,
+static int _utbm_match(utbm_pattern_t pat, ucs2_t *text, ucs2_t *start, ucs2_t *end, unsigned long *match_start,
                        unsigned long *match_end) {
   int check_space;
   ucs4_t c1, c2;
@@ -241,8 +240,7 @@ void utbm_free_pattern(utbm_pattern_t pattern) {
   free((char *)pattern);
 }
 
-void utbm_compile(ucs2_t *pat, unsigned long patlen, unsigned long flags,
-                  utbm_pattern_t p) {
+void utbm_compile(ucs2_t *pat, unsigned long patlen, unsigned long flags, utbm_pattern_t p) {
   int have_space;
   unsigned long i, j, k, slen;
   _utbm_char_t *cp;
@@ -275,10 +273,8 @@ void utbm_compile(ucs2_t *pat, unsigned long patlen, unsigned long flags,
       p->pat = (_utbm_char_t *)malloc(sizeof(_utbm_char_t) * patlen);
       p->skip = (_utbm_skip_t *)malloc(sizeof(_utbm_skip_t) * patlen);
     } else {
-      p->pat = (_utbm_char_t *)realloc((char *)p->pat,
-                                       sizeof(_utbm_char_t) * patlen);
-      p->skip = (_utbm_skip_t *)realloc((char *)p->skip,
-                                        sizeof(_utbm_skip_t) * patlen);
+      p->pat = (_utbm_char_t *)realloc((char *)p->pat, sizeof(_utbm_char_t) * patlen);
+      p->skip = (_utbm_skip_t *)realloc((char *)p->skip, sizeof(_utbm_skip_t) * patlen);
     }
     p->pat_size = p->skip_size = patlen;
   }
@@ -381,8 +377,7 @@ void utbm_compile(ucs2_t *pat, unsigned long patlen, unsigned long flags,
     /*
      * Locate the character in the skip array.
      */
-    for (sp = p->skip, j = 0; j < p->skip_used && sp->ch->uc != cp->uc;
-         j++, sp++)
+    for (sp = p->skip, j = 0; j < p->skip_used && sp->ch->uc != cp->uc; j++, sp++)
       ;
 
     /*
@@ -405,8 +400,7 @@ void utbm_compile(ucs2_t *pat, unsigned long patlen, unsigned long flags,
     /*
      * Set the new extra skip for the sentinel character.
      */
-    if (((cp->uc >= 0x10000 && k + 2 <= slen) || k + 1 <= slen) &&
-        cp->uc == sentinel)
+    if (((cp->uc >= 0x10000 && k + 2 <= slen) || k + 1 <= slen) && cp->uc == sentinel)
       p->md4 = slen - k;
 
     /*
@@ -416,13 +410,12 @@ void utbm_compile(ucs2_t *pat, unsigned long patlen, unsigned long flags,
   }
 }
 
-int utbm_exec(utbm_pattern_t pat, ucs2_t *text, unsigned long textlen,
-              unsigned long *match_start, unsigned long *match_end) {
+int utbm_exec(utbm_pattern_t pat, ucs2_t *text, unsigned long textlen, unsigned long *match_start,
+              unsigned long *match_end) {
   unsigned long k;
   ucs2_t *start, *end;
 
-  if (pat == 0 || pat->pat_used == 0 || text == 0 || textlen == 0 ||
-      textlen < pat->patlen)
+  if (pat == 0 || pat->pat_used == 0 || text == 0 || textlen == 0 || textlen < pat->patlen)
     return 0;
 
   start = text + pat->patlen;
@@ -431,25 +424,21 @@ int utbm_exec(utbm_pattern_t pat, ucs2_t *text, unsigned long textlen,
   /*
    * Adjust the start point if it points to a low surrogate.
    */
-  if (0xdc00 <= *start && *start <= 0xdfff && 0xd800 <= *(start - 1) &&
-      *(start - 1) <= 0xdbff)
+  if (0xdc00 <= *start && *start <= 0xdfff && 0xd800 <= *(start - 1) && *(start - 1) <= 0xdbff)
     start--;
 
   while (start < end) {
     while ((k = _utbm_skip(pat, start, end))) {
       start += k;
-      if (start < end && 0xdc00 <= *start && *start <= 0xdfff &&
-          0xd800 <= *(start - 1) && *(start - 1) <= 0xdbff)
+      if (start < end && 0xdc00 <= *start && *start <= 0xdfff && 0xd800 <= *(start - 1) && *(start - 1) <= 0xdbff)
         start--;
     }
 
-    if (start < end &&
-        _utbm_match(pat, text, start, end, match_start, match_end))
+    if (start < end && _utbm_match(pat, text, start, end, match_start, match_end))
       return 1;
 
     start += pat->md4;
-    if (start < end && 0xdc00 <= *start && *start <= 0xdfff &&
-        0xd800 <= *(start - 1) && *(start - 1) <= 0xdbff)
+    if (start < end && 0xdc00 <= *start && *start <= 0xdfff && 0xd800 <= *(start - 1) && *(start - 1) <= 0xdbff)
       start--;
   }
   return 0;

@@ -60,8 +60,7 @@
 #define TBINDFILE "do_bind.0"
 
 static char *get_file_name(char *dirname, char *filename);
-static int get_search_filters(char *filename, char *filters[], char *attrs[],
-                              char *bases[], LDAPURLDesc *luds[]);
+static int get_search_filters(char *filename, char *filters[], char *attrs[], char *bases[], LDAPURLDesc *luds[]);
 static int get_read_entries(char *filename, char *entries[], char *filters[]);
 static void fork_child(char *prog, char **args);
 static void wait4kids(int nkidval);
@@ -201,8 +200,7 @@ int main(int argc, char **argv) {
   mloops[0] = '\0';
   bloops[0] = '\0';
 
-  while ((i = getopt(argc, argv, "AB:CD:d:FH:h:Ii:j:L:l:NP:p:r:St:Ww:y:")) !=
-         EOF) {
+  while ((i = getopt(argc, argv, "AB:CD:d:FH:h:Ii:j:L:l:NP:p:r:St:Ww:y:")) != EOF) {
     switch (i) {
     case 'A':
       noattrs++;
@@ -281,8 +279,7 @@ int main(int argc, char **argv) {
           int c, n;
 
           for (c = 0; types[c].type.bv_val; c++) {
-            if (strncasecmp(p[0], types[c].type.bv_val, types[c].type.bv_len) ==
-                0) {
+            if (strncasecmp(p[0], types[c].type.bv_val, types[c].type.bv_len) == 0) {
               break;
             }
           }
@@ -352,15 +349,14 @@ int main(int argc, char **argv) {
     }
   }
 
-  if ((dirname == NULL) || (port == NULL && uri == NULL) || (manager == NULL) ||
-      (passwd == NULL) || (progdir == NULL)) {
+  if ((dirname == NULL) || (port == NULL && uri == NULL) || (manager == NULL) || (passwd == NULL) ||
+      (progdir == NULL)) {
     usage(argv[0], '\0');
   }
 
   /* get the file list */
   if ((datadir = opendir(dirname)) == NULL) {
-    fprintf(stderr, "%s: couldn't open data directory \"%s\".\n", argv[0],
-            dirname);
+    fprintf(stderr, "%s: couldn't open data directory \"%s\".\n", argv[0], dirname);
     exit(EXIT_FAILURE);
   }
 
@@ -379,8 +375,7 @@ int main(int argc, char **argv) {
     } else if (!strcasecmp(file->d_name, TMODIFYFILE)) {
       mfile = get_file_name(dirname, file->d_name);
       continue;
-    } else if (!strncasecmp(file->d_name, TADDFILE, strlen(TADDFILE)) &&
-               (anum < MAXREQS)) {
+    } else if (!strncasecmp(file->d_name, TADDFILE, strlen(TADDFILE)) && (anum < MAXREQS)) {
       afiles[anum++] = get_file_name(dirname, file->d_name);
       continue;
     } else if (!strcasecmp(file->d_name, TBINDFILE)) {
@@ -413,8 +408,7 @@ int main(int argc, char **argv) {
   if (sfile) {
     snum = get_search_filters(sfile, sreqs, sattrs, sbase, slud);
     if (snum < 0) {
-      fprintf(stderr, "unable to parse file \"%s\" line %d\n", sfile,
-              -2 * (snum + 1));
+      fprintf(stderr, "unable to parse file \"%s\" line %d\n", sfile, -2 * (snum + 1));
       exit(EXIT_FAILURE);
     }
   }
@@ -423,8 +417,7 @@ int main(int argc, char **argv) {
   if (rfile) {
     rnum = get_read_entries(rfile, rreqs, rflts);
     if (rnum < 0) {
-      fprintf(stderr, "unable to parse file \"%s\" line %d\n", rfile,
-              -2 * (rnum + 1));
+      fprintf(stderr, "unable to parse file \"%s\" line %d\n", rfile, -2 * (rnum + 1));
       exit(EXIT_FAILURE);
     }
   }
@@ -433,8 +426,7 @@ int main(int argc, char **argv) {
   if (nfile) {
     nnum = get_read_entries(nfile, nreqs, NULL);
     if (nnum < 0) {
-      fprintf(stderr, "unable to parse file \"%s\" line %d\n", nfile,
-              -2 * (nnum + 1));
+      fprintf(stderr, "unable to parse file \"%s\" line %d\n", nfile, -2 * (nnum + 1));
       exit(EXIT_FAILURE);
     }
   }
@@ -443,8 +435,7 @@ int main(int argc, char **argv) {
   if (mfile) {
     mnum = get_search_filters(mfile, mreqs, NULL, mdn, NULL);
     if (mnum < 0) {
-      fprintf(stderr, "unable to parse file \"%s\" line %d\n", mfile,
-              -2 * (mnum + 1));
+      fprintf(stderr, "unable to parse file \"%s\" line %d\n", mfile, -2 * (mnum + 1));
       exit(EXIT_FAILURE);
     }
   }
@@ -453,8 +444,7 @@ int main(int argc, char **argv) {
   if (bfile) {
     bnum = get_search_filters(bfile, bcreds, battrs, breqs, NULL);
     if (bnum < 0) {
-      fprintf(stderr, "unable to parse file \"%s\" line %d\n", bfile,
-              -2 * (bnum + 1));
+      fprintf(stderr, "unable to parse file \"%s\" line %d\n", bfile, -2 * (bnum + 1));
       exit(EXIT_FAILURE);
     }
   }
@@ -836,8 +826,7 @@ int main(int argc, char **argv) {
       if (slud[jj] != NULL && slud[jj]->lud_attrs != NULL) {
         int i;
 
-        for (i = 0; slud[jj]->lud_attrs[i] != NULL && x + i < MAXARGS - 1;
-             i++) {
+        for (i = 0; slud[jj]->lud_attrs[i] != NULL && x + i < MAXARGS - 1; i++) {
           sargs[x + i] = slud[jj]->lud_attrs[i];
         }
         sargs[x + i] = NULL;
@@ -927,8 +916,7 @@ static char *get_file_name(char *dirname, char *filename) {
   return (strdup(buf));
 }
 
-static int get_search_filters(char *filename, char *filters[], char *attrs[],
-                              char *bases[], LDAPURLDesc *luds[]) {
+static int get_search_filters(char *filename, char *filters[], char *attrs[], char *bases[], LDAPURLDesc *luds[]) {
   FILE *fp;
   int filter = 0;
 
@@ -1083,12 +1071,10 @@ static void wait4kids(int nkidval) {
     pid_t pid = wait(&status);
 
     if (WIFSTOPPED(status)) {
-      fprintf(stderr, "stopping: child PID=%ld stopped with signal %d\n",
-              (long)pid, (int)WSTOPSIG(status));
+      fprintf(stderr, "stopping: child PID=%ld stopped with signal %d\n", (long)pid, (int)WSTOPSIG(status));
 
     } else if (WIFSIGNALED(status)) {
-      fprintf(stderr, "stopping: child PID=%ld terminated with signal %d%s\n",
-              (long)pid, (int)WTERMSIG(status),
+      fprintf(stderr, "stopping: child PID=%ld terminated with signal %d%s\n", (long)pid, (int)WTERMSIG(status),
 #ifdef WCOREDUMP
               WCOREDUMP(status) ? ", core dumped" : ""
 #else
@@ -1098,8 +1084,7 @@ static void wait4kids(int nkidval) {
       exit(WEXITSTATUS(status));
 
     } else if (WEXITSTATUS(status) != 0) {
-      fprintf(stderr, "stopping: child PID=%ld exited with status %d\n",
-              (long)pid, (int)WEXITSTATUS(status));
+      fprintf(stderr, "stopping: child PID=%ld exited with status %d\n", (long)pid, (int)WEXITSTATUS(status));
       exit(WEXITSTATUS(status));
 
     } else {

@@ -207,21 +207,18 @@ static void *my_task(void *my_num) {
     }
     sprintf(fstr, filter, j);
 
-    rc = ldap_search_ext(sld, base, LDAP_SCOPE_SUB, fstr, attrs, 0, NULL, NULL,
-                         0, 0, &msgid);
+    rc = ldap_search_ext(sld, base, LDAP_SCOPE_SUB, fstr, attrs, 0, NULL, NULL, 0, 0, &msgid);
     if (rc != LDAP_SUCCESS) {
       ldap_perror(sld, "ldap_search_ex");
       return NULL;
     }
 
-    while ((rc = ldap_result(sld, LDAP_RES_ANY, LDAP_MSG_ONE, NULL, &res)) >
-           0) {
+    while ((rc = ldap_result(sld, LDAP_RES_ANY, LDAP_MSG_ONE, NULL, &res)) > 0) {
       BerElement *ber;
       struct berval bv;
       int done = 0;
 
-      for (msg = ldap_first_message(sld, res); msg;
-           msg = ldap_next_message(sld, msg)) {
+      for (msg = ldap_first_message(sld, res); msg; msg = ldap_next_message(sld, msg)) {
         switch (ldap_msgtype(msg)) {
         case LDAP_RES_SEARCH_ENTRY:
           rc = ldap_get_dn_ber(sld, msg, &ber, &bv);
@@ -300,8 +297,7 @@ static int do_time() {
       rr1 = dr1 / dt;
       rr2 = dr2 / dt;
 
-      printf("%s(%d)\t%d\t%d\t%d\t%d\t%d\t%d\n", hname, i, dt, dr1, dr2, rr1,
-             rr2, rr1 + rr2);
+      printf("%s(%d)\t%d\t%d\t%d\t%d\t%d\t%d\n", hname, i, dt, dr1, dr2, rr1, rr2, rr1 + rr2);
 
       dr10 += dr1;
       dr20 += dr2;
@@ -313,8 +309,7 @@ static int do_time() {
       rr1 = dr10 / dt;
       rr2 = dr20 / dt;
 
-      printf("%s(sum)\t%d\t%d\t%d\t%d\t%d\t%d\n", hname, 0, dr10, dr20, rr1,
-             rr2, rr1 + rr2);
+      printf("%s(sum)\t%d\t%d\t%d\t%d\t%d\t%d\n", hname, 0, dr10, dr20, rr1, rr2, rr1 + rr2);
     }
 
     if (now - start >= tdur) {

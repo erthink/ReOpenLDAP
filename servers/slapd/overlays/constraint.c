@@ -88,16 +88,15 @@ enum {
 
 static ConfigDriver constraint_cf_gen;
 
-static ConfigTable constraintcfg[] = {
-    {"constraint_attribute",
-     "attribute[list]> (regex|uri|set|size|count) <value> [<restrict URI>]", 4,
-     0, 0, ARG_MAGIC | CONSTRAINT_ATTRIBUTE, constraint_cf_gen,
-     "( OLcfgOvAt:13.1 NAME 'olcConstraintAttribute' "
-     "DESC 'constraint for list of attributes' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString )",
-     NULL, NULL},
-    {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
+static ConfigTable constraintcfg[] = {{"constraint_attribute",
+                                       "attribute[list]> (regex|uri|set|size|count) <value> [<restrict URI>]", 4, 0, 0,
+                                       ARG_MAGIC | CONSTRAINT_ATTRIBUTE, constraint_cf_gen,
+                                       "( OLcfgOvAt:13.1 NAME 'olcConstraintAttribute' "
+                                       "DESC 'constraint for list of attributes' "
+                                       "EQUALITY caseIgnoreMatch "
+                                       "SYNTAX OMsDirectoryString )",
+                                       NULL, NULL},
+                                      {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
 
 static ConfigOCs constraintocs[] = {{"( OLcfgOvOc:13.1 "
                                      "NAME 'olcConstraintConfig' "
@@ -112,8 +111,7 @@ static void constraint_free(constraint *cp, int freeme) {
     ldap_free_urldesc(cp->restrict_lud);
   if (!BER_BVISNULL(&cp->restrict_ndn))
     ch_free(cp->restrict_ndn.bv_val);
-  if (cp->restrict_filter != NULL &&
-      cp->restrict_filter != slap_filter_objectClass_pres)
+  if (cp->restrict_filter != NULL && cp->restrict_filter != slap_filter_objectClass_pres)
     filter_free(cp->restrict_filter);
   if (!BER_BVISNULL(&cp->restrict_val))
     ch_free(cp->restrict_val.bv_val);
@@ -206,12 +204,10 @@ static int constraint_cf_gen(ConfigArgs *c) {
 
         s = bv.bv_val = ch_malloc(bv.bv_len + 1);
 
-        s = lutil_strncopy(s, cp->ap[0]->ad_cname.bv_val,
-                           cp->ap[0]->ad_cname.bv_len);
+        s = lutil_strncopy(s, cp->ap[0]->ad_cname.bv_val, cp->ap[0]->ad_cname.bv_len);
         for (j = 1; cp->ap[j]; j++) {
           *s++ = ',';
-          s = lutil_strncopy(s, cp->ap[j]->ad_cname.bv_val,
-                             cp->ap[j]->ad_cname.bv_len);
+          s = lutil_strncopy(s, cp->ap[j]->ad_cname.bv_val, cp->ap[j]->ad_cname.bv_len);
         }
         *s++ = ' ';
         s = lutil_strcopy(s, tstr);
@@ -227,8 +223,7 @@ static int constraint_cf_gen(ConfigArgs *c) {
         }
         if (cp->restrict_lud != NULL) {
           s = lutil_strcopy(s, " restrict=\"");
-          s = lutil_strncopy(s, cp->restrict_val.bv_val,
-                             cp->restrict_val.bv_len);
+          s = lutil_strncopy(s, cp->restrict_val.bv_val, cp->restrict_val.bv_len);
           *s++ = '"';
         }
         *s = '\0';
@@ -265,8 +260,7 @@ static int constraint_cf_gen(ConfigArgs *c) {
         constraint **cpp;
 
         /* zap constraint numbered 'valx' */
-        for (i = 0, cp = cn, cpp = &cn; (cp) && (i < c->valx);
-             i++, cpp = &cp->ap_next, cp = *cpp)
+        for (i = 0, cp = cn, cpp = &cn; (cp) && (i < c->valx); i++, cpp = &cp->ap_next, cp = *cpp)
           ;
 
         if (cp) {
@@ -295,8 +289,7 @@ static int constraint_cf_gen(ConfigArgs *c) {
       ap.ap = ch_calloc(sizeof(AttributeDescription *), j + 1);
       for (j = 0; attrs[j]; j++) {
         if (slap_str2ad(attrs[j], &ap.ap[j], &text)) {
-          snprintf(c->cr_msg, sizeof(c->cr_msg), "%s <%s>: %s\n", c->argv[0],
-                   attrs[j], text);
+          snprintf(c->cr_msg, sizeof(c->cr_msg), "%s <%s>: %s\n", c->argv[0], attrs[j], text);
           rc = ARG_BAD_CONF;
           goto done;
         }
@@ -312,9 +305,8 @@ static int constraint_cf_gen(ConfigArgs *c) {
 
           regerror(err, ap.re, errmsg, sizeof(errmsg));
           ch_free(ap.re);
-          snprintf(c->cr_msg, sizeof(c->cr_msg),
-                   "%s %s: Illegal regular expression \"%s\": Error %s",
-                   c->argv[0], c->argv[1], c->argv[3], errmsg);
+          snprintf(c->cr_msg, sizeof(c->cr_msg), "%s %s: Illegal regular expression \"%s\": Error %s", c->argv[0],
+                   c->argv[1], c->argv[3], errmsg);
           ap.re = NULL;
           rc = ARG_BAD_CONF;
           goto done;
@@ -340,16 +332,14 @@ static int constraint_cf_gen(ConfigArgs *c) {
         ap.type = CONSTRAINT_URI;
         err = ldap_url_parse(c->argv[3], &ap.lud);
         if (err != LDAP_URL_SUCCESS) {
-          snprintf(c->cr_msg, sizeof(c->cr_msg), "%s %s: Invalid URI \"%s\"",
-                   c->argv[0], c->argv[1], c->argv[3]);
+          snprintf(c->cr_msg, sizeof(c->cr_msg), "%s %s: Invalid URI \"%s\"", c->argv[0], c->argv[1], c->argv[3]);
           rc = ARG_BAD_CONF;
           goto done;
         }
 
         if (ap.lud->lud_host != NULL) {
-          snprintf(c->cr_msg, sizeof(c->cr_msg),
-                   "%s %s: unsupported hostname in URI \"%s\"", c->argv[0],
-                   c->argv[1], c->argv[3]);
+          snprintf(c->cr_msg, sizeof(c->cr_msg), "%s %s: unsupported hostname in URI \"%s\"", c->argv[0], c->argv[1],
+                   c->argv[3]);
           ldap_free_urldesc(ap.lud);
           rc = ARG_BAD_CONF;
           goto done;
@@ -364,8 +354,7 @@ static int constraint_cf_gen(ConfigArgs *c) {
             ap.attrs[i] = NULL;
             if (slap_str2ad(ap.lud->lud_attrs[i], &ap.attrs[i], &text)) {
               ch_free(ap.attrs);
-              snprintf(c->cr_msg, sizeof(c->cr_msg), "%s <%s>: %s\n",
-                       c->argv[0], ap.lud->lud_attrs[i], text);
+              snprintf(c->cr_msg, sizeof(c->cr_msg), "%s <%s>: %s\n", c->argv[0], ap.lud->lud_attrs[i], text);
               rc = ARG_BAD_CONF;
               goto done;
             }
@@ -381,11 +370,9 @@ static int constraint_cf_gen(ConfigArgs *c) {
           ber_str2bv(ap.lud->lud_dn, 0, 0, &dn);
           if (dnNormalize(0, NULL, NULL, &dn, &ndn, NULL)) {
             /* cleanup */
-            snprintf(c->cr_msg, sizeof(c->cr_msg),
-                     "%s %s: URI %s DN normalization failed", c->argv[0],
-                     c->argv[1], c->argv[3]);
-            Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log,
-                  c->cr_msg);
+            snprintf(c->cr_msg, sizeof(c->cr_msg), "%s %s: URI %s DN normalization failed", c->argv[0], c->argv[1],
+                     c->argv[3]);
+            Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log, c->cr_msg);
             rc = ARG_BAD_CONF;
             goto done;
           }
@@ -398,8 +385,7 @@ static int constraint_cf_gen(ConfigArgs *c) {
         } else if (ap.lud->lud_filter[0] == '(') {
           ber_len_t len = strlen(ap.lud->lud_filter);
           if (ap.lud->lud_filter[len - 1] != ')') {
-            snprintf(c->cr_msg, sizeof(c->cr_msg),
-                     "%s %s: invalid URI filter: %s", c->argv[0], c->argv[1],
+            snprintf(c->cr_msg, sizeof(c->cr_msg), "%s %s: invalid URI filter: %s", c->argv[0], c->argv[1],
                      ap.lud->lud_filter);
             rc = ARG_BAD_CONF;
             goto done;
@@ -416,8 +402,7 @@ static int constraint_cf_gen(ConfigArgs *c) {
         ap.type = CONSTRAINT_SET;
 
       } else {
-        snprintf(c->cr_msg, sizeof(c->cr_msg),
-                 "%s %s: Unknown constraint type: %s", c->argv[0], c->argv[1],
+        snprintf(c->cr_msg, sizeof(c->cr_msg), "%s %s: Unknown constraint type: %s", c->argv[0], c->argv[1],
                  c->argv[2]);
         rc = ARG_BAD_CONF;
         goto done;
@@ -427,33 +412,28 @@ static int constraint_cf_gen(ConfigArgs *c) {
         int argidx;
 
         for (argidx = 4; argidx < c->argc; argidx++) {
-          if (strncasecmp(c->argv[argidx],
-                          "restrict=", STRLENOF("restrict=")) == 0) {
+          if (strncasecmp(c->argv[argidx], "restrict=", STRLENOF("restrict=")) == 0) {
             int err;
             char *arg = c->argv[argidx] + STRLENOF("restrict=");
 
             err = ldap_url_parse(arg, &ap.restrict_lud);
             if (err != LDAP_URL_SUCCESS) {
-              snprintf(c->cr_msg, sizeof(c->cr_msg),
-                       "%s %s: Invalid restrict URI \"%s\"", c->argv[0],
-                       c->argv[1], arg);
+              snprintf(c->cr_msg, sizeof(c->cr_msg), "%s %s: Invalid restrict URI \"%s\"", c->argv[0], c->argv[1], arg);
               rc = ARG_BAD_CONF;
               goto done;
             }
 
             if (ap.restrict_lud->lud_host != NULL) {
-              snprintf(c->cr_msg, sizeof(c->cr_msg),
-                       "%s %s: unsupported hostname in restrict URI \"%s\"",
-                       c->argv[0], c->argv[1], arg);
+              snprintf(c->cr_msg, sizeof(c->cr_msg), "%s %s: unsupported hostname in restrict URI \"%s\"", c->argv[0],
+                       c->argv[1], arg);
               rc = ARG_BAD_CONF;
               goto done;
             }
 
             if (ap.restrict_lud->lud_attrs != NULL) {
               if (ap.restrict_lud->lud_attrs[0] != NULL) {
-                snprintf(c->cr_msg, sizeof(c->cr_msg),
-                         "%s %s: attrs not allowed in restrict URI %s\n",
-                         c->argv[0], c->argv[1], arg);
+                snprintf(c->cr_msg, sizeof(c->cr_msg), "%s %s: attrs not allowed in restrict URI %s\n", c->argv[0],
+                         c->argv[1], arg);
                 rc = ARG_BAD_CONF;
                 goto done;
               }
@@ -473,18 +453,15 @@ static int constraint_cf_gen(ConfigArgs *c) {
                 ber_str2bv(ap.restrict_lud->lud_dn, 0, 0, &dn);
                 if (dnNormalize(0, NULL, NULL, &dn, &ndn, NULL)) {
                   /* cleanup */
-                  snprintf(c->cr_msg, sizeof(c->cr_msg),
-                           "%s %s: restrict URI %s DN normalization failed",
-                           c->argv[0], c->argv[1], arg);
+                  snprintf(c->cr_msg, sizeof(c->cr_msg), "%s %s: restrict URI %s DN normalization failed", c->argv[0],
+                           c->argv[1], arg);
                   rc = ARG_BAD_CONF;
                   goto done;
                 }
 
                 assert(c->be != NULL);
                 if (c->be->be_nsuffix == NULL) {
-                  snprintf(c->cr_msg, sizeof(c->cr_msg),
-                           "%s %s: restrict URI requires suffix", c->argv[0],
-                           c->argv[1]);
+                  snprintf(c->cr_msg, sizeof(c->cr_msg), "%s %s: restrict URI requires suffix", c->argv[0], c->argv[1]);
                   rc = ARG_BAD_CONF;
                   goto done;
                 }
@@ -512,22 +489,19 @@ static int constraint_cf_gen(ConfigArgs *c) {
               ap.restrict_filter = str2filter(ap.restrict_lud->lud_filter);
               if (ap.restrict_filter == NULL) {
                 /* error */
-                snprintf(c->cr_msg, sizeof(c->cr_msg),
-                         "%s %s: restrict URI filter %s invalid", c->argv[0],
-                         c->argv[1], ap.restrict_lud->lud_filter);
+                snprintf(c->cr_msg, sizeof(c->cr_msg), "%s %s: restrict URI filter %s invalid", c->argv[0], c->argv[1],
+                         ap.restrict_lud->lud_filter);
                 rc = ARG_BAD_CONF;
                 goto done;
               }
             }
 
-            ber_str2bv(c->argv[argidx] + STRLENOF("restrict="), 0, 1,
-                       &ap.restrict_val);
+            ber_str2bv(c->argv[argidx] + STRLENOF("restrict="), 0, 1, &ap.restrict_val);
 
           } else {
             /* cleanup */
-            snprintf(c->cr_msg, sizeof(c->cr_msg),
-                     "%s %s: unrecognized arg #%d (%s)", c->argv[0], c->argv[1],
-                     argidx, c->argv[argidx]);
+            snprintf(c->cr_msg, sizeof(c->cr_msg), "%s %s: unrecognized arg #%d (%s)", c->argv[0], c->argv[1], argidx,
+                     c->argv[argidx]);
             rc = ARG_BAD_CONF;
             goto done;
           }
@@ -558,8 +532,7 @@ static int constraint_cf_gen(ConfigArgs *c) {
         on->on_bi.bi_private = a2;
 
       } else {
-        Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log,
-              c->cr_msg);
+        Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log, c->cr_msg);
         constraint_free(&ap, 0);
       }
 
@@ -583,14 +556,12 @@ static int constraint_uri_cb(Operation *op, SlapReply *rs) {
 
     *foundp = 1;
 
-    Debug(LDAP_DEBUG_TRACE, "==> constraint_uri_cb <%s>\n",
-          rs->sr_entry ? rs->sr_entry->e_name.bv_val : "UNKNOWN_DN");
+    Debug(LDAP_DEBUG_TRACE, "==> constraint_uri_cb <%s>\n", rs->sr_entry ? rs->sr_entry->e_name.bv_val : "UNKNOWN_DN");
   }
   return 0;
 }
 
-static int constraint_violation(constraint *c, struct berval *bv,
-                                Operation *op) {
+static int constraint_violation(constraint *c, struct berval *bv, Operation *op) {
   if ((!c) || (!bv))
     return LDAP_SUCCESS;
 
@@ -655,16 +626,14 @@ static int constraint_violation(constraint *c, struct berval *bv,
     len = STRLENOF("(&(") + c->filter.bv_len + STRLENOF(")(|");
 
     for (i = 0; c->attrs[i]; i++) {
-      len += STRLENOF("(") + c->attrs[i]->ad_cname.bv_len + STRLENOF("=") +
-             bv->bv_len + STRLENOF(")");
+      len += STRLENOF("(") + c->attrs[i]->ad_cname.bv_len + STRLENOF("=") + bv->bv_len + STRLENOF(")");
     }
 
     len += STRLENOF("))");
     filterstr.bv_len = len;
     filterstr.bv_val = op->o_tmpalloc(len + 1, op->o_tmpmemctx);
 
-    ptr = filterstr.bv_val +
-          snprintf(filterstr.bv_val, len, "(&(%s)(|", c->lud->lud_filter);
+    ptr = filterstr.bv_val + snprintf(filterstr.bv_val, len, "(&(%s)(|", c->lud->lud_filter);
     for (i = 0; c->attrs[i]; i++) {
       *ptr++ = '(';
       ptr = lutil_strcopy(ptr, c->attrs[i]->ad_cname.bv_val);
@@ -679,21 +648,17 @@ static int constraint_violation(constraint *c, struct berval *bv,
     nop.ors_filterstr = filterstr;
     nop.ors_filter = str2filter_x(&nop, filterstr.bv_val);
     if (nop.ors_filter == NULL) {
-      Debug(LDAP_DEBUG_ANY,
-            "%s constraint_violation uri filter=\"%s\" invalid\n",
-            op->o_log_prefix, filterstr.bv_val);
+      Debug(LDAP_DEBUG_ANY, "%s constraint_violation uri filter=\"%s\" invalid\n", op->o_log_prefix, filterstr.bv_val);
       rc = LDAP_OTHER;
 
     } else {
       SlapReply nrs = {REP_RESULT};
 
-      Debug(LDAP_DEBUG_TRACE, "==> constraint_violation uri filter = %s\n",
-            filterstr.bv_val);
+      Debug(LDAP_DEBUG_TRACE, "==> constraint_violation uri filter = %s\n", filterstr.bv_val);
 
       rc = nop.o_bd->be_search(&nop, &nrs);
 
-      Debug(LDAP_DEBUG_TRACE,
-            "==> constraint_violation uri rc = %d, found = %d\n", rc, found);
+      Debug(LDAP_DEBUG_TRACE, "==> constraint_violation uri rc = %d, found = %d\n", rc, found);
     }
     op->o_tmpfree(filterstr.bv_val, op->o_tmpmemctx);
 
@@ -755,8 +720,7 @@ static int constraint_check_restrict(Operation *op, constraint *c, Entry *e) {
 
       dnParent(&e->e_nname, &pdn);
 
-      if (c->restrict_lud->lud_scope == LDAP_SCOPE_ONELEVEL &&
-          pdn.bv_len != c->restrict_ndn.bv_len) {
+      if (c->restrict_lud->lud_scope == LDAP_SCOPE_ONELEVEL && pdn.bv_len != c->restrict_ndn.bv_len) {
         return 0;
       }
     }
@@ -816,8 +780,7 @@ static int constraint_add(Operation *op, SlapReply *rs) {
       if ((b = a->a_vals) == NULL)
         continue;
 
-      if (cp->restrict_lud != NULL &&
-          constraint_check_restrict(op, cp, op->ora_e) == 0) {
+      if (cp->restrict_lud != NULL && constraint_check_restrict(op, cp, op->ora_e) == 0) {
         continue;
       }
 
@@ -861,9 +824,7 @@ add_violation:
   return (rs->sr_err);
 }
 
-static int constraint_check_count_violation(Modifications *m,
-                                            Entry *target_entry,
-                                            constraint *cp) {
+static int constraint_check_count_violation(Modifications *m, Entry *target_entry, constraint *cp) {
   unsigned ce = 0;
   unsigned ca;
   int j;
@@ -952,8 +913,7 @@ static int constraint_update(Operation *op, SlapReply *rs) {
   Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "constraint_update()\n");
   if ((m = modlist) == NULL) {
     op->o_bd->bd_info = (BackendInfo *)(on->on_info);
-    send_ldap_error(op, rs, LDAP_INVALID_SYNTAX,
-                    "constraint_update() got null modlist");
+    send_ldap_error(op, rs, LDAP_INVALID_SYNTAX, "constraint_update() got null modlist");
     return (rs->sr_err);
   }
 
@@ -968,8 +928,7 @@ static int constraint_update(Operation *op, SlapReply *rs) {
   /* Do we need to count attributes? */
   for (cp = c; cp; cp = cp->ap_next) {
     if (cp->type == CONSTRAINT_COUNT) {
-      if (cp->restrict_lud &&
-          constraint_check_restrict(op, cp, target_entry) == 0) {
+      if (cp->restrict_lud && constraint_check_restrict(op, cp, target_entry) == 0) {
         continue;
       }
 
@@ -989,8 +948,7 @@ static int constraint_update(Operation *op, SlapReply *rs) {
     if (is_at_operational(m->sml_desc->ad_type))
       continue;
 
-    if (((m->sml_op & LDAP_MOD_OP) != LDAP_MOD_ADD) &&
-        ((m->sml_op & LDAP_MOD_OP) != LDAP_MOD_REPLACE) &&
+    if (((m->sml_op & LDAP_MOD_OP) != LDAP_MOD_ADD) && ((m->sml_op & LDAP_MOD_OP) != LDAP_MOD_REPLACE) &&
         ((m->sml_op & LDAP_MOD_OP) != LDAP_MOD_DELETE))
       continue;
     /* we only care about ADD and REPLACE modifications */
@@ -1008,8 +966,7 @@ static int constraint_update(Operation *op, SlapReply *rs) {
       if (cp->ap[j] == NULL)
         continue;
 
-      if (cp->restrict_lud != NULL &&
-          constraint_check_restrict(op, cp, target_entry) == 0) {
+      if (cp->restrict_lud != NULL && constraint_check_restrict(op, cp, target_entry) == 0) {
         continue;
       }
 
@@ -1062,34 +1019,24 @@ static int constraint_update(Operation *op, SlapReply *rs) {
 
             switch (mod->sm_op) {
             case LDAP_MOD_ADD:
-              err = modify_add_values(target_entry_copy, mod,
-                                      get_permissiveModify(op), &text, textbuf,
-                                      textlen);
+              err = modify_add_values(target_entry_copy, mod, get_permissiveModify(op), &text, textbuf, textlen);
               break;
 
             case LDAP_MOD_DELETE:
-              err = modify_delete_values(target_entry_copy, mod,
-                                         get_permissiveModify(op), &text,
-                                         textbuf, textlen);
+              err = modify_delete_values(target_entry_copy, mod, get_permissiveModify(op), &text, textbuf, textlen);
               break;
 
             case LDAP_MOD_REPLACE:
-              err = modify_replace_values(target_entry_copy, mod,
-                                          get_permissiveModify(op), &text,
-                                          textbuf, textlen);
+              err = modify_replace_values(target_entry_copy, mod, get_permissiveModify(op), &text, textbuf, textlen);
               break;
 
             case LDAP_MOD_INCREMENT:
-              err = modify_increment_values(target_entry_copy, mod,
-                                            get_permissiveModify(op), &text,
-                                            textbuf, textlen);
+              err = modify_increment_values(target_entry_copy, mod, get_permissiveModify(op), &text, textbuf, textlen);
               break;
 
             case SLAP_MOD_SOFTADD:
               mod->sm_op = LDAP_MOD_ADD;
-              err = modify_add_values(target_entry_copy, mod,
-                                      get_permissiveModify(op), &text, textbuf,
-                                      textlen);
+              err = modify_add_values(target_entry_copy, mod, get_permissiveModify(op), &text, textbuf, textlen);
               mod->sm_op = SLAP_MOD_SOFTADD;
               if (err == LDAP_TYPE_OR_VALUE_EXISTS) {
                 err = LDAP_SUCCESS;
@@ -1098,9 +1045,7 @@ static int constraint_update(Operation *op, SlapReply *rs) {
 
             case SLAP_MOD_SOFTDEL:
               mod->sm_op = LDAP_MOD_ADD;
-              err = modify_delete_values(target_entry_copy, mod,
-                                         get_permissiveModify(op), &text,
-                                         textbuf, textlen);
+              err = modify_delete_values(target_entry_copy, mod, get_permissiveModify(op), &text, textbuf, textlen);
               mod->sm_op = SLAP_MOD_SOFTDEL;
               if (err == LDAP_NO_SUCH_ATTRIBUTE) {
                 err = LDAP_SUCCESS;
@@ -1113,9 +1058,7 @@ static int constraint_update(Operation *op, SlapReply *rs) {
                 break;
               }
               mod->sm_op = LDAP_MOD_ADD;
-              err = modify_add_values(target_entry_copy, mod,
-                                      get_permissiveModify(op), &text, textbuf,
-                                      textlen);
+              err = modify_add_values(target_entry_copy, mod, get_permissiveModify(op), &text, textbuf, textlen);
               mod->sm_op = SLAP_MOD_ADD_IF_NOT_PRESENT;
               break;
 

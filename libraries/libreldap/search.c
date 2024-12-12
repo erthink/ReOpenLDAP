@@ -48,18 +48,14 @@
  *	    attrs, attrsonly, sctrls, ctrls, timeout, sizelimit,
  *		&msgid );
  */
-int ldap_search_ext(LDAP *ld, const char *base, int scope, const char *filter,
-                    char **attrs, int attrsonly, LDAPControl **sctrls,
-                    LDAPControl **cctrls, struct timeval *timeout,
-                    int sizelimit, int *msgidp) {
-  return ldap_pvt_search(ld, base, scope, filter, attrs, attrsonly, sctrls,
-                         cctrls, timeout, sizelimit, -1, msgidp);
+int ldap_search_ext(LDAP *ld, const char *base, int scope, const char *filter, char **attrs, int attrsonly,
+                    LDAPControl **sctrls, LDAPControl **cctrls, struct timeval *timeout, int sizelimit, int *msgidp) {
+  return ldap_pvt_search(ld, base, scope, filter, attrs, attrsonly, sctrls, cctrls, timeout, sizelimit, -1, msgidp);
 }
 
-int ldap_pvt_search(LDAP *ld, const char *base, int scope, const char *filter,
-                    char **attrs, int attrsonly, LDAPControl **sctrls,
-                    LDAPControl **cctrls, struct timeval *timeout,
-                    int sizelimit, int deref, int *msgidp) {
+int ldap_pvt_search(LDAP *ld, const char *base, int scope, const char *filter, char **attrs, int attrsonly,
+                    LDAPControl **sctrls, LDAPControl **cctrls, struct timeval *timeout, int sizelimit, int deref,
+                    int *msgidp) {
   int rc;
   BerElement *ber;
   int timelimit;
@@ -92,8 +88,8 @@ int ldap_pvt_search(LDAP *ld, const char *base, int scope, const char *filter,
     timelimit = -1;
   }
 
-  ber = ldap_build_search_req(ld, base, scope, filter, attrs, attrsonly, sctrls,
-                              cctrls, timelimit, sizelimit, deref, &id);
+  ber = ldap_build_search_req(ld, base, scope, filter, attrs, attrsonly, sctrls, cctrls, timelimit, sizelimit, deref,
+                              &id);
 
   if (ber == NULL) {
     return ld->ld_errno;
@@ -108,25 +104,21 @@ int ldap_pvt_search(LDAP *ld, const char *base, int scope, const char *filter,
   return LDAP_SUCCESS;
 }
 
-int ldap_search_ext_s(LDAP *ld, const char *base, int scope, const char *filter,
-                      char **attrs, int attrsonly, LDAPControl **sctrls,
-                      LDAPControl **cctrls, struct timeval *timeout,
-                      int sizelimit, LDAPMessage **res) {
-  return ldap_pvt_search_s(ld, base, scope, filter, attrs, attrsonly, sctrls,
-                           cctrls, timeout, sizelimit, -1, res);
+int ldap_search_ext_s(LDAP *ld, const char *base, int scope, const char *filter, char **attrs, int attrsonly,
+                      LDAPControl **sctrls, LDAPControl **cctrls, struct timeval *timeout, int sizelimit,
+                      LDAPMessage **res) {
+  return ldap_pvt_search_s(ld, base, scope, filter, attrs, attrsonly, sctrls, cctrls, timeout, sizelimit, -1, res);
 }
 
-int ldap_pvt_search_s(LDAP *ld, const char *base, int scope, const char *filter,
-                      char **attrs, int attrsonly, LDAPControl **sctrls,
-                      LDAPControl **cctrls, struct timeval *timeout,
-                      int sizelimit, int deref, LDAPMessage **res) {
+int ldap_pvt_search_s(LDAP *ld, const char *base, int scope, const char *filter, char **attrs, int attrsonly,
+                      LDAPControl **sctrls, LDAPControl **cctrls, struct timeval *timeout, int sizelimit, int deref,
+                      LDAPMessage **res) {
   int rc;
   int msgid = 0;
 
   *res = NULL;
 
-  rc = ldap_pvt_search(ld, base, scope, filter, attrs, attrsonly, sctrls,
-                       cctrls, timeout, sizelimit, deref, &msgid);
+  rc = ldap_pvt_search(ld, base, scope, filter, attrs, attrsonly, sctrls, cctrls, timeout, sizelimit, deref, &msgid);
 
   if (rc != LDAP_SUCCESS) {
     return (rc);
@@ -151,12 +143,9 @@ int ldap_pvt_search_s(LDAP *ld, const char *base, int scope, const char *filter,
   return (ldap_result2error(ld, *res, 0));
 }
 
-BerElement *ldap_build_search_req(LDAP *ld, const char *base, ber_int_t scope,
-                                  const char *filter, char **attrs,
-                                  ber_int_t attrsonly, LDAPControl **sctrls,
-                                  LDAPControl **cctrls, ber_int_t timelimit,
-                                  ber_int_t sizelimit, ber_int_t deref,
-                                  ber_int_t *idp) {
+BerElement *ldap_build_search_req(LDAP *ld, const char *base, ber_int_t scope, const char *filter, char **attrs,
+                                  ber_int_t attrsonly, LDAPControl **sctrls, LDAPControl **cctrls, ber_int_t timelimit,
+                                  ber_int_t sizelimit, ber_int_t deref, ber_int_t *idp) {
   BerElement *ber;
   int err;
 
@@ -210,16 +199,14 @@ BerElement *ldap_build_search_req(LDAP *ld, const char *base, ber_int_t scope,
     char *dn = ld->ld_options.ldo_cldapdn;
     if (!dn)
       dn = "";
-    err = ber_printf(ber, "{ist{seeiib", *idp, dn, LDAP_REQ_SEARCH, base,
-                     (ber_int_t)scope, (deref < 0) ? ld->ld_deref : deref,
-                     (sizelimit < 0) ? ld->ld_sizelimit : sizelimit,
+    err = ber_printf(ber, "{ist{seeiib", *idp, dn, LDAP_REQ_SEARCH, base, (ber_int_t)scope,
+                     (deref < 0) ? ld->ld_deref : deref, (sizelimit < 0) ? ld->ld_sizelimit : sizelimit,
                      (timelimit < 0) ? ld->ld_timelimit : timelimit, attrsonly);
   } else
 #endif
   {
-    err = ber_printf(ber, "{it{seeiib", *idp, LDAP_REQ_SEARCH, base,
-                     (ber_int_t)scope, (deref < 0) ? ld->ld_deref : deref,
-                     (sizelimit < 0) ? ld->ld_sizelimit : sizelimit,
+    err = ber_printf(ber, "{it{seeiib", *idp, LDAP_REQ_SEARCH, base, (ber_int_t)scope,
+                     (deref < 0) ? ld->ld_deref : deref, (sizelimit < 0) ? ld->ld_sizelimit : sizelimit,
                      (timelimit < 0) ? ld->ld_timelimit : timelimit, attrsonly);
   }
 
@@ -255,8 +242,7 @@ BerElement *ldap_build_search_req(LDAP *ld, const char *base, ber_int_t scope,
       }
 
       if (rest <= 0) {
-        memcpy(&buf[sizeof(buf) - STRLENOF("...(truncated)") - 1],
-               "...(truncated)", STRLENOF("...(truncated)") + 1);
+        memcpy(&buf[sizeof(buf) - STRLENOF("...(truncated)") - 1], "...(truncated)", STRLENOF("...(truncated)") + 1);
       }
       ptr = buf;
     }
@@ -286,17 +272,14 @@ BerElement *ldap_build_search_req(LDAP *ld, const char *base, ber_int_t scope,
   return (ber);
 }
 
-static char escape[128] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                           1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+static char escape[128] = {
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 
-                           0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0,
-                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
 
-                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
 #define NEEDFLTESCAPE(c) ((c) & 0x80 || escape[(unsigned)(c)])
 
 /*
@@ -325,8 +308,7 @@ int ldap_bv2escaped_filter_value(struct berval *in, struct berval *out) {
   return ldap_bv2escaped_filter_value_x(in, out, 0, NULL);
 }
 
-int ldap_bv2escaped_filter_value_x(struct berval *in, struct berval *out,
-                                   int inplace, void *ctx) {
+int ldap_bv2escaped_filter_value_x(struct berval *in, struct berval *out, int inplace, void *ctx) {
   ber_len_t i, l;
 
   assert(in != NULL);

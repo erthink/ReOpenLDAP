@@ -89,16 +89,12 @@ static int dgroup_cf(ConfigArgs *c) {
     adpair ap = {NULL, NULL, NULL}, *a2;
     const char *text;
     if (slap_str2ad(c->argv[1], &ap.ap_mem, &text)) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "%s attribute description unknown: \"%s\"", c->argv[0],
-               c->argv[1]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "%s attribute description unknown: \"%s\"", c->argv[0], c->argv[1]);
       Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log, c->cr_msg);
       return ARG_BAD_CONF;
     }
     if (slap_str2ad(c->argv[2], &ap.ap_uri, &text)) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "%s attribute description unknown: \"%s\"", c->argv[0],
-               c->argv[2]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "%s attribute description unknown: \"%s\"", c->argv[0], c->argv[2]);
       Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log, c->cr_msg);
       return ARG_BAD_CONF;
     }
@@ -116,9 +112,7 @@ static int dgroup_cf(ConfigArgs *c) {
   return rc;
 }
 
-static ConfigTable dgroupcfg[] = {{"attrpair",
-                                   "member-attribute> <URL-attribute", 3, 3, 0,
-                                   ARG_MAGIC, dgroup_cf,
+static ConfigTable dgroupcfg[] = {{"attrpair", "member-attribute> <URL-attribute", 3, 3, 0, ARG_MAGIC, dgroup_cf,
                                    "( OLcfgOvAt:17.1 NAME 'olcDGAttrPair' "
                                    "EQUALITY caseIgnoreMatch "
                                    "DESC 'Member and MemberURL attribute pair' "
@@ -141,8 +135,7 @@ static int dyngroup_response(Operation *op, SlapReply *rs) {
   /* If we've been configured and the current response is
    * what we're looking for...
    */
-  if (ap && op->o_tag == LDAP_REQ_COMPARE &&
-      rs->sr_err == LDAP_NO_SUCH_ATTRIBUTE) {
+  if (ap && op->o_tag == LDAP_REQ_COMPARE && rs->sr_err == LDAP_NO_SUCH_ATTRIBUTE) {
 
     for (; ap; ap = ap->ap_next) {
       if (op->oq_compare.rs_ava->aa_desc == ap->ap_mem) {
@@ -153,9 +146,7 @@ static int dyngroup_response(Operation *op, SlapReply *rs) {
         int cache = op->o_do_not_cache;
 
         op->o_do_not_cache = 1;
-        rs->sr_err =
-            backend_group(op, NULL, &op->o_req_ndn,
-                          &op->oq_compare.rs_ava->aa_value, NULL, ap->ap_uri);
+        rs->sr_err = backend_group(op, NULL, &op->o_req_ndn, &op->oq_compare.rs_ava->aa_value, NULL, ap->ap_uri);
         op->o_do_not_cache = cache;
         switch (rs->sr_err) {
         case LDAP_SUCCESS:

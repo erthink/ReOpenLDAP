@@ -30,8 +30,7 @@
 
 #ifdef LDAP_CONTROL_X_DIRSYNC
 
-int ldap_create_dirsync_value(LDAP *ld, int flags, int maxAttrCount,
-                              struct berval *cookie, struct berval *value) {
+int ldap_create_dirsync_value(LDAP *ld, int flags, int maxAttrCount, struct berval *cookie, struct berval *value) {
   BerElement *ber = NULL;
   ber_tag_t tag;
 
@@ -76,8 +75,7 @@ done:;
   return ld->ld_errno;
 }
 
-int ldap_create_dirsync_control(LDAP *ld, int flags, int maxAttrCount,
-                                struct berval *cookie, LDAPControl **ctrlp) {
+int ldap_create_dirsync_control(LDAP *ld, int flags, int maxAttrCount, struct berval *cookie, LDAPControl **ctrlp) {
   struct berval value;
 
   if (ctrlp == NULL) {
@@ -85,11 +83,9 @@ int ldap_create_dirsync_control(LDAP *ld, int flags, int maxAttrCount,
     return ld->ld_errno;
   }
 
-  ld->ld_errno =
-      ldap_create_dirsync_value(ld, flags, maxAttrCount, cookie, &value);
+  ld->ld_errno = ldap_create_dirsync_value(ld, flags, maxAttrCount, cookie, &value);
   if (ld->ld_errno == LDAP_SUCCESS) {
-    ld->ld_errno =
-        ldap_control_create(LDAP_CONTROL_X_DIRSYNC, 1, &value, 0, ctrlp);
+    ld->ld_errno = ldap_control_create(LDAP_CONTROL_X_DIRSYNC, 1, &value, 0, ctrlp);
     if (ld->ld_errno != LDAP_SUCCESS) {
       LDAP_FREE(value.bv_val);
     }
@@ -98,8 +94,7 @@ int ldap_create_dirsync_control(LDAP *ld, int flags, int maxAttrCount,
   return ld->ld_errno;
 }
 
-int ldap_parse_dirsync_control(LDAP *ld, LDAPControl *ctrl, int *continueFlag,
-                               struct berval *cookie) {
+int ldap_parse_dirsync_control(LDAP *ld, LDAPControl *ctrl, int *continueFlag, struct berval *cookie) {
   BerElement *ber;
   ber_tag_t tag;
   int unused;
@@ -147,8 +142,7 @@ int ldap_create_show_deleted_control(LDAP *ld, LDAPControl **ctrlp) {
   assert(LDAP_VALID(ld));
   assert(ctrlp != NULL);
 
-  ld->ld_errno =
-      ldap_control_create(LDAP_CONTROL_X_SHOW_DELETED, 0, NULL, 0, ctrlp);
+  ld->ld_errno = ldap_control_create(LDAP_CONTROL_X_SHOW_DELETED, 0, NULL, 0, ctrlp);
 
   return ld->ld_errno;
 }
@@ -209,8 +203,7 @@ int ldap_create_extended_dn_control(LDAP *ld, int flag, LDAPControl **ctrlp) {
 
   ld->ld_errno = ldap_create_extended_dn_value(ld, flag, &value);
   if (ld->ld_errno == LDAP_SUCCESS) {
-    ld->ld_errno =
-        ldap_control_create(LDAP_CONTROL_X_EXTENDED_DN, 0, &value, 0, ctrlp);
+    ld->ld_errno = ldap_control_create(LDAP_CONTROL_X_EXTENDED_DN, 0, &value, 0, ctrlp);
     if (ld->ld_errno != LDAP_SUCCESS) {
       LDAP_FREE(value.bv_val);
     }
@@ -228,8 +221,7 @@ int ldap_create_sever_notification_control(LDAP *ld, LDAPControl **ctrlp) {
   assert(LDAP_VALID(ld));
   assert(ctrlp != NULL);
 
-  ld->ld_errno = ldap_control_create(LDAP_CONTROL_X_SERVER_NOTIFICATION, 0,
-                                     NULL, 0, ctrlp);
+  ld->ld_errno = ldap_control_create(LDAP_CONTROL_X_SERVER_NOTIFICATION, 0, NULL, 0, ctrlp);
 
   return ld->ld_errno;
 }

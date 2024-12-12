@@ -44,9 +44,8 @@
 
 #include "ldap-int.h"
 
-BerElement *ldap_build_bind_req(LDAP *ld, const char *dn, const char *mechanism,
-                                struct berval *cred, LDAPControl **sctrls,
-                                LDAPControl **cctrls, ber_int_t *msgidp) {
+BerElement *ldap_build_bind_req(LDAP *ld, const char *dn, const char *mechanism, struct berval *cred,
+                                LDAPControl **sctrls, LDAPControl **cctrls, ber_int_t *msgidp) {
   BerElement *ber;
   int rc;
 
@@ -73,18 +72,16 @@ BerElement *ldap_build_bind_req(LDAP *ld, const char *dn, const char *mechanism,
   LDAP_NEXT_MSGID(ld, *msgidp);
   if (mechanism == LDAP_SASL_SIMPLE) {
     /* simple bind */
-    rc = ber_printf(ber, "{it{istON}" /*}*/, *msgidp, LDAP_REQ_BIND,
-                    ld->ld_version, dn, LDAP_AUTH_SIMPLE, cred);
+    rc = ber_printf(ber, "{it{istON}" /*}*/, *msgidp, LDAP_REQ_BIND, ld->ld_version, dn, LDAP_AUTH_SIMPLE, cred);
 
   } else if (cred == NULL || cred->bv_val == NULL) {
     /* SASL bind w/o credentials */
-    rc = ber_printf(ber, "{it{ist{sN}N}" /*}*/, *msgidp, LDAP_REQ_BIND,
-                    ld->ld_version, dn, LDAP_AUTH_SASL, mechanism);
+    rc = ber_printf(ber, "{it{ist{sN}N}" /*}*/, *msgidp, LDAP_REQ_BIND, ld->ld_version, dn, LDAP_AUTH_SASL, mechanism);
 
   } else {
     /* SASL bind w/ credentials */
-    rc = ber_printf(ber, "{it{ist{sON}N}" /*}*/, *msgidp, LDAP_REQ_BIND,
-                    ld->ld_version, dn, LDAP_AUTH_SASL, mechanism, cred);
+    rc = ber_printf(ber, "{it{ist{sON}N}" /*}*/, *msgidp, LDAP_REQ_BIND, ld->ld_version, dn, LDAP_AUTH_SASL, mechanism,
+                    cred);
   }
 
   if (rc == -1) {
@@ -119,8 +116,7 @@ BerElement *ldap_build_bind_req(LDAP *ld, const char *dn, const char *mechanism,
  *		cred, NULL, NULL, &msgid )
  */
 
-int ldap_sasl_bind(LDAP *ld, const char *dn, const char *mechanism,
-                   struct berval *cred, LDAPControl **sctrls,
+int ldap_sasl_bind(LDAP *ld, const char *dn, const char *mechanism, struct berval *cred, LDAPControl **sctrls,
                    LDAPControl **cctrls, int *msgidp) {
   BerElement *ber;
   int rc;
@@ -150,8 +146,7 @@ int ldap_sasl_bind(LDAP *ld, const char *dn, const char *mechanism,
   return LDAP_SUCCESS;
 }
 
-int ldap_sasl_bind_s(LDAP *ld, const char *dn, const char *mechanism,
-                     struct berval *cred, LDAPControl **sctrls,
+int ldap_sasl_bind_s(LDAP *ld, const char *dn, const char *mechanism, struct berval *cred, LDAPControl **sctrls,
                      LDAPControl **cctrls, struct berval **servercredp) {
   int rc, msgid = 0;
   LDAPMessage *result;
@@ -225,8 +220,7 @@ int ldap_sasl_bind_s(LDAP *ld, const char *dn, const char *mechanism,
  *     referral        [3] Referral OPTIONAL }
  */
 
-int ldap_parse_sasl_bind_result(LDAP *ld, LDAPMessage *res,
-                                struct berval **servercredp, int freeit) {
+int ldap_parse_sasl_bind_result(LDAP *ld, LDAPMessage *res, struct berval **servercredp, int freeit) {
   ber_int_t errcode;
   struct berval *scred;
 
@@ -283,8 +277,7 @@ int ldap_parse_sasl_bind_result(LDAP *ld, LDAPMessage *res,
   } else {
     ber_len_t len;
 
-    tag =
-        ber_scanf(ber, "{eAA" /*}*/, &errcode, &ld->ld_matched, &ld->ld_error);
+    tag = ber_scanf(ber, "{eAA" /*}*/, &errcode, &ld->ld_matched, &ld->ld_error);
 
     if (tag == LBER_ERROR) {
       ber_free(ber, 0);
@@ -344,8 +337,7 @@ int ldap_pvt_sasl_getmechs(LDAP *ld, char **pmechlist) {
   /* rc = ldap_search_s( ld, "", LDAP_SCOPE_BASE,
           NULL, attrs, 0, &res ); */
 
-  rc = ldap_search_ext_s(ld, "", LDAP_SCOPE_BASE, NULL, attrs, 0, NULL, NULL,
-                         NULL, 0, &res);
+  rc = ldap_search_ext_s(ld, "", LDAP_SCOPE_BASE, NULL, attrs, 0, NULL, NULL, NULL, 0, &res);
 
   if (rc != LDAP_SUCCESS) {
     return ld->ld_errno;
@@ -393,10 +385,8 @@ int ldap_pvt_sasl_getmechs(LDAP *ld, char **pmechlist) {
  * calls are needed.
  */
 int ldap_sasl_interactive_bind(LDAP *ld, const char *dn, /* usually NULL */
-                               const char *mechs, LDAPControl **serverControls,
-                               LDAPControl **clientControls, unsigned flags,
-                               LDAP_SASL_INTERACT_PROC *interact,
-                               void *defaults, LDAPMessage *result,
+                               const char *mechs, LDAPControl **serverControls, LDAPControl **clientControls,
+                               unsigned flags, LDAP_SASL_INTERACT_PROC *interact, void *defaults, LDAPMessage *result,
                                const char **rmech, int *msgid) {
   char *smechs = NULL;
   int rc;
@@ -431,18 +421,16 @@ int ldap_sasl_interactive_bind(LDAP *ld, const char *dn, /* usually NULL */
           goto done;
         }
 
-        Debug(LDAP_DEBUG_TRACE,
-              "ldap_sasl_interactive_bind: server supports: %s\n", smechs);
+        Debug(LDAP_DEBUG_TRACE, "ldap_sasl_interactive_bind: server supports: %s\n", smechs);
 
         mechs = smechs;
 
       } else {
-        Debug(LDAP_DEBUG_TRACE,
-              "ldap_sasl_interactive_bind: user selected: %s\n", mechs);
+        Debug(LDAP_DEBUG_TRACE, "ldap_sasl_interactive_bind: user selected: %s\n", mechs);
       }
     }
-  rc = ldap_int_sasl_bind(ld, dn, mechs, serverControls, clientControls, flags,
-                          interact, defaults, result, rmech, msgid);
+  rc = ldap_int_sasl_bind(ld, dn, mechs, serverControls, clientControls, flags, interact, defaults, result, rmech,
+                          msgid);
 
 done:
   if (smechs)
@@ -460,19 +448,15 @@ done:
  * otherwise.
  */
 int ldap_sasl_interactive_bind_s(LDAP *ld, const char *dn, /* usually NULL */
-                                 const char *mechs,
-                                 LDAPControl **serverControls,
-                                 LDAPControl **clientControls, unsigned flags,
-                                 LDAP_SASL_INTERACT_PROC *interact,
-                                 void *defaults) {
+                                 const char *mechs, LDAPControl **serverControls, LDAPControl **clientControls,
+                                 unsigned flags, LDAP_SASL_INTERACT_PROC *interact, void *defaults) {
   const char *rmech = NULL;
   LDAPMessage *result = NULL;
   int rc, msgid;
 
   do {
-    rc = ldap_sasl_interactive_bind(ld, dn, mechs, serverControls,
-                                    clientControls, flags, interact, defaults,
-                                    result, &rmech, &msgid);
+    rc = ldap_sasl_interactive_bind(ld, dn, mechs, serverControls, clientControls, flags, interact, defaults, result,
+                                    &rmech, &msgid);
 
     ldap_msgfree(result);
 
@@ -554,9 +538,7 @@ static int sb_sasl_generic_remove(Sockbuf_IO_Desc *sbiod) {
   return 0;
 }
 
-static ber_len_t sb_sasl_generic_pkt_length(struct sb_sasl_generic_data *p,
-                                            const unsigned char *buf,
-                                            int debuglevel) {
+static ber_len_t sb_sasl_generic_pkt_length(struct sb_sasl_generic_data *p, const unsigned char *buf, int debuglevel) {
   ber_len_t size;
 
   assert(buf != NULL);
@@ -576,26 +558,22 @@ static ber_len_t sb_sasl_generic_pkt_length(struct sb_sasl_generic_data *p,
 }
 
 /* Drop a processed packet from the input buffer */
-static void sb_sasl_generic_drop_packet(struct sb_sasl_generic_data *p,
-                                        int debuglevel) {
+static void sb_sasl_generic_drop_packet(struct sb_sasl_generic_data *p, int debuglevel) {
   ber_slen_t len;
 
   len = p->sec_buf_in.buf_ptr - p->sec_buf_in.buf_end;
   if (len > 0)
-    memmove(p->sec_buf_in.buf_base,
-            p->sec_buf_in.buf_base + p->sec_buf_in.buf_end, len);
+    memmove(p->sec_buf_in.buf_base, p->sec_buf_in.buf_base + p->sec_buf_in.buf_end, len);
 
   if (len >= 4) {
-    p->sec_buf_in.buf_end = sb_sasl_generic_pkt_length(
-        p, (unsigned char *)p->sec_buf_in.buf_base, debuglevel);
+    p->sec_buf_in.buf_end = sb_sasl_generic_pkt_length(p, (unsigned char *)p->sec_buf_in.buf_base, debuglevel);
   } else {
     p->sec_buf_in.buf_end = 0;
   }
   p->sec_buf_in.buf_ptr = len;
 }
 
-static ber_slen_t sb_sasl_generic_read(Sockbuf_IO_Desc *sbiod, void *buf,
-                                       ber_len_t len) {
+static ber_slen_t sb_sasl_generic_read(Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len) {
   struct sb_sasl_generic_data *p;
   ber_slen_t ret, bufptr;
 
@@ -616,9 +594,7 @@ static ber_slen_t sb_sasl_generic_read(Sockbuf_IO_Desc *sbiod, void *buf,
 
   /* Read the length of the packet */
   while (p->sec_buf_in.buf_ptr < 4) {
-    ret = LBER_SBIOD_READ_NEXT(sbiod,
-                               p->sec_buf_in.buf_base + p->sec_buf_in.buf_ptr,
-                               4 - p->sec_buf_in.buf_ptr);
+    ret = LBER_SBIOD_READ_NEXT(sbiod, p->sec_buf_in.buf_base + p->sec_buf_in.buf_ptr, 4 - p->sec_buf_in.buf_ptr);
 #ifdef EINTR
     if ((ret < 0) && (errno == EINTR))
       continue;
@@ -630,12 +606,10 @@ static ber_slen_t sb_sasl_generic_read(Sockbuf_IO_Desc *sbiod, void *buf,
   }
 
   /* The new packet always starts at p->sec_buf_in.buf_base */
-  ret = sb_sasl_generic_pkt_length(p, (unsigned char *)p->sec_buf_in.buf_base,
-                                   sbiod->sbiod_sb->sb_debug);
+  ret = sb_sasl_generic_pkt_length(p, (unsigned char *)p->sec_buf_in.buf_base, sbiod->sbiod_sb->sb_debug);
 
   /* Grow the packet buffer if necessary */
-  if ((p->sec_buf_in.buf_size < (ber_len_t)ret) &&
-      ber_pvt_sb_grow_buffer(&p->sec_buf_in, ret) < 0) {
+  if ((p->sec_buf_in.buf_size < (ber_len_t)ret) && ber_pvt_sb_grow_buffer(&p->sec_buf_in, ret) < 0) {
     sock_errset(ENOMEM);
     return -1;
   }
@@ -646,8 +620,7 @@ static ber_slen_t sb_sasl_generic_read(Sockbuf_IO_Desc *sbiod, void *buf,
     /* No, we have got only a part of it */
     ret = p->sec_buf_in.buf_end - p->sec_buf_in.buf_ptr;
 
-    ret = LBER_SBIOD_READ_NEXT(
-        sbiod, p->sec_buf_in.buf_base + p->sec_buf_in.buf_ptr, ret);
+    ret = LBER_SBIOD_READ_NEXT(sbiod, p->sec_buf_in.buf_base + p->sec_buf_in.buf_ptr, ret);
 #ifdef EINTR
     if ((ret < 0) && (errno == EINTR))
       continue;
@@ -665,8 +638,7 @@ static ber_slen_t sb_sasl_generic_read(Sockbuf_IO_Desc *sbiod, void *buf,
   sb_sasl_generic_drop_packet(p, sbiod->sbiod_sb->sb_debug);
 
   if (ret != 0) {
-    ber_log_printf(LDAP_DEBUG_ANY, sbiod->sbiod_sb->sb_debug,
-                   "sb_sasl_generic_read: failed to decode packet\n");
+    ber_log_printf(LDAP_DEBUG_ANY, sbiod->sbiod_sb->sb_debug, "sb_sasl_generic_read: failed to decode packet\n");
     sock_errset(EIO);
     return -1;
   }
@@ -676,8 +648,7 @@ static ber_slen_t sb_sasl_generic_read(Sockbuf_IO_Desc *sbiod, void *buf,
   return bufptr;
 }
 
-static ber_slen_t sb_sasl_generic_write(Sockbuf_IO_Desc *sbiod, void *buf,
-                                        ber_len_t len) {
+static ber_slen_t sb_sasl_generic_write(Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len) {
   struct sb_sasl_generic_data *p;
   int ret;
   ber_len_t len2;
@@ -718,8 +689,7 @@ static ber_slen_t sb_sasl_generic_write(Sockbuf_IO_Desc *sbiod, void *buf,
   ret = p->ops->encode(p, buf, len2, &p->buf_out);
 
   if (ret != 0) {
-    ber_log_printf(LDAP_DEBUG_ANY, sbiod->sbiod_sb->sb_debug,
-                   "sb_sasl_generic_write: failed to encode packet\n");
+    ber_log_printf(LDAP_DEBUG_ANY, sbiod->sbiod_sb->sb_debug, "sb_sasl_generic_write: failed to encode packet\n");
     sock_errset(EIO);
     return -1;
   }
@@ -768,30 +738,24 @@ Sockbuf_IO ldap_pvt_sockbuf_io_sasl_generic = {
     NULL                    /* sbi_close */
 };
 
-int ldap_pvt_sasl_generic_install(Sockbuf *sb,
-                                  struct sb_sasl_generic_install *install_arg) {
+int ldap_pvt_sasl_generic_install(Sockbuf *sb, struct sb_sasl_generic_install *install_arg) {
   Debug(LDAP_DEBUG_TRACE, "ldap_pvt_sasl_generic_install\n");
 
   /* don't install the stuff unless security has been negotiated */
 
-  if (!ber_sockbuf_ctrl(sb, LBER_SB_OPT_HAS_IO,
-                        &ldap_pvt_sockbuf_io_sasl_generic)) {
+  if (!ber_sockbuf_ctrl(sb, LBER_SB_OPT_HAS_IO, &ldap_pvt_sockbuf_io_sasl_generic)) {
 #ifdef LDAP_DEBUG
-    ber_sockbuf_add_io(sb, &ber_sockbuf_io_debug, LBER_SBIOD_LEVEL_APPLICATION,
-                       (void *)"sasl_generic_");
+    ber_sockbuf_add_io(sb, &ber_sockbuf_io_debug, LBER_SBIOD_LEVEL_APPLICATION, (void *)"sasl_generic_");
 #endif
-    ber_sockbuf_add_io(sb, &ldap_pvt_sockbuf_io_sasl_generic,
-                       LBER_SBIOD_LEVEL_APPLICATION, install_arg);
+    ber_sockbuf_add_io(sb, &ldap_pvt_sockbuf_io_sasl_generic, LBER_SBIOD_LEVEL_APPLICATION, install_arg);
   }
 
   return LDAP_SUCCESS;
 }
 
 void ldap_pvt_sasl_generic_remove(Sockbuf *sb) {
-  ber_sockbuf_remove_io(sb, &ldap_pvt_sockbuf_io_sasl_generic,
-                        LBER_SBIOD_LEVEL_APPLICATION);
+  ber_sockbuf_remove_io(sb, &ldap_pvt_sockbuf_io_sasl_generic, LBER_SBIOD_LEVEL_APPLICATION);
 #ifdef LDAP_DEBUG
-  ber_sockbuf_remove_io(sb, &ber_sockbuf_io_debug,
-                        LBER_SBIOD_LEVEL_APPLICATION);
+  ber_sockbuf_remove_io(sb, &ber_sockbuf_io_debug, LBER_SBIOD_LEVEL_APPLICATION);
 #endif
 }

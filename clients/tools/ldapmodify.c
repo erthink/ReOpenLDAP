@@ -59,14 +59,11 @@ static char *rejfile = NULL;
 static LDAP *ld = NULL;
 
 static int process_ldif_rec(char *rbuf, unsigned long lineno);
-static int domodify(const struct berval *dn, LDAPMod **pmods,
-                    LDAPControl **pctrls, int newentry);
+static int domodify(const struct berval *dn, LDAPMod **pmods, LDAPControl **pctrls, int newentry);
 static int dodelete(const struct berval *dn, LDAPControl **pctrls);
-static int dorename(const struct berval *dn, const struct berval *newrdn,
-                    const struct berval *newsup, int deleteoldrdn,
+static int dorename(const struct berval *dn, const struct berval *newrdn, const struct berval *newsup, int deleteoldrdn,
                     LDAPControl **pctrls);
-static int process_response(LDAP *ld, int msgid, int res,
-                            const struct berval *dn);
+static int process_response(LDAP *ld, int msgid, int res, const struct berval *dn);
 
 #ifdef LDAP_X_TXN
 static int txn = 0;
@@ -81,21 +78,15 @@ void usage(void) {
                     " or from the file\n"));
   fprintf(stderr, _("	specified by \"-f file\".\n"));
   fprintf(stderr, _("Add or modify options:\n"));
-  fprintf(stderr, _("  -a         add values (%s)\n"),
-          (ldapadd ? _("default") : _("default is to replace")));
-  fprintf(
-      stderr,
-      _("  -c         continuous operation mode (do not stop on errors)\n"));
+  fprintf(stderr, _("  -a         add values (%s)\n"), (ldapadd ? _("default") : _("default is to replace")));
+  fprintf(stderr, _("  -c         continuous operation mode (do not stop on errors)\n"));
   fprintf(stderr, _("  -E [!]ext=extparam	modify extensions"
                     " (! indicate s criticality)\n"));
   fprintf(stderr, _("  -f file    read operations from `file'\n"));
-  fprintf(
-      stderr,
-      _("  -M         enable Manage DSA IT control (-MM to make critical)\n"));
+  fprintf(stderr, _("  -M         enable Manage DSA IT control (-MM to make critical)\n"));
   fprintf(stderr, _("  -P version protocol version (default: 3)\n"));
 #ifdef LDAP_X_TXN
-  fprintf(stderr,
-          _("             [!]txn=<commit|abort>         (transaction)\n"));
+  fprintf(stderr, _("             [!]txn=<commit|abort>         (transaction)\n"));
 #endif
   fprintf(stderr, _("  -S file    write skipped modifications to `file'\n"));
 
@@ -259,8 +250,7 @@ int main(int argc, char **argv) {
   int ldifrc = rc = 0;
   retval = 0;
   lineno = 1;
-  while ((rc == 0 || contoper) &&
-         (ldifrc = ldif_read_record(ldiffp, &nextline, &rbuf, &lmax)) > 0) {
+  while ((rc == 0 || contoper) && (ldifrc = ldif_read_record(ldiffp, &nextline, &rbuf, &lmax)) > 0) {
     if (rejfp) {
       len = strlen(rbuf);
       if ((rejbuf = (char *)ber_memalloc(len + 1)) == NULL) {
@@ -370,8 +360,7 @@ static int process_ldif_rec(char *rbuf, unsigned long linenum) {
           npc++; /* Count LDIF controls */
         while (defctrls[ndefc])
           ndefc++; /* Count default controls */
-        newctrls = ber_memrealloc(lr.lr_ctrls,
-                                  (npc + ndefc + 1) * sizeof(LDAPControl *));
+        newctrls = ber_memrealloc(lr.lr_ctrls, (npc + ndefc + 1) * sizeof(LDAPControl *));
 
         if (newctrls == NULL) {
           rc = LDAP_NO_MEMORY;
@@ -396,11 +385,9 @@ static int process_ldif_rec(char *rbuf, unsigned long linenum) {
     if (LDAP_REQ_DELETE == lr.lr_op) {
       rc = dodelete(&lr.lr_dn, lr.lr_ctrls);
     } else if (LDAP_REQ_RENAME == lr.lr_op) {
-      rc = dorename(&lr.lr_dn, &lr.lrop_newrdn, &lr.lrop_newsup, lr.lrop_delold,
-                    lr.lr_ctrls);
+      rc = dorename(&lr.lr_dn, &lr.lrop_newrdn, &lr.lrop_newsup, lr.lrop_delold, lr.lr_ctrls);
     } else if ((LDAP_REQ_ADD == lr.lr_op) || (LDAP_REQ_MODIFY == lr.lr_op)) {
-      rc = domodify(&lr.lr_dn, lr.lrop_mods, lr.lr_ctrls,
-                    LDAP_REQ_ADD == lr.lr_op);
+      rc = domodify(&lr.lr_dn, lr.lrop_mods, lr.lr_ctrls, LDAP_REQ_ADD == lr.lr_op);
     } else {
       /* record skipped e.g. version: or comment or something we don't handle
        * yet */
@@ -416,8 +403,7 @@ static int process_ldif_rec(char *rbuf, unsigned long linenum) {
   return (rc);
 }
 
-static int domodify(const struct berval *dn, LDAPMod **pmods,
-                    LDAPControl **pctrls, int newentry) {
+static int domodify(const struct berval *dn, LDAPMod **pmods, LDAPControl **pctrls, int newentry) {
   int rc, i, j, k, notascii, op;
   struct berval *bvp;
 
@@ -432,16 +418,13 @@ static int domodify(const struct berval *dn, LDAPMod **pmods,
      * is no symmetry with the UNIX command,
      * since \"touch\" on a non-existent entry
      * will fail)*/
-    printf("warning: no attributes to %sadd (entry=\"%s\")\n",
-           newentry ? "" : "change or ", dn->bv_val);
+    printf("warning: no attributes to %sadd (entry=\"%s\")\n", newentry ? "" : "change or ", dn->bv_val);
 
   } else {
     for (i = 0; pmods[i] != NULL; ++i) {
       op = pmods[i]->mod_op & ~LDAP_MOD_BVALUES;
       if (op == LDAP_MOD_ADD && (pmods[i]->mod_bvalues == NULL)) {
-        fprintf(stderr,
-                _("%s: attribute \"%s\" has no values (entry=\"%s\")\n"), prog,
-                pmods[i]->mod_type, dn->bv_val);
+        fprintf(stderr, _("%s: attribute \"%s\" has no values (entry=\"%s\")\n"), prog, pmods[i]->mod_type, dn->bv_val);
         return LDAP_PARAM_ERROR;
       }
     }
@@ -495,12 +478,10 @@ static int domodify(const struct berval *dn, LDAPMod **pmods,
     if (rc != LDAP_SUCCESS) {
       /* print error message about failed update including DN */
       fprintf(stderr, _("%s: update failed: %s\n"), prog, dn->bv_val);
-      tool_perror(newentry ? "ldap_add" : "ldap_modify", rc, NULL, NULL, NULL,
-                  NULL);
+      tool_perror(newentry ? "ldap_add" : "ldap_modify", rc, NULL, NULL, NULL, NULL);
       goto done;
     }
-    rc = process_response(ld, msgid, newentry ? LDAP_RES_ADD : LDAP_RES_MODIFY,
-                          dn);
+    rc = process_response(ld, msgid, newentry ? LDAP_RES_ADD : LDAP_RES_MODIFY, dn);
 
     if (verbose && rc == LDAP_SUCCESS) {
       printf(_("modify complete\n"));
@@ -543,8 +524,7 @@ done:
   return (rc);
 }
 
-static int dorename(const struct berval *dn, const struct berval *newrdn,
-                    const struct berval *newsup, int deleteoldrdn,
+static int dorename(const struct berval *dn, const struct berval *newrdn, const struct berval *newsup, int deleteoldrdn,
                     LDAPControl **pctrls) {
   int rc;
   int msgid;
@@ -555,13 +535,11 @@ static int dorename(const struct berval *dn, const struct berval *newrdn,
   assert(newrdn->bv_val != NULL);
   printf(_("%smodifying rdn of entry \"%s\"\n"), dont ? "!" : "", dn->bv_val);
   if (verbose) {
-    printf(_("\tnew RDN: \"%s\" (%skeep existing values)\n"), newrdn->bv_val,
-           deleteoldrdn ? _("do not ") : "");
+    printf(_("\tnew RDN: \"%s\" (%skeep existing values)\n"), newrdn->bv_val, deleteoldrdn ? _("do not ") : "");
   }
   if (!dont) {
-    rc = ldap_rename(ld, dn->bv_val, newrdn->bv_val,
-                     (newsup && newsup->bv_val) ? newsup->bv_val : NULL,
-                     deleteoldrdn, pctrls, NULL, &msgid);
+    rc = ldap_rename(ld, dn->bv_val, newrdn->bv_val, (newsup && newsup->bv_val) ? newsup->bv_val : NULL, deleteoldrdn,
+                     pctrls, NULL, &msgid);
     if (rc != LDAP_SUCCESS) {
       fprintf(stderr, _("%s: rename failed: %s\n"), prog, dn->bv_val);
       tool_perror("ldap_rename", rc, NULL, NULL, NULL, NULL);
@@ -598,8 +576,7 @@ static const char *res2str(int res) {
   return "ldap_unknown";
 }
 
-static int process_response(LDAP *ld, int msgid, int op,
-                            const struct berval *dn) {
+static int process_response(LDAP *ld, int msgid, int op, const struct berval *dn) {
   LDAPMessage *res;
   int rc = LDAP_OTHER, msgtype;
   struct timeval tv = {0, 0};
@@ -642,8 +619,7 @@ static int process_response(LDAP *ld, int msgid, int op,
       if (rc != LDAP_SUCCESS) {
     tool_perror(res2str(op), rc, NULL, matched, text, refs);
   } else if (msgtype != op) {
-    fprintf(stderr, "%s: msgtype: expected %d got %d\n", res2str(op), op,
-            msgtype);
+    fprintf(stderr, "%s: msgtype: expected %d got %d\n", res2str(op), op, msgtype);
     rc = LDAP_OTHER;
   }
 

@@ -49,8 +49,7 @@ dn2entry_retry:
   NA.txn = NA.ndb->startTransaction();
   rs->sr_text = NULL;
   if (!NA.txn) {
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(ndb_compare) ": startTransaction failed: %s (%d)\n",
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(ndb_compare) ": startTransaction failed: %s (%d)\n",
           NA.ndb->getNdbError().message, NA.ndb->getNdbError().code);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "internal error";
@@ -86,8 +85,7 @@ dn2entry_retry:
   ber_bvarray_free_x(NA.ocs, op->o_tmpmemctx);
   if (!manageDSAit && is_entry_referral(&e)) {
     /* return referral only if "disclose" is granted on the object */
-    if (!access_allowed(op, &e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE,
-                        NULL)) {
+    if (!access_allowed(op, &e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL)) {
       rs->sr_err = LDAP_NO_SUCH_OBJECT;
     } else {
       /* entry is a referral, don't allow compare */
@@ -101,10 +99,8 @@ dn2entry_retry:
     goto return_results;
   }
 
-  if (get_assert(op) &&
-      (test_filter(op, &e, (Filter *)get_assertion(op)) != LDAP_COMPARE_TRUE)) {
-    if (!access_allowed(op, &e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE,
-                        NULL)) {
+  if (get_assert(op) && (test_filter(op, &e, (Filter *)get_assertion(op)) != LDAP_COMPARE_TRUE)) {
+    if (!access_allowed(op, &e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL)) {
       rs->sr_err = LDAP_NO_SUCH_OBJECT;
     } else {
       rs->sr_err = LDAP_ASSERTION_FAILED;
@@ -112,12 +108,10 @@ dn2entry_retry:
     goto return_results;
   }
 
-  if (!access_allowed(op, &e, op->oq_compare.rs_ava->aa_desc,
-                      &op->oq_compare.rs_ava->aa_value, ACL_COMPARE, NULL)) {
+  if (!access_allowed(op, &e, op->oq_compare.rs_ava->aa_desc, &op->oq_compare.rs_ava->aa_value, ACL_COMPARE, NULL)) {
     /* return error only if "disclose"
      * is granted on the object */
-    if (!access_allowed(op, &e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE,
-                        NULL)) {
+    if (!access_allowed(op, &e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL)) {
       rs->sr_err = LDAP_NO_SUCH_OBJECT;
     } else {
       rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
@@ -131,11 +125,8 @@ dn2entry_retry:
        a = attrs_find(a->a_next, op->oq_compare.rs_ava->aa_desc)) {
     rs->sr_err = LDAP_COMPARE_FALSE;
 
-    if (attr_valfind(a,
-                     SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH |
-                         SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH,
-                     &op->oq_compare.rs_ava->aa_value, NULL,
-                     op->o_tmpmemctx) == 0) {
+    if (attr_valfind(a, SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH | SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH,
+                     &op->oq_compare.rs_ava->aa_value, NULL, op->o_tmpmemctx) == 0) {
       rs->sr_err = LDAP_COMPARE_TRUE;
       break;
     }

@@ -39,8 +39,7 @@ ldap_pvt_thread_mutex_t slapi_printmessage_mutex;
 char *slapi_log_file = NULL;
 int slapi_log_level = SLAPI_LOG_PLUGIN;
 
-int slapi_int_log_error(int level, char *subsystem, char *fmt,
-                        va_list arglist) {
+int slapi_int_log_error(int level, char *subsystem, char *fmt, va_list arglist) {
   int rc = 0;
   FILE *fp = NULL;
 

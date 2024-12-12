@@ -33,8 +33,7 @@
  */
 #define LDAP_CONTROL_PROXY_AUTHZ05 "2.16.840.1.113730.3.4.12"
 
-static const char *const proxyOld_extops[] = {LDAP_EXOP_MODIFY_PASSWD,
-                                              LDAP_EXOP_X_WHO_AM_I, NULL};
+static const char *const proxyOld_extops[] = {LDAP_EXOP_MODIFY_PASSWD, LDAP_EXOP_X_WHO_AM_I, NULL};
 
 static int proxyOld_parse(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   int rc;
@@ -51,8 +50,7 @@ static int proxyOld_parse(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
     return LDAP_PROTOCOL_ERROR;
   }
 
-  op->o_proxy_authz =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_proxy_authz = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   /* Parse the control value
    *  proxyAuthzControlValue ::= SEQUENCE {
@@ -73,12 +71,10 @@ static int proxyOld_parse(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
     goto done;
   }
   if (BER_BVISEMPTY(&dn)) {
-    Debug(LDAP_DEBUG_TRACE, "proxyOld_parse: conn=%lu anonymous\n",
-          op->o_connid);
+    Debug(LDAP_DEBUG_TRACE, "proxyOld_parse: conn=%lu anonymous\n", op->o_connid);
     authzDN.bv_val = ch_strdup("");
   } else {
-    Debug(LDAP_DEBUG_ARGS, "proxyOld_parse: conn %lu ctrl DN=\"%s\"\n",
-          op->o_connid, dn.bv_val);
+    Debug(LDAP_DEBUG_ARGS, "proxyOld_parse: conn %lu ctrl DN=\"%s\"\n", op->o_connid, dn.bv_val);
     rc = dnNormalize(0, NULL, NULL, &dn, &authzDN, op->o_tmpmemctx);
     if (rc != LDAP_SUCCESS) {
       goto done;
@@ -97,8 +93,7 @@ static int proxyOld_parse(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   op->o_ndn = authzDN;
   ber_dupbv(&op->o_dn, &authzDN);
 
-  Statslog(LDAP_DEBUG_STATS, "conn=%lu op=%lu PROXYOLD dn=\"%s\"\n",
-           op->o_connid, op->o_opid,
+  Statslog(LDAP_DEBUG_STATS, "conn=%lu op=%lu PROXYOLD dn=\"%s\"\n", op->o_connid, op->o_opid,
            authzDN.bv_len ? authzDN.bv_val : "anonymous");
   rc = LDAP_SUCCESS;
 done:
@@ -107,8 +102,6 @@ done:
 }
 
 SLAP_MODULE_ENTRY(proxyOld, modinit)(int argc, char *argv[]) {
-  return register_supported_control(LDAP_CONTROL_PROXY_AUTHZ05,
-                                    SLAP_CTRL_GLOBAL | SLAP_CTRL_HIDE |
-                                        SLAP_CTRL_ACCESS,
+  return register_supported_control(LDAP_CONTROL_PROXY_AUTHZ05, SLAP_CTRL_GLOBAL | SLAP_CTRL_HIDE | SLAP_CTRL_ACCESS,
                                     proxyOld_extops, proxyOld_parse, NULL);
 }

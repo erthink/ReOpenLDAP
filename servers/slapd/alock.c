@@ -199,8 +199,7 @@ static int alock_read_slot(alock_info_t *info, alock_slot_t *slot_data) {
 
   size_total = 0;
   while (size_total < ALOCK_SLOT_SIZE) {
-    size =
-        read(info->al_fd, slotbuf + size_total, ALOCK_SLOT_SIZE - size_total);
+    size = read(info->al_fd, slotbuf + size_total, ALOCK_SLOT_SIZE - size_total);
     if (size == 0)
       return -1;
     if (size < 0) {
@@ -257,8 +256,7 @@ static int alock_write_slot(alock_info_t *info, alock_slot_t *slot_data) {
 
   size_total = 0;
   while (size_total < ALOCK_SLOT_SIZE) {
-    size =
-        write(info->al_fd, slotbuf + size_total, ALOCK_SLOT_SIZE - size_total);
+    size = write(info->al_fd, slotbuf + size_total, ALOCK_SLOT_SIZE - size_total);
     if (size == 0)
       return -1;
     if (size < 0) {
@@ -306,8 +304,7 @@ static int alock_query_slot(alock_info_t *info) {
   return ALOCK_DIRTY | nosave;
 }
 
-int alock_open(alock_info_t *info, const char *appname, const char *envdir,
-               int locktype) {
+int alock_open(alock_info_t *info, const char *appname, const char *envdir, int locktype) {
   struct stat statbuf;
   alock_info_t scan_info;
   alock_slot_t slot_data;
@@ -365,8 +362,7 @@ int alock_open(alock_info_t *info, const char *appname, const char *envdir,
   live_count = 0;
   nosave = 0;
   scan_info.al_fd = info->al_fd;
-  for (scan_info.al_slot = 1; scan_info.al_slot < max_slot;
-       ++scan_info.al_slot) {
+  for (scan_info.al_slot = 1; scan_info.al_slot < max_slot; ++scan_info.al_slot) {
     if (scan_info.al_slot != info->al_slot) {
       res = alock_query_slot(&scan_info);
 
@@ -380,8 +376,7 @@ int alock_open(alock_info_t *info, const char *appname, const char *envdir,
       } else if (res == ALOCK_LOCKED) {
         ++live_count;
 
-      } else if (res == ALOCK_UNIQUE &&
-                 ((locktype & ALOCK_SMASK) == ALOCK_UNIQUE || nosave)) {
+      } else if (res == ALOCK_UNIQUE && ((locktype & ALOCK_SMASK) == ALOCK_UNIQUE || nosave)) {
         close(info->al_fd);
         ber_memfree(slot_data.al_appname);
         return ALOCK_BUSY;
@@ -456,8 +451,7 @@ int alock_scan(alock_info_t *info) {
   dirty_count = 0;
   live_count = 0;
   nosave = 0;
-  for (scan_info.al_slot = 1; scan_info.al_slot < max_slot;
-       ++scan_info.al_slot) {
+  for (scan_info.al_slot = 1; scan_info.al_slot < max_slot; ++scan_info.al_slot) {
     if (scan_info.al_slot != info->al_slot) {
       res = alock_query_slot(&scan_info);
 
@@ -580,8 +574,7 @@ int alock_recover(alock_info_t *info) {
   }
 
   max_slot = (statbuf.st_size + ALOCK_SLOT_SIZE - 1) / ALOCK_SLOT_SIZE;
-  for (scan_info.al_slot = 1; scan_info.al_slot < max_slot;
-       ++scan_info.al_slot) {
+  for (scan_info.al_slot = 1; scan_info.al_slot < max_slot; ++scan_info.al_slot) {
     if (scan_info.al_slot != info->al_slot) {
       res = alock_query_slot(&scan_info) & ~ALOCK_NOSAVE;
 

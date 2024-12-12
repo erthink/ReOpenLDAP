@@ -53,9 +53,8 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
 
   int rc;
 
-  Debug(LDAP_DEBUG_ARGS, "==>" LDAP_XSTRING(ndb_back_modrdn) "(%s,%s,%s)\n",
-        op->o_req_dn.bv_val, op->oq_modrdn.rs_newrdn.bv_val,
-        op->oq_modrdn.rs_newSup ? op->oq_modrdn.rs_newSup->bv_val : "NULL");
+  Debug(LDAP_DEBUG_ARGS, "==>" LDAP_XSTRING(ndb_back_modrdn) "(%s,%s,%s)\n", op->o_req_dn.bv_val,
+        op->oq_modrdn.rs_newrdn.bv_val, op->oq_modrdn.rs_newSup ? op->oq_modrdn.rs_newSup->bv_val : "NULL");
 
   ctrls[num_ctrls] = NULL;
 
@@ -82,8 +81,7 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
       attrs_free(e.e_attrs);
       e.e_attrs = NULL;
     }
-    Debug(LDAP_DEBUG_TRACE,
-          "==>" LDAP_XSTRING(ndb_back_modrdn) ": retrying...\n");
+    Debug(LDAP_DEBUG_TRACE, "==>" LDAP_XSTRING(ndb_back_modrdn) ": retrying...\n");
     if (slap_get_op_abandon(op)) {
       rs->sr_err = SLAPD_ABANDON;
       goto return_results;
@@ -105,8 +103,7 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
   NA.txn = NA.ndb->startTransaction();
   rs->sr_text = NULL;
   if (!NA.txn) {
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(ndb_back_modrdn) ": startTransaction failed: %s (%d)\n",
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(ndb_back_modrdn) ": startTransaction failed: %s (%d)\n",
           NA.ndb->getNdbError().message, NA.ndb->getNdbError().code);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "internal error";
@@ -120,8 +117,7 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
   case 0:
     break;
   case LDAP_NO_SUCH_OBJECT:
-    Debug(LDAP_DEBUG_ARGS, "<=- ndb_back_modrdn: no such object %s\n",
-          op->o_req_dn.bv_val);
+    Debug(LDAP_DEBUG_ARGS, "<=- ndb_back_modrdn: no such object %s\n", op->o_req_dn.bv_val);
     rs->sr_matched = matched.bv_val;
     if (NA.ocs)
       ndb_check_referral(op, rs, &NA);
@@ -150,8 +146,7 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
     goto return_results;
   }
 
-  if (get_assert(op) &&
-      (test_filter(op, &e, (Filter *)get_assertion(op)) != LDAP_COMPARE_TRUE)) {
+  if (get_assert(op) && (test_filter(op, &e, (Filter *)get_assertion(op)) != LDAP_COMPARE_TRUE)) {
     rs->sr_err = LDAP_ASSERTION_FAILED;
     goto return_results;
   }
@@ -168,18 +163,14 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
   /* Can't do it if we have kids */
   rs->sr_err = ndb_has_children(&NA, &rc);
   if (rs->sr_err) {
-    Debug(
-        LDAP_DEBUG_ARGS,
-        "<=- " LDAP_XSTRING(ndb_back_modrdn) ": has_children failed: %s (%d)\n",
-        NA.txn->getNdbError().message, NA.txn->getNdbError().code);
+    Debug(LDAP_DEBUG_ARGS, "<=- " LDAP_XSTRING(ndb_back_modrdn) ": has_children failed: %s (%d)\n",
+          NA.txn->getNdbError().message, NA.txn->getNdbError().code);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "internal error";
     goto return_results;
   }
   if (rc == LDAP_COMPARE_TRUE) {
-    Debug(LDAP_DEBUG_ARGS,
-          "<=- " LDAP_XSTRING(ndb_back_modrdn) ": non-leaf %s\n",
-          op->o_req_dn.bv_val);
+    Debug(LDAP_DEBUG_ARGS, "<=- " LDAP_XSTRING(ndb_back_modrdn) ": non-leaf %s\n", op->o_req_dn.bv_val);
     rs->sr_err = LDAP_NOT_ALLOWED_ON_NONLEAF;
     rs->sr_text = "subtree rename not supported";
     goto return_results;
@@ -189,8 +180,7 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
     /* entry is a referral, don't allow modrdn */
     rs->sr_ref = get_entry_referrals(op, &e);
 
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(ndb_back_modrdn) ": entry %s is referral\n", e.e_dn);
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(ndb_back_modrdn) ": entry %s is referral\n", e.e_dn);
 
     rs->sr_err = LDAP_REFERRAL, rs->sr_matched = op->o_req_dn.bv_val;
     rs->sr_flags = REP_REF_MUSTBEFREED;
@@ -208,9 +198,7 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
   }
 
   /* check parent for "children" acl */
-  rs->sr_err = access_allowed(
-      op, &e2, children, NULL,
-      op->oq_modrdn.rs_newSup == NULL ? ACL_WRITE : ACL_WDEL, NULL);
+  rs->sr_err = access_allowed(op, &e2, children, NULL, op->oq_modrdn.rs_newSup == NULL ? ACL_WRITE : ACL_WDEL, NULL);
 
   if (!rs->sr_err) {
     rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
@@ -225,8 +213,7 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
         e2.e_name.bv_val);
 
   if (op->oq_modrdn.rs_newSup != NULL) {
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(ndb_back_modrdn) ": new parent \"%s\" requested...\n",
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(ndb_back_modrdn) ": new parent \"%s\" requested...\n",
           op->oq_modrdn.rs_newSup->bv_val);
 
     /*  newSuperior == oldParent? */
@@ -261,9 +248,7 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
       case 0:
         break;
       case LDAP_NO_SUCH_OBJECT:
-        Debug(LDAP_DEBUG_TRACE,
-              LDAP_XSTRING(ndb_back_modrdn) ": newSup(ndn=%s) not here!\n",
-              np_ndn->bv_val);
+        Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(ndb_back_modrdn) ": newSup(ndn=%s) not here!\n", np_ndn->bv_val);
         rs->sr_text = "new superior not found";
         goto return_results;
 #if 0
@@ -294,8 +279,7 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
 
         if (is_entry_alias(&e2)) {
           /* parent is an alias, don't allow move */
-          Debug(LDAP_DEBUG_TRACE,
-                LDAP_XSTRING(ndb_back_modrdn) ": entry is alias\n");
+          Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(ndb_back_modrdn) ": entry is alias\n");
           rs->sr_text = "new superior is an alias";
           rs->sr_err = LDAP_ALIAS_PROBLEM;
           goto return_results;
@@ -303,8 +287,7 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
 
         if (is_entry_referral(&e2)) {
           /* parent is a referral, don't allow move */
-          Debug(LDAP_DEBUG_TRACE,
-                LDAP_XSTRING(ndb_back_modrdn) ": entry is referral\n");
+          Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(ndb_back_modrdn) ": entry is referral\n");
           rs->sr_text = "new superior is a referral";
           rs->sr_err = LDAP_OTHER;
           goto return_results;
@@ -315,16 +298,13 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
     /* check newSuperior for "children" acl */
     rs->sr_err = access_allowed(op, &e2, children, NULL, ACL_WADD, NULL);
     if (!rs->sr_err) {
-      Debug(LDAP_DEBUG_TRACE,
-            LDAP_XSTRING(ndb_back_modrdn) ": no wr to newSup children\n");
+      Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(ndb_back_modrdn) ": no wr to newSup children\n");
       rs->sr_text = "no write access to new superior's children";
       rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
       goto return_results;
     }
 
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(ndb_back_modrdn) ": wr to new parent OK id=%ld\n",
-          (long)e2.e_id);
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(ndb_back_modrdn) ": wr to new parent OK id=%ld\n", (long)e2.e_id);
   }
 
   /* Build target dn and make sure target entry doesn't exist already. */
@@ -336,8 +316,7 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
     build_new_dn(&new_ndn, &e2.e_nname, &op->oq_modrdn.rs_nnewrdn, NULL);
   }
 
-  Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(ndb_back_modrdn) ": new ndn=%s\n",
-        new_ndn.bv_val);
+  Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(ndb_back_modrdn) ": new ndn=%s\n", new_ndn.bv_val);
 
   /* Allow rename to same DN */
   if (!bvmatch(&new_ndn, &e.e_nname)) {
@@ -373,8 +352,7 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
       ctrls[num_ctrls] = NULL;
     }
     if (slap_read_controls(op, rs, &e, &slap_pre_read_bv, preread_ctrl)) {
-      Debug(LDAP_DEBUG_TRACE,
-            "<=- " LDAP_XSTRING(ndb_back_modrdn) ": pre-read failed!\n");
+      Debug(LDAP_DEBUG_TRACE, "<=- " LDAP_XSTRING(ndb_back_modrdn) ": pre-read failed!\n");
       if (op->o_preread & SLAP_CONTROL_CRITICAL) {
         /* FIXME: is it correct to abort
          * operation if control fails? */
@@ -386,8 +364,7 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
   /* delete old DN */
   rs->sr_err = ndb_entry_del_info(op->o_bd, &NA);
   if (rs->sr_err != 0) {
-    Debug(LDAP_DEBUG_TRACE,
-          "<=- " LDAP_XSTRING(ndb_back_modrdn) ": dn2id del failed: %s (%d)\n",
+    Debug(LDAP_DEBUG_TRACE, "<=- " LDAP_XSTRING(ndb_back_modrdn) ": dn2id del failed: %s (%d)\n",
           NA.txn->getNdbError().message, NA.txn->getNdbError().code);
 #if 0
 		switch( rs->sr_err ) {
@@ -408,8 +385,7 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
   /* add new DN */
   rs->sr_err = ndb_entry_put_info(op->o_bd, &NA2, 0);
   if (rs->sr_err != 0) {
-    Debug(LDAP_DEBUG_TRACE,
-          "<=- " LDAP_XSTRING(ndb_back_modrdn) ": dn2id add failed: %s (%d)\n",
+    Debug(LDAP_DEBUG_TRACE, "<=- " LDAP_XSTRING(ndb_back_modrdn) ": dn2id add failed: %s (%d)\n",
           NA.txn->getNdbError().message, NA.txn->getNdbError().code);
 #if 0
 		switch( rs->sr_err ) {
@@ -426,8 +402,7 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
   /* modify entry */
   rs->sr_err = ndb_modify_internal(op, &NA2, &rs->sr_text, textbuf, textlen);
   if (rs->sr_err != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_TRACE,
-          "<=- " LDAP_XSTRING(ndb_back_modrdn) ": modify failed: %s (%d)\n",
+    Debug(LDAP_DEBUG_TRACE, "<=- " LDAP_XSTRING(ndb_back_modrdn) ": modify failed: %s (%d)\n",
           NA.txn->getNdbError().message, NA.txn->getNdbError().code);
 #if 0
 		switch( rs->sr_err ) {
@@ -447,8 +422,7 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
       ctrls[num_ctrls] = NULL;
     }
     if (slap_read_controls(op, rs, &e2, &slap_post_read_bv, postread_ctrl)) {
-      Debug(LDAP_DEBUG_TRACE,
-            "<=- " LDAP_XSTRING(ndb_back_modrdn) ": post-read failed!\n");
+      Debug(LDAP_DEBUG_TRACE, "<=- " LDAP_XSTRING(ndb_back_modrdn) ": post-read failed!\n");
       if (op->o_postread & SLAP_CONTROL_CRITICAL) {
         /* FIXME: is it correct to abort
          * operation if control fails? */
@@ -458,15 +432,13 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
   }
 
   if (op->o_noop) {
-    if ((rs->sr_err = NA.txn->execute(NdbTransaction::Rollback,
-                                      NdbOperation::AbortOnError, 1)) != 0) {
+    if ((rs->sr_err = NA.txn->execute(NdbTransaction::Rollback, NdbOperation::AbortOnError, 1)) != 0) {
       rs->sr_text = "txn_abort (no-op) failed";
     } else {
       rs->sr_err = LDAP_X_NO_OPERATION;
     }
   } else {
-    if ((rs->sr_err = NA.txn->execute(NdbTransaction::Commit,
-                                      NdbOperation::AbortOnError, 1)) != 0) {
+    if ((rs->sr_err = NA.txn->execute(NdbTransaction::Commit, NdbOperation::AbortOnError, 1)) != 0) {
       rs->sr_text = "txn_commit failed";
     } else {
       rs->sr_err = LDAP_SUCCESS;
@@ -474,18 +446,15 @@ int ndb_back_modrdn(Operation *op, SlapReply *rs) {
   }
 
   if (rs->sr_err != LDAP_SUCCESS && rs->sr_err != LDAP_X_NO_OPERATION) {
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(ndb_back_modrdn) ": txn_%s failed: %s (%d)\n",
-          op->o_noop ? "abort (no-op)" : "commit",
-          NA.txn->getNdbError().message, NA.txn->getNdbError().code);
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(ndb_back_modrdn) ": txn_%s failed: %s (%d)\n",
+          op->o_noop ? "abort (no-op)" : "commit", NA.txn->getNdbError().message, NA.txn->getNdbError().code);
     rs->sr_err = LDAP_OTHER;
     goto return_results;
   }
   NA.txn->close();
   NA.txn = NULL;
 
-  Debug(LDAP_DEBUG_TRACE,
-        LDAP_XSTRING(ndb_back_modrdn) ": rdn modified%s id=%08lx dn=\"%s\"\n",
+  Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(ndb_back_modrdn) ": rdn modified%s id=%08lx dn=\"%s\"\n",
         op->o_noop ? " (no-op)" : "", e.e_id, op->o_req_dn.bv_val);
 
   rs->sr_err = LDAP_SUCCESS;

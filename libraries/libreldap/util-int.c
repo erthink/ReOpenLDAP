@@ -59,13 +59,11 @@ extern int h_errno;
 ldap_pvt_thread_mutex_t ldap_int_resolv_mutex;
 ldap_pvt_thread_mutex_t ldap_int_hostname_mutex;
 
-#if defined(HAVE_GETHOSTBYNAME_R) && (GETHOSTBYNAME_R_NARGS < 5) ||            \
-    (6 < GETHOSTBYNAME_R_NARGS)
+#if defined(HAVE_GETHOSTBYNAME_R) && (GETHOSTBYNAME_R_NARGS < 5) || (6 < GETHOSTBYNAME_R_NARGS)
 /* Don't know how to handle this version, pretend it's not there */
 #undef HAVE_GETHOSTBYNAME_R
 #endif
-#if defined(HAVE_GETHOSTBYADDR_R) && (GETHOSTBYADDR_R_NARGS < 7) ||            \
-    (8 < GETHOSTBYADDR_R_NARGS)
+#if defined(HAVE_GETHOSTBYADDR_R) && (GETHOSTBYADDR_R_NARGS < 7) || (8 < GETHOSTBYADDR_R_NARGS)
 /* Don't know how to handle this version, pretend it's not there */
 #undef HAVE_GETHOSTBYADDR_R
 #endif
@@ -101,16 +99,14 @@ void ldap_pvt_gettime(struct lutil_tm *ltm) {
   ltm->tm_usec = tv.tv_usec;
 }
 
-size_t ldap_pvt_csnstr(char *buf, size_t len, unsigned int replica,
-                       unsigned int mod) {
+size_t ldap_pvt_csnstr(char *buf, size_t len, unsigned int replica, unsigned int mod) {
   struct lutil_tm tm;
   int n;
 
   ldap_pvt_gettime(&tm);
 
-  n = snprintf(buf, len, "%4d%02d%02d%02d%02d%02d.%06dZ#%06x#%03x#%06x",
-               tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour,
-               tm.tm_min, tm.tm_sec, tm.tm_usec, tm.tm_usub, replica, mod);
+  n = snprintf(buf, len, "%4d%02d%02d%02d%02d%02d.%06dZ#%06x#%03x#%06x", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+               tm.tm_hour, tm.tm_min, tm.tm_sec, tm.tm_usec, tm.tm_usub, replica, mod);
 
   if (n < 0)
     return 0;
@@ -120,8 +116,7 @@ size_t ldap_pvt_csnstr(char *buf, size_t len, unsigned int replica,
 #define BUFSTART (1024 - 32)
 #define BUFMAX (32 * 1024 - 32)
 
-#if defined(LDAP_R_COMPILE) ||                                                 \
-    defined(HAVE_GETHOSTBYNAME_R) && defined(HAVE_GETHOSTBYADDR_R)
+#if defined(LDAP_R_COMPILE) || defined(HAVE_GETHOSTBYNAME_R) && defined(HAVE_GETHOSTBYADDR_R)
 static char *safe_realloc(char **buf, int len);
 
 #if !(defined(HAVE_GETHOSTBYNAME_R) && defined(HAVE_GETHOSTBYADDR_R))
@@ -129,8 +124,7 @@ static int copy_hostent(struct hostent *res, char **buf, struct hostent *src);
 #endif
 #endif
 
-int ldap_pvt_gethostbyname_a(const char *name, struct hostent *resbuf,
-                             char **buf, struct hostent **result,
+int ldap_pvt_gethostbyname_a(const char *name, struct hostent *resbuf, char **buf, struct hostent **result,
                              int *herrno_ptr) {
 #if defined(HAVE_GETHOSTBYNAME_R)
 
@@ -149,8 +143,7 @@ int ldap_pvt_gethostbyname_a(const char *name, struct hostent *resbuf,
     r = gethostbyname_r(name, resbuf, *buf, buflen, result, herrno_ptr);
 #endif
 
-    Debug(LDAP_DEBUG_TRACE, "ldap_pvt_gethostbyname_a: host=%s, r=%d\n", name,
-          r);
+    Debug(LDAP_DEBUG_TRACE, "ldap_pvt_gethostbyname_a: host=%s, r=%d\n", name, r);
 
 #ifdef NETDB_INTERNAL
     if ((r < 0) && (*herrno_ptr == NETDB_INTERNAL) && (errno == ERANGE)) {
@@ -219,8 +212,7 @@ static const char *hp_strerror(int err) {
 }
 #endif
 
-int ldap_pvt_get_hname(const struct sockaddr *sa, int len, char *name,
-                       int namelen, char **err) {
+int ldap_pvt_get_hname(const struct sockaddr *sa, int len, char *name, int namelen, char **err) {
   int rc;
 #if defined(HAVE_GETNAMEINFO)
 
@@ -265,8 +257,7 @@ int ldap_pvt_get_hname(const struct sockaddr *sa, int len, char *name,
     hp = gethostbyaddr_r(addr, alen, sa->sa_family, &hb, buf, buflen, &h_errno);
     rc = (hp == NULL) ? -1 : 0;
 #else
-    rc = gethostbyaddr_r(addr, alen, sa->sa_family, &hb, buf, buflen, &hp,
-                         &h_errno);
+    rc = gethostbyaddr_r(addr, alen, sa->sa_family, &hb, buf, buflen, &hp, &h_errno);
 #endif
 #ifdef NETDB_INTERNAL
     if ((rc < 0) && (h_errno == NETDB_INTERNAL) && (errno == ERANGE)) {
@@ -300,8 +291,7 @@ int ldap_pvt_get_hname(const struct sockaddr *sa, int len, char *name,
 #endif /* !HAVE_GETNAMEINFO */
 }
 
-int ldap_pvt_gethostbyaddr_a(const char *addr, int len, int type,
-                             struct hostent *resbuf, char **buf,
+int ldap_pvt_gethostbyaddr_a(const char *addr, int len, int type, struct hostent *resbuf, char **buf,
                              struct hostent **result, int *herrno_ptr) {
 #if defined(HAVE_GETHOSTBYADDR_R)
 
@@ -314,12 +304,10 @@ int ldap_pvt_gethostbyaddr_a(const char *addr, int len, int type,
     if (safe_realloc(buf, buflen) == NULL)
       return r;
 #if (GETHOSTBYADDR_R_NARGS < 8)
-    *result =
-        gethostbyaddr_r(addr, len, type, resbuf, *buf, buflen, herrno_ptr);
+    *result = gethostbyaddr_r(addr, len, type, resbuf, *buf, buflen, herrno_ptr);
     r = (*result == NULL) ? -1 : 0;
 #else
-    r = gethostbyaddr_r(addr, len, type, resbuf, *buf, buflen, result,
-                        herrno_ptr);
+    r = gethostbyaddr_r(addr, len, type, resbuf, *buf, buflen, result, herrno_ptr);
 #endif
 
 #ifdef NETDB_INTERNAL
@@ -444,8 +432,7 @@ static int copy_hostent(struct hostent *res, char **buf, struct hostent *src) {
     total_addr_len = n_addr * src->h_length;
   }
 
-  total_len = (n_alias + n_addr + 2) * sizeof(char *) + total_addr_len +
-              total_alias_len + name_len;
+  total_len = (n_alias + n_addr + 2) * sizeof(char *) + total_addr_len + total_alias_len + name_len;
 
   if (safe_realloc(buf, total_len)) {
     tp = (char **)*buf;
@@ -511,8 +498,7 @@ char *ldap_pvt_get_fqdn(char *name) {
   return fqdn;
 }
 
-#if (defined(HAVE_GETADDRINFO) || defined(HAVE_GETNAMEINFO)) &&                \
-    !defined(HAVE_GAI_STRERROR)
+#if (defined(HAVE_GETADDRINFO) || defined(HAVE_GETNAMEINFO)) && !defined(HAVE_GAI_STRERROR)
 char *ldap_pvt_gai_strerror(int code) {
   static struct {
     int code;

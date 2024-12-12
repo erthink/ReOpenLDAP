@@ -35,8 +35,7 @@ int monitor_back_compare(Operation *op, SlapReply *rs) {
   if (e == NULL) {
     rs->sr_err = LDAP_NO_SUCH_OBJECT;
     if (matched) {
-      if (!access_allowed_mask(op, matched, slap_schema.si_ad_entry, NULL,
-                               ACL_DISCLOSE, NULL, NULL)) {
+      if (!access_allowed_mask(op, matched, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL, NULL)) {
         /* do nothing */;
       } else {
         rs->sr_matched = matched->e_dn;

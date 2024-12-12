@@ -34,8 +34,8 @@
 #include "rwm.h"
 #include "lutil.h"
 
-int rwm_map_config(struct ldapmap *oc_map, struct ldapmap *at_map,
-                   const char *fname, int lineno, int argc, char **argv) {
+int rwm_map_config(struct ldapmap *oc_map, struct ldapmap *at_map, const char *fname, int lineno, int argc,
+                   char **argv) {
   struct ldapmap *map;
   struct ldapmapping *mapping;
   char *src, *dst;
@@ -89,11 +89,8 @@ int rwm_map_config(struct ldapmap *oc_map, struct ldapmap *at_map,
     dst = (strcmp(argv[3], "*") == 0 ? src : argv[3]);
   }
 
-  if ((map == at_map) && (strcasecmp(src, "objectclass") == 0 ||
-                          strcasecmp(dst, "objectclass") == 0)) {
-    Debug(LDAP_DEBUG_ANY,
-          "%s: line %d: objectclass attribute cannot be mapped\n", fname,
-          lineno);
+  if ((map == at_map) && (strcasecmp(src, "objectclass") == 0 || strcasecmp(dst, "objectclass") == 0)) {
+    Debug(LDAP_DEBUG_ANY, "%s: line %d: objectclass attribute cannot be mapped\n", fname, lineno);
     return 1;
   }
 
@@ -142,9 +139,7 @@ int rwm_map_config(struct ldapmap *oc_map, struct ldapmap *at_map,
 
       mapping[0].m_dst_oc = oc_bvfind_undef(&mapping[0].m_dst);
       if (mapping[0].m_dst_oc == NULL) {
-        Debug(LDAP_DEBUG_ANY,
-              "%s: line %d: unable to mimic destination objectClass '%s'\n",
-              fname, lineno, dst);
+        Debug(LDAP_DEBUG_ANY, "%s: line %d: unable to mimic destination objectClass '%s'\n", fname, lineno, dst);
         goto error_return;
       }
     }
@@ -170,13 +165,10 @@ int rwm_map_config(struct ldapmap *oc_map, struct ldapmap *at_map,
          * and add it here.
          */
 
-        rc = slap_bv2undef_ad(&mapping[0].m_src, &mapping[0].m_src_ad, &text,
-                              SLAP_AD_PROXIED);
+        rc = slap_bv2undef_ad(&mapping[0].m_src, &mapping[0].m_src_ad, &text, SLAP_AD_PROXIED);
         if (rc != LDAP_SUCCESS) {
           char prefix[1024];
-          snprintf(prefix, sizeof(prefix),
-                   "%s: line %d: source attributeType '%s': %d", fname, lineno,
-                   src, rc);
+          snprintf(prefix, sizeof(prefix), "%s: line %d: source attributeType '%s': %d", fname, lineno, src, rc);
           Debug(LDAP_DEBUG_ANY, "%s (%s)\n", prefix, text ? text : "null");
           goto error_return;
         }
@@ -191,13 +183,10 @@ int rwm_map_config(struct ldapmap *oc_map, struct ldapmap *at_map,
             "is not defined in schema\n",
             fname, lineno, dst);
 
-      rc = slap_bv2undef_ad(&mapping[0].m_dst, &mapping[0].m_dst_ad, &text,
-                            SLAP_AD_PROXIED);
+      rc = slap_bv2undef_ad(&mapping[0].m_dst, &mapping[0].m_dst_ad, &text, SLAP_AD_PROXIED);
       if (rc != LDAP_SUCCESS) {
         char prefix[1024];
-        snprintf(prefix, sizeof(prefix),
-                 "%s: line %d: destination attributeType '%s': %d", fname,
-                 lineno, dst, rc);
+        snprintf(prefix, sizeof(prefix), "%s: line %d: destination attributeType '%s': %d", fname, lineno, dst, rc);
         Debug(LDAP_DEBUG_ANY, "%s (%s)\n", prefix, text ? text : "null");
         goto error_return;
       }
@@ -205,21 +194,17 @@ int rwm_map_config(struct ldapmap *oc_map, struct ldapmap *at_map,
     mapping[1].m_src_ad = mapping[0].m_dst_ad;
   }
 
-  if ((src[0] != '\0' &&
-       avl_find(map->map, (caddr_t)mapping, rwm_mapping_cmp) != NULL) ||
+  if ((src[0] != '\0' && avl_find(map->map, (caddr_t)mapping, rwm_mapping_cmp) != NULL) ||
       avl_find(map->remap, (caddr_t)&mapping[1], rwm_mapping_cmp) != NULL) {
-    Debug(LDAP_DEBUG_ANY, "%s: line %d: duplicate mapping found.\n", fname,
-          lineno);
+    Debug(LDAP_DEBUG_ANY, "%s: line %d: duplicate mapping found.\n", fname, lineno);
     /* FIXME: free stuff */
     goto error_return;
   }
 
   if (src[0] != '\0') {
-    avl_insert(&map->map, (caddr_t)&mapping[0], rwm_mapping_cmp,
-               rwm_mapping_dup);
+    avl_insert(&map->map, (caddr_t)&mapping[0], rwm_mapping_cmp, rwm_mapping_dup);
   }
-  avl_insert(&map->remap, (caddr_t)&mapping[1], rwm_mapping_cmp,
-             rwm_mapping_dup);
+  avl_insert(&map->remap, (caddr_t)&mapping[1], rwm_mapping_cmp, rwm_mapping_dup);
 
 success_return:;
   return rc;
@@ -244,8 +229,7 @@ static char *rwm_suffix_massage_regexize(const char *s) {
   for (i = 0, p = s; (r = strchr(p, ',')) != NULL; p = r + 1, i++)
     ;
 
-  res = ch_calloc(sizeof(char), strlen(s) + STRLENOF("((.+),)?") +
-                                    STRLENOF("[ ]?") * i + STRLENOF("$") + 1);
+  res = ch_calloc(sizeof(char), strlen(s) + STRLENOF("((.+),)?") + STRLENOF("[ ]?") * i + STRLENOF("$") + 1);
 
   ptr = lutil_strcopy(res, "((.+),)?");
   for (i = 0, p = s; (r = strchr(p, ',')) != NULL; p = r + 1, i++) {
@@ -288,8 +272,7 @@ static char *rwm_suffix_massage_patternize(const char *s, const char *p) {
   return res;
 }
 
-int rwm_suffix_massage_config(struct rewrite_info *info, struct berval *pvnc,
-                              struct berval *nvnc, struct berval *prnc,
+int rwm_suffix_massage_config(struct rewrite_info *info, struct berval *pvnc, struct berval *nvnc, struct berval *prnc,
                               struct berval *nrnc) {
   char *rargv[5];
   int line = 0;

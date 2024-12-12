@@ -38,12 +38,9 @@ void backsql_PrintErrors(SQLHENV henv, SQLHDBC hdbc, SQLHSTMT sth, int rc) {
 
   Debug(LDAP_DEBUG_TRACE, "Return code: %d\n", rc);
 
-  for (; rc = SQLError(henv, hdbc, sth, state, &iSqlCode, msg,
-                       SQL_MAX_MESSAGE_LENGTH - 1, &len),
-         BACKSQL_SUCCESS(rc);) {
-    Debug(LDAP_DEBUG_TRACE,
-          "   nativeErrCode=%d SQLengineState=%s msg=\"%s\"\n", (int)iSqlCode,
-          state, msg);
+  for (;
+       rc = SQLError(henv, hdbc, sth, state, &iSqlCode, msg, SQL_MAX_MESSAGE_LENGTH - 1, &len), BACKSQL_SUCCESS(rc);) {
+    Debug(LDAP_DEBUG_TRACE, "   nativeErrCode=%d SQLengineState=%s msg=\"%s\"\n", (int)iSqlCode, state, msg);
   }
 }
 
@@ -68,8 +65,7 @@ backsql_Prepare(SQLHDBC dbh, SQLHSTMT *sth, const char *query, int timeout) {
     SQLGetInfo(dbh, SQL_DRIVER_NAME, drv_name, sizeof(drv_name), &len);
 
 #ifdef BACKSQL_TRACE
-    Debug(LDAP_DEBUG_TRACE, "backsql_Prepare(): driver name=\"%s\"\n",
-          drv_name);
+    Debug(LDAP_DEBUG_TRACE, "backsql_Prepare(): driver name=\"%s\"\n", drv_name);
 #endif /* BACKSQL_TRACE */
 
     ldap_pvt_str2upper(drv_name);
@@ -150,8 +146,7 @@ backsql_BindRowAsStrings_x(SQLHSTMT sth, BACKSQL_ROW_NTS *row, void *ctx) {
           (int)row->ncols);
 #endif /* BACKSQL_TRACE */
 
-    row->col_names =
-        (BerVarray)ber_memcalloc_x(row->ncols + 1, sizeof(struct berval), ctx);
+    row->col_names = (BerVarray)ber_memcalloc_x(row->ncols + 1, sizeof(struct berval), ctx);
     if (row->col_names == NULL) {
       goto nomem;
     }
@@ -161,8 +156,7 @@ backsql_BindRowAsStrings_x(SQLHSTMT sth, BACKSQL_ROW_NTS *row, void *ctx) {
       goto nomem;
     }
 
-    row->col_type =
-        (SQLSMALLINT *)ber_memcalloc_x(row->ncols, sizeof(SQLSMALLINT), ctx);
+    row->col_type = (SQLSMALLINT *)ber_memcalloc_x(row->ncols, sizeof(SQLSMALLINT), ctx);
     if (row->col_type == NULL) {
       goto nomem;
     }
@@ -199,8 +193,7 @@ backsql_BindRowAsStrings_x(SQLHSTMT sth, BACKSQL_ROW_NTS *row, void *ctx) {
     for (i = 0; i < row->ncols; i++) {
       SQLSMALLINT TargetType;
 
-      rc = SQLDescribeCol(sth, (SQLSMALLINT)(i + 1), &colname[0],
-                          (SQLUINTEGER)(sizeof(colname) - 1), &name_len,
+      rc = SQLDescribeCol(sth, (SQLSMALLINT)(i + 1), &colname[0], (SQLUINTEGER)(sizeof(colname) - 1), &name_len,
                           &col_type, &col_prec, &col_scale, &col_null);
       /* FIXME: test rc? */
 
@@ -246,8 +239,7 @@ backsql_BindRowAsStrings_x(SQLHSTMT sth, BACKSQL_ROW_NTS *row, void *ctx) {
         TargetType = SQL_C_CHAR;
       }
 
-      rc = SQLBindCol(sth, (SQLUSMALLINT)(i + 1), TargetType,
-                      (SQLPOINTER)row->cols[i], col_prec + 1,
+      rc = SQLBindCol(sth, (SQLUSMALLINT)(i + 1), TargetType, (SQLPOINTER)row->cols[i], col_prec + 1,
                       &row->value_len[i]);
 
       /* FIXME: test rc? */
@@ -265,9 +257,7 @@ backsql_BindRowAsStrings_x(SQLHSTMT sth, BACKSQL_ROW_NTS *row, void *ctx) {
 }
 
 RETCODE
-backsql_BindRowAsStrings(SQLHSTMT sth, BACKSQL_ROW_NTS *row) {
-  return backsql_BindRowAsStrings_x(sth, row, NULL);
-}
+backsql_BindRowAsStrings(SQLHSTMT sth, BACKSQL_ROW_NTS *row) { return backsql_BindRowAsStrings_x(sth, row, NULL); }
 
 RETCODE
 backsql_FreeRow_x(BACKSQL_ROW_NTS *row, void *ctx) {
@@ -362,15 +352,13 @@ static int backsql_open_db_handle(backsql_info *bi, SQLHDBC *dbhp) {
     return LDAP_UNAVAILABLE;
   }
 
-  rc = SQLConnect(*dbhp, (SQLCHAR *)bi->sql_dbname, SQL_NTS,
-                  (SQLCHAR *)bi->sql_dbuser, SQL_NTS,
+  rc = SQLConnect(*dbhp, (SQLCHAR *)bi->sql_dbname, SQL_NTS, (SQLCHAR *)bi->sql_dbuser, SQL_NTS,
                   (SQLCHAR *)bi->sql_dbpasswd, SQL_NTS);
   if (rc != SQL_SUCCESS) {
     Debug(LDAP_DEBUG_TRACE,
           "backsql_open_db_handle(): "
           "SQLConnect() to database \"%s\" %s.\n",
-          bi->sql_dbname,
-          rc == SQL_SUCCESS_WITH_INFO ? "succeeded with info" : "failed");
+          bi->sql_dbname, rc == SQL_SUCCESS_WITH_INFO ? "succeeded with info" : "failed");
     backsql_PrintErrors(bi->sql_db_env, *dbhp, SQL_NULL_HENV, rc);
     if (rc != SQL_SUCCESS_WITH_INFO) {
       SQLFreeConnect(*dbhp);
@@ -382,9 +370,7 @@ static int backsql_open_db_handle(backsql_info *bi, SQLHDBC *dbhp) {
    * TimesTen : Turn off autocommit.  We must explicitly
    * commit any transactions.
    */
-  SQLSetConnectOption(*dbhp, SQL_AUTOCOMMIT,
-                      BACKSQL_AUTOCOMMIT_ON(bi) ? SQL_AUTOCOMMIT_ON
-                                                : SQL_AUTOCOMMIT_OFF);
+  SQLSetConnectOption(*dbhp, SQL_AUTOCOMMIT, BACKSQL_AUTOCOMMIT_ON(bi) ? SQL_AUTOCOMMIT_ON : SQL_AUTOCOMMIT_OFF);
 
   /*
    * See if this connection is to TimesTen.  If it is,
@@ -395,8 +381,7 @@ static int backsql_open_db_handle(backsql_info *bi, SQLHDBC *dbhp) {
   DBMSName[0] = '\0';
   rc = SQLGetInfo(*dbhp, SQL_DBMS_NAME, (PTR)&DBMSName, sizeof(DBMSName), NULL);
   if (rc == SQL_SUCCESS) {
-    if (strcmp(DBMSName, "TimesTen") == 0 ||
-        strcmp(DBMSName, "Front-Tier") == 0) {
+    if (strcmp(DBMSName, "TimesTen") == 0 || strcmp(DBMSName, "Front-Tier") == 0) {
       Debug(LDAP_DEBUG_TRACE, "backsql_open_db_handle(): "
                               "TimesTen database!\n");
       bi->sql_flags |= BSQLF_USE_REVERSE_DN;
@@ -419,16 +404,13 @@ static int backsql_open_db_handle(backsql_info *bi, SQLHDBC *dbhp) {
 
 static void *backsql_db_conn_dummy;
 
-static void backsql_db_conn_keyfree(void *key, void *data) {
-  (void)backsql_close_db_handle((SQLHDBC)data);
-}
+static void backsql_db_conn_keyfree(void *key, void *data) { (void)backsql_close_db_handle((SQLHDBC)data); }
 
 int backsql_free_db_conn(Operation *op, SQLHDBC dbh) {
   Debug(LDAP_DEBUG_TRACE, "==>backsql_free_db_conn()\n");
 
   (void)backsql_close_db_handle(dbh);
-  ldap_pvt_thread_pool_setkey(op->o_threadctx, &backsql_db_conn_dummy,
-                              (void *)SQL_NULL_HDBC, backsql_db_conn_keyfree,
+  ldap_pvt_thread_pool_setkey(op->o_threadctx, &backsql_db_conn_dummy, (void *)SQL_NULL_HDBC, backsql_db_conn_keyfree,
                               NULL, NULL);
 
   Debug(LDAP_DEBUG_TRACE, "<==backsql_free_db_conn()\n");
@@ -449,8 +431,7 @@ int backsql_get_db_conn(Operation *op, SQLHDBC *dbhp) {
   if (op->o_threadctx) {
     void *data = NULL;
 
-    ldap_pvt_thread_pool_getkey(op->o_threadctx, &backsql_db_conn_dummy, &data,
-                                NULL);
+    ldap_pvt_thread_pool_getkey(op->o_threadctx, &backsql_db_conn_dummy, &data, NULL);
     dbh = (SQLHDBC)data;
 
   } else {
@@ -466,8 +447,7 @@ int backsql_get_db_conn(Operation *op, SQLHDBC *dbhp) {
     if (op->o_threadctx) {
       void *data = (void *)dbh;
 
-      ldap_pvt_thread_pool_setkey(op->o_threadctx, &backsql_db_conn_dummy, data,
-                                  backsql_db_conn_keyfree, NULL, NULL);
+      ldap_pvt_thread_pool_setkey(op->o_threadctx, &backsql_db_conn_dummy, data, backsql_db_conn_keyfree, NULL, NULL);
 
     } else {
       bi->sql_dbh = dbh;

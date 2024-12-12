@@ -20,8 +20,7 @@
 #include "slap.h"
 #include "lutil.h"
 
-int modify_add_values(Entry *e, Modification *mod, int permissive,
-                      const char **text, char *textbuf, size_t textlen) {
+int modify_add_values(Entry *e, Modification *mod, int permissive, const char **text, char *textbuf, size_t textlen) {
   int rc;
   const char *op;
   Attribute *a;
@@ -61,8 +60,7 @@ int modify_add_values(Entry *e, Modification *mod, int permissive,
       /* do not allow add of additional attribute
               if no equality rule exists */
       *text = textbuf;
-      snprintf(textbuf, textlen, "modify/%s: %s: no equality matching rule", op,
-               mod->sm_desc->ad_cname.bv_val);
+      snprintf(textbuf, textlen, "modify/%s: %s: no equality matching rule", op, mod->sm_desc->ad_cname.bv_val);
       return LDAP_INAPPROPRIATE_MATCHING;
     }
 
@@ -88,8 +86,7 @@ int modify_add_values(Entry *e, Modification *mod, int permissive,
       flags = SLAP_MR_EQUALITY | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX;
     }
     if (mod->sm_nvalues) {
-      flags |= SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH |
-               SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH;
+      flags |= SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH | SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH;
       cvals = mod->sm_nvalues;
     } else {
       cvals = mod->sm_values;
@@ -102,8 +99,7 @@ int modify_add_values(Entry *e, Modification *mod, int permissive,
         if (!permissive) {
           /* value already exists */
           *text = textbuf;
-          snprintf(textbuf, textlen, "modify/%s: %s: value #%u already exists",
-                   op, mod->sm_desc->ad_cname.bv_val, i);
+          snprintf(textbuf, textlen, "modify/%s: %s: value #%u already exists", op, mod->sm_desc->ad_cname.bv_val, i);
           return LDAP_TYPE_OR_VALUE_EXISTS;
         }
       } else if (rc != LDAP_NO_SUCH_ATTRIBUTE) {
@@ -150,21 +146,18 @@ int modify_add_values(Entry *e, Modification *mod, int permissive,
   if (rc != 0) {
     /* this should return result of attr_merge */
     *text = textbuf;
-    snprintf(textbuf, textlen, "modify/%s: %s: merge error (%d)", op,
-             mod->sm_desc->ad_cname.bv_val, rc);
+    snprintf(textbuf, textlen, "modify/%s: %s: merge error (%d)", op, mod->sm_desc->ad_cname.bv_val, rc);
     return LDAP_OTHER;
   }
 
   return LDAP_SUCCESS;
 }
 
-int modify_delete_values(Entry *e, Modification *m, int perm, const char **text,
-                         char *textbuf, size_t textlen) {
+int modify_delete_values(Entry *e, Modification *m, int perm, const char **text, char *textbuf, size_t textlen) {
   return modify_delete_vindex(e, m, perm, text, textbuf, textlen, NULL);
 }
 
-int modify_delete_vindex(Entry *e, Modification *mod, int permissive,
-                         const char **text, char *textbuf, size_t textlen,
+int modify_delete_vindex(Entry *e, Modification *mod, int permissive, const char **text, char *textbuf, size_t textlen,
                          int *idx) {
   Attribute *a;
   MatchingRule *mr = mod->sm_desc->ad_type->sat_equality;
@@ -187,8 +180,7 @@ int modify_delete_vindex(Entry *e, Modification *mod, int permissive,
       rc = LDAP_SUCCESS;
     } else if (rc != LDAP_SUCCESS) {
       *text = textbuf;
-      snprintf(textbuf, textlen, "modify/delete: %s: no such attribute",
-               mod->sm_desc->ad_cname.bv_val);
+      snprintf(textbuf, textlen, "modify/delete: %s: no such attribute", mod->sm_desc->ad_cname.bv_val);
       rc = LDAP_NO_SUCH_ATTRIBUTE;
     }
     return rc;
@@ -210,8 +202,7 @@ int modify_delete_vindex(Entry *e, Modification *mod, int permissive,
     /* disallow specific attributes from being deleted if
             no equality rule */
     *text = textbuf;
-    snprintf(textbuf, textlen, "modify/delete: %s: no equality matching rule",
-             mod->sm_desc->ad_cname.bv_val);
+    snprintf(textbuf, textlen, "modify/delete: %s: no equality matching rule", mod->sm_desc->ad_cname.bv_val);
     rc = LDAP_INAPPROPRIATE_MATCHING;
     goto return_result;
   }
@@ -223,8 +214,7 @@ int modify_delete_vindex(Entry *e, Modification *mod, int permissive,
       goto return_result;
     }
     *text = textbuf;
-    snprintf(textbuf, textlen, "modify/delete: %s: no such attribute",
-             mod->sm_desc->ad_cname.bv_val);
+    snprintf(textbuf, textlen, "modify/delete: %s: no such attribute", mod->sm_desc->ad_cname.bv_val);
     rc = LDAP_NO_SUCH_ATTRIBUTE;
     goto return_result;
   }
@@ -237,8 +227,7 @@ int modify_delete_vindex(Entry *e, Modification *mod, int permissive,
     flags = SLAP_MR_EQUALITY | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX;
   }
   if (mod->sm_nvalues) {
-    flags |= SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH |
-             SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH;
+    flags |= SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH | SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH;
     cvals = mod->sm_nvalues;
   } else {
     cvals = mod->sm_values;
@@ -256,13 +245,11 @@ int modify_delete_vindex(Entry *e, Modification *mod, int permissive,
         continue;
       }
       *text = textbuf;
-      snprintf(textbuf, textlen, "modify/delete: %s: no such value",
-               mod->sm_desc->ad_cname.bv_val);
+      snprintf(textbuf, textlen, "modify/delete: %s: no such value", mod->sm_desc->ad_cname.bv_val);
       goto return_result;
     } else {
       *text = textbuf;
-      snprintf(textbuf, textlen, "modify/delete: %s: matching rule failed",
-               mod->sm_desc->ad_cname.bv_val);
+      snprintf(textbuf, textlen, "modify/delete: %s: matching rule failed", mod->sm_desc->ad_cname.bv_val);
       goto return_result;
     }
   }
@@ -311,8 +298,7 @@ int modify_delete_vindex(Entry *e, Modification *mod, int permissive,
     if (attr_delete(&e->e_attrs, mod->sm_desc)) {
       /* Can never happen */
       *text = textbuf;
-      snprintf(textbuf, textlen, "modify/delete: %s: no such attribute",
-               mod->sm_desc->ad_cname.bv_val);
+      snprintf(textbuf, textlen, "modify/delete: %s: no such attribute", mod->sm_desc->ad_cname.bv_val);
       rc = LDAP_NO_SUCH_ATTRIBUTE;
     }
   } else if (a->a_desc->ad_type->sat_flags & SLAP_AT_ORDERED_VAL) {
@@ -325,8 +311,8 @@ return_result:
   return rc;
 }
 
-int modify_replace_values(Entry *e, Modification *mod, int permissive,
-                          const char **text, char *textbuf, size_t textlen) {
+int modify_replace_values(Entry *e, Modification *mod, int permissive, const char **text, char *textbuf,
+                          size_t textlen) {
   (void)attr_delete(&e->e_attrs, mod->sm_desc);
 
   if (mod->sm_values) {
@@ -336,8 +322,8 @@ int modify_replace_values(Entry *e, Modification *mod, int permissive,
   return LDAP_SUCCESS;
 }
 
-int modify_increment_values(Entry *e, Modification *mod, int permissive,
-                            const char **text, char *textbuf, size_t textlen) {
+int modify_increment_values(Entry *e, Modification *mod, int permissive, const char **text, char *textbuf,
+                            size_t textlen) {
   Attribute *a;
   const char *syn_oid;
 
@@ -348,12 +334,10 @@ int modify_increment_values(Entry *e, Modification *mod, int permissive,
 
       modReplace.sm_op = LDAP_MOD_REPLACE;
 
-      return modify_add_values(e, &modReplace, permissive, text, textbuf,
-                               textlen);
+      return modify_add_values(e, &modReplace, permissive, text, textbuf, textlen);
     } else {
       *text = textbuf;
-      snprintf(textbuf, textlen, "modify/increment: %s: no such attribute",
-               mod->sm_desc->ad_cname.bv_val);
+      snprintf(textbuf, textlen, "modify/increment: %s: no such attribute", mod->sm_desc->ad_cname.bv_val);
       return LDAP_NO_SUCH_ATTRIBUTE;
     }
   }
@@ -396,10 +380,8 @@ int modify_increment_values(Entry *e, Modification *mod, int permissive,
     }
 
   } else {
-    snprintf(
-        textbuf, textlen,
-        "modify/increment: %s: increment not supported for value syntax %s",
-        mod->sm_desc->ad_cname.bv_val, syn_oid ? syn_oid : "(NULL)");
+    snprintf(textbuf, textlen, "modify/increment: %s: increment not supported for value syntax %s",
+             mod->sm_desc->ad_cname.bv_val, syn_oid ? syn_oid : "(NULL)");
     return LDAP_CONSTRAINT_VIOLATION;
   }
 

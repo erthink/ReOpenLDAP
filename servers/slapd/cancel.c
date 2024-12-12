@@ -98,8 +98,7 @@ int cancel_extop(Operation *op, SlapReply *rs) {
     rc = LDAP_NO_SUCH_OPERATION;
     rs->sr_text = "message ID not found";
 
-  } else if (o->o_tag == LDAP_REQ_BIND || o->o_tag == LDAP_REQ_UNBIND ||
-             o->o_tag == LDAP_REQ_ABANDON) {
+  } else if (o->o_tag == LDAP_REQ_BIND || o->o_tag == LDAP_REQ_UNBIND || o->o_tag == LDAP_REQ_ABANDON) {
     rc = LDAP_CANNOT_CANCEL;
 
   } else if (slap_get_op_cancel(o) != SLAP_CANCEL_NONE) {

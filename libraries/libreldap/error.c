@@ -61,9 +61,9 @@ char *ldap_err2string(int err) {
   Debug(LDAP_DEBUG_TRACE, "ldap_err2string\n");
 
   switch (err) {
-#define C(code, message)                                                       \
-  case code:                                                                   \
-    m = message;                                                               \
+#define C(code, message)                                                                                               \
+  case code:                                                                                                           \
+    m = message;                                                                                                       \
     break
 
     /* LDAPv3 (RFC 4511) codes */
@@ -74,14 +74,12 @@ char *ldap_err2string(int err) {
     C(LDAP_SIZELIMIT_EXCEEDED, N_("Size limit exceeded"));
     C(LDAP_COMPARE_FALSE, N_("Compare False"));
     C(LDAP_COMPARE_TRUE, N_("Compare True"));
-    C(LDAP_STRONG_AUTH_NOT_SUPPORTED,
-      N_("Authentication method not supported"));
+    C(LDAP_STRONG_AUTH_NOT_SUPPORTED, N_("Authentication method not supported"));
     C(LDAP_STRONG_AUTH_REQUIRED, N_("Strong(er) authentication required"));
 
     C(LDAP_REFERRAL, N_("Referral"));
     C(LDAP_ADMINLIMIT_EXCEEDED, N_("Administrative limit exceeded"));
-    C(LDAP_UNAVAILABLE_CRITICAL_EXTENSION,
-      N_("Critical extension is unavailable"));
+    C(LDAP_UNAVAILABLE_CRITICAL_EXTENSION, N_("Critical extension is unavailable"));
     C(LDAP_CONFIDENTIALITY_REQUIRED, N_("Confidentiality required"));
     C(LDAP_SASL_BIND_IN_PROGRESS, N_("SASL bind in progress"));
 
@@ -224,8 +222,7 @@ int ldap_result2error(LDAP *ld, LDAPMessage *r, int freeit) {
  *     response         [11] OCTET STRING OPTIONAL }
  *
  */
-int ldap_parse_result(LDAP *ld, LDAPMessage *r, int *errcodep,
-                      char **matcheddnp, char **errmsgp, char ***referralsp,
+int ldap_parse_result(LDAP *ld, LDAPMessage *r, int *errcodep, char **matcheddnp, char **errmsgp, char ***referralsp,
                       LDAPControl ***serverctrls, int freeit) {
   LDAPMessage *lm;
   ber_int_t errcode = LDAP_SUCCESS;
@@ -297,8 +294,7 @@ int ldap_parse_result(LDAP *ld, LDAPMessage *r, int *errcodep,
   } else {
     ber_len_t len;
 
-    tag = ber_scanf(ber, "{iAA" /*}*/, &ld->ld_errno, &ld->ld_matched,
-                    &ld->ld_error);
+    tag = ber_scanf(ber, "{iAA" /*}*/, &ld->ld_errno, &ld->ld_matched, &ld->ld_error);
 
     if (tag != LBER_ERROR) {
       /* peek for referrals */
@@ -323,8 +319,7 @@ int ldap_parse_result(LDAP *ld, LDAPMessage *r, int *errcodep,
           tag = ber_scanf(ber, "x");
         }
 
-        if (tag != LBER_ERROR &&
-            ber_peek_tag(ber, &len) == LDAP_TAG_EXOP_RES_VALUE) {
+        if (tag != LBER_ERROR && ber_peek_tag(ber, &len) == LDAP_TAG_EXOP_RES_VALUE) {
           /* skip 'em */
           tag = ber_scanf(ber, "x");
         }

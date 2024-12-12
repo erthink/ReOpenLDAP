@@ -55,16 +55,14 @@ int backsql_compare(Operation *op, SlapReply *rs) {
    * Get the entry
    */
   bsi.bsi_e = &e;
-  rc = backsql_init_search(&bsi, &op->o_req_ndn, LDAP_SCOPE_BASE, (time_t)(-1),
-                           NULL, dbh, op, rs, anlist,
+  rc = backsql_init_search(&bsi, &op->o_req_ndn, LDAP_SCOPE_BASE, (time_t)(-1), NULL, dbh, op, rs, anlist,
                            (BACKSQL_ISF_MATCHED | BACKSQL_ISF_GET_ENTRY));
   switch (rc) {
   case LDAP_SUCCESS:
     break;
 
   case LDAP_REFERRAL:
-    if (manageDSAit && !BER_BVISNULL(&bsi.bsi_e->e_nname) &&
-        dn_match(&op->o_req_ndn, &bsi.bsi_e->e_nname)) {
+    if (manageDSAit && !BER_BVISNULL(&bsi.bsi_e->e_nname) && dn_match(&op->o_req_ndn, &bsi.bsi_e->e_nname)) {
       rs->sr_err = LDAP_SUCCESS;
       rs_send_cleanup(rs);
       break;
@@ -72,14 +70,12 @@ int backsql_compare(Operation *op, SlapReply *rs) {
     /* fallthru */
 
   default:
-    Debug(LDAP_DEBUG_TRACE,
-          "backsql_compare(): "
-          "could not retrieve compareDN ID - no such entry\n");
+    Debug(LDAP_DEBUG_TRACE, "backsql_compare(): "
+                            "could not retrieve compareDN ID - no such entry\n");
     goto return_results;
   }
 
-  if (get_assert(op) &&
-      (test_filter(op, &e, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
+  if (get_assert(op) && (test_filter(op, &e, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
     rs->sr_err = LDAP_ASSERTION_FAILED;
     goto return_results;
   }
@@ -104,8 +100,7 @@ int backsql_compare(Operation *op, SlapReply *rs) {
     *ap = nrs.sr_operational_attrs;
   }
 
-  if (!access_allowed(op, &e, op->oq_compare.rs_ava->aa_desc,
-                      &op->oq_compare.rs_ava->aa_value, ACL_COMPARE, NULL)) {
+  if (!access_allowed(op, &e, op->oq_compare.rs_ava->aa_desc, &op->oq_compare.rs_ava->aa_value, ACL_COMPARE, NULL)) {
     rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
     goto return_results;
   }
@@ -114,11 +109,8 @@ int backsql_compare(Operation *op, SlapReply *rs) {
   for (a = attrs_find(e.e_attrs, op->oq_compare.rs_ava->aa_desc); a != NULL;
        a = attrs_find(a->a_next, op->oq_compare.rs_ava->aa_desc)) {
     rs->sr_err = LDAP_COMPARE_FALSE;
-    if (attr_valfind(a,
-                     SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH |
-                         SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH,
-                     &op->oq_compare.rs_ava->aa_value, NULL,
-                     op->o_tmpmemctx) == 0) {
+    if (attr_valfind(a, SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH | SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH,
+                     &op->oq_compare.rs_ava->aa_value, NULL, op->o_tmpmemctx) == 0) {
       rs->sr_err = LDAP_COMPARE_TRUE;
       break;
     }
@@ -131,9 +123,7 @@ return_results:;
     break;
 
   default:
-    if (!BER_BVISNULL(&e.e_nname) &&
-        !access_allowed(op, &e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE,
-                        NULL)) {
+    if (!BER_BVISNULL(&e.e_nname) && !access_allowed(op, &e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL)) {
       rs->sr_err = LDAP_NO_SUCH_OBJECT;
       rs->sr_text = NULL;
     }

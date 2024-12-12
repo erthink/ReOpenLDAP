@@ -72,10 +72,9 @@ int slapmodify(int argc, char **argv) {
   op->o_hdr = &opbuf.ob_hdr;
   op->o_bd = be;
 
-  if (!be->be_entry_open || !be->be_entry_close || !be->be_entry_put ||
-      !be->be_dn2id_get || !be->be_entry_get || !be->be_entry_modify) {
-    fprintf(stderr, "%s: database doesn't support necessary operations.\n",
-            progname);
+  if (!be->be_entry_open || !be->be_entry_close || !be->be_entry_put || !be->be_dn2id_get || !be->be_entry_get ||
+      !be->be_entry_modify) {
+    fprintf(stderr, "%s: database doesn't support necessary operations.\n", progname);
     if (dryrun) {
       fprintf(stderr, "\t(dry) continuing...\n");
 
@@ -110,16 +109,13 @@ int slapmodify(int argc, char **argv) {
 #endif
       && !fstat(fileno(ldiffp->fp), &stat_buf) && S_ISREG(stat_buf.st_mode)) {
     enable_meter =
-        !lutil_meter_open(&meter, &lutil_meter_text_display,
-                          &lutil_meter_linear_estimator, stat_buf.st_size);
+        !lutil_meter_open(&meter, &lutil_meter_text_display, &lutil_meter_linear_estimator, stat_buf.st_size);
   } else {
     enable_meter = 0;
   }
 
   /* nextline is the line number of the end of the current entry */
-  for (lineno = 1;
-       (ldifrc = ldif_read_record(ldiffp, &nextline, &buf, &lmax)) > 0;
-       lineno = nextline + 1) {
+  for (lineno = 1; (ldifrc = ldif_read_record(ldiffp, &nextline, &buf, &lmax)) > 0; lineno = nextline + 1) {
     BackendDB *bd;
     Entry *e_orig = NULL, *e = NULL;
     struct berval rbuf;
@@ -145,12 +141,10 @@ int slapmodify(int argc, char **argv) {
     bvtext.bv_val = textbuf;
     bvtext.bv_val[0] = '\0';
 
-    local_rc = ldap_parse_ldif_record(&rbuf, lineno, &lr, "slapmodify",
-                                      LDIF_NO_CONTROLS);
+    local_rc = ldap_parse_ldif_record(&rbuf, lineno, &lr, "slapmodify", LDIF_NO_CONTROLS);
 
     if (local_rc != LDAP_SUCCESS) {
-      fprintf(stderr, "%s: could not parse entry (line=%lu)\n", progname,
-              lineno);
+      fprintf(stderr, "%s: could not parse entry (line=%lu)\n", progname, lineno);
       rc = EXIT_FAILURE;
       if (continuemode)
         continue;
@@ -174,8 +168,7 @@ int slapmodify(int argc, char **argv) {
       /* backend does not support delete, fallthru */
 
     case LDAP_REQ_MODRDN:
-      fprintf(stderr, "%s: request 0x%lx not supported (line=%lu)\n", progname,
-              (unsigned long)lr.lr_op, lineno);
+      fprintf(stderr, "%s: request 0x%lx not supported (line=%lu)\n", progname, (unsigned long)lr.lr_op, lineno);
       rc = EXIT_FAILURE;
       goto cleanup;
 
@@ -187,8 +180,7 @@ int slapmodify(int argc, char **argv) {
 
     local_rc = dnNormalize(0, NULL, NULL, &lr.lr_dn, &ndn, NULL);
     if (local_rc != LDAP_SUCCESS) {
-      fprintf(stderr, "%s: DN=\"%s\" normalization failed (line=%lu)\n",
-              progname, lr.lr_dn.bv_val, lineno);
+      fprintf(stderr, "%s: DN=\"%s\" normalization failed (line=%lu)\n", progname, lr.lr_dn.bv_val, lineno);
       rc = EXIT_FAILURE;
       goto cleanup;
     }
@@ -211,8 +203,7 @@ int slapmodify(int argc, char **argv) {
 
         assert(bdtmp != NULL);
 
-        fprintf(stderr, "; did you mean to use database #%d (%s)?", dbidx,
-                bd->be_suffix[0].bv_val);
+        fprintf(stderr, "; did you mean to use database #%d (%s)?", dbidx, bd->be_suffix[0].bv_val);
       }
       fprintf(stderr, "\n");
       rc = EXIT_FAILURE;
@@ -225,8 +216,7 @@ int slapmodify(int argc, char **argv) {
       fprintf(stderr,
               "%s: line %lu: "
               "database #%d (%s) not configured to hold \"%s\"",
-              progname, lineno, dbnum, be->be_suffix[0].bv_val,
-              lr.lr_dn.bv_val);
+              progname, lineno, dbnum, be->be_suffix[0].bv_val, lr.lr_dn.bv_val);
       if (bd) {
         BackendDB *bdtmp;
         int dbidx = 0;
@@ -238,8 +228,7 @@ int slapmodify(int argc, char **argv) {
 
         assert(bdtmp != NULL);
 
-        fprintf(stderr, "; did you mean to use database #%d (%s)?", dbidx,
-                bd->be_suffix[0].bv_val);
+        fprintf(stderr, "; did you mean to use database #%d (%s)?", dbidx, bd->be_suffix[0].bv_val);
 
       } else {
         fprintf(stderr, "; no database configured for that naming context");
@@ -272,8 +261,7 @@ int slapmodify(int argc, char **argv) {
     }
 
     if (rc != LDAP_SUCCESS) {
-      fprintf(stderr, "%s: no such entry \"%s\" in database (lineno=%lu)\n",
-              progname, ndn.bv_val, lineno);
+      fprintf(stderr, "%s: no such entry \"%s\" in database (lineno=%lu)\n", progname, ndn.bv_val, lineno);
       rc = EXIT_FAILURE;
       goto cleanup;
     }
@@ -292,8 +280,7 @@ int slapmodify(int argc, char **argv) {
           fprintf(stderr,
                   "%s: slap_str2ad(\"%s\") failed for entry \"%s\" (%d: %s, "
                   "lineno=%lu)\n",
-                  progname, mod->mod_type, lr.lr_dn.bv_val, local_rc, text,
-                  lineno);
+                  progname, mod->mod_type, lr.lr_dn.bv_val, local_rc, text, lineno);
           rc = EXIT_FAILURE;
           goto cleanup;
         }
@@ -307,8 +294,7 @@ int slapmodify(int argc, char **argv) {
           assert(mods.sm_desc->ad_type->sat_syntax->ssyn_validate != NULL);
         }
 
-        if (mods.sm_desc->ad_type->sat_equality &&
-            mods.sm_desc->ad_type->sat_equality->smr_normalize) {
+        if (mods.sm_desc->ad_type->sat_equality && mods.sm_desc->ad_type->sat_equality->smr_normalize) {
           normalize = 1;
         }
 
@@ -341,17 +327,15 @@ int slapmodify(int argc, char **argv) {
           }
 
           if (pretty) {
-            local_rc = ordered_value_pretty(mods.sm_desc, &bv,
-                                            &mods.sm_values[i], NULL);
+            local_rc = ordered_value_pretty(mods.sm_desc, &bv, &mods.sm_values[i], NULL);
 
           } else {
             local_rc = ordered_value_validate(mods.sm_desc, &bv, 0);
           }
 
           if (local_rc != LDAP_SUCCESS) {
-            fprintf(stderr, "%s: DN=\"%s\": unable to %s attr=%s value #%d\n",
-                    progname, e->e_dn, pretty ? "prettify" : "validate",
-                    mods.sm_desc->ad_cname.bv_val, i);
+            fprintf(stderr, "%s: DN=\"%s\": unable to %s attr=%s value #%d\n", progname, e->e_dn,
+                    pretty ? "prettify" : "validate", mods.sm_desc->ad_cname.bv_val, i);
             /* handle error */
             rc = EXIT_FAILURE;
             ber_bvarray_free(mods.sm_values);
@@ -364,14 +348,12 @@ int slapmodify(int argc, char **argv) {
           }
 
           if (normalize) {
-            local_rc = ordered_value_normalize(
-                SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, mods.sm_desc,
-                mods.sm_desc->ad_type->sat_equality, &mods.sm_values[i],
-                &mods.sm_nvalues[i], NULL);
+            local_rc = ordered_value_normalize(SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, mods.sm_desc,
+                                               mods.sm_desc->ad_type->sat_equality, &mods.sm_values[i],
+                                               &mods.sm_nvalues[i], NULL);
             if (local_rc != LDAP_SUCCESS) {
-              fprintf(stderr,
-                      "%s: DN=\"%s\": unable to normalize attr=%s value #%d\n",
-                      progname, e->e_dn, mods.sm_desc->ad_cname.bv_val, i);
+              fprintf(stderr, "%s: DN=\"%s\": unable to normalize attr=%s value #%d\n", progname, e->e_dn,
+                      mods.sm_desc->ad_cname.bv_val, i);
               /* handle error */
               rc = EXIT_FAILURE;
               ber_bvarray_free(mods.sm_values);
@@ -398,13 +380,11 @@ int slapmodify(int argc, char **argv) {
           break;
 
         case LDAP_MOD_REPLACE:
-          local_rc =
-              modify_replace_values(e, &mods, 0, &text, textbuf, textlen);
+          local_rc = modify_replace_values(e, &mods, 0, &text, textbuf, textlen);
           break;
 
         case LDAP_MOD_INCREMENT:
-          local_rc =
-              modify_increment_values(e, &mods, 0, &text, textbuf, textlen);
+          local_rc = modify_increment_values(e, &mods, 0, &text, textbuf, textlen);
           break;
         }
 
@@ -412,15 +392,14 @@ int slapmodify(int argc, char **argv) {
         ber_bvarray_free(mods.sm_nvalues);
 
         if (local_rc != LDAP_SUCCESS) {
-          fprintf(stderr, "%s: DN=\"%s\": unable to modify attr=%s\n", progname,
-                  e->e_dn, mods.sm_desc->ad_cname.bv_val);
+          fprintf(stderr, "%s: DN=\"%s\": unable to modify attr=%s\n", progname, e->e_dn,
+                  mods.sm_desc->ad_cname.bv_val);
           rc = EXIT_FAILURE;
           goto cleanup;
         }
       }
 
-      rc = slap_tool_entry_check(progname, op, e, lineno, &text, textbuf,
-                                 textlen);
+      rc = slap_tool_entry_check(progname, op, e, lineno, &text, textbuf, textlen);
       if (rc != LDAP_SUCCESS) {
         rc = EXIT_FAILURE;
         goto cleanup;

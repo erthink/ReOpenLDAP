@@ -28,9 +28,7 @@
  *	DelRequest ::= DistinguishedName,
  */
 
-BerElement *ldap_build_delete_req(LDAP *ld, const char *dn,
-                                  LDAPControl **sctrls, LDAPControl **cctrls,
-                                  int *msgidp) {
+BerElement *ldap_build_delete_req(LDAP *ld, const char *dn, LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
   BerElement *ber;
   int rc;
 
@@ -75,8 +73,7 @@ BerElement *ldap_build_delete_req(LDAP *ld, const char *dn,
  * Example:
  *	rc = ldap_delete( ld, dn, sctrls, cctrls, msgidp );
  */
-int ldap_delete_ext(LDAP *ld, const char *dn, LDAPControl **sctrls,
-                    LDAPControl **cctrls, int *msgidp) {
+int ldap_delete_ext(LDAP *ld, const char *dn, LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
   int rc;
   BerElement *ber;
   ber_int_t id;
@@ -106,8 +103,7 @@ int ldap_delete_ext(LDAP *ld, const char *dn, LDAPControl **sctrls,
   return LDAP_SUCCESS;
 }
 
-int ldap_delete_ext_s(LDAP *ld, const char *dn, LDAPControl **sctrls,
-                      LDAPControl **cctrls) {
+int ldap_delete_ext_s(LDAP *ld, const char *dn, LDAPControl **sctrls, LDAPControl **cctrls) {
   int msgid = 0;
   int rc;
   LDAPMessage *res;
@@ -117,9 +113,7 @@ int ldap_delete_ext_s(LDAP *ld, const char *dn, LDAPControl **sctrls,
   if (rc != LDAP_SUCCESS)
     return (ld->ld_errno);
 
-  if (ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res) ==
-          -1 ||
-      !res)
+  if (ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res) == -1 || !res)
     return (ld->ld_errno);
 
   return (ldap_result2error(ld, res, 1));
@@ -144,10 +138,7 @@ int ldap_delete(LDAP *ld, const char *dn) {
 
   Debug(LDAP_DEBUG_TRACE, "ldap_delete\n");
 
-  return ldap_delete_ext(ld, dn, NULL, NULL, &msgid) == LDAP_SUCCESS ? msgid
-                                                                     : -1;
+  return ldap_delete_ext(ld, dn, NULL, NULL, &msgid) == LDAP_SUCCESS ? msgid : -1;
 }
 
-int ldap_delete_s(LDAP *ld, const char *dn) {
-  return ldap_delete_ext_s(ld, dn, NULL, NULL);
-}
+int ldap_delete_s(LDAP *ld, const char *dn) { return ldap_delete_ext_s(ld, dn, NULL, NULL); }

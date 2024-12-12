@@ -34,8 +34,7 @@ extern "C" int ndb_back_bind(Operation *op, SlapReply *rs) {
 
   NdbArgs NA;
 
-  Debug(LDAP_DEBUG_ARGS, "==> " LDAP_XSTRING(ndb_back_bind) ": dn: %s\n",
-        op->o_req_dn.bv_val);
+  Debug(LDAP_DEBUG_ARGS, "==> " LDAP_XSTRING(ndb_back_bind) ": dn: %s\n", op->o_req_dn.bv_val);
 
   /* allow noauth binds */
   switch (be_rootdn_bind(op, NULL)) {
@@ -61,8 +60,7 @@ dn2entry_retry:
   NA.txn = NA.ndb->startTransaction();
   rs->sr_text = NULL;
   if (!NA.txn) {
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(ndb_back_bind) ": startTransaction failed: %s (%d)\n",
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(ndb_back_bind) ": startTransaction failed: %s (%d)\n",
           NA.ndb->getNdbError().message, NA.ndb->getNdbError().code);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "internal error";

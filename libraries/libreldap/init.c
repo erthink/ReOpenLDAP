@@ -36,10 +36,8 @@
 #include "lutil.h"
 
 struct ldapoptions ldap_int_global_options = {
-    LDAP_UNINITIALIZED,
-    LDAP_DEBUG_NONE LDAP_LDO_NULLARG LDAP_LDO_CONNECTIONLESS_NULLARG
-        LDAP_LDO_TLS_NULLARG LDAP_LDO_SASL_NULLARG LDAP_LDO_GSSAPI_NULLARG
-            LDAP_LDO_MUTEX_NULLARG};
+    LDAP_UNINITIALIZED, LDAP_DEBUG_NONE LDAP_LDO_NULLARG LDAP_LDO_CONNECTIONLESS_NULLARG LDAP_LDO_TLS_NULLARG
+                            LDAP_LDO_SASL_NULLARG LDAP_LDO_GSSAPI_NULLARG LDAP_LDO_MUTEX_NULLARG};
 
 #define ATTR_NONE 0
 #define ATTR_BOOL 1
@@ -61,12 +59,11 @@ struct ol_keyvalue {
   int value;
 };
 
-static const struct ol_keyvalue deref_kv[] = {
-    {"never", LDAP_DEREF_NEVER},
-    {"searching", LDAP_DEREF_SEARCHING},
-    {"finding", LDAP_DEREF_FINDING},
-    {"always", LDAP_DEREF_ALWAYS},
-    {NULL, 0}};
+static const struct ol_keyvalue deref_kv[] = {{"never", LDAP_DEREF_NEVER},
+                                              {"searching", LDAP_DEREF_SEARCHING},
+                                              {"finding", LDAP_DEREF_FINDING},
+                                              {"always", LDAP_DEREF_ALWAYS},
+                                              {NULL, 0}};
 
 static const struct ol_attribute {
   int useronly;
@@ -74,76 +71,66 @@ static const struct ol_attribute {
   const char *name;
   const void *data;
   size_t offset;
-} attrs[] = {
-    {0, ATTR_OPT_TV, "TIMEOUT", NULL, LDAP_OPT_TIMEOUT},
-    {0, ATTR_OPT_TV, "NETWORK_TIMEOUT", NULL, LDAP_OPT_NETWORK_TIMEOUT},
-    {0, ATTR_OPT_INT, "VERSION", NULL, LDAP_OPT_PROTOCOL_VERSION},
-    {0, ATTR_KV, "DEREF", deref_kv, /* or &deref_kv[0] */
-     offsetof(struct ldapoptions, ldo_deref)},
-    {0, ATTR_INT, "SIZELIMIT", NULL,
-     offsetof(struct ldapoptions, ldo_sizelimit)},
-    {0, ATTR_INT, "TIMELIMIT", NULL,
-     offsetof(struct ldapoptions, ldo_timelimit)},
-    {1, ATTR_STRING, "BINDDN", NULL,
-     offsetof(struct ldapoptions, ldo_defbinddn)},
-    {0, ATTR_STRING, "BASE", NULL, offsetof(struct ldapoptions, ldo_defbase)},
-    {0, ATTR_INT, "PORT", NULL, /* deprecated */
-     offsetof(struct ldapoptions, ldo_defport)},
-    {0, ATTR_OPTION, "HOST", NULL, LDAP_OPT_HOST_NAME}, /* deprecated */
-    {0, ATTR_OPTION, "URI", NULL, LDAP_OPT_URI},        /* replaces HOST/PORT */
-    {0, ATTR_BOOL, "REFERRALS", NULL, LDAP_BOOL_REFERRALS},
+} attrs[] = {{0, ATTR_OPT_TV, "TIMEOUT", NULL, LDAP_OPT_TIMEOUT},
+             {0, ATTR_OPT_TV, "NETWORK_TIMEOUT", NULL, LDAP_OPT_NETWORK_TIMEOUT},
+             {0, ATTR_OPT_INT, "VERSION", NULL, LDAP_OPT_PROTOCOL_VERSION},
+             {0, ATTR_KV, "DEREF", deref_kv, /* or &deref_kv[0] */
+              offsetof(struct ldapoptions, ldo_deref)},
+             {0, ATTR_INT, "SIZELIMIT", NULL, offsetof(struct ldapoptions, ldo_sizelimit)},
+             {0, ATTR_INT, "TIMELIMIT", NULL, offsetof(struct ldapoptions, ldo_timelimit)},
+             {1, ATTR_STRING, "BINDDN", NULL, offsetof(struct ldapoptions, ldo_defbinddn)},
+             {0, ATTR_STRING, "BASE", NULL, offsetof(struct ldapoptions, ldo_defbase)},
+             {0, ATTR_INT, "PORT", NULL, /* deprecated */
+              offsetof(struct ldapoptions, ldo_defport)},
+             {0, ATTR_OPTION, "HOST", NULL, LDAP_OPT_HOST_NAME}, /* deprecated */
+             {0, ATTR_OPTION, "URI", NULL, LDAP_OPT_URI},        /* replaces HOST/PORT */
+             {0, ATTR_BOOL, "REFERRALS", NULL, LDAP_BOOL_REFERRALS},
 #if 0
 	/* This should only be allowed via ldap_set_option(3) */
 	{0, ATTR_BOOL,		"RESTART",		NULL,	LDAP_BOOL_RESTART},
 #endif
 
 #ifdef HAVE_CYRUS_SASL
-    {0, ATTR_STRING, "SASL_MECH", NULL,
-     offsetof(struct ldapoptions, ldo_def_sasl_mech)},
-    {0, ATTR_STRING, "SASL_REALM", NULL,
-     offsetof(struct ldapoptions, ldo_def_sasl_realm)},
-    {1, ATTR_STRING, "SASL_AUTHCID", NULL,
-     offsetof(struct ldapoptions, ldo_def_sasl_authcid)},
-    {1, ATTR_STRING, "SASL_AUTHZID", NULL,
-     offsetof(struct ldapoptions, ldo_def_sasl_authzid)},
-    {0, ATTR_SASL, "SASL_SECPROPS", NULL, LDAP_OPT_X_SASL_SECPROPS},
-    {0, ATTR_BOOL, "SASL_NOCANON", NULL, LDAP_BOOL_SASL_NOCANON},
+             {0, ATTR_STRING, "SASL_MECH", NULL, offsetof(struct ldapoptions, ldo_def_sasl_mech)},
+             {0, ATTR_STRING, "SASL_REALM", NULL, offsetof(struct ldapoptions, ldo_def_sasl_realm)},
+             {1, ATTR_STRING, "SASL_AUTHCID", NULL, offsetof(struct ldapoptions, ldo_def_sasl_authcid)},
+             {1, ATTR_STRING, "SASL_AUTHZID", NULL, offsetof(struct ldapoptions, ldo_def_sasl_authzid)},
+             {0, ATTR_SASL, "SASL_SECPROPS", NULL, LDAP_OPT_X_SASL_SECPROPS},
+             {0, ATTR_BOOL, "SASL_NOCANON", NULL, LDAP_BOOL_SASL_NOCANON},
 #endif
 
 #ifdef HAVE_GSSAPI
-    {0, ATTR_GSSAPI, "GSSAPI_SIGN", NULL, LDAP_OPT_SIGN},
-    {0, ATTR_GSSAPI, "GSSAPI_ENCRYPT", NULL, LDAP_OPT_ENCRYPT},
-    {0, ATTR_GSSAPI, "GSSAPI_ALLOW_REMOTE_PRINCIPAL", NULL,
-     LDAP_OPT_X_GSSAPI_ALLOW_REMOTE_PRINCIPAL},
+             {0, ATTR_GSSAPI, "GSSAPI_SIGN", NULL, LDAP_OPT_SIGN},
+             {0, ATTR_GSSAPI, "GSSAPI_ENCRYPT", NULL, LDAP_OPT_ENCRYPT},
+             {0, ATTR_GSSAPI, "GSSAPI_ALLOW_REMOTE_PRINCIPAL", NULL, LDAP_OPT_X_GSSAPI_ALLOW_REMOTE_PRINCIPAL},
 #endif
 
 #ifdef WITH_TLS
-    {1, ATTR_TLS, "TLS_CERT", NULL, LDAP_OPT_X_TLS_CERTFILE},
-    {1, ATTR_TLS, "TLS_KEY", NULL, LDAP_OPT_X_TLS_KEYFILE},
-    {0, ATTR_TLS, "TLS_CACERT", NULL, LDAP_OPT_X_TLS_CACERTFILE},
-    {0, ATTR_TLS, "TLS_CACERTDIR", NULL, LDAP_OPT_X_TLS_CACERTDIR},
-    {0, ATTR_TLS, "TLS_REQCERT", NULL, LDAP_OPT_X_TLS_REQUIRE_CERT},
-    {0, ATTR_TLS, "TLS_RANDFILE", NULL, LDAP_OPT_X_TLS_RANDOM_FILE},
-    {0, ATTR_TLS, "TLS_CIPHER_SUITE", NULL, LDAP_OPT_X_TLS_CIPHER_SUITE},
-    {0, ATTR_TLS, "TLS_PROTOCOL_MIN", NULL, LDAP_OPT_X_TLS_PROTOCOL_MIN},
-    {0, ATTR_TLS, "TLS_PEERKEY_HASH", NULL, LDAP_OPT_X_TLS_PEERKEY_HASH},
+             {1, ATTR_TLS, "TLS_CERT", NULL, LDAP_OPT_X_TLS_CERTFILE},
+             {1, ATTR_TLS, "TLS_KEY", NULL, LDAP_OPT_X_TLS_KEYFILE},
+             {0, ATTR_TLS, "TLS_CACERT", NULL, LDAP_OPT_X_TLS_CACERTFILE},
+             {0, ATTR_TLS, "TLS_CACERTDIR", NULL, LDAP_OPT_X_TLS_CACERTDIR},
+             {0, ATTR_TLS, "TLS_REQCERT", NULL, LDAP_OPT_X_TLS_REQUIRE_CERT},
+             {0, ATTR_TLS, "TLS_RANDFILE", NULL, LDAP_OPT_X_TLS_RANDOM_FILE},
+             {0, ATTR_TLS, "TLS_CIPHER_SUITE", NULL, LDAP_OPT_X_TLS_CIPHER_SUITE},
+             {0, ATTR_TLS, "TLS_PROTOCOL_MIN", NULL, LDAP_OPT_X_TLS_PROTOCOL_MIN},
+             {0, ATTR_TLS, "TLS_PEERKEY_HASH", NULL, LDAP_OPT_X_TLS_PEERKEY_HASH},
 
 #if RELDAP_TLS == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
-    {0, ATTR_TLS, "TLS_CRLCHECK", NULL, LDAP_OPT_X_TLS_CRLCHECK},
+             {0, ATTR_TLS, "TLS_CRLCHECK", NULL, LDAP_OPT_X_TLS_CRLCHECK},
 #endif /* HAVE_OPENSSL_CRL */
 #if RELDAP_TLS == RELDAP_TLS_GNUTLS
-    {0, ATTR_TLS, "TLS_CRLFILE", NULL, LDAP_OPT_X_TLS_CRLFILE},
+             {0, ATTR_TLS, "TLS_CRLFILE", NULL, LDAP_OPT_X_TLS_CRLFILE},
 #endif /* RELDAP_TLS_GNUTLS */
 
 #endif /* WITH_TLS */
 
-    {0, ATTR_NONE, NULL, NULL, 0}};
+             {0, ATTR_NONE, NULL, NULL, 0}};
 
 #define MAX_LDAP_ATTR_LEN sizeof("GSSAPI_ALLOW_REMOTE_PRINCIPAL")
 #define MAX_LDAP_ENV_PREFIX_LEN 8
 
-static int ldap_int_conf_option(struct ldapoptions *gopts, char *cmd, char *opt,
-                                int userconf) {
+static int ldap_int_conf_option(struct ldapoptions *gopts, char *cmd, char *opt, int userconf) {
   int i;
 
   for (i = 0; attrs[i].type != ATTR_NONE; i++) {
@@ -159,8 +146,7 @@ static int ldap_int_conf_option(struct ldapoptions *gopts, char *cmd, char *opt,
 
     switch (attrs[i].type) {
     case ATTR_BOOL:
-      if ((strcasecmp(opt, "on") == 0) || (strcasecmp(opt, "yes") == 0) ||
-          (strcasecmp(opt, "true") == 0)) {
+      if ((strcasecmp(opt, "on") == 0) || (strcasecmp(opt, "yes") == 0) || (strcasecmp(opt, "true") == 0)) {
         LDAP_BOOL_SET(gopts, attrs[i].offset);
 
       } else {
@@ -340,9 +326,7 @@ static void openldap_ldap_init_w_conf(const char *file, int userconf) {
   fclose(fp);
 }
 
-static void openldap_ldap_init_w_sysconf(const char *file) {
-  openldap_ldap_init_w_conf(file, 0);
-}
+static void openldap_ldap_init_w_sysconf(const char *file) { openldap_ldap_init_w_conf(file, 0); }
 
 static void openldap_ldap_init_w_userconf(const char *file) {
   char *home;
@@ -379,8 +363,7 @@ static void openldap_ldap_init_w_userconf(const char *file) {
   }
 }
 
-static void openldap_ldap_init_w_env(struct ldapoptions *gopts,
-                                     const char *prefix) {
+static void openldap_ldap_init_w_env(struct ldapoptions *gopts, const char *prefix) {
   char buf[MAX_LDAP_ATTR_LEN + MAX_LDAP_ENV_PREFIX_LEN];
   int len;
   int i;
@@ -405,8 +388,7 @@ static void openldap_ldap_init_w_env(struct ldapoptions *gopts,
 
     switch (attrs[i].type) {
     case ATTR_BOOL:
-      if ((strcasecmp(value, "on") == 0) || (strcasecmp(value, "yes") == 0) ||
-          (strcasecmp(value, "true") == 0)) {
+      if ((strcasecmp(value, "on") == 0) || (strcasecmp(value, "yes") == 0) || (strcasecmp(value, "true") == 0)) {
         LDAP_BOOL_SET(gopts, attrs[i].offset);
 
       } else {
@@ -523,8 +505,7 @@ static void ldap_int_destroy_global_options(void) {
 /*
  * Initialize the global options structure with default values.
  */
-void ldap_int_initialize_global_options(struct ldapoptions *gopts,
-                                        int *dbglvl) {
+void ldap_int_initialize_global_options(struct ldapoptions *gopts, int *dbglvl) {
 #ifdef LDAP_R_COMPILE
   LDAP_PVT_MUTEX_FIRSTCREATE(gopts->ldo_mutex);
 #endif
@@ -582,8 +563,7 @@ void ldap_int_initialize_global_options(struct ldapoptions *gopts,
 
   gopts->ldo_sasl_secprops.max_ssf = INT_MAX;
   gopts->ldo_sasl_secprops.maxbufsize = SASL_MAX_BUFF_SIZE;
-  gopts->ldo_sasl_secprops.security_flags =
-      SASL_SEC_NOPLAINTEXT | SASL_SEC_NOANONYMOUS;
+  gopts->ldo_sasl_secprops.security_flags = SASL_SEC_NOPLAINTEXT | SASL_SEC_NOANONYMOUS;
 #endif
 
 #ifdef WITH_TLS
@@ -683,24 +663,20 @@ void ldap_int_initialize(struct ldapoptions *gopts, int *dbglvl) {
     char *altfile = getenv(LDAP_ENV_PREFIX "CONF");
 
     if (altfile != NULL) {
-      Debug(LDAP_DEBUG_TRACE, "ldap_init: %s env is %s\n",
-            LDAP_ENV_PREFIX "CONF", altfile);
+      Debug(LDAP_DEBUG_TRACE, "ldap_init: %s env is %s\n", LDAP_ENV_PREFIX "CONF", altfile);
       openldap_ldap_init_w_sysconf(altfile);
     } else
-      Debug(LDAP_DEBUG_TRACE, "ldap_init: %s env is NULL\n",
-            LDAP_ENV_PREFIX "CONF");
+      Debug(LDAP_DEBUG_TRACE, "ldap_init: %s env is NULL\n", LDAP_ENV_PREFIX "CONF");
   }
 
   {
     char *altfile = getenv(LDAP_ENV_PREFIX "RC");
 
     if (altfile != NULL) {
-      Debug(LDAP_DEBUG_TRACE, "ldap_init: %s env is %s\n", LDAP_ENV_PREFIX "RC",
-            altfile);
+      Debug(LDAP_DEBUG_TRACE, "ldap_init: %s env is %s\n", LDAP_ENV_PREFIX "RC", altfile);
       openldap_ldap_init_w_userconf(altfile);
     } else
-      Debug(LDAP_DEBUG_TRACE, "ldap_init: %s env is NULL\n",
-            LDAP_ENV_PREFIX "RC");
+      Debug(LDAP_DEBUG_TRACE, "ldap_init: %s env is NULL\n", LDAP_ENV_PREFIX "RC");
   }
 
   openldap_ldap_init_w_env(gopts, NULL);

@@ -43,18 +43,10 @@ struct lastmod_schema_t {
   AttributeDescription *lms_ad_lastmodEnabled;
 } lastmod_schema;
 
-enum lastmodType_e {
-  LASTMOD_ADD = 0,
-  LASTMOD_DELETE,
-  LASTMOD_EXOP,
-  LASTMOD_MODIFY,
-  LASTMOD_MODRDN,
-  LASTMOD_UNKNOWN
-};
+enum lastmodType_e { LASTMOD_ADD = 0, LASTMOD_DELETE, LASTMOD_EXOP, LASTMOD_MODIFY, LASTMOD_MODRDN, LASTMOD_UNKNOWN };
 
-struct berval lastmodType[] = {
-    BER_BVC("add"),    BER_BVC("delete"),  BER_BVC("exop"), BER_BVC("modify"),
-    BER_BVC("modrdn"), BER_BVC("unknown"), BER_BVNULL};
+struct berval lastmodType[] = {BER_BVC("add"),    BER_BVC("delete"),  BER_BVC("exop"), BER_BVC("modify"),
+                               BER_BVC("modrdn"), BER_BVC("unknown"), BER_BVNULL};
 
 static struct m_s {
   char *schema;
@@ -72,8 +64,7 @@ static struct m_s {
             "$ description "
             "$ seeAlso "
             ") )",
-            SLAP_OC_OPERATIONAL | SLAP_OC_HIDE,
-            offsetof(struct lastmod_schema_t, lms_oc_lastmod)},
+            SLAP_OC_OPERATIONAL | SLAP_OC_HIDE, offsetof(struct lastmod_schema_t, lms_oc_lastmod)},
            {NULL}},
   mat[] = {
       {"( 1.3.6.1.4.1.4203.666.1.28"
@@ -140,15 +131,13 @@ static int lastmod_compare(Operation *op, SlapReply *rs) {
 
   ldap_pvt_thread_mutex_lock(&lmi->lmi_entry_mutex);
 
-  if (get_assert(op) &&
-      (test_filter(op, lmi->lmi_e, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
+  if (get_assert(op) && (test_filter(op, lmi->lmi_e, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
     rs->sr_err = LDAP_ASSERTION_FAILED;
     goto return_results;
   }
 
-  rs->sr_err =
-      access_allowed(op, lmi->lmi_e, op->oq_compare.rs_ava->aa_desc,
-                     &op->oq_compare.rs_ava->aa_value, ACL_COMPARE, NULL);
+  rs->sr_err = access_allowed(op, lmi->lmi_e, op->oq_compare.rs_ava->aa_desc, &op->oq_compare.rs_ava->aa_value,
+                              ACL_COMPARE, NULL);
   if (!rs->sr_err) {
     rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
     goto return_results;
@@ -156,15 +145,13 @@ static int lastmod_compare(Operation *op, SlapReply *rs) {
 
   rs->sr_err = LDAP_NO_SUCH_ATTRIBUTE;
 
-  for (a = attr_find(lmi->lmi_e->e_attrs, op->oq_compare.rs_ava->aa_desc);
-       a != NULL; a = attr_find(a->a_next, op->oq_compare.rs_ava->aa_desc)) {
+  for (a = attr_find(lmi->lmi_e->e_attrs, op->oq_compare.rs_ava->aa_desc); a != NULL;
+       a = attr_find(a->a_next, op->oq_compare.rs_ava->aa_desc)) {
     rs->sr_err = LDAP_COMPARE_FALSE;
 
     if (value_find_ex(op->oq_compare.rs_ava->aa_desc,
-                      SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH |
-                          SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH,
-                      a->a_nvals, &op->oq_compare.rs_ava->aa_value,
-                      op->o_tmpmemctx) == 0) {
+                      SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH | SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH, a->a_nvals,
+                      &op->oq_compare.rs_ava->aa_value, op->o_tmpmemctx) == 0) {
       rs->sr_err = LDAP_COMPARE_TRUE;
       break;
     }
@@ -316,8 +303,7 @@ static int lastmod_op_func(Operation *op, SlapReply *rs) {
 
 return_referral:;
   op->o_bd->bd_info = (BackendInfo *)on->on_info;
-  rs->sr_ref =
-      referral_rewrite(default_referral, NULL, &op->o_req_dn, op->ors_scope);
+  rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn, op->ors_scope);
 
   if (!rs->sr_ref)
     rs->sr_ref = default_referral;
@@ -336,12 +322,9 @@ return_error:;
   return -1;
 }
 
-static int best_guess(Operation *op, struct berval *bv_entryCSN,
-                      struct berval *bv_nentryCSN,
-                      struct berval *bv_modifyTimestamp,
-                      struct berval *bv_nmodifyTimestamp,
-                      struct berval *bv_modifiersName,
-                      struct berval *bv_nmodifiersName) {
+static int best_guess(Operation *op, struct berval *bv_entryCSN, struct berval *bv_nentryCSN,
+                      struct berval *bv_modifyTimestamp, struct berval *bv_nmodifyTimestamp,
+                      struct berval *bv_modifiersName, struct berval *bv_nmodifiersName) {
   if (bv_entryCSN) {
     char csnbuf[LDAP_PVT_CSNSTR_BUFSIZE];
     struct berval entryCSN;
@@ -388,11 +371,9 @@ static int lastmod_update(Operation *op, SlapReply *rs) {
   lastmod_info_t *lmi = (lastmod_info_t *)on->on_bi.bi_private;
   Attribute *a;
   Modifications *ml = NULL;
-  struct berval bv_entryCSN = BER_BVNULL, bv_nentryCSN = BER_BVNULL,
-                bv_modifyTimestamp = BER_BVNULL,
-                bv_nmodifyTimestamp = BER_BVNULL, bv_modifiersName = BER_BVNULL,
-                bv_nmodifiersName = BER_BVNULL, bv_name = BER_BVNULL,
-                bv_nname = BER_BVNULL;
+  struct berval bv_entryCSN = BER_BVNULL, bv_nentryCSN = BER_BVNULL, bv_modifyTimestamp = BER_BVNULL,
+                bv_nmodifyTimestamp = BER_BVNULL, bv_modifiersName = BER_BVNULL, bv_nmodifiersName = BER_BVNULL,
+                bv_name = BER_BVNULL, bv_nname = BER_BVNULL;
   enum lastmodType_e lmt = LASTMOD_UNKNOWN;
   Entry *e = NULL;
   int rc = -1;
@@ -432,8 +413,8 @@ static int lastmod_update(Operation *op, SlapReply *rs) {
   case LDAP_REQ_DELETE:
     lmt = LASTMOD_DELETE;
 
-    best_guess(op, &bv_entryCSN, &bv_nentryCSN, &bv_modifyTimestamp,
-               &bv_nmodifyTimestamp, &bv_modifiersName, &bv_nmodifiersName);
+    best_guess(op, &bv_entryCSN, &bv_nentryCSN, &bv_modifyTimestamp, &bv_nmodifyTimestamp, &bv_modifiersName,
+               &bv_nmodifiersName);
 
     ber_dupbv(&bv_name, &op->o_req_dn);
     ber_dupbv(&bv_nname, &op->o_req_ndn);
@@ -444,8 +425,8 @@ static int lastmod_update(Operation *op, SlapReply *rs) {
 
     /* actually, password change is wrapped around a backend
      * call to modify, so it never shows up as an exop... */
-    best_guess(op, &bv_entryCSN, &bv_nentryCSN, &bv_modifyTimestamp,
-               &bv_nmodifyTimestamp, &bv_modifiersName, &bv_nmodifiersName);
+    best_guess(op, &bv_entryCSN, &bv_nentryCSN, &bv_modifyTimestamp, &bv_nmodifyTimestamp, &bv_modifiersName,
+               &bv_nmodifiersName);
 
     ber_dupbv(&bv_name, &op->o_req_dn);
     ber_dupbv(&bv_nname, &op->o_req_ndn);
@@ -495,8 +476,7 @@ static int lastmod_update(Operation *op, SlapReply *rs) {
 
     /* if rooted at global overlay, opattrs are not yet in place */
     if (BER_BVISNULL(&bv_modifiersName)) {
-      best_guess(op, NULL, NULL, NULL, NULL, &bv_modifiersName,
-                 &bv_nmodifiersName);
+      best_guess(op, NULL, NULL, NULL, NULL, &bv_modifiersName, &bv_nmodifiersName);
     }
 
     if (BER_BVISNULL(&bv_entryCSN)) {
@@ -504,8 +484,7 @@ static int lastmod_update(Operation *op, SlapReply *rs) {
     }
 
     if (BER_BVISNULL(&bv_modifyTimestamp)) {
-      best_guess(op, NULL, NULL, &bv_modifyTimestamp, &bv_nmodifyTimestamp,
-                 NULL, NULL);
+      best_guess(op, NULL, NULL, &bv_modifyTimestamp, &bv_nmodifyTimestamp, NULL, NULL);
     }
 
     ber_dupbv(&bv_name, &op->o_req_dn);
@@ -572,8 +551,8 @@ static int lastmod_update(Operation *op, SlapReply *rs) {
 
     /* if !bi_entry_get_rw || bi_entry_get_rw failed for any reason... */
     if (e == NULL) {
-      best_guess(op, &bv_entryCSN, &bv_nentryCSN, &bv_modifyTimestamp,
-                 &bv_nmodifyTimestamp, &bv_modifiersName, &bv_nmodifiersName);
+      best_guess(op, &bv_entryCSN, &bv_nentryCSN, &bv_modifyTimestamp, &bv_nmodifyTimestamp, &bv_modifiersName,
+                 &bv_nmodifiersName);
     }
 
     break;
@@ -712,8 +691,7 @@ static int lastmod_db_init(BackendDB *be, ConfigReply *cr) {
     /* schema integration */
     for (i = 0; mat[i].schema; i++) {
       int code;
-      AttributeDescription **ad = ((AttributeDescription **)&(
-          ((char *)&lastmod_schema)[mat[i].offset]));
+      AttributeDescription **ad = ((AttributeDescription **)&(((char *)&lastmod_schema)[mat[i].offset]));
       ad[0] = NULL;
 
       code = register_at(mat[i].schema, ad, 0);
@@ -726,8 +704,7 @@ static int lastmod_db_init(BackendDB *be, ConfigReply *cr) {
 
     for (i = 0; moc[i].schema; i++) {
       int code;
-      ObjectClass **Oc =
-          ((ObjectClass **)&(((char *)&lastmod_schema)[moc[i].offset]));
+      ObjectClass **Oc = ((ObjectClass **)&(((char *)&lastmod_schema)[moc[i].offset]));
 
       code = register_oc(moc[i].schema, Oc, 0);
       if (code) {
@@ -748,8 +725,7 @@ static int lastmod_db_init(BackendDB *be, ConfigReply *cr) {
   return 0;
 }
 
-static int lastmod_db_config(BackendDB *be, const char *fname, int lineno,
-                             int argc, char **argv) {
+static int lastmod_db_config(BackendDB *be, const char *fname, int lineno, int argc, char **argv) {
   slap_overinst *on = (slap_overinst *)be->bd_info;
   lastmod_info_t *lmi = (lastmod_info_t *)on->on_bi.bi_private;
 
@@ -809,36 +785,30 @@ static int lastmod_db_open(BackendDB *be, ConfigReply *cr) {
     ber_str2bv("Lastmod", 0, 1, &lmi->lmi_rdnvalue);
   }
 
-  snprintf(
-      buf, sizeof(buf),
-      "dn: cn=%s%s%s\n"
-      "objectClass: %s\n"
-      "structuralObjectClass: %s\n"
-      "cn: %s\n"
-      "description: This object contains the last modification to this "
-      "database\n"
-      "%s: cn=%s%s%s\n"
-      "%s: %s\n"
-      "%s: %s\n"
-      "createTimestamp: %s\n"
-      "creatorsName: %s\n"
-      "entryCSN: %s\n"
-      "modifyTimestamp: %s\n"
-      "modifiersName: %s\n"
-      "hasSubordinates: FALSE\n",
-      lmi->lmi_rdnvalue.bv_val, BER_BVISEMPTY(&be->be_suffix[0]) ? "" : ",",
-      be->be_suffix[0].bv_val, lastmod_schema.lms_oc_lastmod->soc_cname.bv_val,
-      lastmod_schema.lms_oc_lastmod->soc_cname.bv_val, lmi->lmi_rdnvalue.bv_val,
-      lastmod_schema.lms_ad_lastmodDN->ad_cname.bv_val,
-      lmi->lmi_rdnvalue.bv_val, BER_BVISEMPTY(&be->be_suffix[0]) ? "" : ",",
-      be->be_suffix[0].bv_val,
-      lastmod_schema.lms_ad_lastmodType->ad_cname.bv_val,
-      lastmodType[LASTMOD_ADD].bv_val,
-      lastmod_schema.lms_ad_lastmodEnabled->ad_cname.bv_val,
-      lmi->lmi_enabled ? "TRUE" : "FALSE", tmbuf,
-      BER_BVISNULL(&be->be_rootdn) ? SLAPD_ANONYMOUS : be->be_rootdn.bv_val,
-      entryCSN.bv_val, tmbuf,
-      BER_BVISNULL(&be->be_rootdn) ? SLAPD_ANONYMOUS : be->be_rootdn.bv_val);
+  snprintf(buf, sizeof(buf),
+           "dn: cn=%s%s%s\n"
+           "objectClass: %s\n"
+           "structuralObjectClass: %s\n"
+           "cn: %s\n"
+           "description: This object contains the last modification to this "
+           "database\n"
+           "%s: cn=%s%s%s\n"
+           "%s: %s\n"
+           "%s: %s\n"
+           "createTimestamp: %s\n"
+           "creatorsName: %s\n"
+           "entryCSN: %s\n"
+           "modifyTimestamp: %s\n"
+           "modifiersName: %s\n"
+           "hasSubordinates: FALSE\n",
+           lmi->lmi_rdnvalue.bv_val, BER_BVISEMPTY(&be->be_suffix[0]) ? "" : ",", be->be_suffix[0].bv_val,
+           lastmod_schema.lms_oc_lastmod->soc_cname.bv_val, lastmod_schema.lms_oc_lastmod->soc_cname.bv_val,
+           lmi->lmi_rdnvalue.bv_val, lastmod_schema.lms_ad_lastmodDN->ad_cname.bv_val, lmi->lmi_rdnvalue.bv_val,
+           BER_BVISEMPTY(&be->be_suffix[0]) ? "" : ",", be->be_suffix[0].bv_val,
+           lastmod_schema.lms_ad_lastmodType->ad_cname.bv_val, lastmodType[LASTMOD_ADD].bv_val,
+           lastmod_schema.lms_ad_lastmodEnabled->ad_cname.bv_val, lmi->lmi_enabled ? "TRUE" : "FALSE", tmbuf,
+           BER_BVISNULL(&be->be_rootdn) ? SLAPD_ANONYMOUS : be->be_rootdn.bv_val, entryCSN.bv_val, tmbuf,
+           BER_BVISNULL(&be->be_rootdn) ? SLAPD_ANONYMOUS : be->be_rootdn.bv_val);
 
 #if 0
 	fprintf( stderr, "# entry:\n%s\n", buf );
@@ -901,6 +871,4 @@ static int lastmod_initialize() {
   return overlay_register(&lastmod);
 }
 
-SLAP_MODULE_ENTRY(lastmod, modinit)(int argc, char *argv[]) {
-  return lastmod_initialize();
-}
+SLAP_MODULE_ENTRY(lastmod, modinit)(int argc, char *argv[]) { return lastmod_initialize(); }

@@ -55,22 +55,19 @@ enum {
 };
 
 static ConfigTable bdbcfg[] = {
-    {"directory", "dir", 2, 2, 0, ARG_STRING | ARG_MAGIC | BDB_DIRECTORY,
-     bdb_cf_gen,
+    {"directory", "dir", 2, 2, 0, ARG_STRING | ARG_MAGIC | BDB_DIRECTORY, bdb_cf_gen,
      "( OLcfgDbAt:0.1 NAME 'olcDbDirectory' "
      "DESC 'Directory for database content' "
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
-    {"cachefree", "size", 2, 2, 0, ARG_ULONG | ARG_OFFSET,
-     (void *)offsetof(struct bdb_info, bi_cache.c_minfree),
+    {"cachefree", "size", 2, 2, 0, ARG_ULONG | ARG_OFFSET, (void *)offsetof(struct bdb_info, bi_cache.c_minfree),
      "( OLcfgDbAt:1.11 NAME 'olcDbCacheFree' "
      "DESC 'Number of extra entries to free when max is reached' "
      "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-    {"cachesize", "size", 2, 2, 0, ARG_ULONG | ARG_OFFSET,
-     (void *)offsetof(struct bdb_info, bi_cache.c_maxsize),
+    {"cachesize", "size", 2, 2, 0, ARG_ULONG | ARG_OFFSET, (void *)offsetof(struct bdb_info, bi_cache.c_maxsize),
      "( OLcfgDbAt:1.1 NAME 'olcDbCacheSize' "
      "DESC 'Entry cache size in entries' "
      "EQUALITY integerMatch "
@@ -82,29 +79,25 @@ static ConfigTable bdbcfg[] = {
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
-    {"checksum", NULL, 1, 2, 0, ARG_ON_OFF | ARG_MAGIC | BDB_CHECKSUM,
-     bdb_cf_gen,
+    {"checksum", NULL, 1, 2, 0, ARG_ON_OFF | ARG_MAGIC | BDB_CHECKSUM, bdb_cf_gen,
      "( OLcfgDbAt:1.16 NAME 'olcDbChecksum' "
      "DESC 'Enable database checksum validation' "
      "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
-    {"cryptfile", "file", 2, 2, 0, ARG_STRING | ARG_MAGIC | BDB_CRYPTFILE,
-     bdb_cf_gen,
+    {"cryptfile", "file", 2, 2, 0, ARG_STRING | ARG_MAGIC | BDB_CRYPTFILE, bdb_cf_gen,
      "( OLcfgDbAt:1.13 NAME 'olcDbCryptFile' "
      "DESC 'Pathname of file containing the DB encryption key' "
      "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
-    {"cryptkey", "key", 2, 2, 0, ARG_BERVAL | ARG_MAGIC | BDB_CRYPTKEY,
-     bdb_cf_gen,
+    {"cryptkey", "key", 2, 2, 0, ARG_BERVAL | ARG_MAGIC | BDB_CRYPTKEY, bdb_cf_gen,
      "( OLcfgDbAt:1.14 NAME 'olcDbCryptKey' "
      "DESC 'DB encryption key' "
      "EQUALITY octetStringMatch "
      "SYNTAX OMsOctetString SINGLE-VALUE )",
      NULL, NULL},
-    {"dbconfig", "DB_CONFIG setting", 1, 0, 0, ARG_MAGIC | BDB_CONFIG,
-     bdb_cf_gen,
+    {"dbconfig", "DB_CONFIG setting", 1, 0, 0, ARG_MAGIC | BDB_CONFIG, bdb_cf_gen,
      "( OLcfgDbAt:1.3 NAME 'olcDbConfig' "
      "DESC 'BerkeleyDB DB_CONFIG configuration directives' "
      "EQUALITY caseIgnoreIA5Match "
@@ -133,29 +126,25 @@ static ConfigTable bdbcfg[] = {
      "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
-    {"dncachesize", "size", 2, 2, 0, ARG_ULONG | ARG_OFFSET,
-     (void *)offsetof(struct bdb_info, bi_cache.c_eimax),
+    {"dncachesize", "size", 2, 2, 0, ARG_ULONG | ARG_OFFSET, (void *)offsetof(struct bdb_info, bi_cache.c_eimax),
      "( OLcfgDbAt:1.12 NAME 'olcDbDNcacheSize' "
      "DESC 'DN cache size' "
      "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-    {"idlcachesize", "size", 2, 2, 0, ARG_ULONG | ARG_OFFSET,
-     (void *)offsetof(struct bdb_info, bi_idl_cache_max_size),
+    {"idlcachesize", "size", 2, 2, 0, ARG_ULONG | ARG_OFFSET, (void *)offsetof(struct bdb_info, bi_idl_cache_max_size),
      "( OLcfgDbAt:1.6 NAME 'olcDbIDLcacheSize' "
      "DESC 'IDL cache size in IDLs' "
      "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-    {"index", "attr> <[pres,eq,approx,sub]", 2, 3, 0, ARG_MAGIC | BDB_INDEX,
-     bdb_cf_gen,
+    {"index", "attr> <[pres,eq,approx,sub]", 2, 3, 0, ARG_MAGIC | BDB_INDEX, bdb_cf_gen,
      "( OLcfgDbAt:0.2 NAME 'olcDbIndex' "
      "DESC 'Attribute index parameters' "
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString )",
      NULL, NULL},
-    {"linearindex", NULL, 1, 2, 0, ARG_ON_OFF | ARG_OFFSET,
-     (void *)offsetof(struct bdb_info, bi_linear_index),
+    {"linearindex", NULL, 1, 2, 0, ARG_ON_OFF | ARG_OFFSET, (void *)offsetof(struct bdb_info, bi_linear_index),
      "( OLcfgDbAt:1.7 NAME 'olcDbLinearIndex' "
      "DESC 'Index attributes one at a time' "
      "EQUALITY booleanMatch "
@@ -173,15 +162,13 @@ static ConfigTable bdbcfg[] = {
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
-    {"searchstack", "depth", 2, 2, 0, ARG_INT | ARG_MAGIC | BDB_SSTACK,
-     bdb_cf_gen,
+    {"searchstack", "depth", 2, 2, 0, ARG_INT | ARG_MAGIC | BDB_SSTACK, bdb_cf_gen,
      "( OLcfgDbAt:1.9 NAME 'olcDbSearchStack' "
      "DESC 'Depth of search stack in IDLs' "
      "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-    {"shm_key", "key", 2, 2, 0, ARG_LONG | ARG_OFFSET,
-     (void *)offsetof(struct bdb_info, bi_shm_key),
+    {"shm_key", "key", 2, 2, 0, ARG_LONG | ARG_OFFSET, (void *)offsetof(struct bdb_info, bi_shm_key),
      "( OLcfgDbAt:1.10 NAME 'olcDbShmKey' "
      "DESC 'Key for shared memory region' "
      "EQUALITY integerMatch "
@@ -189,34 +176,30 @@ static ConfigTable bdbcfg[] = {
      NULL, NULL},
     {NULL, NULL, 0, 0, 0, ARG_IGNORED, NULL, NULL, NULL, NULL}};
 
-static ConfigOCs bdbocs[] = {
-    {
+static ConfigOCs bdbocs[] = {{
 #ifdef BDB_HIER
-        "( OLcfgDbOc:1.2 "
-        "NAME 'olcHdbConfig' "
-        "DESC 'HDB backend configuration' "
+                                 "( OLcfgDbOc:1.2 "
+                                 "NAME 'olcHdbConfig' "
+                                 "DESC 'HDB backend configuration' "
 #else
-        "( OLcfgDbOc:1.1 "
-        "NAME 'olcBdbConfig' "
-        "DESC 'BDB backend configuration' "
+                                 "( OLcfgDbOc:1.1 "
+                                 "NAME 'olcBdbConfig' "
+                                 "DESC 'BDB backend configuration' "
 #endif
-        "SUP olcDatabaseConfig "
-        "MUST olcDbDirectory "
-        "MAY ( olcDbCacheSize $ olcDbCheckpoint $ olcDbChecksum $ "
-        "olcDbConfig $ olcDbCryptFile $ olcDbCryptKey $ "
-        "olcDbNoSync $ olcDbDirtyRead $ olcDbIDLcacheSize $ "
-        "olcDbIndex $ olcDbLinearIndex $ olcDbLockDetect $ "
-        "olcDbMode $ olcDbSearchStack $ olcDbShmKey $ "
-        "olcDbCacheFree $ olcDbDNcacheSize $ olcDbPageSize ) )",
-        Cft_Database, bdbcfg},
-    {NULL, 0, NULL}};
+                                 "SUP olcDatabaseConfig "
+                                 "MUST olcDbDirectory "
+                                 "MAY ( olcDbCacheSize $ olcDbCheckpoint $ olcDbChecksum $ "
+                                 "olcDbConfig $ olcDbCryptFile $ olcDbCryptKey $ "
+                                 "olcDbNoSync $ olcDbDirtyRead $ olcDbIDLcacheSize $ "
+                                 "olcDbIndex $ olcDbLinearIndex $ olcDbLockDetect $ "
+                                 "olcDbMode $ olcDbSearchStack $ olcDbShmKey $ "
+                                 "olcDbCacheFree $ olcDbDNcacheSize $ olcDbPageSize ) )",
+                                 Cft_Database, bdbcfg},
+                             {NULL, 0, NULL}};
 
-static slap_verbmasks bdb_lockd[] = {{BER_BVC("default"), DB_LOCK_DEFAULT},
-                                     {BER_BVC("oldest"), DB_LOCK_OLDEST},
-                                     {BER_BVC("random"), DB_LOCK_RANDOM},
-                                     {BER_BVC("youngest"), DB_LOCK_YOUNGEST},
-                                     {BER_BVC("fewest"), DB_LOCK_MINLOCKS},
-                                     {BER_BVNULL, 0}};
+static slap_verbmasks bdb_lockd[] = {{BER_BVC("default"), DB_LOCK_DEFAULT}, {BER_BVC("oldest"), DB_LOCK_OLDEST},
+                                     {BER_BVC("random"), DB_LOCK_RANDOM},   {BER_BVC("youngest"), DB_LOCK_YOUNGEST},
+                                     {BER_BVC("fewest"), DB_LOCK_MINLOCKS}, {BER_BVNULL, 0}};
 
 /* perform periodic checkpoints */
 static void *bdb_checkpoint(void *ctx, void *arg) {
@@ -272,13 +255,11 @@ static void *bdb_online_index(void *ctx, void *arg) {
     rc = TXN_BEGIN(bdb->bi_dbenv, NULL, &txn, bdb->bi_db_opflags);
     if (rc)
       break;
-    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_online_index) ": txn id: %x\n",
-          txn->id(txn));
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_online_index) ": txn id: %x\n", txn->id(txn));
     if (getnext) {
       getnext = 0;
       BDB_ID2DISK(id, &nid);
-      rc = bdb->bi_id2entry->bdi_db->cursor(bdb->bi_id2entry->bdi_db, txn,
-                                            &curs, bdb->bi_db_opflags);
+      rc = bdb->bi_id2entry->bdi_db->cursor(bdb->bi_id2entry->bdi_db, txn, &curs, bdb->bi_db_opflags);
       if (rc) {
         TXN_ABORT(txn);
         break;
@@ -331,8 +312,7 @@ static void *bdb_online_index(void *ctx, void *arg) {
   }
 
   for (i = 0; i < bdb->bi_nattrs; i++) {
-    if (bdb->bi_attrs[i]->ai_indexmask & BDB_INDEX_DELETING ||
-        bdb->bi_attrs[i]->ai_newmask == 0) {
+    if (bdb->bi_attrs[i]->ai_indexmask & BDB_INDEX_DELETING || bdb->bi_attrs[i]->ai_newmask == 0) {
       continue;
     }
     bdb->bi_attrs[i]->ai_indexmask = bdb->bi_attrs[i]->ai_newmask;
@@ -388,8 +368,7 @@ static int bdb_cf_cleanup(ConfigArgs *c) {
     /* If this fails, we need to restart */
     if (rc) {
       set_shutdown(SHUT_RDWR);
-      snprintf(c->cr_msg, sizeof(c->cr_msg), "failed to reopen database, rc=%d",
-               rc);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "failed to reopen database, rc=%d", rc);
       Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(bdb_cf_cleanup) ": %s\n", c->cr_msg);
       rc = LDAP_OTHER;
     }
@@ -420,9 +399,7 @@ static int bdb_cf_gen(ConfigArgs *c) {
       if (bdb->bi_txn_cp) {
         char buf[64];
         struct berval bv;
-        bv.bv_len =
-            snprintf(buf, sizeof(buf), "%ld %ld", (long)bdb->bi_txn_cp_kbyte,
-                     (long)bdb->bi_txn_cp_min);
+        bv.bv_len = snprintf(buf, sizeof(buf), "%ld %ld", (long)bdb->bi_txn_cp_kbyte, (long)bdb->bi_txn_cp_min);
         if (bv.bv_len > 0 && bv.bv_len < sizeof(buf)) {
           bv.bv_val = buf;
           value_add_one(&c->rvalue_vals, &bv);
@@ -491,8 +468,7 @@ static int bdb_cf_gen(ConfigArgs *c) {
 
         bv.bv_val = c->log;
         for (i = 0; !BER_BVISNULL(&bdb->bi_db_config[i]); i++) {
-          bv.bv_len =
-              sprintf(bv.bv_val, "{%d}%s", i, bdb->bi_db_config[i].bv_val);
+          bv.bv_len = sprintf(bv.bv_val, "{%d}%s", i, bdb->bi_db_config[i].bv_val);
           value_add_one(&c->rvalue_vals, &bv);
         }
       }
@@ -542,8 +518,7 @@ static int bdb_cf_gen(ConfigArgs *c) {
       rc = 1;
       bv.bv_val = buf;
       for (ps = bdb->bi_pagesizes; ps; ps = ps->bdp_next) {
-        bv.bv_len =
-            sprintf(buf, "%s %d", ps->bdp_name.bv_val, ps->bdp_size / 1024);
+        bv.bv_len = sprintf(buf, "%s %d", ps->bdp_name.bv_val, ps->bdp_size / 1024);
         value_add_one(&c->rvalue_vals, &bv);
         rc = 0;
       }
@@ -686,8 +661,7 @@ static int bdb_cf_gen(ConfigArgs *c) {
       struct bdb_db_pgsize *ps, **prev;
       int i;
 
-      for (i = 0, prev = &bdb->bi_pagesizes, ps = *prev; ps;
-           prev = &ps->bdp_next, ps = ps->bdp_next, i++) {
+      for (i = 0, prev = &bdb->bi_pagesizes, ps = *prev; ps; prev = &ps->bdp_next, ps = ps->bdp_next, i++) {
         if (c->valx == -1 || i == c->valx) {
           *prev = ps->bdp_next;
           ch_free(ps);
@@ -778,9 +752,8 @@ static int bdb_cf_gen(ConfigArgs *c) {
           return 1;
         }
         ldap_pvt_thread_mutex_lock(&slapd_rq.rq_mutex);
-        bdb->bi_txn_cp_task = ldap_pvt_runqueue_insert(
-            &slapd_rq, bdb->bi_txn_cp_min * 60, bdb_checkpoint, bdb,
-            LDAP_XSTRING(bdb_checkpoint), c->be->be_suffix[0].bv_val);
+        bdb->bi_txn_cp_task = ldap_pvt_runqueue_insert(&slapd_rq, bdb->bi_txn_cp_min * 60, bdb_checkpoint, bdb,
+                                                       LDAP_XSTRING(bdb_checkpoint), c->be->be_suffix[0].bv_val);
         ldap_pvt_thread_mutex_unlock(&slapd_rq.rq_mutex);
       }
     }
@@ -856,8 +829,8 @@ static int bdb_cf_gen(ConfigArgs *c) {
     }
     ch_free(testpath);
     if (!f) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg), "%.*s: invalid path: %s",
-               (int)sizeof(c->cr_msg) - 32, c->log, STRERROR(errno));
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "%.*s: invalid path: %s", (int)sizeof(c->cr_msg) - 32, c->log,
+               STRERROR(errno));
       Debug(LDAP_DEBUG_ANY, "%s\n", c->cr_msg);
       return -1;
     }
@@ -870,8 +843,7 @@ static int bdb_cf_gen(ConfigArgs *c) {
     /* See if a DB_CONFIG file already exists here */
     if (bdb->bi_db_config_path)
       ch_free(bdb->bi_db_config_path);
-    bdb->bi_db_config_path =
-        ch_malloc(len + STRLENOF(LDAP_DIRSEP) + STRLENOF("DB_CONFIG") + 1);
+    bdb->bi_db_config_path = ch_malloc(len + STRLENOF(LDAP_DIRSEP) + STRLENOF("DB_CONFIG") + 1);
     ptr = lutil_strcopy(bdb->bi_db_config_path, bdb->bi_dbenv_home);
     *ptr++ = LDAP_DIRSEP[0];
     strcpy(ptr, "DB_CONFIG");
@@ -901,8 +873,7 @@ static int bdb_cf_gen(ConfigArgs *c) {
     break;
 
   case BDB_INDEX:
-    rc = bdb_attr_index_config(bdb, c->fname, c->lineno, c->argc - 1,
-                               &c->argv[1], &c->reply);
+    rc = bdb_attr_index_config(bdb, c->fname, c->lineno, c->argc - 1, &c->argv[1], &c->reply);
 
     if (rc != LDAP_SUCCESS)
       return 1;
@@ -918,9 +889,8 @@ static int bdb_cf_gen(ConfigArgs *c) {
         return 1;
       }
       ldap_pvt_thread_mutex_lock(&slapd_rq.rq_mutex);
-      bdb->bi_index_task = ldap_pvt_runqueue_insert(
-          &slapd_rq, 36000, bdb_online_index, c->be,
-          LDAP_XSTRING(bdb_online_index), c->be->be_suffix[0].bv_val);
+      bdb->bi_index_task = ldap_pvt_runqueue_insert(&slapd_rq, 36000, bdb_online_index, c->be,
+                                                    LDAP_XSTRING(bdb_online_index), c->be->be_suffix[0].bv_val);
       ldap_pvt_thread_mutex_unlock(&slapd_rq.rq_mutex);
     }
     break;
@@ -939,8 +909,7 @@ static int bdb_cf_gen(ConfigArgs *c) {
 
   case BDB_SSTACK:
     if (c->value_int < MINIMUM_SEARCH_STACK_DEPTH) {
-      fprintf(stderr, "%s: depth %d too small, using %d\n", c->log,
-              c->value_int, MINIMUM_SEARCH_STACK_DEPTH);
+      fprintf(stderr, "%s: depth %d too small, using %d\n", c->log, c->value_int, MINIMUM_SEARCH_STACK_DEPTH);
       c->value_int = MINIMUM_SEARCH_STACK_DEPTH;
     }
     bdb->bi_search_stack_depth = c->value_int;
@@ -952,9 +921,8 @@ static int bdb_cf_gen(ConfigArgs *c) {
 
     s = atoi(c->argv[2]);
     if (s < 1 || s > 64) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "%.*s: size must be > 0 and <= 64: %d",
-               (int)sizeof(c->cr_msg) - 32, c->log, s);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "%.*s: size must be > 0 and <= 64: %d", (int)sizeof(c->cr_msg) - 32,
+               c->log, s);
       Debug(LDAP_DEBUG_ANY, "%s\n", c->cr_msg);
       return -1;
     }

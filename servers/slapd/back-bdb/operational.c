@@ -94,10 +94,8 @@ retry:
     break;
 
   default:
-    Debug(LDAP_DEBUG_ARGS,
-          "<=- " LDAP_XSTRING(
-              bdb_hasSubordinates) ": has_children failed: %s (%d)\n",
-          db_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ARGS, "<=- " LDAP_XSTRING(bdb_hasSubordinates) ": has_children failed: %s (%d)\n", db_strerror(rc),
+          rc);
     rc = LDAP_OTHER;
   }
 
@@ -121,17 +119,13 @@ int bdb_operational(Operation *op, SlapReply *rs) {
     }
   }
 
-  if (*ap == NULL &&
-      attr_find(rs->sr_entry->e_attrs, slap_schema.si_ad_hasSubordinates) ==
-          NULL &&
-      (SLAP_OPATTRS(rs->sr_attr_flags) ||
-       ad_inlist(slap_schema.si_ad_hasSubordinates, rs->sr_attrs))) {
+  if (*ap == NULL && attr_find(rs->sr_entry->e_attrs, slap_schema.si_ad_hasSubordinates) == NULL &&
+      (SLAP_OPATTRS(rs->sr_attr_flags) || ad_inlist(slap_schema.si_ad_hasSubordinates, rs->sr_attrs))) {
     int hasSubordinates, rc;
 
     rc = bdb_hasSubordinates(op, rs->sr_entry, &hasSubordinates);
     if (rc == LDAP_SUCCESS) {
-      *ap =
-          slap_operational_hasSubordinate(hasSubordinates == LDAP_COMPARE_TRUE);
+      *ap = slap_operational_hasSubordinate(hasSubordinates == LDAP_COMPARE_TRUE);
       assert(*ap != NULL);
 
       ap = &(*ap)->a_next;

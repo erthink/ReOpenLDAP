@@ -64,8 +64,7 @@ static int ndb_db_init(BackendDB *be, ConfigReply *cr) {
   struct ndb_info *ni;
   int rc = 0;
 
-  Debug(LDAP_DEBUG_TRACE,
-        LDAP_XSTRING(ndb_db_init) ": Initializing ndb database\n");
+  Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(ndb_db_init) ": Initializing ndb database\n");
 
   /* allocate backend-database-specific stuff */
   ni = (struct ndb_info *)ch_calloc(1, sizeof(struct ndb_info));
@@ -99,39 +98,33 @@ static int ndb_db_open(BackendDB *be, ConfigReply *cr) {
     return -1;
   }
 
-  Debug(LDAP_DEBUG_ARGS, LDAP_XSTRING(ndb_db_open) ": \"%s\"\n",
-        be->be_suffix[0].bv_val);
+  Debug(LDAP_DEBUG_ARGS, LDAP_XSTRING(ndb_db_open) ": \"%s\"\n", be->be_suffix[0].bv_val);
 
   if (ni->ni_nconns < 1)
     ni->ni_nconns = 1;
 
-  ni->ni_cluster = (Ndb_cluster_connection **)ch_calloc(
-      ni->ni_nconns, sizeof(Ndb_cluster_connection *));
+  ni->ni_cluster = (Ndb_cluster_connection **)ch_calloc(ni->ni_nconns, sizeof(Ndb_cluster_connection *));
   for (i = 0; i < ni->ni_nconns; i++) {
     ni->ni_cluster[i] = new Ndb_cluster_connection(ni->ni_connectstr);
     rc = ni->ni_cluster[i]->connect(20, 5, 1);
     if (rc) {
-      snprintf(cr->msg, sizeof(cr->msg),
-               "ndb_db_open: ni_cluster[%d]->connect failed (%d)", i, rc);
+      snprintf(cr->msg, sizeof(cr->msg), "ndb_db_open: ni_cluster[%d]->connect failed (%d)", i, rc);
       goto fail;
     }
   }
   for (i = 0; i < ni->ni_nconns; i++) {
     rc = ni->ni_cluster[i]->wait_until_ready(30, 30);
     if (rc) {
-      snprintf(cr->msg, sizeof(cr->msg),
-               "ndb_db_open: ni_cluster[%d]->wait failed (%d)", i, rc);
+      snprintf(cr->msg, sizeof(cr->msg), "ndb_db_open: ni_cluster[%d]->wait failed (%d)", i, rc);
       goto fail;
     }
   }
 
   mysql_init(&ni->ni_sql);
-  if (!mysql_real_connect(&ni->ni_sql, ni->ni_hostname, ni->ni_username,
-                          ni->ni_password, "", ni->ni_port, ni->ni_socket,
-                          ni->ni_clflag)) {
-    snprintf(cr->msg, sizeof(cr->msg),
-             "ndb_db_open: mysql_real_connect failed, %s (%d)",
-             mysql_error(&ni->ni_sql), mysql_errno(&ni->ni_sql));
+  if (!mysql_real_connect(&ni->ni_sql, ni->ni_hostname, ni->ni_username, ni->ni_password, "", ni->ni_port,
+                          ni->ni_socket, ni->ni_clflag)) {
+    snprintf(cr->msg, sizeof(cr->msg), "ndb_db_open: mysql_real_connect failed, %s (%d)", mysql_error(&ni->ni_sql),
+             mysql_errno(&ni->ni_sql));
     rc = -1;
     goto fail;
   }
@@ -139,8 +132,7 @@ static int ndb_db_open(BackendDB *be, ConfigReply *cr) {
   sprintf(sqlbuf, "CREATE DATABASE IF NOT EXISTS %s", ni->ni_dbname);
   rc = mysql_query(&ni->ni_sql, sqlbuf);
   if (rc) {
-    snprintf(cr->msg, sizeof(cr->msg),
-             "ndb_db_open: CREATE DATABASE %s failed, %s (%d)", ni->ni_dbname,
+    snprintf(cr->msg, sizeof(cr->msg), "ndb_db_open: CREATE DATABASE %s failed, %s (%d)", ni->ni_dbname,
              mysql_error(&ni->ni_sql), mysql_errno(&ni->ni_sql));
     goto fail;
   }
@@ -148,8 +140,7 @@ static int ndb_db_open(BackendDB *be, ConfigReply *cr) {
   sprintf(sqlbuf, "USE %s", ni->ni_dbname);
   rc = mysql_query(&ni->ni_sql, sqlbuf);
   if (rc) {
-    snprintf(cr->msg, sizeof(cr->msg),
-             "ndb_db_open: USE DATABASE %s failed, %s (%d)", ni->ni_dbname,
+    snprintf(cr->msg, sizeof(cr->msg), "ndb_db_open: USE DATABASE %s failed, %s (%d)", ni->ni_dbname,
              mysql_error(&ni->ni_sql), mysql_errno(&ni->ni_sql));
     goto fail;
   }
@@ -205,18 +196,15 @@ static int ndb_db_open(BackendDB *be, ConfigReply *cr) {
   strcpy(ptr, ") ENGINE=ndb");
   rc = mysql_query(&ni->ni_sql, sqlbuf);
   if (rc) {
-    snprintf(cr->msg, sizeof(cr->msg),
-             "ndb_db_open: CREATE TABLE " DN2ID_TABLE " failed, %s (%d)",
+    snprintf(cr->msg, sizeof(cr->msg), "ndb_db_open: CREATE TABLE " DN2ID_TABLE " failed, %s (%d)",
              mysql_error(&ni->ni_sql), mysql_errno(&ni->ni_sql));
     goto fail;
   }
 
-  rc = mysql_query(&ni->ni_sql,
-                   "CREATE TABLE IF NOT EXISTS " NEXTID_TABLE " ("
-                   "a bigint unsigned AUTO_INCREMENT PRIMARY KEY ) ENGINE=ndb");
+  rc = mysql_query(&ni->ni_sql, "CREATE TABLE IF NOT EXISTS " NEXTID_TABLE " ("
+                                "a bigint unsigned AUTO_INCREMENT PRIMARY KEY ) ENGINE=ndb");
   if (rc) {
-    snprintf(cr->msg, sizeof(cr->msg),
-             "ndb_db_open: CREATE TABLE " NEXTID_TABLE " failed, %s (%d)",
+    snprintf(cr->msg, sizeof(cr->msg), "ndb_db_open: CREATE TABLE " NEXTID_TABLE " failed, %s (%d)",
              mysql_error(&ni->ni_sql), mysql_errno(&ni->ni_sql));
     goto fail;
   }
@@ -226,9 +214,7 @@ static int ndb_db_open(BackendDB *be, ConfigReply *cr) {
 
     rc = ndb_aset_get(ni, &ndb_optable, ndb_opattrs, &oci);
     if (rc) {
-      snprintf(cr->msg, sizeof(cr->msg),
-               "ndb_db_open: ndb_aset_get( %s ) failed (%d)",
-               ndb_optable.bv_val, rc);
+      snprintf(cr->msg, sizeof(cr->msg), "ndb_db_open: ndb_aset_get( %s ) failed (%d)", ndb_optable.bv_val, rc);
       goto fail;
     }
     for (i = 0; ndb_oplens[i] >= 0; i++) {
@@ -237,9 +223,7 @@ static int ndb_db_open(BackendDB *be, ConfigReply *cr) {
     }
     rc = ndb_aset_create(ni, oci);
     if (rc) {
-      snprintf(cr->msg, sizeof(cr->msg),
-               "ndb_db_open: ndb_aset_create( %s ) failed (%d)",
-               ndb_optable.bv_val, rc);
+      snprintf(cr->msg, sizeof(cr->msg), "ndb_db_open: ndb_aset_create( %s ) failed (%d)", ndb_optable.bv_val, rc);
       goto fail;
     }
     ni->ni_opattrs = oci;
@@ -252,9 +236,7 @@ static int ndb_db_open(BackendDB *be, ConfigReply *cr) {
       NdbOcInfo *oci = (NdbOcInfo *)ln->ln_data;
       rc = ndb_aset_create(ni, oci);
       if (rc) {
-        snprintf(cr->msg, sizeof(cr->msg),
-                 "ndb_db_open: ndb_aset_create( %s ) failed (%d)",
-                 oci->no_name.bv_val, rc);
+        snprintf(cr->msg, sizeof(cr->msg), "ndb_db_open: ndb_aset_create( %s ) failed (%d)", oci->no_name.bv_val, rc);
         goto fail;
       }
     }
@@ -347,8 +329,7 @@ extern "C" int ndb_back_initialize(BackendInfo *bi) {
   int rc = 0;
 
   /* initialize the underlying database system */
-  Debug(LDAP_DEBUG_TRACE,
-        LDAP_XSTRING(ndb_back_initialize) ": initialize ndb backend\n");
+  Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(ndb_back_initialize) ": initialize ndb backend\n");
 
   ndb_init();
 
@@ -356,8 +337,7 @@ extern "C" int ndb_back_initialize(BackendInfo *bi) {
   ndb_lastrow_code->interpret_exit_last_row();
   ndb_lastrow_code->finalise();
 
-  bi->bi_flags |= SLAP_BFLAG_INCREMENT | SLAP_BFLAG_SUBENTRIES |
-                  SLAP_BFLAG_ALIASES | SLAP_BFLAG_REFERRALS;
+  bi->bi_flags |= SLAP_BFLAG_INCREMENT | SLAP_BFLAG_SUBENTRIES | SLAP_BFLAG_ALIASES | SLAP_BFLAG_REFERRALS;
 
   bi->bi_controls = controls;
 

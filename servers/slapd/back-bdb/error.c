@@ -31,7 +31,5 @@ void bdb_errcall(const DB_ENV *env, const char *pfx, const char *msg)
 }
 
 #if DB_VERSION_FULL >= 0x04030000
-void bdb_msgcall(const DB_ENV *env, const char *msg) {
-  Debug(LDAP_DEBUG_TRACE, "bdb: %s\n", msg);
-}
+void bdb_msgcall(const DB_ENV *env, const char *msg) { Debug(LDAP_DEBUG_TRACE, "bdb: %s\n", msg); }
 #endif

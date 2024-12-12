@@ -50,8 +50,7 @@ int value_add(BerVarray *vals, BerVarray addvals) {
     for (n = 0; !BER_BVISNULL(&(*vals)[n]); n++) {
       ; /* Empty */
     }
-    *vals = (BerVarray)SLAP_REALLOC((char *)*vals,
-                                    (n + nn + 1) * sizeof(struct berval));
+    *vals = (BerVarray)SLAP_REALLOC((char *)*vals, (n + nn + 1) * sizeof(struct berval));
     if (*vals == NULL) {
       Debug(LDAP_DEBUG_TRACE, "value_add: SLAP_MALLOC failed.\n");
       return LBER_ERROR_MEMORY;
@@ -85,8 +84,7 @@ int value_add_one(BerVarray *vals, const struct berval *addval) {
     for (n = 0; !BER_BVISNULL(&(*vals)[n]); n++) {
       ; /* Empty */
     }
-    *vals =
-        (BerVarray)SLAP_REALLOC((char *)*vals, (n + 2) * sizeof(struct berval));
+    *vals = (BerVarray)SLAP_REALLOC((char *)*vals, (n + 2) * sizeof(struct berval));
     if (*vals == NULL) {
       Debug(LDAP_DEBUG_TRACE, "value_add_one: SLAP_MALLOC failed.\n");
       return LBER_ERROR_MEMORY;
@@ -145,10 +143,8 @@ int value_join_str(BerVarray vals, const char *comma, BerValue *dest) {
   return 0;
 }
 
-int asserted_value_validate_normalize(AttributeDescription *ad,
-                                      MatchingRule *mr, unsigned usage,
-                                      struct berval *in, struct berval *out,
-                                      const char **text, void *ctx) {
+int asserted_value_validate_normalize(AttributeDescription *ad, MatchingRule *mr, unsigned usage, struct berval *in,
+                                      struct berval *out, const char **text, void *ctx) {
   int rc;
   struct berval pval;
   pval.bv_val = NULL;
@@ -184,9 +180,8 @@ int asserted_value_validate_normalize(AttributeDescription *ad,
   }
 
   if (mr->smr_normalize) {
-    rc = (mr->smr_normalize)(usage | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX,
-                             ad ? ad->ad_type->sat_syntax : NULL, mr, in, out,
-                             ctx);
+    rc = (mr->smr_normalize)(usage | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX, ad ? ad->ad_type->sat_syntax : NULL, mr, in,
+                             out, ctx);
 
     if (pval.bv_val)
       ber_memfree_x(pval.bv_val, ctx);
@@ -206,9 +201,9 @@ int asserted_value_validate_normalize(AttributeDescription *ad,
   return LDAP_SUCCESS;
 }
 
-int value_match(int *match, AttributeDescription *ad, MatchingRule *mr,
-                unsigned flags, struct berval *v1, /* stored value */
-                void *v2,                          /* assertion */
+int value_match(int *match, AttributeDescription *ad, MatchingRule *mr, unsigned flags,
+                struct berval *v1, /* stored value */
+                void *v2,          /* assertion */
                 const char **text) {
   int rc;
 
@@ -223,8 +218,7 @@ int value_match(int *match, AttributeDescription *ad, MatchingRule *mr,
   return rc;
 }
 
-int value_find_ex(AttributeDescription *ad, unsigned flags, BerVarray vals,
-                  struct berval *val, void *ctx) {
+int value_find_ex(AttributeDescription *ad, unsigned flags, BerVarray vals, struct berval *val, void *ctx) {
   int i;
   int rc;
   struct berval nval = BER_BVNULL;
@@ -237,8 +231,7 @@ int value_find_ex(AttributeDescription *ad, unsigned flags, BerVarray vals,
   assert(SLAP_IS_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH(flags) != 0);
 
   if (!SLAP_IS_MR_ASSERTED_VALUE_NORMALIZED_MATCH(flags) && mr->smr_normalize) {
-    rc = (mr->smr_normalize)(flags & (SLAP_MR_TYPE_MASK | SLAP_MR_SUBTYPE_MASK |
-                                      SLAP_MR_VALUE_OF_SYNTAX),
+    rc = (mr->smr_normalize)(flags & (SLAP_MR_TYPE_MASK | SLAP_MR_SUBTYPE_MASK | SLAP_MR_VALUE_OF_SYNTAX),
                              ad->ad_type->sat_syntax, mr, val, &nval, ctx);
 
     if (rc != LDAP_SUCCESS) {
@@ -250,8 +243,7 @@ int value_find_ex(AttributeDescription *ad, unsigned flags, BerVarray vals,
     int match;
     const char *text;
 
-    rc = value_match(&match, ad, mr, flags, &vals[i],
-                     nval.bv_val == NULL ? val : &nval, &text);
+    rc = value_match(&match, ad, mr, flags, &vals[i], nval.bv_val == NULL ? val : &nval, &text);
 
     if (rc == LDAP_SUCCESS && match == 0) {
       slap_sl_free(nval.bv_val, ctx);
@@ -416,8 +408,7 @@ int ordered_value_sort(Attribute *a, int do_renumber) {
  * uses the validate function of the syntax after removing
  * the index, if allowed and present
  */
-int ordered_value_validate(AttributeDescription *ad, struct berval *in,
-                           int mop) {
+int ordered_value_validate(AttributeDescription *ad, struct berval *in, int mop) {
   struct berval bv = *in;
 
   assert(ad->ad_type->sat_syntax != NULL);
@@ -459,8 +450,7 @@ int ordered_value_validate(AttributeDescription *ad, struct berval *in,
  * the index, if allowed and present; in case, it's prepended
  * to the pretty value
  */
-int ordered_value_pretty(AttributeDescription *ad, struct berval *val,
-                         struct berval *out, void *ctx) {
+int ordered_value_pretty(AttributeDescription *ad, struct berval *val, struct berval *out, void *ctx) {
   struct berval bv, idx = BER_BVNULL;
   int rc;
 
@@ -499,8 +489,7 @@ int ordered_value_pretty(AttributeDescription *ad, struct berval *val,
     }
   }
 
-  rc = ad->ad_type->sat_syntax->ssyn_pretty(ad->ad_type->sat_syntax, val, out,
-                                            ctx);
+  rc = ad->ad_type->sat_syntax->ssyn_pretty(ad->ad_type->sat_syntax, val, out, ctx);
 
   if (rc == LDAP_SUCCESS && !BER_BVISNULL(&idx)) {
     bv = *out;
@@ -523,8 +512,7 @@ int ordered_value_pretty(AttributeDescription *ad, struct berval *val,
  * after removing the index, if allowed and present; in case, it's
  * prepended to the value
  */
-int ordered_value_normalize(slap_mask_t usage, AttributeDescription *ad,
-                            MatchingRule *mr, struct berval *val,
+int ordered_value_normalize(slap_mask_t usage, AttributeDescription *ad, MatchingRule *mr, struct berval *val,
                             struct berval *normalized, void *ctx) {
   struct berval bv, idx = BER_BVNULL;
   int rc;
@@ -569,8 +557,7 @@ int ordered_value_normalize(slap_mask_t usage, AttributeDescription *ad,
     }
   }
 
-  rc = ad->ad_type->sat_equality->smr_normalize(usage, ad->ad_type->sat_syntax,
-                                                mr, val, normalized, ctx);
+  rc = ad->ad_type->sat_equality->smr_normalize(usage, ad->ad_type->sat_syntax, mr, val, normalized, ctx);
 
   if (rc == LDAP_SUCCESS && !BER_BVISNULL(&idx)) {
     bv = *normalized;
@@ -590,9 +577,9 @@ int ordered_value_normalize(slap_mask_t usage, AttributeDescription *ad,
 /* A wrapper for value match, handles Equality matches for attributes
  * with ordered values.
  */
-int ordered_value_match(int *match, AttributeDescription *ad, MatchingRule *mr,
-                        unsigned flags, struct berval *v1, /* stored value */
-                        struct berval *v2,                 /* assertion */
+int ordered_value_match(int *match, AttributeDescription *ad, MatchingRule *mr, unsigned flags,
+                        struct berval *v1, /* stored value */
+                        struct berval *v2, /* assertion */
                         const char **text) {
   struct berval bv1, bv2;
 
@@ -671,8 +658,7 @@ int ordered_value_match(int *match, AttributeDescription *ad, MatchingRule *mr,
   return value_match(match, ad, mr, flags, v1, v2, text);
 }
 
-int ordered_value_add(Entry *e, AttributeDescription *ad, Attribute *a,
-                      BerVarray vals, BerVarray nvals) {
+int ordered_value_add(Entry *e, AttributeDescription *ad, Attribute *a, BerVarray vals, BerVarray nvals) {
   int i, j, k, anum, vnum;
   BerVarray new, nnew = NULL;
 
@@ -726,8 +712,7 @@ int ordered_value_add(Entry *e, AttributeDescription *ad, Attribute *a,
     if (vals[i].bv_val[0] == '{') {
       /* FIXME: strtol() could go past end... */
       k = strtol(vals[i].bv_val + 1, &next, 0);
-      if (next == vals[i].bv_val + 1 || next[0] != '}' ||
-          (ber_len_t)(next - vals[i].bv_val) > vals[i].bv_len) {
+      if (next == vals[i].bv_val + 1 || next[0] != '}' || (ber_len_t)(next - vals[i].bv_val) > vals[i].bv_len) {
         ch_free(nnew);
         ch_free(new);
         return -1;

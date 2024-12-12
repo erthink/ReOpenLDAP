@@ -28,14 +28,11 @@ int perl_back_compare(Operation *op, SlapReply *rs) {
 
   PerlBackend *perl_back = (PerlBackend *)op->o_bd->be_private;
 
-  avalen =
-      op->orc_ava->aa_desc->ad_cname.bv_len + 1 + op->orc_ava->aa_value.bv_len;
+  avalen = op->orc_ava->aa_desc->ad_cname.bv_len + 1 + op->orc_ava->aa_value.bv_len;
   avastr = ch_malloc(avalen + 1);
 
-  lutil_strcopy(
-      lutil_strcopy(
-          lutil_strcopy(avastr, op->orc_ava->aa_desc->ad_cname.bv_val), "="),
-      op->orc_ava->aa_value.bv_val);
+  lutil_strcopy(lutil_strcopy(lutil_strcopy(avastr, op->orc_ava->aa_desc->ad_cname.bv_val), "="),
+                op->orc_ava->aa_value.bv_val);
 
   PERL_SET_CONTEXT(PERL_INTERPRETER);
   ldap_pvt_thread_mutex_lock(&perl_interpreter_mutex);

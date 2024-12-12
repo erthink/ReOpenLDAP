@@ -79,59 +79,54 @@ static ConfigDriver unique_cf_attrs;
 static ConfigDriver unique_cf_strict;
 static ConfigDriver unique_cf_uri;
 
-static ConfigTable uniquecfg[] = {
-    {"unique_base", "basedn", 2, 2, 0, ARG_DN | ARG_MAGIC | UNIQUE_BASE,
-     unique_cf_base,
-     "( OLcfgOvAt:10.1 NAME 'olcUniqueBase' "
-     "DESC 'Subtree for uniqueness searches' "
-     "EQUALITY distinguishedNameMatch "
-     "SYNTAX OMsDN SINGLE-VALUE )",
-     NULL, NULL},
-    {"unique_ignore", "attribute...", 2, 0, 0, ARG_MAGIC | UNIQUE_IGNORE,
-     unique_cf_attrs,
-     "( OLcfgOvAt:10.2 NAME 'olcUniqueIgnore' "
-     "DESC 'Attributes for which uniqueness shall not be enforced' "
-     "EQUALITY caseIgnoreMatch "
-     "ORDERING caseIgnoreOrderingMatch "
-     "SUBSTR caseIgnoreSubstringsMatch "
-     "SYNTAX OMsDirectoryString )",
-     NULL, NULL},
-    {"unique_attributes", "attribute...", 2, 0, 0, ARG_MAGIC | UNIQUE_ATTR,
-     unique_cf_attrs,
-     "( OLcfgOvAt:10.3 NAME 'olcUniqueAttribute' "
-     "DESC 'Attributes for which uniqueness shall be enforced' "
-     "EQUALITY caseIgnoreMatch "
-     "ORDERING caseIgnoreOrderingMatch "
-     "SUBSTR caseIgnoreSubstringsMatch "
-     "SYNTAX OMsDirectoryString )",
-     NULL, NULL},
-    {"unique_strict", "on|off", 1, 2, 0, ARG_MAGIC | UNIQUE_STRICT,
-     unique_cf_strict,
-     "( OLcfgOvAt:10.4 NAME 'olcUniqueStrict' "
-     "DESC 'Enforce uniqueness of null values' "
-     "EQUALITY booleanMatch "
-     "SYNTAX OMsBoolean SINGLE-VALUE )",
-     NULL, NULL},
-    {"unique_uri", "ldapuri", 2, 3, 0, ARG_MAGIC | UNIQUE_URI, unique_cf_uri,
-     "( OLcfgOvAt:10.5 NAME 'olcUniqueURI' "
-     "DESC 'List of keywords and LDAP URIs for a uniqueness domain' "
-     "EQUALITY caseExactMatch "
-     "ORDERING caseExactOrderingMatch "
-     "SUBSTR caseExactSubstringsMatch "
-     "SYNTAX OMsDirectoryString )",
-     NULL, NULL},
-    {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
+static ConfigTable uniquecfg[] = {{"unique_base", "basedn", 2, 2, 0, ARG_DN | ARG_MAGIC | UNIQUE_BASE, unique_cf_base,
+                                   "( OLcfgOvAt:10.1 NAME 'olcUniqueBase' "
+                                   "DESC 'Subtree for uniqueness searches' "
+                                   "EQUALITY distinguishedNameMatch "
+                                   "SYNTAX OMsDN SINGLE-VALUE )",
+                                   NULL, NULL},
+                                  {"unique_ignore", "attribute...", 2, 0, 0, ARG_MAGIC | UNIQUE_IGNORE, unique_cf_attrs,
+                                   "( OLcfgOvAt:10.2 NAME 'olcUniqueIgnore' "
+                                   "DESC 'Attributes for which uniqueness shall not be enforced' "
+                                   "EQUALITY caseIgnoreMatch "
+                                   "ORDERING caseIgnoreOrderingMatch "
+                                   "SUBSTR caseIgnoreSubstringsMatch "
+                                   "SYNTAX OMsDirectoryString )",
+                                   NULL, NULL},
+                                  {"unique_attributes", "attribute...", 2, 0, 0, ARG_MAGIC | UNIQUE_ATTR,
+                                   unique_cf_attrs,
+                                   "( OLcfgOvAt:10.3 NAME 'olcUniqueAttribute' "
+                                   "DESC 'Attributes for which uniqueness shall be enforced' "
+                                   "EQUALITY caseIgnoreMatch "
+                                   "ORDERING caseIgnoreOrderingMatch "
+                                   "SUBSTR caseIgnoreSubstringsMatch "
+                                   "SYNTAX OMsDirectoryString )",
+                                   NULL, NULL},
+                                  {"unique_strict", "on|off", 1, 2, 0, ARG_MAGIC | UNIQUE_STRICT, unique_cf_strict,
+                                   "( OLcfgOvAt:10.4 NAME 'olcUniqueStrict' "
+                                   "DESC 'Enforce uniqueness of null values' "
+                                   "EQUALITY booleanMatch "
+                                   "SYNTAX OMsBoolean SINGLE-VALUE )",
+                                   NULL, NULL},
+                                  {"unique_uri", "ldapuri", 2, 3, 0, ARG_MAGIC | UNIQUE_URI, unique_cf_uri,
+                                   "( OLcfgOvAt:10.5 NAME 'olcUniqueURI' "
+                                   "DESC 'List of keywords and LDAP URIs for a uniqueness domain' "
+                                   "EQUALITY caseExactMatch "
+                                   "ORDERING caseExactOrderingMatch "
+                                   "SUBSTR caseExactSubstringsMatch "
+                                   "SYNTAX OMsDirectoryString )",
+                                   NULL, NULL},
+                                  {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
 
-static ConfigOCs uniqueocs[] = {
-    {"( OLcfgOvOc:10.1 "
-     "NAME 'olcUniqueConfig' "
-     "DESC 'Attribute value uniqueness configuration' "
-     "SUP olcOverlayConfig "
-     "MAY ( olcUniqueBase $ olcUniqueIgnore $ "
-     "olcUniqueAttribute $ olcUniqueStrict $ "
-     "olcUniqueURI ) )",
-     Cft_Overlay, uniquecfg},
-    {NULL, 0, NULL}};
+static ConfigOCs uniqueocs[] = {{"( OLcfgOvOc:10.1 "
+                                 "NAME 'olcUniqueConfig' "
+                                 "DESC 'Attribute value uniqueness configuration' "
+                                 "SUP olcOverlayConfig "
+                                 "MAY ( olcUniqueBase $ olcUniqueIgnore $ "
+                                 "olcUniqueAttribute $ olcUniqueStrict $ "
+                                 "olcUniqueURI ) )",
+                                 Cft_Overlay, uniquecfg},
+                                {NULL, 0, NULL}};
 
 static void unique_free_domain_uri(unique_domain_uri *uri) {
   unique_domain_uri *next_uri = NULL;
@@ -167,8 +162,7 @@ static void unique_free_domain(unique_domain *domain) {
   }
 }
 
-static int unique_new_domain_uri(unique_domain_uri **urip,
-                                 const LDAPURLDesc *url_desc, ConfigArgs *c) {
+static int unique_new_domain_uri(unique_domain_uri **urip, const LDAPURLDesc *url_desc, ConfigArgs *c) {
   int i, rc = LDAP_SUCCESS;
   unique_domain_uri *uri;
   struct berval bv = {0, NULL};
@@ -180,8 +174,7 @@ static int unique_new_domain_uri(unique_domain_uri **urip,
   uri = ch_calloc(1, sizeof(unique_domain_uri));
 
   if (url_desc->lud_host && url_desc->lud_host[0]) {
-    snprintf(c->cr_msg, sizeof(c->cr_msg), "host <%s> not allowed in URI",
-             url_desc->lud_host);
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "host <%s> not allowed in URI", url_desc->lud_host);
     rc = ARG_BAD_CONF;
     goto exit;
   }
@@ -190,8 +183,7 @@ static int unique_new_domain_uri(unique_domain_uri **urip,
     ber_str2bv(url_desc->lud_dn, 0, 0, &bv);
     rc = dnPrettyNormal(NULL, &bv, &uri->dn, &uri->ndn, NULL);
     if (rc != LDAP_SUCCESS) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> invalid DN %d (%s)",
-               url_desc->lud_dn, rc, ldap_err2string(rc));
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> invalid DN %d (%s)", url_desc->lud_dn, rc, ldap_err2string(rc));
       rc = ARG_BAD_CONF;
       goto exit;
     }
@@ -204,9 +196,8 @@ static int unique_new_domain_uri(unique_domain_uri **urip,
     }
 
     if (!dnIsSuffix(&uri->ndn, &be->be_nsuffix[0])) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "dn <%s> is not a suffix of backend base dn <%s>",
-               uri->dn.bv_val, be->be_nsuffix[0].bv_val);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "dn <%s> is not a suffix of backend base dn <%s>", uri->dn.bv_val,
+               be->be_nsuffix[0].bv_val);
       rc = ARG_BAD_CONF;
       goto exit;
     }
@@ -230,8 +221,7 @@ static int unique_new_domain_uri(unique_domain_uri **urip,
         attr->next = uri->attrs;
         uri->attrs = attr;
       } else {
-        snprintf(c->cr_msg, sizeof(c->cr_msg), "unique: attribute: %s: %s",
-                 attr_str[i], text);
+        snprintf(c->cr_msg, sizeof(c->cr_msg), "unique: attribute: %s: %s", attr_str[i], text);
         rc = ARG_BAD_CONF;
         goto exit;
       }
@@ -240,8 +230,7 @@ static int unique_new_domain_uri(unique_domain_uri **urip,
 
   uri->scope = url_desc->lud_scope;
   if (!uri->scope) {
-    snprintf(c->cr_msg, sizeof(c->cr_msg),
-             "unique: uri with base scope will always be unique");
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "unique: uri with base scope will always be unique");
     rc = ARG_BAD_CONF;
     goto exit;
   }
@@ -257,8 +246,7 @@ static int unique_new_domain_uri(unique_domain_uri **urip,
     /* make sure the strfilter is in normal form (ITS#5581) */
     filter2bv(uri->f, &uri->filter);
     ptr = strstr(uri->filter.bv_val, "(?=" /*)*/);
-    if (ptr != NULL && ptr <= (uri->filter.bv_val - STRLENOF("(?=" /*)*/) +
-                               uri->filter.bv_len)) {
+    if (ptr != NULL && ptr <= (uri->filter.bv_val - STRLENOF("(?=" /*)*/) + uri->filter.bv_len)) {
       snprintf(c->cr_msg, sizeof(c->cr_msg), "unique: bad filter");
       rc = ARG_BAD_CONF;
       goto exit;
@@ -275,8 +263,7 @@ exit:
   return rc;
 }
 
-static int unique_new_domain_uri_basic(unique_domain_uri **urip,
-                                       ConfigArgs *c) {
+static int unique_new_domain_uri_basic(unique_domain_uri **urip, ConfigArgs *c) {
   LDAPURLDesc *url_desc = NULL;
   int rc;
 
@@ -302,8 +289,7 @@ static int unique_new_domain_uri_basic(unique_domain_uri **urip,
  * so finally strictness is per-domain
  * but so is ignore-state, and that would be better as a per-url thing
  */
-static int unique_new_domain(unique_domain **domainp, char *domain_spec,
-                             ConfigArgs *c) {
+static int unique_new_domain(unique_domain **domainp, char *domain_spec, ConfigArgs *c) {
   char *uri_start;
   int rc = LDAP_SUCCESS;
   unique_domain *domain;
@@ -322,16 +308,14 @@ static int unique_new_domain(unique_domain **domainp, char *domain_spec,
   if (strncasecmp(uri_start, "strict ", STRLENOF("strict ")) == 0) {
     domain->strict = 1;
     uri_start += STRLENOF("strict ");
-    if (!domain->ignore &&
-        strncasecmp(uri_start, "ignore ", STRLENOF("ignore ")) == 0) {
+    if (!domain->ignore && strncasecmp(uri_start, "ignore ", STRLENOF("ignore ")) == 0) {
       domain->ignore = 1;
       uri_start += STRLENOF("ignore ");
     }
   }
   rc = ldap_url_parselist_ext(&url_descs, uri_start, " ", 0);
   if (rc) {
-    snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> invalid ldap urilist",
-             uri_start);
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> invalid ldap urilist", uri_start);
     rc = ARG_BAD_CONF;
     goto exit;
   }
@@ -396,8 +380,7 @@ static int unique_cf_base(ConfigArgs *c) {
   case LDAP_MOD_ADD:
   case SLAP_CONFIG_ADD:
     if (domains) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "cannot set legacy attrs when URIs are present");
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "cannot set legacy attrs when URIs are present");
       Debug(LDAP_DEBUG_CONFIG, "unique config: %s\n", c->cr_msg);
       rc = ARG_BAD_CONF;
       break;
@@ -409,8 +392,7 @@ static int unique_cf_base(ConfigArgs *c) {
       break;
     }
     if (!dnIsSuffix(&c->value_ndn, &be->be_nsuffix[0])) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "dn is not a suffix of backend base");
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "dn is not a suffix of backend base");
       Debug(LDAP_DEBUG_CONFIG, "unique config: %s\n", c->cr_msg);
       rc = ARG_BAD_CONF;
       break;
@@ -462,8 +444,7 @@ static int unique_cf_attrs(ConfigArgs *c) {
     rc = 0;
     break;
   case LDAP_MOD_DELETE:
-    if (legacy && (c->type == UNIQUE_IGNORE) == legacy->ignore && legacy->uri &&
-        legacy->uri->attrs) {
+    if (legacy && (c->type == UNIQUE_IGNORE) == legacy->ignore && legacy->uri && legacy->uri->attrs) {
       if (c->valx < 0) { /* delete all */
         for (attr = legacy->uri->attrs; attr; attr = next_attr) {
           next_attr = attr->next;
@@ -492,16 +473,13 @@ static int unique_cf_attrs(ConfigArgs *c) {
   case LDAP_MOD_ADD:
   case SLAP_CONFIG_ADD:
     if (domains) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "cannot set legacy attrs when URIs are present");
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "cannot set legacy attrs when URIs are present");
       Debug(LDAP_DEBUG_CONFIG, "unique config: %s\n", c->cr_msg);
       rc = ARG_BAD_CONF;
       break;
     }
-    if (legacy && legacy->uri && legacy->uri->attrs &&
-        (c->type == UNIQUE_IGNORE) != legacy->ignore) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "cannot set both attrs and ignore-attrs");
+    if (legacy && legacy->uri && legacy->uri->attrs && (c->type == UNIQUE_IGNORE) != legacy->ignore) {
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "cannot set both attrs and ignore-attrs");
       Debug(LDAP_DEBUG_CONFIG, "unique config: %s\n", c->cr_msg);
       rc = ARG_BAD_CONF;
       break;
@@ -523,8 +501,7 @@ static int unique_cf_attrs(ConfigArgs *c) {
         attr->next = new_attrs;
         new_attrs = attr;
       } else {
-        snprintf(c->cr_msg, sizeof(c->cr_msg), "unique: attribute: %s: %s",
-                 c->argv[i], text);
+        snprintf(c->cr_msg, sizeof(c->cr_msg), "unique: attribute: %s: %s", c->argv[i], text);
         for (attr = new_attrs; attr; attr = next_attr) {
           next_attr = attr->next;
           ch_free(attr);
@@ -595,8 +572,7 @@ static int unique_cf_strict(ConfigArgs *c) {
   case LDAP_MOD_ADD:
   case SLAP_CONFIG_ADD:
     if (domains) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "cannot set legacy attrs when URIs are present");
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "cannot set legacy attrs when URIs are present");
       Debug(LDAP_DEBUG_CONFIG, "unique config: %s\n", c->cr_msg);
       rc = ARG_BAD_CONF;
       break;
@@ -670,8 +646,7 @@ static int unique_cf_uri(ConfigArgs *c) {
   case SLAP_CONFIG_ADD: /* fallthru */
   case LDAP_MOD_ADD:
     if (legacy) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "cannot set Uri when legacy attrs are present");
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "cannot set Uri when legacy attrs are present");
       Debug(LDAP_DEBUG_CONFIG, "unique config: %s\n", c->cr_msg);
       rc = ARG_BAD_CONF;
       break;
@@ -758,8 +733,7 @@ static int count_attr_cb(Operation *op, SlapReply *rs) {
   if (dn_match(uc->ndn, &rs->sr_entry->e_nname))
     return (0);
 
-  Debug(LDAP_DEBUG_TRACE, "==> count_attr_cb <%s>\n",
-        rs->sr_entry ? rs->sr_entry->e_name.bv_val : "UNKNOWN_DN");
+  Debug(LDAP_DEBUG_TRACE, "==> count_attr_cb <%s>\n", rs->sr_entry ? rs->sr_entry->e_name.bv_val : "UNKNOWN_DN");
 
   uc->count++;
 
@@ -770,8 +744,7 @@ static int count_attr_cb(Operation *op, SlapReply *rs) {
  * (and all of its values b)
  * in the proposed filter
  */
-static int count_filter_len(unique_domain *domain, unique_domain_uri *uri,
-                            AttributeDescription *ad, BerVarray b) {
+static int count_filter_len(unique_domain *domain, unique_domain_uri *uri, AttributeDescription *ad, BerVarray b) {
   unique_attrs *attr;
   int i;
   int ks = 0;
@@ -801,9 +774,8 @@ static int count_filter_len(unique_domain *domain, unique_domain_uri *uri,
   return ks;
 }
 
-static char *build_filter(unique_domain *domain, unique_domain_uri *uri,
-                          AttributeDescription *ad, BerVarray b, char *kp,
-                          int ks, void *ctx) {
+static char *build_filter(unique_domain *domain, unique_domain_uri *uri, AttributeDescription *ad, BerVarray b,
+                          char *kp, int ks, void *ctx) {
   unique_attrs *attr;
   int i;
 
@@ -844,8 +816,8 @@ static char *build_filter(unique_domain *domain, unique_domain_uri *uri,
   return kp;
 }
 
-static int unique_search(Operation *op, Operation *nop, struct berval *dn,
-                         int scope, SlapReply *rs, struct berval *key) {
+static int unique_search(Operation *op, Operation *nop, struct berval *dn, int scope, SlapReply *rs,
+                         struct berval *key) {
   slap_overinst *on = (slap_overinst *)op->o_bd->bd_info;
   SlapReply nrs = {REP_RESULT};
   slap_callback cb = {NULL, NULL, NULL, NULL}; /* XXX */
@@ -895,8 +867,7 @@ static int unique_search(Operation *op, Operation *nop, struct berval *dn,
 
     errmsgsize = sizeof("non-unique attributes found with ") + key->bv_len;
     errmsg = op->o_tmpalloc(errmsgsize, op->o_tmpmemctx);
-    snprintf(errmsg, errmsgsize, "non-unique attributes found with %s",
-             key->bv_val);
+    snprintf(errmsg, errmsgsize, "non-unique attributes found with %s", key->bv_val);
     op->o_bd->bd_info = (BackendInfo *)on->on_info;
     send_ldap_error(op, rs, LDAP_CONSTRAINT_VIOLATION, errmsg);
     op->o_tmpfree(errmsg, op->o_tmpmemctx);
@@ -928,8 +899,7 @@ static int unique_add(Operation *op, SlapReply *rs) {
   /* skip the checks if the operation has manageDsaIt control in it
    * (for replication) */
   if (op->o_managedsait > SLAP_CONTROL_IGNORED &&
-      access_allowed(op, op->ora_e, slap_schema.si_ad_entry, NULL, ACL_MANAGE,
-                     NULL)) {
+      access_allowed(op, op->ora_e, slap_schema.si_ad_entry, NULL, ACL_MANAGE, NULL)) {
     Debug(LDAP_DEBUG_TRACE, "unique_add: administrative bypass, skipping\n");
     return rc;
   }
@@ -946,16 +916,14 @@ static int unique_add(Operation *op, SlapReply *rs) {
 
       if (uri->f) {
         if (test_filter(NULL, op->ora_e, uri->f) == LDAP_COMPARE_FALSE) {
-          Debug(LDAP_DEBUG_TRACE, "==> unique_add_skip<%s>\n",
-                op->o_req_dn.bv_val);
+          Debug(LDAP_DEBUG_TRACE, "==> unique_add_skip<%s>\n", op->o_req_dn.bv_val);
           continue;
         }
       }
 
       if (!(a = op->ora_e->e_attrs)) {
         op->o_bd->bd_info = (BackendInfo *)on->on_info;
-        send_ldap_error(op, rs, LDAP_INVALID_SYNTAX,
-                        "unique_add() got null op.ora_e.e_attrs");
+        send_ldap_error(op, rs, LDAP_INVALID_SYNTAX, "unique_add() got null op.ora_e.e_attrs");
         rc = rs->sr_err;
         break;
 
@@ -986,8 +954,7 @@ static int unique_add(Operation *op, SlapReply *rs) {
       kp += len;
 
       for (a = op->ora_e->e_attrs; a; a = a->a_next)
-        kp = build_filter(domain, uri, a->a_desc, a->a_vals, kp,
-                          ks - (kp - key), op->o_tmpmemctx);
+        kp = build_filter(domain, uri, a->a_desc, a->a_vals, kp, ks - (kp - key), op->o_tmpmemctx);
 
       len = snprintf(kp, ks - (kp - key), ")");
       assert(len >= 0 && len < ks - (kp - key));
@@ -1000,9 +967,7 @@ static int unique_add(Operation *op, SlapReply *rs) {
       bvkey.bv_val = key;
       bvkey.bv_len = kp - key;
 
-      rc = unique_search(op, &nop,
-                         uri->ndn.bv_val ? &uri->ndn : &op->o_bd->be_nsuffix[0],
-                         uri->scope, rs, &bvkey);
+      rc = unique_search(op, &nop, uri->ndn.bv_val ? &uri->ndn : &op->o_bd->be_nsuffix[0], uri->scope, rs, &bvkey);
 
       if (rc != SLAP_CB_CONTINUE)
         break;
@@ -1037,9 +1002,7 @@ static int unique_modify(Operation *op, SlapReply *rs) {
   /* skip the checks if the operation has manageDsaIt control in it
    * (for replication) */
   if (op->o_managedsait > SLAP_CONTROL_IGNORED &&
-      overlay_entry_get_ov(op, &op->o_req_ndn, NULL, NULL, 0, &e, on) ==
-          LDAP_SUCCESS &&
-      e &&
+      overlay_entry_get_ov(op, &op->o_req_ndn, NULL, NULL, 0, &e, on) == LDAP_SUCCESS && e &&
       access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_MANAGE, NULL)) {
     Debug(LDAP_DEBUG_TRACE, "unique_modify: administrative bypass, skipping\n");
     overlay_entry_release_ov(op, e, 0, on);
@@ -1085,8 +1048,7 @@ static int unique_modify(Operation *op, SlapReply *rs) {
 
       for (m = op->orm_modlist; m; m = m->sml_next)
         if ((m->sml_op & LDAP_MOD_OP) != LDAP_MOD_DELETE)
-          kp = build_filter(domain, uri, m->sml_desc, m->sml_values, kp,
-                            ks - (kp - key), op->o_tmpmemctx);
+          kp = build_filter(domain, uri, m->sml_desc, m->sml_values, kp, ks - (kp - key), op->o_tmpmemctx);
 
       len = snprintf(kp, ks - (kp - key), ")");
       assert(len >= 0 && len < ks - (kp - key));
@@ -1099,9 +1061,7 @@ static int unique_modify(Operation *op, SlapReply *rs) {
       bvkey.bv_val = key;
       bvkey.bv_len = kp - key;
 
-      rc = unique_search(op, &nop,
-                         uri->ndn.bv_val ? &uri->ndn : &op->o_bd->be_nsuffix[0],
-                         uri->scope, rs, &bvkey);
+      rc = unique_search(op, &nop, uri->ndn.bv_val ? &uri->ndn : &op->o_bd->be_nsuffix[0], uri->scope, rs, &bvkey);
 
       if (rc != SLAP_CB_CONTINUE)
         break;
@@ -1127,15 +1087,12 @@ static int unique_modrdn(Operation *op, SlapReply *rs) {
   struct berval bv[2];
   int rc = SLAP_CB_CONTINUE;
 
-  Debug(LDAP_DEBUG_TRACE, "==> unique_modrdn <%s> <%s>\n", op->o_req_dn.bv_val,
-        op->orr_newrdn.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "==> unique_modrdn <%s> <%s>\n", op->o_req_dn.bv_val, op->orr_newrdn.bv_val);
 
   /* skip the checks if the operation has manageDsaIt control in it
    * (for replication) */
   if (op->o_managedsait > SLAP_CONTROL_IGNORED &&
-      overlay_entry_get_ov(op, &op->o_req_ndn, NULL, NULL, 0, &e, on) ==
-          LDAP_SUCCESS &&
-      e &&
+      overlay_entry_get_ov(op, &op->o_req_ndn, NULL, NULL, 0, &e, on) == LDAP_SUCCESS && e &&
       access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_MANAGE, NULL)) {
     Debug(LDAP_DEBUG_TRACE, "unique_modrdn: administrative bypass, skipping\n");
     overlay_entry_release_ov(op, e, 0, on);
@@ -1156,12 +1113,10 @@ static int unique_modrdn(Operation *op, SlapReply *rs) {
           (!op->orr_nnewSup || !dnIsSuffix(op->orr_nnewSup, &uri->ndn)))
         continue;
 
-      if (ldap_bv2rdn_x(&op->oq_modrdn.rs_newrdn, &newrdn,
-                        (char **)&rs->sr_text, LDAP_DN_FORMAT_LDAP,
+      if (ldap_bv2rdn_x(&op->oq_modrdn.rs_newrdn, &newrdn, (char **)&rs->sr_text, LDAP_DN_FORMAT_LDAP,
                         op->o_tmpmemctx)) {
         op->o_bd->bd_info = (BackendInfo *)on->on_info;
-        send_ldap_error(op, rs, LDAP_INVALID_SYNTAX,
-                        "unknown type(s) used in RDN");
+        send_ldap_error(op, rs, LDAP_INVALID_SYNTAX, "unknown type(s) used in RDN");
         rc = rs->sr_err;
         break;
       }
@@ -1211,8 +1166,7 @@ static int unique_modrdn(Operation *op, SlapReply *rs) {
 
       for (i = 0; newrdn[i]; i++) {
         bv[0] = newrdn[i]->la_value;
-        kp = build_filter(domain, uri, newrdn[i]->la_private, bv, kp,
-                          ks - (kp - key), op->o_tmpmemctx);
+        kp = build_filter(domain, uri, newrdn[i]->la_private, bv, kp, ks - (kp - key), op->o_tmpmemctx);
       }
 
       len = snprintf(kp, ks - (kp - key), ")");
@@ -1226,9 +1180,7 @@ static int unique_modrdn(Operation *op, SlapReply *rs) {
       bvkey.bv_val = key;
       bvkey.bv_len = kp - key;
 
-      rc = unique_search(op, &nop,
-                         uri->ndn.bv_val ? &uri->ndn : &op->o_bd->be_nsuffix[0],
-                         uri->scope, rs, &bvkey);
+      rc = unique_search(op, &nop, uri->ndn.bv_val ? &uri->ndn : &op->o_bd->be_nsuffix[0], uri->scope, rs, &bvkey);
 
       if (rc != SLAP_CB_CONTINUE)
         break;

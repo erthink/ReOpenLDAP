@@ -32,8 +32,7 @@ slapi_int_ldapmods2modifications(Operation *op, LDAPMod **);
 LDAP_SLAPI_F(int) slapi_int_count_controls(LDAPControl **ctrls);
 LDAP_SLAPI_F(char **) slapi_get_supported_extended_ops(void);
 LDAP_SLAPI_F(int)
-slapi_int_access_allowed(Operation *op, Entry *entry,
-                         AttributeDescription *desc, struct berval *val,
+slapi_int_access_allowed(Operation *op, Entry *entry, AttributeDescription *desc, struct berval *val,
                          slap_access_t access, AccessControlState *state);
 
 /* slapi_ops.c */
@@ -49,27 +48,26 @@ LDAP_SLAPI_F(void) slapi_pblock_clear(Slapi_PBlock *pb);
 LDAP_SLAPI_F(int) slapi_int_pblock_get_first(Backend *be, Slapi_PBlock **pb);
 LDAP_SLAPI_F(int) slapi_int_pblock_get_next(Slapi_PBlock **pb);
 
-#define PBLOCK_ASSERT_CONN(_pb)                                                \
-  do {                                                                         \
-    assert((_pb) != NULL);                                                     \
-    assert((_pb)->pb_conn != NULL);                                            \
+#define PBLOCK_ASSERT_CONN(_pb)                                                                                        \
+  do {                                                                                                                 \
+    assert((_pb) != NULL);                                                                                             \
+    assert((_pb)->pb_conn != NULL);                                                                                    \
   } while (0)
 
-#define PBLOCK_ASSERT_OP(_pb, _tag)                                            \
-  do {                                                                         \
-    PBLOCK_ASSERT_CONN(_pb);                                                   \
-    assert((_pb)->pb_op != NULL);                                              \
-    assert((_pb)->pb_rs != NULL);                                              \
-    if (_tag != 0)                                                             \
-      assert((_pb)->pb_op->o_tag == (_tag));                                   \
+#define PBLOCK_ASSERT_OP(_pb, _tag)                                                                                    \
+  do {                                                                                                                 \
+    PBLOCK_ASSERT_CONN(_pb);                                                                                           \
+    assert((_pb)->pb_op != NULL);                                                                                      \
+    assert((_pb)->pb_rs != NULL);                                                                                      \
+    if (_tag != 0)                                                                                                     \
+      assert((_pb)->pb_op->o_tag == (_tag));                                                                           \
   } while (0)
 
-#define PBLOCK_ASSERT_INTOP(_pb, _tag)                                         \
-  do {                                                                         \
-    PBLOCK_ASSERT_OP(_pb, _tag);                                               \
-    assert((_pb)->pb_intop);                                                   \
-    assert((_pb)->pb_op ==                                                     \
-           (Operation *)pb->pb_conn->c_pending_ops.stqh_first);                \
+#define PBLOCK_ASSERT_INTOP(_pb, _tag)                                                                                 \
+  do {                                                                                                                 \
+    PBLOCK_ASSERT_OP(_pb, _tag);                                                                                       \
+    assert((_pb)->pb_intop);                                                                                           \
+    assert((_pb)->pb_op == (Operation *)pb->pb_conn->c_pending_ops.stqh_first);                                        \
   } while (0)
 
 /* plugin.c */
@@ -84,8 +82,7 @@ LDAP_SLAPI_F(int)
 slapi_int_get_extop_plugin(struct berval *reqoid, SLAPI_FUNC *pFuncAddr);
 LDAP_SLAPI_F(struct berval *) slapi_int_get_supported_extop(int);
 LDAP_SLAPI_F(int)
-slapi_int_read_config(Backend *be, const char *fname, int lineno, int argc,
-                      char **argv);
+slapi_int_read_config(Backend *be, const char *fname, int lineno, int argc, char **argv);
 LDAP_SLAPI_F(void) slapi_int_plugin_unparse(Backend *be, BerVarray *out);
 LDAP_SLAPI_F(int) slapi_int_initialize(void);
 

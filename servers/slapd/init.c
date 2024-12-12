@@ -68,8 +68,7 @@ int slap_init(int mode, const char *name) {
 
   if (slapMode != SLAP_UNDEFINED_MODE) {
     /* Make sure we write something to stderr */
-    Debug(LDAP_DEBUG_ANY, "%s init: init called twice (old=%d, new=%d)\n", name,
-          slapMode, mode);
+    Debug(LDAP_DEBUG_ANY, "%s init: init called twice (old=%d, new=%d)\n", name, slapMode, mode);
 
     return 1;
   }
@@ -108,13 +107,11 @@ int slap_init(int mode, const char *name) {
 
     /* FALLTHRU */
   case SLAP_TOOL_MODE:
-    Debug(LDAP_DEBUG_TRACE, "%s init: initiated %s.\n", name,
-          (mode & SLAP_MODE) == SLAP_TOOL_MODE ? "tool" : "server");
+    Debug(LDAP_DEBUG_TRACE, "%s init: initiated %s.\n", name, (mode & SLAP_MODE) == SLAP_TOOL_MODE ? "tool" : "server");
 
     slap_name = name;
 
-    ldap_pvt_thread_pool_init_q(&connection_pool, connection_pool_max, 0,
-                                connection_pool_queues);
+    ldap_pvt_thread_pool_init_q(&connection_pool, connection_pool_max, 0, connection_pool_queues);
 
     slap_counters_init(&slap_counters);
 

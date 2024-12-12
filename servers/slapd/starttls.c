@@ -48,25 +48,21 @@ int starttls_extop(Operation *op, SlapReply *rs) {
 
   /* can't start TLS if there are other op's around */
   if ((!LDAP_STAILQ_EMPTY(&op->o_conn->c_ops) &&
-       (LDAP_STAILQ_FIRST(&op->o_conn->c_ops) != op ||
-        LDAP_STAILQ_NEXT(op, o_next) != NULL)) ||
+       (LDAP_STAILQ_FIRST(&op->o_conn->c_ops) != op || LDAP_STAILQ_NEXT(op, o_next) != NULL)) ||
       (!LDAP_STAILQ_EMPTY(&op->o_conn->c_pending_ops))) {
     rs->sr_text = "cannot start TLS when operations are outstanding";
     rc = LDAP_OPERATIONS_ERROR;
     goto done;
   }
 
-  if (!(global_disallows & SLAP_DISALLOW_TLS_2_ANON) &&
-      (op->o_conn->c_dn.bv_len != 0)) {
-    Statslog(LDAP_DEBUG_STATS, "%s AUTHZ anonymous mech=starttls ssf=0\n",
-             op->o_log_prefix);
+  if (!(global_disallows & SLAP_DISALLOW_TLS_2_ANON) && (op->o_conn->c_dn.bv_len != 0)) {
+    Statslog(LDAP_DEBUG_STATS, "%s AUTHZ anonymous mech=starttls ssf=0\n", op->o_log_prefix);
 
     /* force to anonymous */
     connection2anonymous(op->o_conn);
   }
 
-  if ((global_disallows & SLAP_DISALLOW_TLS_AUTHC) &&
-      (op->o_conn->c_dn.bv_len != 0)) {
+  if ((global_disallows & SLAP_DISALLOW_TLS_AUTHC) && (op->o_conn->c_dn.bv_len != 0)) {
     rs->sr_text = "cannot start TLS after authentication";
     rc = LDAP_OPERATIONS_ERROR;
     goto done;

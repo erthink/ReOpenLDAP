@@ -63,13 +63,10 @@ static ObjectClass *oc_krb5KDCEntry;
 
 #ifdef DO_SAMBA
 
-#if RELDAP_TLS == RELDAP_TLS_OPENSSL ||                                        \
-    (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL &&                              \
-     RELDAP_TLS != RELDAP_TLS_GNUTLS)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
 #include <openssl/md4.h>
 #include <openssl/des.h>
-#elif RELDAP_TLS == RELDAP_TLS_GNUTLS ||                                       \
-    RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 #include <nettle/des.h>
 #include <nettle/md4.h>
 typedef unsigned char DES_cblock[8];
@@ -151,9 +148,7 @@ static void lmPasswd_to_key(const char *lmPasswd, DES_cblock *key) {
   k[6] = ((lpw[5] & 0x3F) << 2) | (lpw[6] >> 6);
   k[7] = ((lpw[6] & 0x7F) << 1);
 
-#if RELDAP_TLS == RELDAP_TLS_OPENSSL ||                                        \
-    (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL &&                              \
-     RELDAP_TLS != RELDAP_TLS_GNUTLS)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
   DES_set_odd_parity(key);
 #endif /* RELDAP_TLS */
 }
@@ -183,12 +178,9 @@ static void lmhash(struct berval *passwd, struct berval *hash) {
   DES_cblock key;
   DES_cblock StdText = "KGS!@#$%";
   DES_cblock hbuf[2];
-#if RELDAP_TLS == RELDAP_TLS_OPENSSL ||                                        \
-    (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL &&                              \
-     RELDAP_TLS != RELDAP_TLS_GNUTLS)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
   DES_key_schedule schedule;
-#elif RELDAP_TLS == RELDAP_TLS_GNUTLS ||                                       \
-    RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
   struct des_ctx ctx;
 #endif /* RELDAP_TLS */
 
@@ -197,17 +189,14 @@ static void lmhash(struct berval *passwd, struct berval *hash) {
   ldap_pvt_str2upper(UcasePassword);
 
   lmPasswd_to_key(UcasePassword, &key);
-#if RELDAP_TLS == RELDAP_TLS_OPENSSL ||                                        \
-    (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL &&                              \
-     RELDAP_TLS != RELDAP_TLS_GNUTLS)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
   DES_set_key_unchecked(&key, &schedule);
   DES_ecb_encrypt(&StdText, &hbuf[0], &schedule, DES_ENCRYPT);
 
   lmPasswd_to_key(&UcasePassword[7], &key);
   DES_set_key_unchecked(&key, &schedule);
   DES_ecb_encrypt(&StdText, &hbuf[1], &schedule, DES_ENCRYPT);
-#elif RELDAP_TLS == RELDAP_TLS_GNUTLS ||                                       \
-    RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
   des_set_key(&ctx, key);
   des_encrypt(&ctx, sizeof(key), hbuf[0], StdText);
 
@@ -225,26 +214,20 @@ static void nthash(struct berval *passwd, struct berval *hash) {
    * 256 UCS2 characters, not 256 bytes...
    */
   char hbuf[HASHLEN];
-#if RELDAP_TLS == RELDAP_TLS_OPENSSL ||                                        \
-    (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL &&                              \
-     RELDAP_TLS != RELDAP_TLS_GNUTLS)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
   MD4_CTX ctx;
-#elif RELDAP_TLS == RELDAP_TLS_GNUTLS ||                                       \
-    RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
   struct md4_ctx ctx;
 #endif /* RELDAP_TLS */
 
   if (passwd->bv_len > MAX_PWLEN * 2)
     passwd->bv_len = MAX_PWLEN * 2;
 
-#if RELDAP_TLS == RELDAP_TLS_OPENSSL ||                                        \
-    (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL &&                              \
-     RELDAP_TLS != RELDAP_TLS_GNUTLS)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
   MD4_Init(&ctx);
   MD4_Update(&ctx, passwd->bv_val, passwd->bv_len);
   MD4_Final((unsigned char *)hbuf, &ctx);
-#elif RELDAP_TLS == RELDAP_TLS_GNUTLS ||                                       \
-    RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
   md4_init(&ctx);
   md4_update(&ctx, passwd->bv_len, (unsigned char *)passwd->bv_val);
   md4_digest(&ctx, sizeof(hbuf), (unsigned char *)hbuf);
@@ -260,8 +243,7 @@ static int smbk5pwd_op_cleanup(Operation *op, SlapReply *rs) {
   slap_callback *cb;
 
   /* clear out the current key */
-  ldap_pvt_thread_pool_setkey(op->o_threadctx, smbk5pwd_op_cleanup, NULL, 0,
-                              NULL, NULL);
+  ldap_pvt_thread_pool_setkey(op->o_threadctx, smbk5pwd_op_cleanup, NULL, 0, NULL, NULL);
 
   /* free the callback */
   cb = op->o_callback;
@@ -277,8 +259,7 @@ static int smbk5pwd_op_bind(Operation *op, SlapReply *rs) {
    */
   if (op->oq_bind.rb_method == LDAP_AUTH_SIMPLE) {
     slap_callback *cb;
-    ldap_pvt_thread_pool_setkey(op->o_threadctx, smbk5pwd_op_cleanup, op, 0,
-                                NULL, NULL);
+    ldap_pvt_thread_pool_setkey(op->o_threadctx, smbk5pwd_op_cleanup, op, 0, NULL, NULL);
     cb = op->o_tmpcalloc(1, sizeof(slap_callback), op->o_tmpmemctx);
     cb->sc_cleanup = smbk5pwd_op_cleanup;
     cb->sc_next = op->o_callback;
@@ -305,8 +286,8 @@ static const struct berval k5key_scheme = BER_BVC("{K5KEY}");
  * storage so we can retrieve it here. The Operation provides all
  * the necessary context for us to get Entry from the database.
  */
-static int k5key_chk(const struct berval *sc, const struct berval *passwd,
-                     const struct berval *cred, const char **text) {
+static int k5key_chk(const struct berval *sc, const struct berval *passwd, const struct berval *cred,
+                     const char **text) {
   void *ctx, *op_tmp;
   Operation *op;
   int rc;
@@ -320,8 +301,7 @@ static int k5key_chk(const struct berval *sc, const struct berval *passwd,
   /* Find our thread context, find our Operation */
   ctx = ldap_pvt_thread_pool_context();
 
-  if (ldap_pvt_thread_pool_getkey(ctx, smbk5pwd_op_cleanup, &op_tmp, NULL) ||
-      !op_tmp)
+  if (ldap_pvt_thread_pool_getkey(ctx, smbk5pwd_op_cleanup, &op_tmp, NULL) || !op_tmp)
     return LUTIL_PASSWD_ERR;
   op = op_tmp;
 
@@ -347,8 +327,7 @@ static int k5key_chk(const struct berval *sc, const struct berval *passwd,
     if (a) {
       struct lutil_tm tm;
       struct lutil_timet tt;
-      if (lutil_parsetime(a->a_vals[0].bv_val, &tm) == 0 &&
-          lutil_tm2time(&tm, &tt) == 0 && tt.tt_usec < op->o_time) {
+      if (lutil_parsetime(a->a_vals[0].bv_val, &tm) == 0 && lutil_tm2time(&tm, &tt) == 0 && tt.tt_usec < op->o_time) {
         /* Account is expired */
         rc = LUTIL_PASSWD_ERR;
         break;
@@ -364,18 +343,15 @@ static int k5key_chk(const struct berval *sc, const struct berval *passwd,
 
     ent.keys.len = 1;
     ent.keys.val = &ekey;
-    decode_Key((unsigned char *)a->a_vals[0].bv_val,
-               (size_t)a->a_vals[0].bv_len, &ent.keys.val[0], &l);
+    decode_Key((unsigned char *)a->a_vals[0].bv_val, (size_t)a->a_vals[0].bv_len, &ent.keys.val[0], &l);
     if (db->HDB_MASTER_KEY_SET)
       hdb_unseal_keys(context, db, &ent);
 
-    krb5_string_to_key_salt(context, ekey.key.keytype, cred->bv_val, salt,
-                            &key);
+    krb5_string_to_key_salt(context, ekey.key.keytype, cred->bv_val, salt, &key);
 
     krb5_free_salt(context, salt);
 
-    if (memcmp(ekey.key.keyvalue.data, key.keyvalue.data,
-               key.keyvalue.length) == 0)
+    if (memcmp(ekey.key.keyvalue.data, key.keyvalue.data, key.keyvalue.length) == 0)
       rc = LUTIL_PASSWD_OK;
 
     krb5_free_keyblock_contents(context, &key);
@@ -386,8 +362,8 @@ static int k5key_chk(const struct berval *sc, const struct berval *passwd,
   return rc;
 }
 
-static int k5key_hash(const struct berval *scheme, const struct berval *passwd,
-                      struct berval *hash, const char **text) {
+static int k5key_hash(const struct berval *scheme, const struct berval *passwd, struct berval *hash,
+                      const char **text) {
   ber_dupbv(hash, (struct berval *)&k5key_scheme);
   return LUTIL_PASSWD_OK;
 }
@@ -459,12 +435,9 @@ static int smbk5pwd_exop_passwd(Operation *op, SlapReply *rs) {
     }
 
 #ifdef HAVE_MODERN_HDB_GENERATE_KEY_SET_PASSWORD
-    ret = hdb_generate_key_set_password(
-        context, ent.principal, qpw->rs_new.bv_val, &ent.keys.val, &nkeys);
+    ret = hdb_generate_key_set_password(context, ent.principal, qpw->rs_new.bv_val, &ent.keys.val, &nkeys);
 #else
-    ret = hdb_generate_key_set_password(context, ent.principal,
-                                        qpw->rs_new.bv_val, NULL, 0,
-                                        &ent.keys.val, &nkeys);
+    ret = hdb_generate_key_set_password(context, ent.principal, qpw->rs_new.bv_val, NULL, 0, &ent.keys.val, &nkeys);
 #endif /* HAVE_MODERN_HDB_GENERATE_KEY_SET_PASSWORD */
     ent.keys.len = nkeys;
     hdb_seal_keys(context, db, &ent);
@@ -519,8 +492,7 @@ static int smbk5pwd_exop_passwd(Operation *op, SlapReply *rs) {
     ml->sml_numvals = 1;
     ml->sml_values = ch_malloc(2 * sizeof(struct berval));
     ml->sml_values[0].bv_val = ch_malloc(64);
-    ml->sml_values[0].bv_len =
-        sprintf(ml->sml_values[0].bv_val, "%d", kvno + 1);
+    ml->sml_values[0].bv_len = sprintf(ml->sml_values[0].bv_val, "%d", kvno + 1);
     BER_BVZERO(&ml->sml_values[1]);
     ml->sml_nvalues = NULL;
   } while (0);
@@ -606,8 +578,7 @@ static int smbk5pwd_exop_passwd(Operation *op, SlapReply *rs) {
 
     keys = ch_malloc(2 * sizeof(struct berval));
     keys[0].bv_val = ch_malloc(LDAP_PVT_INTTYPE_CHARS(long));
-    keys[0].bv_len = snprintf(keys[0].bv_val, LDAP_PVT_INTTYPE_CHARS(long),
-                              "%ld", ldap_time_steady());
+    keys[0].bv_len = snprintf(keys[0].bv_val, LDAP_PVT_INTTYPE_CHARS(long), "%ld", ldap_time_steady());
     BER_BVZERO(&keys[1]);
 
     ml->sml_desc = ad_sambaPwdLastSet;
@@ -627,8 +598,7 @@ static int smbk5pwd_exop_passwd(Operation *op, SlapReply *rs) {
       keys = ch_malloc(2 * sizeof(struct berval));
       keys[0].bv_val = ch_malloc(LDAP_PVT_INTTYPE_CHARS(long));
       keys[0].bv_len =
-          snprintf(keys[0].bv_val, LDAP_PVT_INTTYPE_CHARS(long), "%ld",
-                   ldap_time_steady() + pi->smb_must_change);
+          snprintf(keys[0].bv_val, LDAP_PVT_INTTYPE_CHARS(long), "%ld", ldap_time_steady() + pi->smb_must_change);
       BER_BVZERO(&keys[1]);
 
       ml->sml_desc = ad_sambaPwdMustChange;
@@ -648,8 +618,8 @@ static int smbk5pwd_exop_passwd(Operation *op, SlapReply *rs) {
 
       keys = ch_malloc(2 * sizeof(struct berval));
       keys[0].bv_val = ch_malloc(LDAP_PVT_INTTYPE_CHARS(long));
-      keys[0].bv_len = snprintf(keys[0].bv_val, LDAP_PVT_INTTYPE_CHARS(long),
-                                "%ld", ldap_time_steady() + pi->smb_can_change);
+      keys[0].bv_len =
+          snprintf(keys[0].bv_val, LDAP_PVT_INTTYPE_CHARS(long), "%ld", ldap_time_steady() + pi->smb_can_change);
       BER_BVZERO(&keys[1]);
 
       ml->sml_desc = ad_sambaPwdCanChange;
@@ -679,8 +649,7 @@ static int smbk5pwd_exop_passwd(Operation *op, SlapReply *rs) {
     BER_BVZERO(&keys[1]);
     keys[0].bv_val = ch_malloc(LDAP_PVT_INTTYPE_CHARS(long));
     keys[0].bv_len =
-        snprintf(keys[0].bv_val, LDAP_PVT_INTTYPE_CHARS(long), "%ld",
-                 (long)(ldap_time_steady() / (60 * 60 * 24)));
+        snprintf(keys[0].bv_val, LDAP_PVT_INTTYPE_CHARS(long), "%ld", (long)(ldap_time_steady() / (60 * 60 * 24)));
 
     ml->sml_desc = ad_shadowLastChange;
     ml->sml_op = LDAP_MOD_REPLACE;
@@ -711,22 +680,19 @@ static ConfigDriver smbk5pwd_cf_func;
  */
 
 static ConfigTable smbk5pwd_cfats[] = {
-    {"smbk5pwd-enable", "arg", 2, 0, 0, ARG_MAGIC | PC_SMB_ENABLE,
-     smbk5pwd_cf_func,
+    {"smbk5pwd-enable", "arg", 2, 0, 0, ARG_MAGIC | PC_SMB_ENABLE, smbk5pwd_cf_func,
      "( OLcfgCtAt:1.1 NAME 'olcSmbK5PwdEnable' "
      "DESC 'Modules to be enabled' "
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString )",
      NULL, NULL},
-    {"smbk5pwd-must-change", "time", 2, 2, 0,
-     ARG_MAGIC | ARG_INT | PC_SMB_MUST_CHANGE, smbk5pwd_cf_func,
+    {"smbk5pwd-must-change", "time", 2, 2, 0, ARG_MAGIC | ARG_INT | PC_SMB_MUST_CHANGE, smbk5pwd_cf_func,
      "( OLcfgCtAt:1.2 NAME 'olcSmbK5PwdMustChange' "
      "DESC 'Credentials validity interval' "
      "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-    {"smbk5pwd-can-change", "time", 2, 2, 0,
-     ARG_MAGIC | ARG_INT | PC_SMB_CAN_CHANGE, smbk5pwd_cf_func,
+    {"smbk5pwd-can-change", "time", 2, 2, 0, ARG_MAGIC | ARG_INT | PC_SMB_CAN_CHANGE, smbk5pwd_cf_func,
      "( OLcfgCtAt:1.3 NAME 'olcSmbK5PwdCanChange' "
      "DESC 'Credentials minimum validity interval' "
      "EQUALITY integerMatch "
@@ -752,11 +718,10 @@ static ConfigOCs smbk5pwd_cfocs[] = {{"( OLcfgCtOc:1.1 "
  * add here other functionalities; handle their initialization
  * as appropriate in smbk5pwd_modules_init().
  */
-static slap_verbmasks smbk5pwd_modules[] = {
-    {BER_BVC("krb5"), SMBK5PWD_F_KRB5},
-    {BER_BVC("samba"), SMBK5PWD_F_SAMBA},
-    {BER_BVC("shadow"), SMBK5PWD_F_SHADOW},
-    {BER_BVNULL, -1}};
+static slap_verbmasks smbk5pwd_modules[] = {{BER_BVC("krb5"), SMBK5PWD_F_KRB5},
+                                            {BER_BVC("samba"), SMBK5PWD_F_SAMBA},
+                                            {BER_BVC("shadow"), SMBK5PWD_F_SHADOW},
+                                            {BER_BVNULL, -1}};
 
 static int smbk5pwd_cf_func(ConfigArgs *c) {
   slap_overinst *on = (slap_overinst *)c->bi;
@@ -946,12 +911,9 @@ static int smbk5pwd_modules_init(smbk5pwd_t *pi) {
                {NULL}},
 #endif /* DO_KRB5 */
 #ifdef DO_SAMBA
-  samba_ad[] = {{"sambaLMPassword", &ad_sambaLMPassword},
-                {"sambaNTPassword", &ad_sambaNTPassword},
-                {"sambaPwdLastSet", &ad_sambaPwdLastSet},
-                {"sambaPwdMustChange", &ad_sambaPwdMustChange},
-                {"sambaPwdCanChange", &ad_sambaPwdCanChange},
-                {NULL}},
+  samba_ad[] = {{"sambaLMPassword", &ad_sambaLMPassword},     {"sambaNTPassword", &ad_sambaNTPassword},
+                {"sambaPwdLastSet", &ad_sambaPwdLastSet},     {"sambaPwdMustChange", &ad_sambaPwdMustChange},
+                {"sambaPwdCanChange", &ad_sambaPwdCanChange}, {NULL}},
 #endif /* DO_SAMBA */
 #ifdef DO_SHADOW
   shadow_ad[] = {{"shadowLastChange", &ad_shadowLastChange}, {NULL}},
@@ -1003,8 +965,7 @@ static int smbk5pwd_modules_init(smbk5pwd_t *pi) {
       return -1;
     }
 
-    ret = kadm5_s_init_with_password_ctx(context, KADM5_ADMIN_SERVICE, NULL,
-                                         KADM5_ADMIN_SERVICE, &conf, 0, 0,
+    ret = kadm5_s_init_with_password_ctx(context, KADM5_ADMIN_SERVICE, NULL, KADM5_ADMIN_SERVICE, &conf, 0, 0,
                                          &kadm_context);
     if (ret) {
       char *err_str, *err_msg = "<unknown error>";
@@ -1032,9 +993,8 @@ static int smbk5pwd_modules_init(smbk5pwd_t *pi) {
 
     oc_sambaSamAccount = oc_find("sambaSamAccount");
     if (!oc_sambaSamAccount) {
-      Debug(LDAP_DEBUG_ANY,
-            "smbk5pwd: "
-            "unable to find \"sambaSamAccount\" objectClass.\n");
+      Debug(LDAP_DEBUG_ANY, "smbk5pwd: "
+                            "unable to find \"sambaSamAccount\" objectClass.\n");
       return -1;
     }
 
@@ -1157,6 +1117,4 @@ static int smbk5pwd_initialize(void) {
   return overlay_register(&smbk5pwd);
 }
 
-SLAP_MODULE_ENTRY(smbk5pwd, modinit)(int argc, char *argv[]) {
-  return smbk5pwd_initialize();
-}
+SLAP_MODULE_ENTRY(smbk5pwd, modinit)(int argc, char *argv[]) { return smbk5pwd_initialize(); }

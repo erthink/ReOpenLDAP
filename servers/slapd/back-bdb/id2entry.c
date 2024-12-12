@@ -69,13 +69,9 @@ static int bdb_id2entry_put(BackendDB *be, DB_TXN *tid, Entry *e, int flag) {
  * The cache should be already be updated.
  */
 
-int bdb_id2entry_add(BackendDB *be, DB_TXN *tid, Entry *e) {
-  return bdb_id2entry_put(be, tid, e, DB_NOOVERWRITE);
-}
+int bdb_id2entry_add(BackendDB *be, DB_TXN *tid, Entry *e) { return bdb_id2entry_put(be, tid, e, DB_NOOVERWRITE); }
 
-int bdb_id2entry_update(BackendDB *be, DB_TXN *tid, Entry *e) {
-  return bdb_id2entry_put(be, tid, e, 0);
-}
+int bdb_id2entry_update(BackendDB *be, DB_TXN *tid, Entry *e) { return bdb_id2entry_put(be, tid, e, 0); }
 
 int bdb_id2entry(BackendDB *be, DB_TXN *tid, ID id, Entry **e) {
   struct bdb_info *bdb = (struct bdb_info *)be->be_private;
@@ -197,8 +193,7 @@ int bdb_entry_return(Entry *e) {
    */
   if (e->e_bv.bv_val) {
     /* See if the DNs were changed by modrdn */
-    if (e->e_nname.bv_val < e->e_bv.bv_val ||
-        e->e_nname.bv_val > e->e_bv.bv_val + e->e_bv.bv_len) {
+    if (e->e_nname.bv_val < e->e_bv.bv_val || e->e_nname.bv_val > e->e_bv.bv_val + e->e_bv.bv_len) {
       ch_free(e->e_name.bv_val);
       ch_free(e->e_nname.bv_val);
     }
@@ -243,8 +238,7 @@ int bdb_entry_release(Operation *op, Entry *e, int rw) {
       bdb_unlocked_cache_return_entry_rw(bdb, e, rw);
     } else {
       struct bdb_lock_info *bli, *prev;
-      for (prev = (struct bdb_lock_info *)&boi->boi_locks, bli = boi->boi_locks;
-           bli; prev = bli, bli = bli->bli_next) {
+      for (prev = (struct bdb_lock_info *)&boi->boi_locks, bli = boi->boi_locks; bli; prev = bli, bli = bli->bli_next) {
         if (bli->bli_id == e->e_id) {
           bdb_cache_return_entry_rw(bdb, e, rw, &bli->bli_lock);
           prev->bli_next = bli->bli_next;
@@ -286,8 +280,7 @@ int bdb_entry_release(Operation *op, Entry *e, int rw) {
 
 /* return LDAP_SUCCESS IFF we can retrieve the specified entry.
  */
-int bdb_entry_get(Operation *op, struct berval *ndn, ObjectClass *oc,
-                  AttributeDescription *at, int rw, Entry **ent) {
+int bdb_entry_get(Operation *op, struct berval *ndn, ObjectClass *oc, AttributeDescription *at, int rw, Entry **ent) {
   struct bdb_info *bdb = (struct bdb_info *)op->o_bd->be_private;
   struct bdb_op_info *boi = NULL;
   DB_TXN *txn = NULL;
@@ -299,8 +292,7 @@ int bdb_entry_get(Operation *op, struct berval *ndn, ObjectClass *oc,
   DB_LOCK lock;
 
   Debug(LDAP_DEBUG_ARGS, "=> bdb_entry_get: ndn: \"%s\"\n", ndn->bv_val);
-  Debug(LDAP_DEBUG_ARGS, "=> bdb_entry_get: oc: \"%s\", at: \"%s\"\n",
-        oc ? oc->soc_cname.bv_val : "(null)", at_name);
+  Debug(LDAP_DEBUG_ARGS, "=> bdb_entry_get: oc: \"%s\", at: \"%s\"\n", oc ? oc->soc_cname.bv_val : "(null)", at_name);
 
   if (op) {
     OpExtra *oex;
@@ -348,24 +340,21 @@ dn2entry_retry:
   if (ei)
     e = ei->bei_e;
   if (e == NULL) {
-    Debug(LDAP_DEBUG_ACL, "=> bdb_entry_get: cannot find entry: \"%s\"\n",
-          ndn->bv_val);
+    Debug(LDAP_DEBUG_ACL, "=> bdb_entry_get: cannot find entry: \"%s\"\n", ndn->bv_val);
     return LDAP_NO_SUCH_OBJECT;
   }
 
   Debug(LDAP_DEBUG_ACL, "=> bdb_entry_get: found entry: \"%s\"\n", ndn->bv_val);
 
   if (oc && !is_entry_objectclass(e, oc, 0)) {
-    Debug(LDAP_DEBUG_ACL, "<= bdb_entry_get: failed to find objectClass %s\n",
-          oc->soc_cname.bv_val);
+    Debug(LDAP_DEBUG_ACL, "<= bdb_entry_get: failed to find objectClass %s\n", oc->soc_cname.bv_val);
     rc = LDAP_NO_SUCH_ATTRIBUTE;
     goto return_results;
   }
 
   /* NOTE: attr_find() or attrs_find()? */
   if (at && attr_find(e->e_attrs, at) == NULL) {
-    Debug(LDAP_DEBUG_ACL, "<= bdb_entry_get: failed to find attribute %s\n",
-          at->ad_cname.bv_val);
+    Debug(LDAP_DEBUG_ACL, "<= bdb_entry_get: failed to find attribute %s\n", at->ad_cname.bv_val);
     rc = LDAP_NO_SUCH_ATTRIBUTE;
     goto return_results;
   }

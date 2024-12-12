@@ -22,18 +22,13 @@
 
 #include "slap.h"
 
-static int test_mra_vrFilter(Operation *op, Attribute *a,
-                             MatchingRuleAssertion *mra, char ***e_flags);
+static int test_mra_vrFilter(Operation *op, Attribute *a, MatchingRuleAssertion *mra, char ***e_flags);
 
-static int test_substrings_vrFilter(Operation *op, Attribute *a,
-                                    ValuesReturnFilter *f, char ***e_flags);
+static int test_substrings_vrFilter(Operation *op, Attribute *a, ValuesReturnFilter *f, char ***e_flags);
 
-static int test_presence_vrFilter(Operation *op, Attribute *a,
-                                  AttributeDescription *desc, char ***e_flags);
+static int test_presence_vrFilter(Operation *op, Attribute *a, AttributeDescription *desc, char ***e_flags);
 
-static int test_ava_vrFilter(Operation *op, Attribute *a,
-                             AttributeAssertion *ava, int type,
-                             char ***e_flags);
+static int test_ava_vrFilter(Operation *op, Attribute *a, AttributeAssertion *ava, int type, char ***e_flags);
 
 int filter_matched_values(Operation *op, Attribute *a, char ***e_flags) {
   ValuesReturnFilter *vrf;
@@ -56,8 +51,7 @@ int filter_matched_values(Operation *op, Attribute *a, char ***e_flags) {
 
     case LDAP_FILTER_EQUALITY:
       Debug(LDAP_DEBUG_FILTER, "	EQUALITY\n");
-      rc =
-          test_ava_vrFilter(op, a, vrf->vrf_ava, LDAP_FILTER_EQUALITY, e_flags);
+      rc = test_ava_vrFilter(op, a, vrf->vrf_ava, LDAP_FILTER_EQUALITY, e_flags);
       if (rc == -1)
         return rc;
       break;
@@ -105,9 +99,7 @@ int filter_matched_values(Operation *op, Attribute *a, char ***e_flags) {
   return (rc);
 }
 
-static int test_ava_vrFilter(Operation *op, Attribute *a,
-                             AttributeAssertion *ava, int type,
-                             char ***e_flags) {
+static int test_ava_vrFilter(Operation *op, Attribute *a, AttributeAssertion *ava, int type, char ***e_flags) {
   int i, j;
 
   for (i = 0; a != NULL; a = a->a_next, i++) {
@@ -175,8 +167,7 @@ static int test_ava_vrFilter(Operation *op, Attribute *a,
   return LDAP_SUCCESS;
 }
 
-static int test_presence_vrFilter(Operation *op, Attribute *a,
-                                  AttributeDescription *desc, char ***e_flags) {
+static int test_presence_vrFilter(Operation *op, Attribute *a, AttributeDescription *desc, char ***e_flags) {
   int i, j;
 
   for (i = 0; a != NULL; a = a->a_next, i++) {
@@ -193,8 +184,7 @@ static int test_presence_vrFilter(Operation *op, Attribute *a,
   return (LDAP_SUCCESS);
 }
 
-static int test_substrings_vrFilter(Operation *op, Attribute *a,
-                                    ValuesReturnFilter *vrf, char ***e_flags) {
+static int test_substrings_vrFilter(Operation *op, Attribute *a, ValuesReturnFilter *vrf, char ***e_flags) {
   int i, j;
 
   for (i = 0; a != NULL; a = a->a_next, i++) {
@@ -227,8 +217,7 @@ static int test_substrings_vrFilter(Operation *op, Attribute *a,
   return LDAP_SUCCESS;
 }
 
-static int test_mra_vrFilter(Operation *op, Attribute *a,
-                             MatchingRuleAssertion *mra, char ***e_flags) {
+static int test_mra_vrFilter(Operation *op, Attribute *a, MatchingRuleAssertion *mra, char ***e_flags) {
   int i, j;
 
   for (i = 0; a != NULL; a = a->a_next, i++) {
@@ -250,10 +239,8 @@ static int test_mra_vrFilter(Operation *op, Attribute *a,
         continue;
       }
 
-      rc = asserted_value_validate_normalize(
-          a->a_desc, mra->ma_rule,
-          SLAP_MR_EXT | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX, &mra->ma_value,
-          &assertedValue, &text, op->o_tmpmemctx);
+      rc = asserted_value_validate_normalize(a->a_desc, mra->ma_rule, SLAP_MR_EXT | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX,
+                                             &mra->ma_value, &assertedValue, &text, op->o_tmpmemctx);
 
       if (rc != LDAP_SUCCESS)
         continue;
@@ -275,9 +262,8 @@ static int test_mra_vrFilter(Operation *op, Attribute *a,
 
       if (normalize_attribute && mra->ma_rule->smr_normalize) {
         /* see comment in filterentry.c */
-        if (mra->ma_rule->smr_normalize(
-                SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, mra->ma_rule->smr_syntax,
-                mra->ma_rule, bv, &nbv, op->o_tmpmemctx) != LDAP_SUCCESS) {
+        if (mra->ma_rule->smr_normalize(SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, mra->ma_rule->smr_syntax, mra->ma_rule, bv,
+                                        &nbv, op->o_tmpmemctx) != LDAP_SUCCESS) {
           /* FIXME: stop processing? */
           continue;
         }
@@ -286,8 +272,7 @@ static int test_mra_vrFilter(Operation *op, Attribute *a,
         nbv = *bv;
       }
 
-      rc = value_match(&match, a->a_desc, mra->ma_rule, 0, &nbv, &assertedValue,
-                       &text);
+      rc = value_match(&match, a->a_desc, mra->ma_rule, 0, &nbv, &assertedValue, &text);
 
       if (nbv.bv_val != bv->bv_val) {
         op->o_tmpfree(nbv.bv_val, op->o_tmpmemctx);

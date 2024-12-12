@@ -69,13 +69,11 @@ int ldap_utf8_offset(const char *p) { return LDAP_UTF8_NEXT(p) - p; }
 /*
  * Returns length indicated by first byte.
  */
-const char ldap_utf8_lentab[] = {
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 0, 0};
+const char ldap_utf8_lentab[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                                 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
+                                 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 0, 0};
 
 int ldap_utf8_charlen(const char *p) {
   if (!(*p & 0x80))
@@ -109,11 +107,10 @@ int ldap_utf8_charlen(const char *p) {
 /* mask of required bits in second octet */
 #undef c
 #define c const char
-c ldap_utf8_mintab[] = {
-    (c)0x20, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80,
-    (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80,
-    (c)0x30, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80,
-    (c)0x38, (c)0x80, (c)0x80, (c)0x80, (c)0x3c, (c)0x80, (c)0x00, (c)0x00};
+c ldap_utf8_mintab[] = {(c)0x20, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80,
+                        (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80,
+                        (c)0x30, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80,
+                        (c)0x38, (c)0x80, (c)0x80, (c)0x80, (c)0x3c, (c)0x80, (c)0x00, (c)0x00};
 #undef c
 
 int ldap_utf8_charlen2(const char *p) {
@@ -214,15 +211,8 @@ int ldap_x_ucs4_to_utf8(ldap_ucs4_t c, char *buf) {
   return len;
 }
 
-#define LDAP_UCS_UTF8LEN(c)                                                    \
-  c < 0 ? 0                                                                    \
-        : (c < 0x80                                                            \
-               ? 1                                                             \
-               : (c < 0x800                                                    \
-                      ? 2                                                      \
-                      : (c < 0x10000                                           \
-                             ? 3                                               \
-                             : (c < 0x200000 ? 4 : (c < 0x4000000 ? 5 : 6)))))
+#define LDAP_UCS_UTF8LEN(c)                                                                                            \
+  c < 0 ? 0 : (c < 0x80 ? 1 : (c < 0x800 ? 2 : (c < 0x10000 ? 3 : (c < 0x200000 ? 4 : (c < 0x4000000 ? 5 : 6)))))
 
 /* Convert a string to UTF-8 format. The input string is expected to
  * have characters of 1, 2, or 4 octets (in network byte order)

@@ -144,20 +144,16 @@ LDAP *ldap_open(const char *host, int port) {
     ld = NULL;
   }
 
-  Debug(LDAP_DEBUG_TRACE, "ldap_open: %s\n",
-        ld != NULL ? "succeeded" : "failed");
+  Debug(LDAP_DEBUG_TRACE, "ldap_open: %s\n", ld != NULL ? "succeeded" : "failed");
 
   return ld;
 }
 
 /* OLD U-Mich ber_init() */
-void ber_init_w_nullc(BerElement *ber, int options) {
-  ber_init2(ber, NULL, options);
-}
+void ber_init_w_nullc(BerElement *ber, int options) { ber_init2(ber, NULL, options); }
 
 int ber_flush(Sockbuf *sb, BerElement *ber, int freeit) {
-  return ber_flush2(
-      sb, ber, freeit ? LBER_FLUSH_FREE_ON_SUCCESS : LBER_FLUSH_FREE_NEVER);
+  return ber_flush2(sb, ber, freeit ? LBER_FLUSH_FREE_ON_SUCCESS : LBER_FLUSH_FREE_NEVER);
 }
 
 BerElement *ber_alloc(void) /* deprecated */
@@ -193,8 +189,7 @@ BerElement *der_alloc(void) /* deprecated */
  *	msgid = ldap_search( ld, "dc=example,dc=com", LDAP_SCOPE_SUBTREE,
  *"cn~=bob", attrs, attrsonly );
  */
-int ldap_search(LDAP *ld, const char *base, int scope, const char *filter,
-                char **attrs, int attrsonly) {
+int ldap_search(LDAP *ld, const char *base, int scope, const char *filter, char **attrs, int attrsonly) {
   BerElement *ber;
   ber_int_t id;
 
@@ -203,8 +198,7 @@ int ldap_search(LDAP *ld, const char *base, int scope, const char *filter,
   assert(ld != NULL);
   assert(LDAP_VALID(ld));
 
-  ber = ldap_build_search_req(ld, base, scope, filter, attrs, attrsonly, NULL,
-                              NULL, -1, -1, -1, &id);
+  ber = ldap_build_search_req(ld, base, scope, filter, attrs, attrsonly, NULL, NULL, -1, -1, -1, &id);
 
   if (ber == NULL) {
     return (-1);
@@ -214,9 +208,8 @@ int ldap_search(LDAP *ld, const char *base, int scope, const char *filter,
   return (ldap_send_initial_request(ld, LDAP_REQ_SEARCH, base, ber, id));
 }
 
-int ldap_search_st(LDAP *ld, const char *base, int scope, const char *filter,
-                   char **attrs, int attrsonly, struct timeval *timeout,
-                   LDAPMessage **res) {
+int ldap_search_st(LDAP *ld, const char *base, int scope, const char *filter, char **attrs, int attrsonly,
+                   struct timeval *timeout, LDAPMessage **res) {
   int msgid;
 
   *res = NULL;
@@ -236,8 +229,8 @@ int ldap_search_st(LDAP *ld, const char *base, int scope, const char *filter,
   return (ldap_result2error(ld, *res, 0));
 }
 
-int ldap_search_s(LDAP *ld, const char *base, int scope, const char *filter,
-                  char **attrs, int attrsonly, LDAPMessage **res) {
+int ldap_search_s(LDAP *ld, const char *base, int scope, const char *filter, char **attrs, int attrsonly,
+                  LDAPMessage **res) {
   int msgid;
 
   *res = NULL;
@@ -245,8 +238,7 @@ int ldap_search_s(LDAP *ld, const char *base, int scope, const char *filter,
   if ((msgid = ldap_search(ld, base, scope, filter, attrs, attrsonly)) == -1)
     return (ld->ld_errno);
 
-  if (ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, res) == -1 ||
-      !*res)
+  if (ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, res) == -1 || !*res)
     return (ld->ld_errno);
 
   return (ldap_result2error(ld, *res, 0));
@@ -257,8 +249,7 @@ int ldap_search_s(LDAP *ld, const char *base, int scope, const char *filter,
 /*
  * Create a LDAPControl, optionally from ber - deprecated
  */
-int ldap_create_control(const char *requestOID, BerElement *ber, int iscritical,
-                        LDAPControl **ctrlp) {
+int ldap_create_control(const char *requestOID, BerElement *ber, int iscritical, LDAPControl **ctrlp) {
   LDAPControl *ctrl;
 
   assert(requestOID != NULL);
@@ -356,9 +347,7 @@ int ldap_add(LDAP *ld, const char *dn, LDAPMod **attrs) {
   return msgid;
 }
 
-int ldap_add_s(LDAP *ld, const char *dn, LDAPMod **attrs) {
-  return ldap_add_ext_s(ld, dn, attrs, NULL, NULL);
-}
+int ldap_add_s(LDAP *ld, const char *dn, LDAPMod **attrs) { return ldap_add_ext_s(ld, dn, attrs, NULL, NULL); }
 
 /*----------------------------------------------------------------------------*/
 
@@ -432,8 +421,7 @@ int ldap_simple_bind_s(LDAP *ld, const char *dn, const char *passwd) {
  * Example:
  *	msgid = ldap_compare( ld, "c=us@cn=bob", "userPassword", "secret" )
  */
-int ldap_compare(LDAP *ld, const char *dn, const char *attr,
-                 const char *value) {
+int ldap_compare(LDAP *ld, const char *dn, const char *attr, const char *value) {
   int msgid = 0;
   struct berval bvalue;
 
@@ -442,14 +430,10 @@ int ldap_compare(LDAP *ld, const char *dn, const char *attr,
   bvalue.bv_val = (char *)value;
   bvalue.bv_len = (value == NULL) ? 0 : strlen(value);
 
-  return ldap_compare_ext(ld, dn, attr, &bvalue, NULL, NULL, &msgid) ==
-                 LDAP_SUCCESS
-             ? msgid
-             : -1;
+  return ldap_compare_ext(ld, dn, attr, &bvalue, NULL, NULL, &msgid) == LDAP_SUCCESS ? msgid : -1;
 }
 
-int ldap_compare_s(LDAP *ld, const char *dn, const char *attr,
-                   const char *value) {
+int ldap_compare_s(LDAP *ld, const char *dn, const char *attr, const char *value) {
   struct berval bvalue;
 
   assert(value != NULL);
@@ -481,13 +465,10 @@ int ldap_delete(LDAP *ld, const char *dn) {
 
   Debug(LDAP_DEBUG_TRACE, "ldap_delete\n");
 
-  return ldap_delete_ext(ld, dn, NULL, NULL, &msgid) == LDAP_SUCCESS ? msgid
-                                                                     : -1;
+  return ldap_delete_ext(ld, dn, NULL, NULL, &msgid) == LDAP_SUCCESS ? msgid : -1;
 }
 
-int ldap_delete_s(LDAP *ld, const char *dn) {
-  return ldap_delete_ext_s(ld, dn, NULL, NULL);
-}
+int ldap_delete_s(LDAP *ld, const char *dn) { return ldap_delete_ext_s(ld, dn, NULL, NULL); }
 
 /*----------------------------------------------------------------------------*/
 
@@ -499,8 +480,7 @@ void ldap_perror(LDAP *ld, const char *str) {
   assert(LDAP_VALID(ld));
   assert(str != NULL);
 
-  fprintf(stderr, "%s: %s (%d)\n", str ? str : "ldap_perror",
-          ldap_err2string(ld->ld_errno), ld->ld_errno);
+  fprintf(stderr, "%s: %s (%d)\n", str ? str : "ldap_perror", ldap_err2string(ld->ld_errno), ld->ld_errno);
 
   if (ld->ld_matched != NULL && ld->ld_matched[0] != '\0') {
     fprintf(stderr, _("\tmatched DN: %s\n"), ld->ld_matched);
@@ -556,9 +536,7 @@ int ldap_modify(LDAP *ld, const char *dn, LDAPMod **mods) {
   return msgid;
 }
 
-int ldap_modify_s(LDAP *ld, const char *dn, LDAPMod **mods) {
-  return ldap_modify_ext_s(ld, dn, mods, NULL, NULL);
-}
+int ldap_modify_s(LDAP *ld, const char *dn, LDAPMod **mods) { return ldap_modify_ext_s(ld, dn, mods, NULL, NULL); }
 
 /*----------------------------------------------------------------------------*/
 
@@ -574,21 +552,18 @@ int ldap_modify_s(LDAP *ld, const char *dn, LDAPMod **mods) {
  * ldap_rename2 uses a U-Mich Style API.  It returns the msgid.
  */
 
-int ldap_rename2(LDAP *ld, const char *dn, const char *newrdn,
-                 const char *newSuperior, int deleteoldrdn) {
+int ldap_rename2(LDAP *ld, const char *dn, const char *newrdn, const char *newSuperior, int deleteoldrdn) {
   int msgid = -1;
   int rc;
 
   Debug(LDAP_DEBUG_TRACE, "ldap_rename2\n");
 
-  rc = ldap_rename(ld, dn, newrdn, newSuperior, deleteoldrdn, NULL, NULL,
-                   &msgid);
+  rc = ldap_rename(ld, dn, newrdn, newSuperior, deleteoldrdn, NULL, NULL, &msgid);
 
   return rc == LDAP_SUCCESS ? msgid : -1;
 }
 
-int ldap_rename2_s(LDAP *ld, const char *dn, const char *newrdn,
-                   const char *newSuperior, int deleteoldrdn) {
+int ldap_rename2_s(LDAP *ld, const char *dn, const char *newrdn, const char *newSuperior, int deleteoldrdn) {
   return ldap_rename_s(ld, dn, newrdn, newSuperior, deleteoldrdn, NULL, NULL);
 }
 
@@ -615,8 +590,7 @@ int ldap_modrdn(LDAP *ld, const char *dn, const char *newrdn) {
  * Example:
  *	msgid = ldap_modrdn( ld, dn, newrdn );
  */
-int ldap_modrdn2(LDAP *ld, const char *dn, const char *newrdn,
-                 int deleteoldrdn) {
+int ldap_modrdn2(LDAP *ld, const char *dn, const char *newrdn, int deleteoldrdn) {
   int msgid = -1;
   int rc;
 
@@ -628,8 +602,7 @@ int ldap_modrdn2(LDAP *ld, const char *dn, const char *newrdn,
   return rc == LDAP_SUCCESS ? msgid : -1;
 }
 
-int ldap_modrdn2_s(LDAP *ld, const char *dn, const char *newrdn,
-                   int deleteoldrdn) {
+int ldap_modrdn2_s(LDAP *ld, const char *dn, const char *newrdn, int deleteoldrdn) {
   return ldap_rename_s(ld, dn, newrdn, NULL, deleteoldrdn, NULL, NULL);
 }
 
@@ -677,8 +650,7 @@ char *ldap_dn2ad_canonical(const char *dn) {
 
   Debug(LDAP_DEBUG_TRACE, "ldap_dn2ad_canonical\n");
 
-  (void)ldap_dn_normalize(dn, LDAP_DN_FORMAT_LDAP, &out,
-                          LDAP_DN_FORMAT_AD_CANONICAL);
+  (void)ldap_dn_normalize(dn, LDAP_DN_FORMAT_LDAP, &out, LDAP_DN_FORMAT_AD_CANONICAL);
 
   return (out);
 }
@@ -707,8 +679,7 @@ int ldap_unbind_s(LDAP *ld) { return (ldap_unbind_ext(ld, NULL, NULL)); }
 
    ---------------------------------------------------------------------------*/
 
-int ldap_parse_page_control(LDAP *ld, LDAPControl **ctrls, ber_int_t *countp,
-                            struct berval **cookiep) {
+int ldap_parse_page_control(LDAP *ld, LDAPControl **ctrls, ber_int_t *countp, struct berval **cookiep) {
   LDAPControl *c;
   struct berval cookie;
 

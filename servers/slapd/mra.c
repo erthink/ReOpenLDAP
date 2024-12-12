@@ -135,8 +135,7 @@ int get_mra(Operation *op, BerElement *ber, Filter *f, const char **text) {
     rc = slap_bv2ad(&type, &ma.ma_desc, text);
     if (rc != LDAP_SUCCESS) {
       f->f_choice |= SLAPD_FILTER_UNDEFINED;
-      rc = slap_bv2undef_ad(&type, &ma.ma_desc, text,
-                            SLAP_AD_PROXIED | SLAP_AD_NOINSERT);
+      rc = slap_bv2undef_ad(&type, &ma.ma_desc, text, SLAP_AD_PROXIED | SLAP_AD_NOINSERT);
 
       if (rc != LDAP_SUCCESS) {
         ma.ma_desc = slap_bv2tmp_ad(&type, op->o_tmpmemctx);
@@ -162,8 +161,7 @@ int get_mra(Operation *op, BerElement *ber, Filter *f, const char **text) {
       return LDAP_INAPPROPRIATE_MATCHING;
     }
 
-    if (ma.ma_desc->ad_type->sat_equality != NULL &&
-        ma.ma_desc->ad_type->sat_equality->smr_usage & SLAP_MR_EXT) {
+    if (ma.ma_desc->ad_type->sat_equality != NULL && ma.ma_desc->ad_type->sat_equality->smr_usage & SLAP_MR_EXT) {
       /* no matching rule was provided, use the attribute's
          equality rule if it supports extensible matching. */
       ma.ma_rule = ma.ma_desc->ad_type->sat_equality;
@@ -184,17 +182,15 @@ int get_mra(Operation *op, BerElement *ber, Filter *f, const char **text) {
   /*
    * Normalize per matching rule
    */
-  rc = asserted_value_validate_normalize(
-      ma.ma_desc, ma.ma_rule, SLAP_MR_EXT | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX,
-      &value, &ma.ma_value, text, op->o_tmpmemctx);
+  rc = asserted_value_validate_normalize(ma.ma_desc, ma.ma_rule, SLAP_MR_EXT | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX,
+                                         &value, &ma.ma_value, text, op->o_tmpmemctx);
 
   if (rc != LDAP_SUCCESS)
     return rc;
 
 #ifdef LDAP_COMP_MATCH
   /* Check If this attribute is aliased */
-  if (is_aliased_attribute && ma.ma_desc &&
-      (aa = is_aliased_attribute(ma.ma_desc))) {
+  if (is_aliased_attribute && ma.ma_desc && (aa = is_aliased_attribute(ma.ma_desc))) {
     rc = get_aliased_filter(op, &ma, aa, text);
     if (rc != LDAP_SUCCESS)
       return rc;
@@ -215,8 +211,7 @@ int get_mra(Operation *op, BerElement *ber, Filter *f, const char **text) {
   if (rule_text.bv_val) {
     f->f_mra->ma_rule_text.bv_len = rule_text.bv_len;
     f->f_mra->ma_rule_text.bv_val = (char *)(f->f_mra + 1);
-    memcpy(f->f_mra->ma_rule_text.bv_val, rule_text.bv_val,
-           rule_text.bv_len + 1);
+    memcpy(f->f_mra->ma_rule_text.bv_val, rule_text.bv_val, rule_text.bv_len + 1);
   }
 
   return LDAP_SUCCESS;

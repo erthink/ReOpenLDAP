@@ -41,8 +41,7 @@ static int do_check(Connection *c, Operation *op, struct berval *id) {
 
   rc = slap_sasl_getdn(c, op, id, realm, &authcdn, SLAP_GETDN_AUTHCID);
   if (rc != LDAP_SUCCESS) {
-    fprintf(stderr, "ID: <%s> check failed %d (%s)\n", id->bv_val, rc,
-            ldap_err2string(rc));
+    fprintf(stderr, "ID: <%s> check failed %d (%s)\n", id->bv_val, rc, ldap_err2string(rc));
     rc = 1;
 
   } else {
@@ -54,8 +53,7 @@ static int do_check(Connection *c, Operation *op, struct berval *id) {
               "authcDN: <%s>\n"
               "authzDN: <%s>\n"
               "authorization %s\n",
-              id->bv_val, authcdn.bv_val, authzID.bv_val,
-              rc == LDAP_SUCCESS ? "OK" : "failed");
+              id->bv_val, authcdn.bv_val, authzID.bv_val, rc == LDAP_SUCCESS ? "OK" : "failed");
 
     } else {
       fprintf(stderr,
@@ -92,11 +90,9 @@ int slapauth(int argc, char **argv) {
   if (!BER_BVISNULL(&authzID)) {
     struct berval authzdn;
 
-    rc = slap_sasl_getdn(&conn, op, &authzID, NULL, &authzdn,
-                         SLAP_GETDN_AUTHZID);
+    rc = slap_sasl_getdn(&conn, op, &authzID, NULL, &authzdn, SLAP_GETDN_AUTHZID);
     if (rc != LDAP_SUCCESS) {
-      fprintf(stderr, "authzID: <%s> check failed %d (%s)\n", authzID.bv_val,
-              rc, ldap_err2string(rc));
+      fprintf(stderr, "authzID: <%s> check failed %d (%s)\n", authzID.bv_val, rc, ldap_err2string(rc));
       rc = 1;
       BER_BVZERO(&authzID);
       goto destroy;
@@ -116,11 +112,9 @@ int slapauth(int argc, char **argv) {
 
       ber_str2bv(argv[0], 0, 0, &authzID);
 
-      rc = slap_sasl_getdn(&conn, op, &authzID, NULL, &authzdn,
-                           SLAP_GETDN_AUTHZID);
+      rc = slap_sasl_getdn(&conn, op, &authzID, NULL, &authzdn, SLAP_GETDN_AUTHZID);
       if (rc != LDAP_SUCCESS) {
-        fprintf(stderr, "authzID: <%s> check failed %d (%s)\n", authzID.bv_val,
-                rc, ldap_err2string(rc));
+        fprintf(stderr, "authzID: <%s> check failed %d (%s)\n", authzID.bv_val, rc, ldap_err2string(rc));
         rc = -1;
         BER_BVZERO(&authzID);
         if (!continuemode) {

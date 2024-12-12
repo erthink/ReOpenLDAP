@@ -56,12 +56,10 @@ static int pguid_op_add(Operation *op, SlapReply *rs) {
   dnParent(&op->o_req_dn, &pdn);
   dnParent(&op->o_req_ndn, &pndn);
 
-  rc = overlay_entry_get_ov(op, &pndn, NULL, slap_schema.si_ad_entryUUID, 0, &e,
-                            on);
+  rc = overlay_entry_get_ov(op, &pndn, NULL, slap_schema.si_ad_entryUUID, 0, &e, on);
   if (rc != LDAP_SUCCESS || e == NULL) {
-    Debug(LDAP_DEBUG_ANY,
-          "%s: pguid_op_add: unable to get parent entry DN=\"%s\" (%d)\n",
-          op->o_log_prefix, pdn.bv_val, rc);
+    Debug(LDAP_DEBUG_ANY, "%s: pguid_op_add: unable to get parent entry DN=\"%s\" (%d)\n", op->o_log_prefix, pdn.bv_val,
+          rc);
     return SLAP_CB_CONTINUE;
   }
 
@@ -76,8 +74,7 @@ static int pguid_op_add(Operation *op, SlapReply *rs) {
     assert(a->a_numvals == 1);
 
     if (op->ora_e != NULL) {
-      attr_merge_one(op->ora_e, ad_parentUUID, &a->a_vals[0],
-                     a->a_nvals == a->a_vals ? NULL : &a->a_nvals[0]);
+      attr_merge_one(op->ora_e, ad_parentUUID, &a->a_vals[0], a->a_nvals == a->a_vals ? NULL : &a->a_nvals[0]);
 
     } else {
       Modifications *ml;
@@ -130,13 +127,10 @@ static int pguid_op_rename(Operation *op, SlapReply *rs) {
     return SLAP_CB_CONTINUE;
   }
 
-  rc = overlay_entry_get_ov(op, op->orr_nnewSup, NULL,
-                            slap_schema.si_ad_entryUUID, 0, &e, on);
+  rc = overlay_entry_get_ov(op, op->orr_nnewSup, NULL, slap_schema.si_ad_entryUUID, 0, &e, on);
   if (rc != LDAP_SUCCESS || e == NULL) {
-    Debug(
-        LDAP_DEBUG_ANY,
-        "%s: pguid_op_rename: unable to get newSuperior entry DN=\"%s\" (%d)\n",
-        op->o_log_prefix, op->orr_newSup->bv_val, rc);
+    Debug(LDAP_DEBUG_ANY, "%s: pguid_op_rename: unable to get newSuperior entry DN=\"%s\" (%d)\n", op->o_log_prefix,
+          op->orr_newSup->bv_val, rc);
     return SLAP_CB_CONTINUE;
   }
 
@@ -177,20 +171,17 @@ static int pguid_op_rename(Operation *op, SlapReply *rs) {
 
 static int pguid_db_init(BackendDB *be, ConfigReply *cr) {
   if (SLAP_ISGLOBALOVERLAY(be)) {
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
-        "pguid_db_init: pguid cannot be used as global overlay.\n");
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "pguid_db_init: pguid cannot be used as global overlay.\n");
     return 1;
   }
 
   if (be->be_nsuffix == NULL) {
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
-        "pguid_db_init: database must have suffix\n");
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "pguid_db_init: database must have suffix\n");
     return 1;
   }
 
   if (BER_BVISNULL(&be->be_rootndn) || BER_BVISEMPTY(&be->be_rootndn)) {
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
-        "pguid_db_init: missing rootdn for database DN=\"%s\", YMMV\n",
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "pguid_db_init: missing rootdn for database DN=\"%s\", YMMV\n",
         be->be_suffix[0].bv_val);
   }
 
@@ -232,12 +223,10 @@ static int pguid_repair_cb(Operation *op, SlapReply *rs) {
   dnParent(&rs->sr_entry->e_name, &pdn);
   dnParent(&rs->sr_entry->e_nname, &pndn);
 
-  rc = overlay_entry_get_ov(op, &pndn, NULL, slap_schema.si_ad_entryUUID, 0, &e,
-                            pcb->on);
+  rc = overlay_entry_get_ov(op, &pndn, NULL, slap_schema.si_ad_entryUUID, 0, &e, pcb->on);
   if (rc != LDAP_SUCCESS || e == NULL) {
-    Debug(LDAP_DEBUG_ANY,
-          "%s: pguid_repair_cb: unable to get parent entry DN=\"%s\" (%d)\n",
-          op->o_log_prefix, pdn.bv_val, rc);
+    Debug(LDAP_DEBUG_ANY, "%s: pguid_repair_cb: unable to get parent entry DN=\"%s\" (%d)\n", op->o_log_prefix,
+          pdn.bv_val, rc);
     return 0;
   }
 
@@ -254,23 +243,20 @@ static int pguid_repair_cb(Operation *op, SlapReply *rs) {
 
     assert(a->a_numvals == 1);
 
-    len = sizeof(pguid_mod_t) + rs->sr_entry->e_nname.bv_len + 1 +
-          a->a_vals[0].bv_len + 1;
+    len = sizeof(pguid_mod_t) + rs->sr_entry->e_nname.bv_len + 1 + a->a_vals[0].bv_len + 1;
     mod = op->o_tmpalloc(len, op->o_tmpmemctx);
     mod->ndn.bv_len = rs->sr_entry->e_nname.bv_len;
     mod->ndn.bv_val = (char *)&mod[1];
     mod->pguid.bv_len = a->a_vals[0].bv_len;
     mod->pguid.bv_val = (char *)&mod->ndn.bv_val[mod->ndn.bv_len + 1];
-    lutil_strncopy(mod->ndn.bv_val, rs->sr_entry->e_nname.bv_val,
-                   rs->sr_entry->e_nname.bv_len);
+    lutil_strncopy(mod->ndn.bv_val, rs->sr_entry->e_nname.bv_val, rs->sr_entry->e_nname.bv_len);
     lutil_strncopy(mod->pguid.bv_val, a->a_vals[0].bv_val, a->a_vals[0].bv_len);
 
     mod->next = pcb->mods;
     pcb->mods = mod;
 
-    Debug(LDAP_DEBUG_TRACE,
-          "%s: pguid_repair_cb: scheduling entry DN=\"%s\" for repair\n",
-          op->o_log_prefix, rs->sr_entry->e_name.bv_val);
+    Debug(LDAP_DEBUG_TRACE, "%s: pguid_repair_cb: scheduling entry DN=\"%s\" for repair\n", op->o_log_prefix,
+          rs->sr_entry->e_name.bv_val);
   }
 
   if (e != NULL) {
@@ -311,12 +297,9 @@ static int pguid_repair(BackendDB *be) {
   op->ors_slimit = SLAP_NO_LIMIT;
   op->ors_attrs = slap_anlist_no_attrs;
 
-  op->ors_filterstr.bv_len =
-      STRLENOF("(!(=*))") + ad_parentUUID->ad_cname.bv_len;
-  op->ors_filterstr.bv_val =
-      op->o_tmpalloc(op->ors_filterstr.bv_len + 1, op->o_tmpmemctx);
-  snprintf(op->ors_filterstr.bv_val, op->ors_filterstr.bv_len + 1, "(!(%s=*))",
-           ad_parentUUID->ad_cname.bv_val);
+  op->ors_filterstr.bv_len = STRLENOF("(!(=*))") + ad_parentUUID->ad_cname.bv_len;
+  op->ors_filterstr.bv_val = op->o_tmpalloc(op->ors_filterstr.bv_len + 1, op->o_tmpmemctx);
+  snprintf(op->ors_filterstr.bv_val, op->ors_filterstr.bv_len + 1, "(!(%s=*))", ad_parentUUID->ad_cname.bv_val);
 
   op->ors_filter = str2filter_x(op, op->ors_filterstr.bv_val);
   if (op->ors_filter == NULL) {
@@ -362,14 +345,12 @@ static int pguid_repair(BackendDB *be) {
     op->o_bd->be_modify(op, &rs2);
     slap_mods_free(op->orm_modlist, 1);
     if (rs2.sr_err == LDAP_SUCCESS) {
-      Debug(LDAP_DEBUG_TRACE, "%s: pguid_repair: entry DN=\"%s\" repaired\n",
-            op->o_log_prefix, pmod->ndn.bv_val);
+      Debug(LDAP_DEBUG_TRACE, "%s: pguid_repair: entry DN=\"%s\" repaired\n", op->o_log_prefix, pmod->ndn.bv_val);
       nrepaired++;
 
     } else {
-      Debug(LDAP_DEBUG_ANY,
-            "%s: pguid_repair: entry DN=\"%s\" repair failed (%d)\n",
-            op->o_log_prefix, pmod->ndn.bv_val, rs2.sr_err);
+      Debug(LDAP_DEBUG_ANY, "%s: pguid_repair: entry DN=\"%s\" repair failed (%d)\n", op->o_log_prefix,
+            pmod->ndn.bv_val, rs2.sr_err);
     }
 
     pnext = pmod->next;
@@ -389,9 +370,7 @@ done_search:;
 /* search all entries without parentUUID; "repair" them */
 static int pguid_db_open(BackendDB *be, ConfigReply *cr) {
   if (SLAP_SINGLE_SHADOW(be)) {
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
-        "pguid incompatible with shadow database \"%s\".\n",
-        be->be_suffix[0].bv_val);
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "pguid incompatible with shadow database \"%s\".\n", be->be_suffix[0].bv_val);
     return 1;
   }
 
@@ -443,6 +422,4 @@ static int pguid_initialize(void) {
   return overlay_register(&pguid);
 }
 
-SLAP_MODULE_ENTRY(pguid, modinit)(int argc, char *argv[]) {
-  return pguid_initialize();
-}
+SLAP_MODULE_ENTRY(pguid, modinit)(int argc, char *argv[]) { return pguid_initialize(); }

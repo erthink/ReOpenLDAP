@@ -30,11 +30,11 @@
 #endif
 
 static struct berval builtin_supportedFeatures[] = {
-    BER_BVC(LDAP_FEATURE_MODIFY_INCREMENT),     /* Modify/increment */
-    BER_BVC(LDAP_FEATURE_ALL_OP_ATTRS),         /* All Op Attrs (+) */
-    BER_BVC(LDAP_FEATURE_OBJECTCLASS_ATTRS),    /* OCs in Attrs List (@class) */
-    BER_BVC(LDAP_FEATURE_ABSOLUTE_FILTERS),     /* (&) and (|) search filters */
-    BER_BVC(LDAP_FEATURE_LANGUAGE_TAG_OPTIONS), /* Language Tag Options */
+    BER_BVC(LDAP_FEATURE_MODIFY_INCREMENT),       /* Modify/increment */
+    BER_BVC(LDAP_FEATURE_ALL_OP_ATTRS),           /* All Op Attrs (+) */
+    BER_BVC(LDAP_FEATURE_OBJECTCLASS_ATTRS),      /* OCs in Attrs List (@class) */
+    BER_BVC(LDAP_FEATURE_ABSOLUTE_FILTERS),       /* (&) and (|) search filters */
+    BER_BVC(LDAP_FEATURE_LANGUAGE_TAG_OPTIONS),   /* Language Tag Options */
     BER_BVC(LDAP_FEATURE_LANGUAGE_RANGE_OPTIONS), /* Language Range Options */
 #if LDAP_EXPERIMENTAL > 0
     BER_BVC(LDAP_FEATURE_SUBORDINATE_SCOPE), /* "children" search scope */
@@ -173,20 +173,15 @@ int root_dse_info(Connection *conn, Entry **entry, const char **text) {
   char **supportedSASLMechanisms;
   BackendDB *be;
 
-  AttributeDescription *ad_structuralObjectClass =
-      slap_schema.si_ad_structuralObjectClass;
+  AttributeDescription *ad_structuralObjectClass = slap_schema.si_ad_structuralObjectClass;
   AttributeDescription *ad_objectClass = slap_schema.si_ad_objectClass;
   AttributeDescription *ad_namingContexts = slap_schema.si_ad_namingContexts;
 #ifdef LDAP_SLAPI
-  AttributeDescription *ad_supportedExtension =
-      slap_schema.si_ad_supportedExtension;
+  AttributeDescription *ad_supportedExtension = slap_schema.si_ad_supportedExtension;
 #endif
-  AttributeDescription *ad_supportedLDAPVersion =
-      slap_schema.si_ad_supportedLDAPVersion;
-  AttributeDescription *ad_supportedSASLMechanisms =
-      slap_schema.si_ad_supportedSASLMechanisms;
-  AttributeDescription *ad_supportedFeatures =
-      slap_schema.si_ad_supportedFeatures;
+  AttributeDescription *ad_supportedLDAPVersion = slap_schema.si_ad_supportedLDAPVersion;
+  AttributeDescription *ad_supportedSASLMechanisms = slap_schema.si_ad_supportedSASLMechanisms;
+  AttributeDescription *ad_supportedFeatures = slap_schema.si_ad_supportedFeatures;
   AttributeDescription *ad_monitorContext = slap_schema.si_ad_monitorContext;
   AttributeDescription *ad_configContext = slap_schema.si_ad_configContext;
   AttributeDescription *ad_ref = slap_schema.si_ad_ref;
@@ -234,15 +229,13 @@ int root_dse_info(Connection *conn, Entry **entry, const char **text) {
       continue;
     }
     if (SLAP_MONITOR(be)) {
-      if (attr_merge_one(e, ad_monitorContext, &be->be_suffix[0],
-                         &be->be_nsuffix[0])) {
+      if (attr_merge_one(e, ad_monitorContext, &be->be_suffix[0], &be->be_nsuffix[0])) {
         goto fail;
       }
       continue;
     }
     if (SLAP_CONFIG(be)) {
-      if (attr_merge_one(e, ad_configContext, &be->be_suffix[0],
-                         &be->be_nsuffix[0])) {
+      if (attr_merge_one(e, ad_configContext, &be->be_suffix[0], &be->be_nsuffix[0])) {
         goto fail;
       }
       continue;
@@ -327,8 +320,7 @@ int root_dse_info(Connection *conn, Entry **entry, const char **text) {
   if (usr_attr != NULL) {
     Attribute *a;
     for (a = usr_attr->e_attrs; a != NULL; a = a->a_next) {
-      if (attr_merge(e, a->a_desc, a->a_vals,
-                     (a->a_nvals == a->a_vals) ? NULL : a->a_nvals)) {
+      if (attr_merge(e, a->a_desc, a->a_vals, (a->a_nvals == a->a_vals) ? NULL : a->a_nvals)) {
         goto fail;
       }
     }
@@ -416,8 +408,7 @@ int root_dse_read_file(const char *fname) {
      */
 
     for (a = e->e_attrs; a != NULL; a = a->a_next) {
-      if (attr_merge(usr_attr, a->a_desc, a->a_vals,
-                     (a->a_nvals == a->a_vals) ? NULL : a->a_nvals)) {
+      if (attr_merge(usr_attr, a->a_desc, a->a_vals, (a->a_nvals == a->a_vals) ? NULL : a->a_nvals)) {
         rc = LDAP_OTHER;
         break;
       }
@@ -444,8 +435,7 @@ int root_dse_read_file(const char *fname) {
   return rc;
 }
 
-int slap_discover_feature(slap_bindconf *sb, const char *attr,
-                          const char *val) {
+int slap_discover_feature(slap_bindconf *sb, const char *attr, const char *val) {
   LDAP *ld = NULL;
   LDAPMessage *res = NULL, *entry;
   int rc, i;
@@ -458,8 +448,7 @@ int slap_discover_feature(slap_bindconf *sb, const char *attr,
   }
 
   attrs[0] = (char *)attr;
-  rc = ldap_search_ext_s(ld, "", LDAP_SCOPE_BASE, "(objectClass=*)", attrs, 0,
-                         NULL, NULL, NULL, 0, &res);
+  rc = ldap_search_ext_s(ld, "", LDAP_SCOPE_BASE, "(objectClass=*)", attrs, 0, NULL, NULL, NULL, 0, &res);
   if (rc != LDAP_SUCCESS) {
     goto done;
   }

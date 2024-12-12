@@ -40,13 +40,11 @@
 #define LOOPS 100
 #define RETRIES 0
 
-static void do_search(struct tester_conn_args *config, char *sbase, int scope,
-                      char *filter, LDAP **ldp, char **attrs, int noattrs,
-                      int nobind, int innerloop, int force);
+static void do_search(struct tester_conn_args *config, char *sbase, int scope, char *filter, LDAP **ldp, char **attrs,
+                      int noattrs, int nobind, int innerloop, int force);
 
-static void do_random(struct tester_conn_args *config, char *sbase, int scope,
-                      char *filter, char *attr, char **attrs, int noattrs,
-                      int nobind, int force);
+static void do_random(struct tester_conn_args *config, char *sbase, int scope, char *filter, char *attr, char **attrs,
+                      int noattrs, int nobind, int force);
 
 static void usage(char *name, char opt) {
   if (opt != '\0') {
@@ -162,21 +160,18 @@ int main(int argc, char **argv) {
 
   for (i = 0; i < config->outerloops; i++) {
     if (attr != NULL) {
-      do_random(config, sbase, scope, filter, attr, attrs, noattrs, nobind,
-                force);
+      do_random(config, sbase, scope, filter, attr, attrs, noattrs, nobind, force);
 
     } else {
-      do_search(config, sbase, scope, filter, NULL, attrs, noattrs, nobind,
-                config->loops, force);
+      do_search(config, sbase, scope, filter, NULL, attrs, noattrs, nobind, config->loops, force);
     }
   }
 
   exit(EXIT_SUCCESS);
 }
 
-static void do_random(struct tester_conn_args *config, char *sbase, int scope,
-                      char *filter, char *attr, char **srchattrs, int noattrs,
-                      int nobind, int force) {
+static void do_random(struct tester_conn_args *config, char *sbase, int scope, char *filter, char *attr,
+                      char **srchattrs, int noattrs, int nobind, int force) {
   LDAP *ld = NULL;
   int i = 0, do_retry = config->retries;
   char *attrs[2];
@@ -190,8 +185,7 @@ static void do_random(struct tester_conn_args *config, char *sbase, int scope,
 
   tester_init_ld(&ld, config, nobind);
 
-  rc = ldap_search_ext_s(ld, sbase, LDAP_SCOPE_SUBTREE, filter, attrs, 0, NULL,
-                         NULL, NULL, LDAP_NO_LIMIT, &res);
+  rc = ldap_search_ext_s(ld, sbase, LDAP_SCOPE_SUBTREE, filter, attrs, 0, NULL, NULL, NULL, LDAP_NO_LIMIT, &res);
   switch (rc) {
   case LDAP_SIZELIMIT_EXCEEDED:
   case LDAP_TIMELIMIT_EXCEEDED:
@@ -223,16 +217,14 @@ static void do_random(struct tester_conn_args *config, char *sbase, int scope,
     ldap_msgfree(res);
 
     if (!values) {
-      fprintf(stderr,
-              "  PID=%ld - Search base=\"%s\" filter=\"%s\" got %d values.\n",
-              (long)pid, sbase, filter, nvalues);
+      fprintf(stderr, "  PID=%ld - Search base=\"%s\" filter=\"%s\" got %d values.\n", (long)pid, sbase, filter,
+              nvalues);
       exit(EXIT_FAILURE);
     }
 
     if (do_retry == config->retries) {
-      fprintf(stderr,
-              "  PID=%ld - Search base=\"%s\" filter=\"%s\" got %d values.\n",
-              (long)pid, sbase, filter, nvalues);
+      fprintf(stderr, "  PID=%ld - Search base=\"%s\" filter=\"%s\" got %d values.\n", (long)pid, sbase, filter,
+              nvalues);
     }
 
     for (i = 0; i < config->loops; i++) {
@@ -241,8 +233,7 @@ static void do_random(struct tester_conn_args *config, char *sbase, int scope,
 
       snprintf(buf, sizeof(buf), "(%s=%s)", attr, values[r]);
 
-      do_search(config, sbase, scope, buf, &ld, srchattrs, noattrs, nobind, 1,
-                force);
+      do_search(config, sbase, scope, buf, &ld, srchattrs, noattrs, nobind, 1, force);
     }
     break;
 
@@ -265,9 +256,8 @@ static void do_random(struct tester_conn_args *config, char *sbase, int scope,
   }
 }
 
-static void do_search(struct tester_conn_args *config, char *sbase, int scope,
-                      char *filter, LDAP **ldp, char **attrs, int noattrs,
-                      int nobind, int innerloop, int force) {
+static void do_search(struct tester_conn_args *config, char *sbase, int scope, char *filter, LDAP **ldp, char **attrs,
+                      int noattrs, int nobind, int innerloop, int force) {
   LDAP *ld = ldp ? *ldp : NULL;
   int i = 0, do_retry = config->retries;
   int rc = LDAP_SUCCESS;
@@ -286,8 +276,7 @@ retry:;
               "PID=%ld - Search(%d): "
               "base=\"%s\" scope=%s filter=\"%s\" "
               "attrs=%s%s.\n",
-              (long)pid, innerloop, sbase, ldap_pvt_scope2str(scope), filter,
-              attrs[0], attrs[1] ? " (more...)" : "");
+              (long)pid, innerloop, sbase, ldap_pvt_scope2str(scope), filter, attrs[0], attrs[1] ? " (more...)" : "");
     }
 
     tester_init_ld(&ld, config, nobind);
@@ -299,8 +288,7 @@ retry:;
       int j, msgid;
 
       if (i < innerloop) {
-        rc = ldap_search_ext(ld, sbase, scope, filter, NULL, noattrs, NULL,
-                             NULL, NULL, LDAP_NO_LIMIT, &msgids[i]);
+        rc = ldap_search_ext(ld, sbase, scope, filter, NULL, noattrs, NULL, NULL, NULL, LDAP_NO_LIMIT, &msgids[i]);
 
         active++;
 #if 0
@@ -324,8 +312,7 @@ retry:;
           }
 
           /* busy needs special handling */
-          snprintf(buf, sizeof(buf), "base=\"%s\" filter=\"%s\"\n", sbase,
-                   filter);
+          snprintf(buf, sizeof(buf), "base=\"%s\" filter=\"%s\"\n", sbase, filter);
           tester_ldap_error(ld, "ldap_search_ext", buf);
           if (rc == LDAP_BUSY && do_retry > 0) {
             ldap_unbind_ext(ld, NULL, NULL);
@@ -385,8 +372,8 @@ retry:;
                 "### PID=%ld - Search(%d): "
                 "base=\"%s\" scope=%s filter=\"%s\" "
                 "attrs=%s%s. unexpected response tag=%d\n",
-                (long)pid, innerloop, sbase, ldap_pvt_scope2str(scope), filter,
-                attrs[0], attrs[1] ? " (more...)" : "", rc);
+                (long)pid, innerloop, sbase, ldap_pvt_scope2str(scope), filter, attrs[0], attrs[1] ? " (more...)" : "",
+                rc);
         break;
       }
 
@@ -401,16 +388,14 @@ retry:;
 
       if (swamp) {
         int msgid;
-        rc = ldap_search_ext(ld, sbase, scope, filter, NULL, noattrs, NULL,
-                             NULL, NULL, LDAP_NO_LIMIT, &msgid);
+        rc = ldap_search_ext(ld, sbase, scope, filter, NULL, noattrs, NULL, NULL, NULL, LDAP_NO_LIMIT, &msgid);
         if (rc == LDAP_SUCCESS)
           continue;
         else
           break;
       }
 
-      rc = ldap_search_ext_s(ld, sbase, scope, filter, attrs, noattrs, NULL,
-                             NULL, NULL, LDAP_NO_LIMIT, &res);
+      rc = ldap_search_ext_s(ld, sbase, scope, filter, attrs, noattrs, NULL, NULL, NULL, LDAP_NO_LIMIT, &res);
       if (res != NULL) {
         ldap_msgfree(res);
       }
@@ -427,8 +412,7 @@ retry:;
         }
 
         /* busy needs special handling */
-        snprintf(buf, sizeof(buf), "base=\"%s\" filter=\"%s\"\n", sbase,
-                 filter);
+        snprintf(buf, sizeof(buf), "base=\"%s\" filter=\"%s\"\n", sbase, filter);
         tester_ldap_error(ld, "ldap_search_ext_s", buf);
         if (rc == LDAP_BUSY && do_retry > 0) {
           ldap_unbind_ext(ld, NULL, NULL);

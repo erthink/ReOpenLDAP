@@ -68,10 +68,9 @@ extern "C" int ndb_tool_entry_close(BackendDB *be) {
     int rc = myPutTxn->execute(NdbTransaction::Commit);
     if (rc != 0) {
       char text[1024];
-      snprintf(text, sizeof(text), "txn_commit failed: %s (%d)",
-               myPutTxn->getNdbError().message, myPutTxn->getNdbError().code);
-      Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n",
-            text);
+      snprintf(text, sizeof(text), "txn_commit failed: %s (%d)", myPutTxn->getNdbError().message,
+               myPutTxn->getNdbError().code);
+      Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n", text);
     }
     myPutTxn->close();
     myPutTxn = NULL;
@@ -144,8 +143,7 @@ extern "C" ID ndb_tool_entry_first(BackendDB *be) {
   if (!myScanOp)
     return NOID;
 
-  if (myScanOp->readTuples(NdbOperation::LM_CommittedRead,
-                           NdbScanOperation::SF_KeyInfo))
+  if (myScanOp->readTuples(NdbOperation::LM_CommittedRead, NdbScanOperation::SF_KeyInfo))
     return NOID;
 
   myScanID = myScanOp->getValue(EID_COLUMN, myIdbuf);
@@ -153,8 +151,7 @@ extern "C" ID ndb_tool_entry_first(BackendDB *be) {
   for (i = 0; i < NDB_MAX_RDNS; i++) {
     myScanDN[i] = myScanOp->getValue(i + RDN_COLUMN, myRdns.nr_buf[i]);
   }
-  if (myScanTxn->execute(NdbTransaction::NoCommit, NdbOperation::AbortOnError,
-                         1))
+  if (myScanTxn->execute(NdbTransaction::NoCommit, NdbOperation::AbortOnError, 1))
     return NOID;
 
   return ndb_tool_entry_next(be);
@@ -175,10 +172,9 @@ extern "C" ID ndb_tool_dn2id_get(Backend *be, struct berval *dn) {
   NA.ndb = myNdb;
   NA.txn = myNdb->startTransaction();
   if (!NA.txn) {
-    snprintf(text, sizeof(text), "startTransaction failed: %s (%d)",
-             myNdb->getNdbError().message, myNdb->getNdbError().code);
-    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(ndb_tool_dn2id_get) ": %s\n",
-          text);
+    snprintf(text, sizeof(text), "startTransaction failed: %s (%d)", myNdb->getNdbError().message,
+             myNdb->getNdbError().code);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(ndb_tool_dn2id_get) ": %s\n", text);
     return NOID;
   }
   if (myOcList) {
@@ -217,10 +213,9 @@ extern "C" Entry *ndb_tool_entry_get(BackendDB *be, ID id) {
 
   NA.txn = myNdb->startTransaction();
   if (!NA.txn) {
-    snprintf(text, sizeof(text), "start_transaction failed: %s (%d)",
-             myNdb->getNdbError().message, myNdb->getNdbError().code);
-    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(ndb_tool_entry_get) ": %s\n",
-          text);
+    snprintf(text, sizeof(text), "start_transaction failed: %s (%d)", myNdb->getNdbError().message,
+             myNdb->getNdbError().code);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(ndb_tool_entry_get) ": %s\n", text);
     return NULL;
   }
 
@@ -254,8 +249,7 @@ static int ndb_dnid_cmp(const void *v1, const void *v2) {
   return ber_bvcmp(&dn1->dn, &dn2->dn);
 }
 
-static int ndb_tool_next_id(Operation *op, NdbArgs *NA, struct berval *text,
-                            int hole) {
+static int ndb_tool_next_id(Operation *op, NdbArgs *NA, struct berval *text, int hole) {
   struct berval ndn = NA->e->e_nname;
   int rc;
 
@@ -293,8 +287,8 @@ static int ndb_tool_next_id(Operation *op, NdbArgs *NA, struct berval *text,
     }
     rc = ndb_next_id(op->o_bd, myNdb, &NA->e->e_id);
     if (rc) {
-      snprintf(text->bv_val, text->bv_len, "next_id failed: %s (%d)",
-               myNdb->getNdbError().message, myNdb->getNdbError().code);
+      snprintf(text->bv_val, text->bv_len, "next_id failed: %s (%d)", myNdb->getNdbError().message,
+               myNdb->getNdbError().code);
       Debug(LDAP_DEBUG_ANY, "=> ndb_tool_next_id: %s\n", text->bv_val);
       return rc;
     }
@@ -311,8 +305,8 @@ static int ndb_tool_next_id(Operation *op, NdbArgs *NA, struct berval *text,
       NA->e->e_attrs = a;
     }
     if (rc) {
-      snprintf(text->bv_val, text->bv_len, "ndb_entry_put_info failed: %s (%d)",
-               myNdb->getNdbError().message, myNdb->getNdbError().code);
+      snprintf(text->bv_val, text->bv_len, "ndb_entry_put_info failed: %s (%d)", myNdb->getNdbError().message,
+               myNdb->getNdbError().code);
       Debug(LDAP_DEBUG_ANY, "=> ndb_tool_next_id: %s\n", text->bv_val);
     } else if (hole) {
       if (nholes == nhmax - 1) {
@@ -363,9 +357,7 @@ extern "C" ID ndb_tool_entry_put(BackendDB *be, Entry *e, struct berval *text) {
   assert(text->bv_val != NULL);
   assert(text->bv_val[0] == '\0'); /* overconservative? */
 
-  Debug(LDAP_DEBUG_TRACE,
-        "=> " LDAP_XSTRING(ndb_tool_entry_put) "( %ld, \"%s\" )\n",
-        (long)e->e_id, e->e_dn);
+  Debug(LDAP_DEBUG_TRACE, "=> " LDAP_XSTRING(ndb_tool_entry_put) "( %ld, \"%s\" )\n", (long)e->e_id, e->e_dn);
 
   if (!be_issuffix(be, &e->e_nname)) {
     dnParent(&e->e_nname, &dtmp.dn);
@@ -384,8 +376,8 @@ extern "C" ID ndb_tool_entry_put(BackendDB *be, Entry *e, struct berval *text) {
   if (!slow) {
     rc = ndb_next_id(be, myNdb, &e->e_id);
     if (rc) {
-      snprintf(text->bv_val, text->bv_len, "next_id failed: %s (%d)",
-               myNdb->getNdbError().message, myNdb->getNdbError().code);
+      snprintf(text->bv_val, text->bv_len, "next_id failed: %s (%d)", myNdb->getNdbError().message,
+               myNdb->getNdbError().code);
       Debug(LDAP_DEBUG_ANY, "=> ndb_tool_next_id: %s\n", text->bv_val);
       return rc;
     }
@@ -394,10 +386,9 @@ extern "C" ID ndb_tool_entry_put(BackendDB *be, Entry *e, struct berval *text) {
   if (!myPutTxn)
     myPutTxn = myNdb->startTransaction();
   if (!myPutTxn) {
-    snprintf(text->bv_val, text->bv_len, "start_transaction failed: %s (%d)",
-             myNdb->getNdbError().message, myNdb->getNdbError().code);
-    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n",
-          text->bv_val);
+    snprintf(text->bv_val, text->bv_len, "start_transaction failed: %s (%d)", myNdb->getNdbError().message,
+             myNdb->getNdbError().code);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n", text->bv_val);
     return NOID;
   }
 
@@ -422,10 +413,9 @@ extern "C" ID ndb_tool_entry_put(BackendDB *be, Entry *e, struct berval *text) {
   /* id2entry index */
   rc = ndb_entry_put_data(be, &NA);
   if (rc != 0) {
-    snprintf(text->bv_val, text->bv_len, "ndb_entry_put_data failed: %s (%d)",
-             myNdb->getNdbError().message, myNdb->getNdbError().code);
-    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n",
-          text->bv_val);
+    snprintf(text->bv_val, text->bv_len, "ndb_entry_put_data failed: %s (%d)", myNdb->getNdbError().message,
+             myNdb->getNdbError().code);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n", text->bv_val);
     goto done;
   }
 
@@ -435,20 +425,18 @@ done:
     if (!(myPutCnt & 0x0f)) {
       rc = myPutTxn->execute(NdbTransaction::Commit);
       if (rc != 0) {
-        snprintf(text->bv_val, text->bv_len, "txn_commit failed: %s (%d)",
-                 myPutTxn->getNdbError().message, myPutTxn->getNdbError().code);
-        Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n",
-              text->bv_val);
+        snprintf(text->bv_val, text->bv_len, "txn_commit failed: %s (%d)", myPutTxn->getNdbError().message,
+                 myPutTxn->getNdbError().code);
+        Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n", text->bv_val);
         e->e_id = NOID;
       }
       myPutTxn->close();
       myPutTxn = NULL;
     }
   } else {
-    snprintf(text->bv_val, text->bv_len, "txn_aborted! %s (%d)",
-             myPutTxn->getNdbError().message, myPutTxn->getNdbError().code);
-    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n",
-          text->bv_val);
+    snprintf(text->bv_val, text->bv_len, "txn_aborted! %s (%d)", myPutTxn->getNdbError().message,
+             myPutTxn->getNdbError().code);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n", text->bv_val);
     e->e_id = NOID;
     myPutTxn->close();
   }
@@ -456,19 +444,14 @@ done:
   return e->e_id;
 }
 
-extern "C" int ndb_tool_entry_reindex(BackendDB *be, ID id,
-                                      AttributeDescription **adv) {
-  Debug(LDAP_DEBUG_ARGS, "=> " LDAP_XSTRING(ndb_tool_entry_reindex) "( %ld )\n",
-        (long)id);
+extern "C" int ndb_tool_entry_reindex(BackendDB *be, ID id, AttributeDescription **adv) {
+  Debug(LDAP_DEBUG_ARGS, "=> " LDAP_XSTRING(ndb_tool_entry_reindex) "( %ld )\n", (long)id);
 
   return 0;
 }
 
-extern "C" ID ndb_tool_entry_modify(BackendDB *be, Entry *e,
-                                    struct berval *text) {
-  Debug(LDAP_DEBUG_TRACE,
-        "=> " LDAP_XSTRING(ndb_tool_entry_modify) "( %ld, \"%s\" )\n",
-        (long)e->e_id, e->e_dn);
+extern "C" ID ndb_tool_entry_modify(BackendDB *be, Entry *e, struct berval *text) {
+  Debug(LDAP_DEBUG_TRACE, "=> " LDAP_XSTRING(ndb_tool_entry_modify) "( %ld, \"%s\" )\n", (long)e->e_id, e->e_dn);
 
   return e->e_id;
 }

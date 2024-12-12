@@ -32,8 +32,7 @@ int overlay_init(void) {
   for (i = 0; slap_oinfo[i].ov_type; i++) {
     rc = slap_oinfo[i].ov_init();
     if (rc) {
-      Debug(LDAP_DEBUG_ANY, "%s overlay setup failed, err %d\n",
-            slap_oinfo[i].ov_type, rc);
+      Debug(LDAP_DEBUG_ANY, "%s overlay setup failed, err %d\n", slap_oinfo[i].ov_type, rc);
       break;
     }
   }

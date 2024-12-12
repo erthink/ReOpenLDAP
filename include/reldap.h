@@ -161,9 +161,7 @@
 #if defined(__GNUC__) || defined(__clang__)
 #ifdef __cplusplus
 /* LY: workaround for "pretty" boost */
-static __inline __attribute__((always_inline)) bool likely(bool cond) {
-  return __builtin_expect(cond, 1);
-}
+static __inline __attribute__((always_inline)) bool likely(bool cond) { return __builtin_expect(cond, 1); }
 #else
 #define likely(cond) __builtin_expect(!!(cond), 1)
 #endif
@@ -176,9 +174,7 @@ static __inline __attribute__((always_inline)) bool likely(bool cond) {
 #if defined(__GNUC__) || defined(__clang__)
 #ifdef __cplusplus
 /* LY: workaround for "pretty" boost */
-static __inline __attribute__((always_inline)) bool unlikely(bool cond) {
-  return __builtin_expect(cond, 0);
-}
+static __inline __attribute__((always_inline)) bool unlikely(bool cond) { return __builtin_expect(cond, 0); }
 #else
 #define unlikely(cond) __builtin_expect(!!(cond), 0)
 #endif
@@ -190,8 +186,7 @@ static __inline __attribute__((always_inline)) bool unlikely(bool cond) {
 #ifndef __ldso_exportable
 #if defined(__GNUC__)
 #if !defined(__clang__)
-#define __ldso_exportable                                                      \
-  __attribute__((visibility("default"), externally_visible))
+#define __ldso_exportable __attribute__((visibility("default"), externally_visible))
 #else
 #define __ldso_exportable __attribute__((visibility("default")))
 #endif
@@ -209,15 +204,15 @@ static __inline __attribute__((always_inline)) bool unlikely(bool cond) {
 #endif
 
 #ifndef __noop
-#define __noop()                                                               \
-  do {                                                                         \
+#define __noop()                                                                                                       \
+  do {                                                                                                                 \
   } while (0)
 #endif
 
 #ifndef compiler_barrier
-#define compiler_barrier()                                                     \
-  do {                                                                         \
-    __asm__ __volatile__("" ::: "memory");                                     \
+#define compiler_barrier()                                                                                             \
+  do {                                                                                                                 \
+    __asm__ __volatile__("" ::: "memory");                                                                             \
   } while (0)
 #endif /* compiler_barrier */
 
@@ -244,12 +239,10 @@ static __inline __attribute__((always_inline)) bool unlikely(bool cond) {
 LDAP_BEGIN_DECL
 
 LDAP_F(void)
-__ldap_assert_fail(const char *assertion, const char *file, unsigned line,
-                   const char *function) __nothrow __noreturn;
+__ldap_assert_fail(const char *assertion, const char *file, unsigned line, const char *function) __nothrow __noreturn;
 
 /* Prototype should match libc runtime. ISO POSIX (2003) & LSB 3.1 */
-__extern_C void __assert_fail(const char *assertion, const char *file,
-                              unsigned line,
+__extern_C void __assert_fail(const char *assertion, const char *file, unsigned line,
                               const char *function) __nothrow __noreturn;
 
 #ifndef LDAP_ASSERT_CHECK
@@ -265,28 +258,23 @@ __extern_C void __assert_fail(const char *assertion, const char *file,
 LDAP_LUTIL_F(void) reopenldap_flags_setup(int flags);
 LDAP_LUTIL_V(int) reopenldap_flags;
 
-#define reopenldap_mode_righteous()                                            \
-  likely((reopenldap_flags & REOPENLDAP_FLAG_IDDQD) != 0)
-#define reopenldap_mode_check()                                                \
-  unlikely(LDAP_CHECK > 2 || (reopenldap_flags & REOPENLDAP_FLAG_IDKFA) != 0)
-#define reopenldap_mode_strict()                                               \
-  likely((reopenldap_flags & REOPENLDAP_FLAG_IDCLIP) != 0)
-#define reopenldap_mode_jitter()                                               \
-  unlikely((reopenldap_flags & REOPENLDAP_FLAG_JITTER) != 0)
+#define reopenldap_mode_righteous() likely((reopenldap_flags & REOPENLDAP_FLAG_IDDQD) != 0)
+#define reopenldap_mode_check() unlikely(LDAP_CHECK > 2 || (reopenldap_flags & REOPENLDAP_FLAG_IDKFA) != 0)
+#define reopenldap_mode_strict() likely((reopenldap_flags & REOPENLDAP_FLAG_IDCLIP) != 0)
+#define reopenldap_mode_jitter() unlikely((reopenldap_flags & REOPENLDAP_FLAG_JITTER) != 0)
 
 LDAP_LUTIL_F(void) reopenldap_jitter(int probability_percent);
 
-#define LDAP_JITTER(prob)                                                      \
-  do                                                                           \
-    if (reopenldap_mode_jitter())                                              \
-      reopenldap_jitter(prob);                                                 \
+#define LDAP_JITTER(prob)                                                                                              \
+  do                                                                                                                   \
+    if (reopenldap_mode_jitter())                                                                                      \
+      reopenldap_jitter(prob);                                                                                         \
   while (0)
 
-#define LDAP_ENSURE(condition)                                                 \
-  do                                                                           \
-    if (unlikely(!(condition)))                                                \
-      __ldap_assert_fail("ldap: " #condition, __FILE__, __LINE__,              \
-                         __FUNCTION__);                                        \
+#define LDAP_ENSURE(condition)                                                                                         \
+  do                                                                                                                   \
+    if (unlikely(!(condition)))                                                                                        \
+      __ldap_assert_fail("ldap: " #condition, __FILE__, __LINE__, __FUNCTION__);                                       \
   while (0)
 
 #if !LDAP_ASSERT_CHECK
@@ -294,15 +282,14 @@ LDAP_LUTIL_F(void) reopenldap_jitter(int probability_percent);
 #elif LDAP_ASSERT_CHECK > 1
 #define LDAP_ASSERT(condition) LDAP_ENSURE(condition)
 #else
-#define LDAP_ASSERT(condition)                                                 \
-  do                                                                           \
-    if (reopenldap_mode_check())                                               \
-      LDAP_ENSURE(condition);                                                  \
+#define LDAP_ASSERT(condition)                                                                                         \
+  do                                                                                                                   \
+    if (reopenldap_mode_check())                                                                                       \
+      LDAP_ENSURE(condition);                                                                                          \
   while (0)
 #endif /* LDAP_ASSERT_CHECK */
 
-#define LDAP_BUG()                                                             \
-  __ldap_assert_fail("ldap-BUG", __FILE__, __LINE__, __FUNCTION__)
+#define LDAP_BUG() __ldap_assert_fail("ldap-BUG", __FILE__, __LINE__, __FUNCTION__)
 
 #undef assert
 #define assert(expr) LDAP_ASSERT(expr)
@@ -329,30 +316,28 @@ typedef struct {
   uint64_t ns;
 } slap_time_t;
 
-#define ldap_now_steady(void)                                                  \
-  ({                                                                           \
-    slap_time_t __t = {ldap_now_steady_ns()};                                  \
-    __t;                                                                       \
+#define ldap_now_steady(void)                                                                                          \
+  ({                                                                                                                   \
+    slap_time_t __t = {ldap_now_steady_ns()};                                                                          \
+    __t;                                                                                                               \
   })
 
-#define ldap_from_seconds(S)                                                   \
-  ({                                                                           \
-    slap_time_t __t = {(S) * (uint64_t)1000ul * 1000ul * 1000ul};              \
-    __t;                                                                       \
+#define ldap_from_seconds(S)                                                                                           \
+  ({                                                                                                                   \
+    slap_time_t __t = {(S) * (uint64_t)1000ul * 1000ul * 1000ul};                                                      \
+    __t;                                                                                                               \
   })
 
-#define ldap_from_timeval(T)                                                   \
-  ({                                                                           \
-    slap_time_t __t = {(T)->tv_sec * (uint64_t)1000ul * 1000ul * 1000ul +      \
-                       (T)->tv_usec * (uint64_t)1000ul};                       \
-    __t;                                                                       \
+#define ldap_from_timeval(T)                                                                                           \
+  ({                                                                                                                   \
+    slap_time_t __t = {(T)->tv_sec * (uint64_t)1000ul * 1000ul * 1000ul + (T)->tv_usec * (uint64_t)1000ul};            \
+    __t;                                                                                                               \
   })
 
-#define ldap_from_timespec(T)                                                  \
-  ({                                                                           \
-    slap_time_t __t = {(T)->tv_sec * (uint64_t)1000ul * 1000ul * 1000ul +      \
-                       (T)->tv_nsec};                                          \
-    __t;                                                                       \
+#define ldap_from_timespec(T)                                                                                          \
+  ({                                                                                                                   \
+    slap_time_t __t = {(T)->tv_sec * (uint64_t)1000ul * 1000ul * 1000ul + (T)->tv_nsec};                               \
+    __t;                                                                                                               \
   })
 
 #define ldap_to_milliseconds(TS) ((TS).ns / 1000000ul)
@@ -396,8 +381,7 @@ LDAP_END_DECL
 #endif
 
 #ifdef __SANITIZE_THREAD__
-#define ATTRIBUTE_NO_SANITIZE_THREAD                                           \
-  __attribute__((no_sanitize_thread, noinline))
+#define ATTRIBUTE_NO_SANITIZE_THREAD __attribute__((no_sanitize_thread, noinline))
 #define ATTRIBUTE_NO_SANITIZE_THREAD_INLINE ATTRIBUTE_NO_SANITIZE_THREAD
 #else
 #define ATTRIBUTE_NO_SANITIZE_THREAD
@@ -406,11 +390,9 @@ LDAP_END_DECL
 
 #ifdef __SANITIZE_ADDRESS__
 #include <sanitizer/asan_interface.h>
-#define ATTRIBUTE_NO_SANITIZE_ADDRESS                                          \
-  __attribute__((no_sanitize_address, noinline))
+#define ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address, noinline))
 #define ATTRIBUTE_NO_SANITIZE_ADDRESS_INLINE ATTRIBUTE_NO_SANITIZE_ADDRESS
-#define ASAN_REGION_IS_POISONED(addr, size)                                    \
-  __asan_region_is_poisoned(addr, size)
+#define ASAN_REGION_IS_POISONED(addr, size) __asan_region_is_poisoned(addr, size)
 #else
 #define ASAN_POISON_MEMORY_REGION(addr, size) ((void)(addr), (void)(size))
 #define ASAN_UNPOISON_MEMORY_REGION(addr, size) ((void)(addr), (void)(size))

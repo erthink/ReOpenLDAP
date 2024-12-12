@@ -23,12 +23,7 @@
 #include "rewrite-int.h"
 #include "rewrite-map.h"
 
-typedef enum {
-  MAP_LDAP_UNKNOWN,
-  MAP_LDAP_EVERYTIME,
-  MAP_LDAP_NOW,
-  MAP_LDAP_LATER
-} bindwhen_t;
+typedef enum { MAP_LDAP_UNKNOWN, MAP_LDAP_EVERYTIME, MAP_LDAP_NOW, MAP_LDAP_LATER } bindwhen_t;
 
 /*
  * LDAP map data structure
@@ -81,8 +76,7 @@ static void map_ldap_free(struct ldap_map_data *data) {
   free(data);
 }
 
-static void *map_ldap_parse(const char *fname, int lineno, int argc,
-                            char **argv) {
+static void *map_ldap_parse(const char *fname, int lineno, int argc, char **argv) {
   struct ldap_map_data *data;
   char *p, *uri;
 
@@ -130,14 +124,12 @@ static void *map_ldap_parse(const char *fname, int lineno, int argc,
 
   } else {
     if (data->lm_lud->lud_attrs[1] != NULL) {
-      Debug(LDAP_DEBUG_ANY, "[%s:%d] only one attribute allowed in URI\n",
-            fname, lineno);
+      Debug(LDAP_DEBUG_ANY, "[%s:%d] only one attribute allowed in URI\n", fname, lineno);
       map_ldap_free(data);
       return NULL;
     }
 
-    if (strcasecmp(data->lm_lud->lud_attrs[0], "dn") == 0 ||
-        strcasecmp(data->lm_lud->lud_attrs[0], "entryDN") == 0) {
+    if (strcasecmp(data->lm_lud->lud_attrs[0], "dn") == 0 || strcasecmp(data->lm_lud->lud_attrs[0], "entryDN") == 0) {
       ldap_memfree(data->lm_lud->lud_attrs[0]);
       ldap_memfree(data->lm_lud->lud_attrs);
       data->lm_lud->lud_attrs = NULL;
@@ -188,8 +180,7 @@ static void *map_ldap_parse(const char *fname, int lineno, int argc,
         return NULL;
       }
 
-    } else if (strncasecmp(argv[0], "credentials=", STRLENOF("credentials=")) ==
-               0) {
+    } else if (strncasecmp(argv[0], "credentials=", STRLENOF("credentials=")) == 0) {
       ber_str2bv(argv[0] + STRLENOF("credentials="), 0, 1, &data->lm_cred);
       if (data->lm_cred.bv_val == NULL) {
         map_ldap_free(data);
@@ -213,8 +204,7 @@ static void *map_ldap_parse(const char *fname, int lineno, int argc,
           return NULL;
         }
 
-        ldap_set_option(data->lm_ld, LDAP_OPT_PROTOCOL_VERSION,
-                        (void *)&data->lm_version);
+        ldap_set_option(data->lm_ld, LDAP_OPT_PROTOCOL_VERSION, (void *)&data->lm_version);
 
 #ifdef USE_REWRITE_LDAP_PVT_THREADS
         ldap_pvt_thread_mutex_init(&data->lm_mutex);
@@ -251,8 +241,7 @@ static void *map_ldap_parse(const char *fname, int lineno, int argc,
       }
 
     } else {
-      Debug(LDAP_DEBUG_ANY, "[%s:%d] unknown option %s (ignored)\n", fname,
-            lineno, argv[0]);
+      Debug(LDAP_DEBUG_ANY, "[%s:%d] unknown option %s (ignored)\n", fname, lineno, argv[0]);
     }
   }
 
@@ -312,8 +301,7 @@ do_bind:;
   }
 
   if (data->lm_binddn != NULL) {
-    rc = ldap_sasl_bind_s(ld, data->lm_binddn, LDAP_SASL_SIMPLE, &data->lm_cred,
-                          NULL, NULL, NULL);
+    rc = ldap_sasl_bind_s(ld, data->lm_binddn, LDAP_SASL_SIMPLE, &data->lm_cred, NULL, NULL, NULL);
     if (rc == LDAP_SERVER_DOWN && first_try) {
       first_try = 0;
       if (ldap_initialize(&ld, data->lm_url) != LDAP_SUCCESS) {
@@ -329,8 +317,7 @@ do_bind:;
     }
   }
 
-  rc = ldap_search_ext_s(ld, lud->lud_dn, lud->lud_scope, (char *)filter,
-                         data->lm_attrs, 0, NULL, NULL, NULL, 1, &res);
+  rc = ldap_search_ext_s(ld, lud->lud_dn, lud->lud_scope, (char *)filter, data->lm_attrs, 0, NULL, NULL, NULL, 1, &res);
   if (rc == LDAP_SERVER_DOWN && first_try) {
     first_try = 0;
     if (ldap_initialize(&ld, data->lm_url) != LDAP_SUCCESS) {
@@ -414,5 +401,4 @@ static int map_ldap_destroy(void *private) {
   return 0;
 }
 
-const rewrite_mapper rewrite_ldap_mapper = {"ldap", map_ldap_parse,
-                                            map_ldap_apply, map_ldap_destroy};
+const rewrite_mapper rewrite_ldap_mapper = {"ldap", map_ldap_parse, map_ldap_apply, map_ldap_destroy};

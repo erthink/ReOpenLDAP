@@ -100,8 +100,7 @@ void quorum_global_destroy() {
   }
 }
 
-static ATTRIBUTE_NO_SANITIZE_THREAD_INLINE void set_cache(BackendDB *bd,
-                                                          int value) {
+static ATTRIBUTE_NO_SANITIZE_THREAD_INLINE void set_cache(BackendDB *bd, int value) {
   assert(bd->bd_self == bd);
   bd->bd_quorum_cache = value;
 }
@@ -211,21 +210,16 @@ static int lazy_update(slap_quorum_t *q) {
         Debug(LDAP_DEBUG_SYNC,
               "syncrepl_quorum: %s FORCE-LACK"
               " (required %s%s %d not ready)\n",
-              q->qr_cluster, QR_IS_AUTO(r->type) ? "auto-" : "",
-              QR_IS_SID(r->type) ? "sid" : "rid", r->id);
+              q->qr_cluster, QR_IS_AUTO(r->type) ? "auto-" : "", QR_IS_SID(r->type) ? "sid" : "rid", r->id);
         state = -1;
       }
     }
 
     if (state > 0 && (wanna_sids || wanna_rids))
-      state = (quorum(total_links, wanna_sids, ready_sids) ||
-               quorum(total_links, wanna_rids, ready_rids))
-                  ? 1
-                  : -1;
+      state = (quorum(total_links, wanna_sids, ready_sids) || quorum(total_links, wanna_rids, ready_rids)) ? 1 : -1;
   }
 
-  if ((q->flags & QR_AUTO_SIDS) && state > 0 && total_links &&
-      !quorum(total_links, total_links, wanna_sids)) {
+  if ((q->flags & QR_AUTO_SIDS) && state > 0 && total_links && !quorum(total_links, total_links, wanna_sids)) {
     Debug(LDAP_DEBUG_SYNC,
           "syncrepl_quorum: %s FORCE-LACK"
           " (auto-sids, not enough for voting)\n",
@@ -236,8 +230,8 @@ static int lazy_update(slap_quorum_t *q) {
   Debug(LDAP_DEBUG_SYNC,
         "syncrepl_quorum: %s %s (wanna/ready: "
         "link %d/%d, rid %d/%d, sid %d/%d)\n",
-        q->qr_cluster, (state > 0) ? "HAVE" : "LACK", total_links, ready_links,
-        wanna_rids, ready_rids, wanna_sids, ready_sids);
+        q->qr_cluster, (state > 0) ? "HAVE" : "LACK", total_links, ready_links, wanna_rids, ready_rids, wanna_sids,
+        ready_sids);
   return state;
 }
 
@@ -280,24 +274,19 @@ static void kick(slap_quorum_t *q) {
   struct lutil_tm tm;
 
   ldap_pvt_gettime(&tm);
-  snprintf(q->cns_status_buf, sizeof(q->cns_status_buf),
-           "%4d%02d%02d%02d%02d%02d.%06dZ#%06x#%03x#%x%x%x.%x%x",
-           tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min,
-           tm.tm_sec, tm.tm_usec, q->salt & 0xFFFFFFu, slap_serverID,
-           lpq(q, QS_DEAD), lpq(q, QS_DIRTY), lpq(q, QS_REFRESH),
+  snprintf(q->cns_status_buf, sizeof(q->cns_status_buf), "%4d%02d%02d%02d%02d%02d.%06dZ#%06x#%03x#%x%x%x.%x%x",
+           tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, tm.tm_usec,
+           q->salt & 0xFFFFFFu, slap_serverID, lpq(q, QS_DEAD), lpq(q, QS_DIRTY), lpq(q, QS_REFRESH),
            lpq(q, QS_PROCESS), lpq(q, QS_READY));
 
-  int now = q->qt_status[QS_DEAD] + q->qt_status[QS_DIRTY] +
-            q->qt_status[QS_REFRESH] + q->qt_status[QS_PROCESS];
+  int now = q->qt_status[QS_DEAD] + q->qt_status[QS_DIRTY] + q->qt_status[QS_REFRESH] + q->qt_status[QS_PROCESS];
   if (q->qt_left != now) {
     q->qt_left = now;
-    Debug(LDAP_DEBUG_SYNC, "syncrepl_gate: %s %s\n", q->qr_cluster,
-          now ? "dirty" : "clean");
+    Debug(LDAP_DEBUG_SYNC, "syncrepl_gate: %s %s\n", q->qr_cluster, now ? "dirty" : "clean");
   }
 }
 
-int quorum_query_status(BackendDB *bd, int running_only, BerValue *status,
-                        Operation *op) {
+int quorum_query_status(BackendDB *bd, int running_only, BerValue *status, Operation *op) {
   lock();
   bd = bd->bd_self;
   if (!bd->bd_quorum)
@@ -307,9 +296,7 @@ int quorum_query_status(BackendDB *bd, int running_only, BerValue *status,
   if (!q->cns_status_buf[0])
     kick(q);
 
-  status->bv_val = (op && op->o_tmpmemctx)
-                       ? ber_strdup_x(q->cns_status_buf, op->o_tmpmemctx)
-                       : q->cns_status_buf;
+  status->bv_val = (op && op->o_tmpmemctx) ? ber_strdup_x(q->cns_status_buf, op->o_tmpmemctx) : q->cns_status_buf;
   status->bv_len = strlen(status->bv_val);
 
   int left = q->qt_left;
@@ -342,18 +329,16 @@ static int require_append(slap_quorum_t *q, int type, int id) {
     }
   }
 
-  q->qr_requirements =
-      ch_realloc(q->qr_requirements, (n + 2) * sizeof(struct requirment));
+  q->qr_requirements = ch_realloc(q->qr_requirements, (n + 2) * sizeof(struct requirment));
   r = q->qr_requirements + n;
   r->id = id;
   r->type = type;
   r[1].type = -1;
 
 ok:
-  Debug(LDAP_DEBUG_SYNC,
-        "syncrepl_quorum: added %s%s-%s %d to %s requirements as #%d\n",
-        QR_IS_AUTO(type) ? "auto-" : "", QR_IS_DEMAND(type) ? "demand" : "vote",
-        QR_IS_SID(type) ? "sid" : "rid", id, q->qr_cluster, n);
+  Debug(LDAP_DEBUG_SYNC, "syncrepl_quorum: added %s%s-%s %d to %s requirements as #%d\n",
+        QR_IS_AUTO(type) ? "auto-" : "", QR_IS_DEMAND(type) ? "demand" : "vote", QR_IS_SID(type) ? "sid" : "rid", id,
+        q->qr_cluster, n);
 
   return 1;
 }
@@ -372,10 +357,8 @@ static int require_remove(slap_quorum_t *q, int type, int type_mask, int id) {
 
   for (n = 0, r = q->qr_requirements; r && r->type > -1; ++r, ++n) {
     if (r->id == id && (r->type & type_mask) == type) {
-      Debug(LDAP_DEBUG_SYNC,
-            "syncrepl_quorum: %s%s-%s %d removed from %s requirements as #%d\n",
-            QR_IS_AUTO(r->type) ? "auto-" : "",
-            QR_IS_DEMAND(type) ? "demand" : "vote",
+      Debug(LDAP_DEBUG_SYNC, "syncrepl_quorum: %s%s-%s %d removed from %s requirements as #%d\n",
+            QR_IS_AUTO(r->type) ? "auto-" : "", QR_IS_DEMAND(type) ? "demand" : "vote",
             QR_IS_SID(r->type) ? "sid" : "rid", id, q->qr_cluster, n);
 
       for (;;) {
@@ -435,13 +418,11 @@ static int notify_sid(slap_quorum_t *q, void *key, int sid) {
     for (p = q->qr_present; p->key != NULL; ++p, ++n) {
       if (p->key == key) {
         if (p->sid != sid) {
-          Debug(LDAP_DEBUG_SYNC,
-                "syncrepl_quorum: notify-sid %s, rid %d/%p, sid %d->%d\n",
-                q->qr_cluster, p->rid, key, p->sid, sid);
+          Debug(LDAP_DEBUG_SYNC, "syncrepl_quorum: notify-sid %s, rid %d/%p, sid %d->%d\n", q->qr_cluster, p->rid, key,
+                p->sid, sid);
           if (q->flags & QR_AUTO_SIDS) {
             if (p->sid > -1)
-              require_remove(q, QR_VOTED_SID | QR_FLAG_AUTO, ~QR_FLAG_DEMAND,
-                             p->sid);
+              require_remove(q, QR_VOTED_SID | QR_FLAG_AUTO, ~QR_FLAG_DEMAND, p->sid);
             if (sid > -1)
               require_append(q, QR_VOTED_SID | QR_FLAG_AUTO, sid);
           }
@@ -473,11 +454,8 @@ static int notify_status(slap_quorum_t *q, void *key, int status) {
     for (p = q->qr_present; p->key != NULL; ++p, ++n) {
       if (p->key == key) {
         if (p->status != status) {
-          Debug(
-              LDAP_DEBUG_SYNC,
-              "syncrepl_quorum: notify-status %s, rid %d/%p, sid %d, %s->%s\n",
-              q->qr_cluster, p->rid, key, p->sid, status2str(p->status),
-              status2str(status));
+          Debug(LDAP_DEBUG_SYNC, "syncrepl_quorum: notify-status %s, rid %d/%p, sid %d, %s->%s\n", q->qr_cluster,
+                p->rid, key, p->sid, status2str(p->status), status2str(status));
           assert(q->qt_status[p->status] > 0);
           invalidate = (p->status < QS_READY) != (status < QS_READY);
           q->qt_status[p->status] -= 1;
@@ -520,11 +498,9 @@ void quorum_add_rid(BackendDB *bd, void *key, int rid) {
     }
   }
 
-  Debug(LDAP_DEBUG_SYNC, "syncrepl_quorum: add link-rid %d/%p to %s\n", rid,
-        key, bd->bd_quorum->qr_cluster);
+  Debug(LDAP_DEBUG_SYNC, "syncrepl_quorum: add link-rid %d/%p to %s\n", rid, key, bd->bd_quorum->qr_cluster);
 
-  bd->bd_quorum->qr_present =
-      ch_realloc(bd->bd_quorum->qr_present, (n + 2) * sizeof(struct present));
+  bd->bd_quorum->qr_present = ch_realloc(bd->bd_quorum->qr_present, (n + 2) * sizeof(struct present));
   p = bd->bd_quorum->qr_present + n;
   p->key = key;
   p->rid = rid;
@@ -536,8 +512,7 @@ void quorum_add_rid(BackendDB *bd, void *key, int rid) {
   bd->bd_quorum->salt += mesh(rid);
   kick(bd->bd_quorum);
 
-  if ((bd->bd_quorum->flags & QR_AUTO_RIDS) &&
-      require_append(bd->bd_quorum, QR_VOTED_RID | QR_FLAG_AUTO, rid))
+  if ((bd->bd_quorum->flags & QR_AUTO_RIDS) && require_append(bd->bd_quorum, QR_VOTED_RID | QR_FLAG_AUTO, rid))
     quorum_invalidate(bd);
 
 bailout:
@@ -557,15 +532,12 @@ void quorum_remove_rid(BackendDB *bd, void *key) {
     if (bd->bd_quorum->qr_present) {
       for (n = 0, p = bd->bd_quorum->qr_present; p->key != NULL; ++p, ++n) {
         if (p->key == key) {
-          Debug(LDAP_DEBUG_SYNC,
-                "syncrepl_quorum: remove link-rid %d/%p from %s\n", p->rid, key,
+          Debug(LDAP_DEBUG_SYNC, "syncrepl_quorum: remove link-rid %d/%p from %s\n", p->rid, key,
                 bd->bd_quorum->qr_cluster);
           if (p->sid > -1 && (bd->bd_quorum->flags & QR_AUTO_SIDS))
-            require_remove(bd->bd_quorum, QR_VOTED_SID | QR_FLAG_AUTO,
-                           ~QR_FLAG_DEMAND, p->sid);
+            require_remove(bd->bd_quorum, QR_VOTED_SID | QR_FLAG_AUTO, ~QR_FLAG_DEMAND, p->sid);
           if (bd->bd_quorum->flags & QR_AUTO_RIDS)
-            require_remove(bd->bd_quorum, QR_VOTED_RID | QR_FLAG_AUTO,
-                           ~QR_FLAG_DEMAND, p->rid);
+            require_remove(bd->bd_quorum, QR_VOTED_RID | QR_FLAG_AUTO, ~QR_FLAG_DEMAND, p->rid);
 
           assert(bd->bd_quorum->qt_status[p->status] > 0);
           bd->bd_quorum->qt_status[p->status] -= 1;
@@ -635,8 +607,7 @@ void quorum_notify_csn(BackendDB *bd, int csnsid) {
   }
 }
 
-static int unparse(BerVarray *vals, slap_quorum_t *q, int type,
-                   const char *verb) {
+static int unparse(BerVarray *vals, slap_quorum_t *q, int type, const char *verb) {
   struct requirment *r;
   int i;
 
@@ -669,14 +640,11 @@ int config_quorum(ConfigArgs *c) {
     if ((q->flags & QR_AUTO_RIDS) != 0 && value_add_one_str(&vals, "auto-rids"))
       return 1;
     if (q->qr_requirements &&
-        (unparse(&vals, q, QR_DEMAND_RID, "require-rids") ||
-         unparse(&vals, q, QR_DEMAND_SID, "require-sids") ||
-         unparse(&vals, q, QR_VOTED_RID, "vote-rids") ||
-         unparse(&vals, q, QR_VOTED_SID, "vote-sids")))
+        (unparse(&vals, q, QR_DEMAND_RID, "require-rids") || unparse(&vals, q, QR_DEMAND_SID, "require-sids") ||
+         unparse(&vals, q, QR_VOTED_RID, "vote-rids") || unparse(&vals, q, QR_VOTED_SID, "vote-sids")))
       return 1;
     if (q->qr_syncrepl_limit > 0 &&
-        (value_add_one_str(&vals, "limit-concurrent-refresh") ||
-         value_add_one_int(&vals, q->qr_syncrepl_limit)))
+        (value_add_one_str(&vals, "limit-concurrent-refresh") || value_add_one_int(&vals, q->qr_syncrepl_limit)))
       return 1;
 
     if (!vals)
@@ -695,13 +663,10 @@ int config_quorum(ConfigArgs *c) {
         ch_free(q->qr_requirements);
         q->qr_requirements = NULL;
         set_cache(c->be, 1);
-        Debug(LDAP_DEBUG_SYNC,
-              "syncrepl_quorum: %s requirements-list cleared\n", q->qr_cluster);
+        Debug(LDAP_DEBUG_SYNC, "syncrepl_quorum: %s requirements-list cleared\n", q->qr_cluster);
       }
       if (q->qr_syncrepl_limit) {
-        Debug(LDAP_DEBUG_SYNC,
-              "syncrepl_quorum: %s limit-concurrent-refresh cleared\n",
-              q->qr_cluster);
+        Debug(LDAP_DEBUG_SYNC, "syncrepl_quorum: %s limit-concurrent-refresh cleared\n", q->qr_cluster);
         q->qr_syncrepl_limit = 0;
       }
     }
@@ -742,10 +707,8 @@ int config_quorum(ConfigArgs *c) {
       type = QR_DEMAND_RID;
     else if (strcasecmp(c->argv[i], "limit-concurrent-refresh") == 0) {
       if (q->qr_syncrepl_limit) {
-        snprintf(
-            c->cr_msg, sizeof(c->cr_msg),
-            "<%s> limit-concurrent-refresh was already defined for %s as %d",
-            c->argv[i], q->qr_cluster, q->qr_syncrepl_limit);
+        snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> limit-concurrent-refresh was already defined for %s as %d",
+                 c->argv[i], q->qr_cluster, q->qr_syncrepl_limit);
         unlock();
         Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg);
         return 1;
@@ -756,8 +719,7 @@ int config_quorum(ConfigArgs *c) {
     } else if (type == QR_FAKETYPE_max_concurrent_refresh) {
       int n;
       if (lutil_atoi(&n, c->argv[i]) || n < 1 || n > QR_SYNCREPL_MAX) {
-        snprintf(c->cr_msg, sizeof(c->cr_msg),
-                 "<%s> illegal limit-concurrent-refresh for %s (maximum is %d)",
+        snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> illegal limit-concurrent-refresh for %s (maximum is %d)",
                  c->argv[i], q->qr_cluster, QR_SYNCREPL_MAX);
         unlock();
         Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg);
@@ -766,28 +728,22 @@ int config_quorum(ConfigArgs *c) {
       q->qr_syncrepl_limit = n;
       type = -1;
     } else if (type < 0) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "<%s> mode-key must precede an ID for %s quorum-requirements",
-               c->argv[i], q->qr_cluster);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> mode-key must precede an ID for %s quorum-requirements", c->argv[i],
+               q->qr_cluster);
       unlock();
       Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg);
       return 1;
-    } else if ((lutil_atoi(&id, c->argv[i]) &&
-                lutil_atoix(&id, c->argv[i], 16)) ||
-               id < 0 ||
+    } else if ((lutil_atoi(&id, c->argv[i]) && lutil_atoix(&id, c->argv[i], 16)) || id < 0 ||
                id > (QR_IS_SID(type) ? SLAP_SYNC_SID_MAX : SLAP_SYNC_RID_MAX)) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "<%s> illegal %s-ID or mode-key for %s quorum-requirements",
-               c->argv[i], QR_IS_SID(type) ? "Server" : "Repl", q->qr_cluster);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> illegal %s-ID or mode-key for %s quorum-requirements", c->argv[i],
+               QR_IS_SID(type) ? "Server" : "Repl", q->qr_cluster);
       unlock();
       Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg);
       return 1;
     } else {
       if (!require_append(q, type, id)) {
-        snprintf(c->cr_msg, sizeof(c->cr_msg),
-                 "<%s> %s-ID already present in %s quorum-requirements",
-                 c->argv[i], QR_IS_SID(type) ? "Server" : "Repl",
-                 q->qr_cluster);
+        snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> %s-ID already present in %s quorum-requirements", c->argv[i],
+                 QR_IS_SID(type) ? "Server" : "Repl", q->qr_cluster);
         unlock();
         Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg);
         return 1;
@@ -844,8 +800,7 @@ int quorum_syncrepl_gate(BackendDB *bd, void *instance_key, int in) {
   Debug(LDAP_DEBUG_SYNC,
         "quorum_syncrepl_gate: %s, "
         "limit %d, running %d, %p %s, rc %d\n",
-        q->qr_cluster, q->qr_syncrepl_limit, q->qt_running, instance_key,
-        in ? "in" : "out", rc);
+        q->qr_cluster, q->qr_syncrepl_limit, q->qt_running, instance_key, in ? "in" : "out", rc);
   assert(q->qt_running >= 0 && q->qt_running <= QR_SYNCREPL_MAX);
 
   unlock();

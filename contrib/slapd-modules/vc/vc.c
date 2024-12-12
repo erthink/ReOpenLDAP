@@ -38,8 +38,7 @@ typedef struct vc_conn_t {
   int refcnt;
 } vc_conn_t;
 
-static const struct berval vc_exop_oid_bv =
-    BER_BVC(LDAP_EXOP_VERIFY_CREDENTIALS);
+static const struct berval vc_exop_oid_bv = BER_BVC(LDAP_EXOP_VERIFY_CREDENTIALS);
 static ldap_pvt_thread_mutex_t vc_mutex;
 static Avlnode *vc_tree;
 
@@ -61,10 +60,8 @@ static int vc_conn_dup(void *c1, void *c2) {
   return 0;
 }
 
-static int vc_create_response(void *conn, int resultCode,
-                              const char *diagnosticMessage,
-                              struct berval *servercred, struct berval *authzid,
-                              LDAPControl **ctrls, struct berval **val) {
+static int vc_create_response(void *conn, int resultCode, const char *diagnosticMessage, struct berval *servercred,
+                              struct berval *authzid, LDAPControl **ctrls, struct berval **val) {
   BerElementBuffer berbuf;
   BerElement *ber = (BerElement *)&berbuf;
   struct berval bv;
@@ -76,16 +73,14 @@ static int vc_create_response(void *conn, int resultCode,
 
   ber_init2(ber, NULL, LBER_USE_DER);
 
-  (void)ber_printf(ber, "{is" /*}*/, resultCode,
-                   diagnosticMessage ? diagnosticMessage : "");
+  (void)ber_printf(ber, "{is" /*}*/, resultCode, diagnosticMessage ? diagnosticMessage : "");
 
   if (conn) {
     struct berval cookie;
 
     cookie.bv_len = sizeof(conn);
     cookie.bv_val = (char *)&conn;
-    (void)ber_printf(ber, "tO", 0, LDAP_TAG_EXOP_VERIFY_CREDENTIALS_COOKIE,
-                     &cookie);
+    (void)ber_printf(ber, "tO", 0, LDAP_TAG_EXOP_VERIFY_CREDENTIALS_COOKIE, &cookie);
   }
 
   if (servercred) {
@@ -249,8 +244,7 @@ static int vc_exop(Operation *op, SlapReply *rs) {
 
   case LDAP_AUTH_SASL:
     tag = ber_scanf(ber, "{m" /*}*/, &mechanism);
-    if (tag == LBER_ERROR || BER_BVISNULL(&mechanism) ||
-        BER_BVISEMPTY(&mechanism)) {
+    if (tag == LBER_ERROR || BER_BVISNULL(&mechanism) || BER_BVISEMPTY(&mechanism)) {
       rs->sr_err = LDAP_PROTOCOL_ERROR;
       goto done;
     }
@@ -292,9 +286,8 @@ static int vc_exop(Operation *op, SlapReply *rs) {
     thrctx = ldap_pvt_thread_pool_context();
     connection_fake_init2(&conn->connbuf, &conn->opbuf, thrctx, 0);
     conn->op = &conn->opbuf.ob_op;
-    snprintf(conn->op->o_log_prefix, sizeof(conn->op->o_log_prefix),
-             "%.*s VERIFYCREDENTIALS", (int)sizeof(conn->op->o_log_prefix) - 32,
-             op->o_log_prefix);
+    snprintf(conn->op->o_log_prefix, sizeof(conn->op->o_log_prefix), "%.*s VERIFYCREDENTIALS",
+             (int)sizeof(conn->op->o_log_prefix) - 32, op->o_log_prefix);
   }
 
   conn->op->o_tag = LDAP_REQ_BIND;
@@ -309,8 +302,7 @@ static int vc_exop(Operation *op, SlapReply *rs) {
   tag = ber_peek_tag(ber, &len);
   if (tag == LDAP_TAG_EXOP_VERIFY_CREDENTIALS_CONTROLS) {
     conn->op->o_ber = ber;
-    rc = get_ctrls2(conn->op, &rs2, 0,
-                    LDAP_TAG_EXOP_VERIFY_CREDENTIALS_CONTROLS);
+    rc = get_ctrls2(conn->op, &rs2, 0, LDAP_TAG_EXOP_VERIFY_CREDENTIALS_CONTROLS);
     if (rc != LDAP_SUCCESS) {
       rs->sr_err = LDAP_PROTOCOL_ERROR;
       goto done;
@@ -340,13 +332,11 @@ static int vc_exop(Operation *op, SlapReply *rs) {
   rs->sr_err = frontendDB->be_bind(conn->op, &rs2);
 
   if (conn->op->o_conn->c_sasl_bind_in_progress) {
-    rc = vc_create_response(conn, rs2.sr_err, rs2.sr_text,
-                            !BER_BVISEMPTY(&vc.sasldata) ? &vc.sasldata : NULL,
-                            NULL, vc.ctrls, &rs->sr_rspdata);
+    rc = vc_create_response(conn, rs2.sr_err, rs2.sr_text, !BER_BVISEMPTY(&vc.sasldata) ? &vc.sasldata : NULL, NULL,
+                            vc.ctrls, &rs->sr_rspdata);
 
   } else {
-    rc = vc_create_response(NULL, rs2.sr_err, rs2.sr_text, NULL,
-                            &conn->op->o_conn->c_dn, vc.ctrls, &rs->sr_rspdata);
+    rc = vc_create_response(NULL, rs2.sr_err, rs2.sr_text, NULL, &conn->op->o_conn->c_dn, vc.ctrls, &rs->sr_rspdata);
   }
 
   if (rc != 0) {
@@ -354,8 +344,7 @@ static int vc_exop(Operation *op, SlapReply *rs) {
     goto done;
   }
 
-  if (!BER_BVISNULL(&conn->op->o_conn->c_dn) &&
-      conn->op->o_conn->c_dn.bv_val != conn->op->o_conn->c_ndn.bv_val)
+  if (!BER_BVISNULL(&conn->op->o_conn->c_dn) && conn->op->o_conn->c_dn.bv_val != conn->op->o_conn->c_ndn.bv_val)
     ber_memfree(conn->op->o_conn->c_dn.bv_val);
   if (!BER_BVISNULL(&conn->op->o_conn->c_ndn))
     ber_memfree(conn->op->o_conn->c_ndn.bv_val);
@@ -408,12 +397,9 @@ done:;
 static int vc_initialize(void) {
   int rc;
 
-  rc = extop_register_ex((struct berval *)&vc_exop_oid_bv, SLAP_EXOP_HIDE,
-                         vc_exop, 0);
+  rc = extop_register_ex((struct berval *)&vc_exop_oid_bv, SLAP_EXOP_HIDE, vc_exop, 0);
   if (rc != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_ANY,
-          "vc_initialize: unable to register VerifyCredentials exop: %d.\n",
-          rc);
+    Debug(LDAP_DEBUG_ANY, "vc_initialize: unable to register VerifyCredentials exop: %d.\n", rc);
   }
 
   ldap_pvt_thread_mutex_init(&vc_mutex);
@@ -421,6 +407,4 @@ static int vc_initialize(void) {
   return rc;
 }
 
-SLAP_MODULE_ENTRY(vc, modinit)(int argc, char *argv[]) {
-  return vc_initialize();
-}
+SLAP_MODULE_ENTRY(vc, modinit)(int argc, char *argv[]) { return vc_initialize(); }

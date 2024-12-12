@@ -88,8 +88,7 @@ static int seqmod_op_mod(Operation *op, SlapReply *rs) {
   Avlnode *av;
   slap_callback *cb;
 
-  cb = op->o_tmpcalloc(1, sizeof(slap_callback) + sizeof(modtarget),
-                       op->o_tmpmemctx);
+  cb = op->o_tmpcalloc(1, sizeof(slap_callback) + sizeof(modtarget), op->o_tmpmemctx);
   mt = (modtarget *)(cb + 1);
   mt->mt_next = NULL;
   mt->mt_tail = mt;

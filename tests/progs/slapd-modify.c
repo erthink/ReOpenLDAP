@@ -33,8 +33,7 @@
 
 #define LOOPS 100
 
-static void do_modify(struct tester_conn_args *config, char *entry, char *attr,
-                      char *value, int friendly);
+static void do_modify(struct tester_conn_args *config, char *entry, char *attr, char *value, int friendly);
 
 static void usage(char *name, int opt) {
   if (opt) {
@@ -116,8 +115,7 @@ int main(int argc, char **argv) {
   exit(EXIT_SUCCESS);
 }
 
-static void do_modify(struct tester_conn_args *config, char *entry, char *attr,
-                      char *value, int friendly) {
+static void do_modify(struct tester_conn_args *config, char *entry, char *attr, char *value, int friendly) {
   LDAP *ld = NULL;
   int i = 0, do_retry = config->retries;
   int rc = LDAP_SUCCESS;
@@ -138,8 +136,7 @@ retry:;
   tester_init_ld(&ld, config, 0);
 
   if (do_retry == config->retries) {
-    fprintf(stderr, "PID=%ld - Modify(%d): entry=\"%s\".\n", (long)pid,
-            config->loops, entry);
+    fprintf(stderr, "PID=%ld - Modify(%d): entry=\"%s\".\n", (long)pid, config->loops, entry);
   }
 
   for (; i < config->loops; i++) {

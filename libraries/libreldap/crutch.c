@@ -36,8 +36,7 @@
 
 #if defined(PS_COMPAT_RHEL6)
 
-#if __GLIBC_PREREQ(2, 23) &&                                                   \
-    (defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_THREAD__))
+#if __GLIBC_PREREQ(2, 23) && (defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_THREAD__))
 /* LY: some magic for ability to build with ASAN/TSAN
  * under modern Fedora/Ubuntu and then run under RHEL6. */
 LDAP_V(int) signgam;
@@ -66,25 +65,22 @@ __asm__(".set memcpy,memcpy_compat");
 
 /*----------------------------------------------------------------------------*/
 
-__hot __attribute__((__used__)) void *
-ber_memcpy_safe(void *dest, const void *src, size_t n) {
+__hot __attribute__((__used__)) void *ber_memcpy_safe(void *dest, const void *src, size_t n) {
   long diff = (char *)dest - (char *)src;
 
   if (unlikely(n > (size_t)__builtin_labs(diff))) {
     if (unlikely(src == dest))
       return dest;
     if (reopenldap_mode_check())
-      __ldap_assert_fail("source and destination MUST NOT overlap", __FILE__,
-                         __LINE__, __FUNCTION__);
+      __ldap_assert_fail("source and destination MUST NOT overlap", __FILE__, __LINE__, __FUNCTION__);
     return memmove(dest, src, n);
   }
 
   return memcpy(dest, src, n);
 }
 
-__cold __attribute__((weak)) __reldap_exportable void
-__ldap_assert_fail(const char *assertion, const char *file, unsigned line,
-                   const char *function) {
+__cold __attribute__((weak)) __reldap_exportable void __ldap_assert_fail(const char *assertion, const char *file,
+                                                                         unsigned line, const char *function) {
   __assert_fail(assertion, file, line, function);
   abort();
 }

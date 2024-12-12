@@ -75,20 +75,17 @@ int passwd_extop(Operation *op, SlapReply *rs) {
   qpw->rs_mods = NULL;
   qpw->rs_modtail = NULL;
 
-  rs->sr_err = slap_passwd_parse(op->ore_reqdata, &id, &qpw->rs_old,
-                                 &qpw->rs_new, &rs->sr_text);
+  rs->sr_err = slap_passwd_parse(op->ore_reqdata, &id, &qpw->rs_old, &qpw->rs_new, &rs->sr_text);
 
   if (!BER_BVISNULL(&id)) {
     idNul = id.bv_val[id.bv_len];
     id.bv_val[id.bv_len] = '\0';
   }
   if (rs->sr_err == LDAP_SUCCESS && !BER_BVISEMPTY(&id)) {
-    Statslog(LDAP_DEBUG_STATS, "%s PASSMOD id=\"%s\"%s%s\n", op->o_log_prefix,
-             id.bv_val, qpw->rs_old.bv_val ? " old" : "",
-             qpw->rs_new.bv_val ? " new" : "");
+    Statslog(LDAP_DEBUG_STATS, "%s PASSMOD id=\"%s\"%s%s\n", op->o_log_prefix, id.bv_val,
+             qpw->rs_old.bv_val ? " old" : "", qpw->rs_new.bv_val ? " new" : "");
   } else {
-    Statslog(LDAP_DEBUG_STATS, "%s PASSMOD%s%s\n", op->o_log_prefix,
-             qpw->rs_old.bv_val ? " old" : "",
+    Statslog(LDAP_DEBUG_STATS, "%s PASSMOD%s%s\n", op->o_log_prefix, qpw->rs_old.bv_val ? " old" : "",
              qpw->rs_new.bv_val ? " new" : "");
   }
 
@@ -151,8 +148,7 @@ int passwd_extop(Operation *op, SlapReply *rs) {
   bl = slap_biglock_get(op->o_bd);
   slap_biglock_acquire(bl);
 
-  if (backend_check_restrictions(
-          op, rs, (struct berval *)&slap_EXOP_MODIFY_PASSWD) != LDAP_SUCCESS) {
+  if (backend_check_restrictions(op, rs, (struct berval *)&slap_EXOP_MODIFY_PASSWD) != LDAP_SUCCESS) {
     rc = rs->sr_err;
     goto error_return;
   }
@@ -166,8 +162,7 @@ int passwd_extop(Operation *op, SlapReply *rs) {
   /* This does not apply to multi-master case */
   if (!(!SLAP_SINGLE_SHADOW(op->o_bd) || be_isupdate(op))) {
     /* we SHOULD return a referral in this case */
-    BerVarray defref =
-        op->o_bd->be_update_refs ? op->o_bd->be_update_refs : default_referral;
+    BerVarray defref = op->o_bd->be_update_refs ? op->o_bd->be_update_refs : default_referral;
 
     if (defref != NULL) {
       rs->sr_ref = referral_rewrite(defref, NULL, NULL, LDAP_SCOPE_DEFAULT);
@@ -202,8 +197,7 @@ int passwd_extop(Operation *op, SlapReply *rs) {
   /* Give the backend a chance to handle this itself */
   if (op->o_bd->be_extended) {
     rs->sr_err = op->o_bd->be_extended(op, rs);
-    if (rs->sr_err != LDAP_UNWILLING_TO_PERFORM &&
-        rs->sr_err != SLAP_CB_CONTINUE) {
+    if (rs->sr_err != LDAP_UNWILLING_TO_PERFORM && rs->sr_err != SLAP_CB_CONTINUE) {
       rc = rs->sr_err;
       if (rsp) {
         rs->sr_rspdata = rsp;
@@ -223,8 +217,7 @@ int passwd_extop(Operation *op, SlapReply *rs) {
   if (qpw->rs_old.bv_val != NULL) {
     Entry *e = NULL;
 
-    rc = be_entry_get_rw(op, &op->o_req_ndn, NULL,
-                         slap_schema.si_ad_userPassword, 0, &e);
+    rc = be_entry_get_rw(op, &op->o_req_ndn, NULL, slap_schema.si_ad_userPassword, 0, &e);
     if (rc == LDAP_SUCCESS && e) {
       Attribute *a = attr_find(e->e_attrs, slap_schema.si_ad_userPassword);
       if (a)
@@ -332,8 +325,7 @@ error_return:;
  * reject it in this condition, the caller must NUL-terminate it.
  * FIXME: should dnNormalize still be complaining about that?
  */
-int slap_passwd_parse(struct berval *reqdata, struct berval *id,
-                      struct berval *oldpass, struct berval *newpass,
+int slap_passwd_parse(struct berval *reqdata, struct berval *id, struct berval *oldpass, struct berval *newpass,
                       const char **text) {
   int rc = LDAP_SUCCESS;
   ber_tag_t tag;
@@ -440,8 +432,7 @@ int slap_passwd_parse(struct berval *reqdata, struct berval *id,
 
   if (len != 0) {
   decoding_error:
-    Debug(LDAP_DEBUG_TRACE, "slap_passwd_parse: decoding error, len=%ld\n",
-          (long)len);
+    Debug(LDAP_DEBUG_TRACE, "slap_passwd_parse: decoding error, len=%ld\n", (long)len);
 
     *text = "data decoding error";
     rc = LDAP_PROTOCOL_ERROR;
@@ -478,8 +469,7 @@ struct berval *slap_passwd_return(struct berval *cred) {
 /*
  * if "e" is provided, access to each value of the password is checked first
  */
-int slap_passwd_check(Operation *op, Entry *e, Attribute *a,
-                      struct berval *cred, const char **text) {
+int slap_passwd_check(Operation *op, Entry *e, Attribute *a, struct berval *cred, const char **text) {
   int result = 1;
   struct berval *bv;
   AccessControlState acl_state = ACL_STATE_INIT;
@@ -488,8 +478,7 @@ int slap_passwd_check(Operation *op, Entry *e, Attribute *a,
 #ifdef SLAPD_SPASSWD
   void *old_authctx = NULL;
 
-  ldap_pvt_thread_pool_setkey(op->o_threadctx, (void *)slap_sasl_bind,
-                              op->o_conn->c_sasl_authctx, 0, &old_authctx,
+  ldap_pvt_thread_pool_setkey(op->o_threadctx, (void *)slap_sasl_bind, op->o_conn->c_sasl_authctx, 0, &old_authctx,
                               NULL);
 #endif
 
@@ -512,8 +501,7 @@ int slap_passwd_check(Operation *op, Entry *e, Attribute *a,
     cred->bv_val[cred->bv_len] = credNul;
 
 #ifdef SLAPD_SPASSWD
-  ldap_pvt_thread_pool_setkey(op->o_threadctx, (void *)slap_sasl_bind,
-                              old_authctx, 0, NULL, NULL);
+  ldap_pvt_thread_pool_setkey(op->o_threadctx, (void *)slap_sasl_bind, old_authctx, 0, NULL, NULL);
 #endif
 
   return result;
@@ -530,8 +518,7 @@ void slap_passwd_generate(struct berval *pass) {
   lutil_passwd_generate(pass, 8);
 }
 
-void slap_passwd_hash_type(struct berval *cred, struct berval *new, char *hash,
-                           const char **text) {
+void slap_passwd_hash_type(struct berval *cred, struct berval *new, char *hash, const char **text) {
   new->bv_len = 0;
   new->bv_val = NULL;
 
@@ -540,8 +527,7 @@ void slap_passwd_hash_type(struct berval *cred, struct berval *new, char *hash,
   lutil_passwd_hash(cred, hash, new, text);
 }
 
-void slap_passwd_hash(struct berval *cred, struct berval *new,
-                      const char **text) {
+void slap_passwd_hash(struct berval *cred, struct berval *new, const char **text) {
   char *hash = NULL;
   if (default_passwd_hash) {
     hash = default_passwd_hash[0];

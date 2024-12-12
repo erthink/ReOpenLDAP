@@ -143,11 +143,9 @@ LDAP_F(char *) ldap_pvt_gai_strerror(int);
 #endif
 #endif
 
-#if defined(LDAP_PF_LOCAL) && !defined(HAVE_GETPEEREID) &&                     \
-    !defined(HAVE_GETPEERUCRED) && !defined(SO_PEERCRED) &&                    \
-    !defined(LOCAL_PEERCRED) && defined(HAVE_SENDMSG) &&                       \
-    (defined(HAVE_STRUCT_MSGHDR_MSG_ACCRIGHTSLEN) ||                           \
-     defined(HAVE_STRUCT_MSGHDR_MSG_CONTROL))
+#if defined(LDAP_PF_LOCAL) && !defined(HAVE_GETPEEREID) && !defined(HAVE_GETPEERUCRED) && !defined(SO_PEERCRED) &&     \
+    !defined(LOCAL_PEERCRED) && defined(HAVE_SENDMSG) &&                                                               \
+    (defined(HAVE_STRUCT_MSGHDR_MSG_ACCRIGHTSLEN) || defined(HAVE_STRUCT_MSGHDR_MSG_CONTROL))
 #define LDAP_PF_LOCAL_SENDMSG 1
 #endif
 

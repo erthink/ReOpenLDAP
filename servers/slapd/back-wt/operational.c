@@ -34,8 +34,7 @@ int wt_hasSubordinates(Operation *op, Entry *e, int *hasSubordinates) {
 
   wc = wt_ctx_get(op, wi);
   if (!wc) {
-    Debug(LDAP_DEBUG_ANY,
-          LDAP_XSTRING(wt_hasSubordinates) ": wt_ctx_get failed\n");
+    Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(wt_hasSubordinates) ": wt_ctx_get failed\n");
     return LDAP_OTHER;
   }
 
@@ -49,9 +48,7 @@ int wt_hasSubordinates(Operation *op, Entry *e, int *hasSubordinates) {
     rc = LDAP_SUCCESS;
     break;
   default:
-    Debug(LDAP_DEBUG_ANY,
-          "<=- " LDAP_XSTRING(
-              wt_hasSubordinates) ": has_children failed: %s (%d)\n",
+    Debug(LDAP_DEBUG_ANY, "<=- " LDAP_XSTRING(wt_hasSubordinates) ": has_children failed: %s (%d)\n",
           wiredtiger_strerror(rc), rc);
     rc = LDAP_OTHER;
   }
@@ -72,17 +69,13 @@ int wt_operational(Operation *op, SlapReply *rs) {
     }
   }
 
-  if (*ap == NULL &&
-      attr_find(rs->sr_entry->e_attrs, slap_schema.si_ad_hasSubordinates) ==
-          NULL &&
-      (SLAP_OPATTRS(rs->sr_attr_flags) ||
-       ad_inlist(slap_schema.si_ad_hasSubordinates, rs->sr_attrs))) {
+  if (*ap == NULL && attr_find(rs->sr_entry->e_attrs, slap_schema.si_ad_hasSubordinates) == NULL &&
+      (SLAP_OPATTRS(rs->sr_attr_flags) || ad_inlist(slap_schema.si_ad_hasSubordinates, rs->sr_attrs))) {
     int hasSubordinates, rc;
 
     rc = wt_hasSubordinates(op, rs->sr_entry, &hasSubordinates);
     if (rc == LDAP_SUCCESS) {
-      *ap =
-          slap_operational_hasSubordinate(hasSubordinates == LDAP_COMPARE_TRUE);
+      *ap = slap_operational_hasSubordinate(hasSubordinates == LDAP_COMPARE_TRUE);
       assert(*ap != NULL);
 
       ap = &(*ap)->a_next;

@@ -119,8 +119,7 @@ static int is_bfd_symbols_available(void) {
     return 0;
 
   n = 0;
-  if ((bfd_get_file_flags(abfd) & HAS_SYMS) != 0 &&
-      bfd_check_format_matches(abfd, bfd_object, &matching))
+  if ((bfd_get_file_flags(abfd) & HAS_SYMS) != 0 && bfd_check_format_matches(abfd, bfd_object, &matching))
     n = bfd_get_symtab_upper_bound(abfd) > 0;
   bfd_close(abfd);
   return n;
@@ -214,8 +213,7 @@ static int is_valgrind_present() {
 
 volatile int gdb_is_ready_for_backtrace __attribute__((visibility("default")));
 
-static ATTRIBUTE_NO_SANITIZE_THREAD void
-backtrace_sigaction(int signum, siginfo_t *info, void *ptr) {
+static ATTRIBUTE_NO_SANITIZE_THREAD void backtrace_sigaction(int signum, siginfo_t *info, void *ptr) {
   void *array[42];
   size_t size;
   void *caller_address;
@@ -272,21 +270,19 @@ backtrace_sigaction(int signum, siginfo_t *info, void *ptr) {
 #undef snprintf
 #endif
   if (snprintf(name_buf, sizeof(name_buf), "%s/slapd-backtrace.%s-%i.log%c",
-               backtrace_homedir ? backtrace_homedir : ".", time_buf, getpid(),
-               0) > 0)
+               backtrace_homedir ? backtrace_homedir : ".", time_buf, getpid(), 0) > 0)
     fd = open(name_buf, O_CREAT | O_EXCL | O_WRONLY | O_APPEND, 0644);
 
   if (fd < 0) {
     if (backtrace_homedir)
-      fd = open(strrchr(name_buf, '/') + 1,
-                O_CREAT | O_EXCL | O_WRONLY | O_APPEND, 0644);
+      fd = open(strrchr(name_buf, '/') + 1, O_CREAT | O_EXCL | O_WRONLY | O_APPEND, 0644);
     if (fd < 0)
       fd = STDERR_FILENO;
     dprintf(fd, "\n\n*** Unable create \"%s\": %s!", name_buf, STRERROR(errno));
   }
 
-  dprintf(fd, "\n\n*** Signal %d (%s), address is %p from %p\n", signum,
-          strsignal(signum), info->si_addr, (void *)caller_address);
+  dprintf(fd, "\n\n*** Signal %d (%s), address is %p from %p\n", signum, strsignal(signum), info->si_addr,
+          (void *)caller_address);
 
   int n = readlink("/proc/self/exe", name_buf, sizeof(name_buf) - 1);
   if (n > 0) {
@@ -344,12 +340,9 @@ backtrace_sigaction(int signum, siginfo_t *info, void *ptr) {
              "-e", name_buf, NULL);
       exit(EXIT_FAILURE);
     } else if (child_pid < 0) {
-      dprintf(fd,
-              "\n*** Unable complete backtrace by addr2line, sorry (%s, %d).\n",
-              "fork", errno);
+      dprintf(fd, "\n*** Unable complete backtrace by addr2line, sorry (%s, %d).\n", "fork", errno);
       break;
-    } else if (waitpid(child_pid, &status, 0) < 0 ||
-               status != W_EXITCODE(EXIT_SUCCESS, 0)) {
+    } else if (waitpid(child_pid, &status, 0) < 0 || status != W_EXITCODE(EXIT_SUCCESS, 0)) {
       dprintf(fd,
               "\n*** Unable complete backtrace by addr2line, sorry (%s, pid "
               "%d, errno %d, status 0x%x).\n",
@@ -410,8 +403,7 @@ backtrace_sigaction(int signum, siginfo_t *info, void *ptr) {
 #endif
     execlp("gdb", "gdb", "-q", "-se", name_buf, "-n", NULL);
     kill(getppid(), SIGKILL);
-    dprintf(STDOUT_FILENO, "\n*** Sorry, GDB launch failed: %s\n",
-            STRERROR(errno));
+    dprintf(STDOUT_FILENO, "\n*** Sorry, GDB launch failed: %s\n", STRERROR(errno));
     fsync(STDOUT_FILENO);
     exit(EXIT_FAILURE);
   }
@@ -419,9 +411,7 @@ backtrace_sigaction(int signum, siginfo_t *info, void *ptr) {
   if (gdb_pid > 0) {
     /* enable debugging */
     if (prctl(PR_SET_PTRACER, gdb_pid /* PR_SET_PTRACER_ANY */, 0, 0, 0) < 0)
-      dprintf(STDOUT_FILENO,
-              "\n*** Sorry, prctl(PR_SET_PTRACER) for GDB failed: %s\n",
-              STRERROR(errno));
+      dprintf(STDOUT_FILENO, "\n*** Sorry, prctl(PR_SET_PTRACER) for GDB failed: %s\n", STRERROR(errno));
 
     close(pipe_fd[0]);
     pipe_fd[0] = -1;
@@ -461,8 +451,7 @@ backtrace_sigaction(int signum, siginfo_t *info, void *ptr) {
 
     time_t timeout;
     /* wait until GDB climbs up */
-    for (timeout = ldap_time_steady() + 42; ldap_time_steady() < timeout;
-         usleep(10 * 1000)) {
+    for (timeout = ldap_time_steady() + 42; ldap_time_steady() < timeout; usleep(10 * 1000)) {
       if (waitpid(gdb_pid, NULL, WNOHANG) != 0) {
 #if !GDB_SWITCH2GUILTY_THREAD
         if (gdb_is_ready_for_backtrace == gdb_pid)
@@ -491,8 +480,7 @@ backtrace_sigaction(int signum, siginfo_t *info, void *ptr) {
                        "quit\n",
                        /* LY: first frame if we will return in order to be
                           catched by debugger. */
-                       retry_by_return ? 1 : frame + 1,
-                       should_die ? "kill" : "detach"))
+                       retry_by_return ? 1 : frame + 1, should_die ? "kill" : "detach"))
         goto ballout;
 #endif
 
@@ -539,8 +527,7 @@ void slap_backtrace_set_dir(const char *path) {
 #ifdef SLAPD_ENABLE_CI
   if (backtrace_homedir) {
     if (!path || strcmp(backtrace_homedir, path))
-      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE,
-          "Ignore changing of backtrace directory due SLAPD_ENABLE_CI.\n");
+      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE, "Ignore changing of backtrace directory due SLAPD_ENABLE_CI.\n");
     return;
   }
 #endif /* SLAPD_ENABLE_CI */
@@ -562,8 +549,7 @@ void slap_backtrace_set_dir(const char *path) {
 int slap_limit_coredump_set(int mbytes) {
   struct rlimit limit;
 
-  limit.rlim_cur =
-      (mbytes >= 0) ? ((unsigned long)mbytes) << 20 : RLIM_INFINITY;
+  limit.rlim_cur = (mbytes >= 0) ? ((unsigned long)mbytes) << 20 : RLIM_INFINITY;
   limit.rlim_max = RLIM_INFINITY;
   return setrlimit(RLIMIT_CORE, &limit);
 }
@@ -605,8 +591,7 @@ void slap_backtrace_set_enable(int value) {
 #if defined(HAVE_LIBBFD) || defined(HAVE_LIBELF)
   if (value && !is_bfd_symbols_available() && !is_elf_symbols_available()) {
     if (slap_backtrace_get_enable() != (value != 0))
-      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE,
-          "Backtrace could be UNUSEFUL, because symbols not available.\n");
+      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE, "Backtrace could be UNUSEFUL, because symbols not available.\n");
   }
 #endif
 
@@ -634,8 +619,7 @@ void slap_backtrace_set_enable(int value) {
       sigdelset(&sa.sa_mask, SIGTERM);
     } else {
 #ifdef SLAPD_ENABLE_CI
-      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE,
-          "Ignore disabling of backtrace due SLAPD_ENABLE_CI.\n");
+      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE, "Ignore disabling of backtrace due SLAPD_ENABLE_CI.\n");
 #endif /* SLAPD_ENABLE_CI */
       sa.sa_handler = SIG_DFL;
       sa.sa_flags = 0;
@@ -660,8 +644,7 @@ void slap_backtrace_set_enable(int value) {
   }
 }
 
-void __noinline slap_backtrace_log(void *array[], int nentries,
-                                   const char *caption) {
+void __noinline slap_backtrace_log(void *array[], int nentries, const char *caption) {
   int i;
   char **bt_glibc;
   char name_buf[PATH_MAX];
@@ -680,9 +663,7 @@ void __noinline slap_backtrace_log(void *array[], int nentries,
 
   int to_addr2line[2], from_addr2line[2];
   if (pipe(to_addr2line) || pipe(from_addr2line)) {
-    ldap_debug_print(
-        "*** Unable complete backtrace by addr2line, sorry (%s, %d).\n", "pipe",
-        errno);
+    ldap_debug_print("*** Unable complete backtrace by addr2line, sorry (%s, %d).\n", "pipe", errno);
     goto fallback;
   }
 
@@ -708,9 +689,7 @@ void __noinline slap_backtrace_log(void *array[], int nentries,
   close(from_addr2line[1]);
 
   if (child_pid < 0) {
-    ldap_debug_print(
-        "*** Unable complete backtrace by addr2line, sorry (%s, %d).\n", "fork",
-        errno);
+    ldap_debug_print("*** Unable complete backtrace by addr2line, sorry (%s, %d).\n", "fork", errno);
     close(to_addr2line[1]);
     close(from_addr2line[0]);
     goto fallback;
@@ -731,8 +710,7 @@ void __noinline slap_backtrace_log(void *array[], int nentries,
   close(from_addr2line[0]);
 
   int status = 0;
-  if (waitpid(child_pid, &status, 0) < 0 ||
-      status != W_EXITCODE(EXIT_SUCCESS, 0)) {
+  if (waitpid(child_pid, &status, 0) < 0 || status != W_EXITCODE(EXIT_SUCCESS, 0)) {
     ldap_debug_print("*** Unable complete backtrace by addr2line, sorry (%s, "
                      "pid %d, errno %d, status 0x%x).\n",
                      "waitpid", child_pid, errno, status);
@@ -788,8 +766,7 @@ void slap_backtrace_debug(void) { slap_backtrace_debug_ex(2, 42, "Backtrace"); }
 
 void slap_backtrace_debug_ex(int skip, int deep, const char *caption) {
   void **array = alloca(sizeof(void *) * (deep + skip));
-  slap_backtrace_log(array + skip, backtrace(array, deep + skip) - skip,
-                     caption);
+  slap_backtrace_log(array + skip, backtrace(array, deep + skip) - skip, caption);
 }
 
 #ifdef SLAPD_ENABLE_CI
@@ -811,8 +788,7 @@ void slap_setup_ci(void) {
 #endif
   if (dir) {
     slap_backtrace_set_dir(dir);
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE,
-        "Set backtrace directory to %s (due SLAPD_ENABLE_CI).\n", dir);
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE, "Set backtrace directory to %s (due SLAPD_ENABLE_CI).\n", dir);
   }
 
   /* set alarm to dump backtraces */
@@ -824,8 +800,7 @@ void slap_setup_ci(void) {
   if (timeout)
     seconds = atol(timeout);
   if (seconds > 0) {
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE,
-        "Set testing timeout to %ld seconds (due SLAPD_ENABLE_CI).\n", seconds);
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE, "Set testing timeout to %ld seconds (due SLAPD_ENABLE_CI).\n", seconds);
     struct itimerval itimer;
     itimer.it_interval.tv_sec = 42;
     itimer.it_interval.tv_usec = 0;

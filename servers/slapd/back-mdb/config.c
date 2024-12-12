@@ -45,8 +45,7 @@ enum {
 };
 
 static ConfigTable mdbcfg[] = {
-    {"directory", "dir", 2, 2, 0, ARG_STRING | ARG_MAGIC | MDB_DIRECTORY,
-     mdb_cf_gen,
+    {"directory", "dir", 2, 2, 0, ARG_STRING | ARG_MAGIC | MDB_DIRECTORY, mdb_cf_gen,
      "( OLcfgDbAt:0.1 NAME 'olcDbDirectory' "
      "DESC 'Directory for database content' "
      "EQUALITY caseExactMatch "
@@ -58,8 +57,7 @@ static ConfigTable mdbcfg[] = {
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
-    {"dbnosync", NULL, 1, 2, 0, ARG_ON_OFF | ARG_MAGIC | MDB_DBNOSYNC,
-     mdb_cf_gen,
+    {"dbnosync", NULL, 1, 2, 0, ARG_ON_OFF | ARG_MAGIC | MDB_DBNOSYNC, mdb_cf_gen,
      "( OLcfgDbAt:1.4 NAME 'olcDbNoSync' "
      "DESC 'Disable synchronous database writes' "
      "EQUALITY booleanMatch "
@@ -71,29 +69,25 @@ static ConfigTable mdbcfg[] = {
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString )",
      NULL, NULL},
-    {"index", "attr> <[pres,eq,approx,sub]", 2, 3, 0, ARG_MAGIC | MDB_INDEX,
-     mdb_cf_gen,
+    {"index", "attr> <[pres,eq,approx,sub]", 2, 3, 0, ARG_MAGIC | MDB_INDEX, mdb_cf_gen,
      "( OLcfgDbAt:0.2 NAME 'olcDbIndex' "
      "DESC 'Attribute index parameters' "
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString )",
      NULL, NULL},
-    {"maxentrysize", "size", 2, 2, 0, ARG_ULONG | ARG_OFFSET,
-     (void *)offsetof(struct mdb_info, mi_maxentrysize),
+    {"maxentrysize", "size", 2, 2, 0, ARG_ULONG | ARG_OFFSET, (void *)offsetof(struct mdb_info, mi_maxentrysize),
      "( OLcfgDbAt:12.4 NAME 'olcDbMaxEntrySize' "
      "DESC 'Maximum size of an entry in bytes' "
      "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-    {"maxreaders", "num", 2, 2, 0, ARG_UINT | ARG_MAGIC | MDB_MAXREADERS,
-     mdb_cf_gen,
+    {"maxreaders", "num", 2, 2, 0, ARG_UINT | ARG_MAGIC | MDB_MAXREADERS, mdb_cf_gen,
      "( OLcfgDbAt:12.1 NAME 'olcDbMaxReaders' "
      "DESC 'Maximum number of threads that may access the DB concurrently' "
      "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-    {"maxsize", "size", 2, 2, 0, ARG_ULONG | ARG_MAGIC | MDB_MAXSIZE,
-     mdb_cf_gen,
+    {"maxsize", "size", 2, 2, 0, ARG_ULONG | ARG_MAGIC | MDB_MAXSIZE, mdb_cf_gen,
      "( OLcfgDbAt:12.2 NAME 'olcDbMaxSize' "
      "DESC 'Maximum size of DB in bytes' "
      "EQUALITY integerMatch "
@@ -111,22 +105,19 @@ static ConfigTable mdbcfg[] = {
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString )",
      NULL, NULL},
-    {"rtxnsize", "entries", 2, 2, 0, ARG_UINT | ARG_OFFSET,
-     (void *)offsetof(struct mdb_info, mi_rtxn_size),
+    {"rtxnsize", "entries", 2, 2, 0, ARG_UINT | ARG_OFFSET, (void *)offsetof(struct mdb_info, mi_rtxn_size),
      "( OLcfgDbAt:12.5 NAME 'olcDbRtxnSize' "
      "DESC 'Number of entries to process in one read transaction' "
      "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-    {"searchstack", "depth", 2, 2, 0, ARG_INT | ARG_MAGIC | MDB_SSTACK,
-     mdb_cf_gen,
+    {"searchstack", "depth", 2, 2, 0, ARG_INT | ARG_MAGIC | MDB_SSTACK, mdb_cf_gen,
      "( OLcfgDbAt:1.9 NAME 'olcDbSearchStack' "
      "DESC 'Depth of search stack in IDLs' "
      "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-    {"dreamcatcher", "lag> <percentage", 3, 3, 0, ARG_MAGIC | MDBX_DREAMCATCHER,
-     mdb_cf_gen,
+    {"dreamcatcher", "lag> <percentage", 3, 3, 0, ARG_MAGIC | MDBX_DREAMCATCHER, mdb_cf_gen,
      "( OLcfgDbAt:12.42 NAME 'olcDbDreamcatcher' "
      "DESC 'Dreamcatcher to avoids withhold of reclaiming' "
      "EQUALITY caseIgnoreMatch "
@@ -140,34 +131,31 @@ static ConfigTable mdbcfg[] = {
      NULL, NULL},
     {NULL, NULL, 0, 0, 0, ARG_IGNORED, NULL, NULL, NULL, NULL}};
 
-static ConfigOCs mdbocs[] = {
-    {"( OLcfgDbOc:12.1 "
-     "NAME 'olcMdbConfig' "
-     "DESC 'MDB backend configuration' "
-     "SUP olcDatabaseConfig "
-     "MUST olcDbDirectory "
-     "MAY ( olcDbCheckpoint $ olcDbEnvFlags $ "
-     "olcDbNoSync $ olcDbIndex $ olcDbMaxReaders $ olcDbMaxSize $ "
-     "olcDbDreamcatcher $ olcDbOomFlags $ "
-     "olcDbMode $ olcDbSearchStack $ olcDbMaxEntrySize $ olcDbRtxnSize $ "
-     "olcDbMultival ) )",
-     Cft_Database, mdbcfg},
-    {NULL, 0, NULL}};
+static ConfigOCs mdbocs[] = {{"( OLcfgDbOc:12.1 "
+                              "NAME 'olcMdbConfig' "
+                              "DESC 'MDB backend configuration' "
+                              "SUP olcDatabaseConfig "
+                              "MUST olcDbDirectory "
+                              "MAY ( olcDbCheckpoint $ olcDbEnvFlags $ "
+                              "olcDbNoSync $ olcDbIndex $ olcDbMaxReaders $ olcDbMaxSize $ "
+                              "olcDbDreamcatcher $ olcDbOomFlags $ "
+                              "olcDbMode $ olcDbSearchStack $ olcDbMaxEntrySize $ olcDbRtxnSize $ "
+                              "olcDbMultival ) )",
+                              Cft_Database, mdbcfg},
+                             {NULL, 0, NULL}};
 
-static slap_verbmasks mdb_envflags[] = {
-    {BER_BVC("nosync"), MDBX_UTTERLY_NOSYNC},
-    {BER_BVC("lazysync"), MDBX_SAFE_NOSYNC},
-    {BER_BVC("nometasync"), MDBX_NOMETASYNC},
-    {BER_BVC("writemap"), MDBX_WRITEMAP},
-    {BER_BVC("mapasync"), MDBX_MAPASYNC},
-    {BER_BVC("nordahead"), MDBX_NORDAHEAD},
-    {BER_BVC("lifo"), MDBX_LIFORECLAIM},
-    {BER_BVC("coalesce"), MDBX_COALESCE},
-    {BER_BVNULL, 0}};
+static slap_verbmasks mdb_envflags[] = {{BER_BVC("nosync"), MDBX_UTTERLY_NOSYNC},
+                                        {BER_BVC("lazysync"), MDBX_SAFE_NOSYNC},
+                                        {BER_BVC("nometasync"), MDBX_NOMETASYNC},
+                                        {BER_BVC("writemap"), MDBX_WRITEMAP},
+                                        {BER_BVC("mapasync"), MDBX_MAPASYNC},
+                                        {BER_BVC("nordahead"), MDBX_NORDAHEAD},
+                                        {BER_BVC("lifo"), MDBX_LIFORECLAIM},
+                                        {BER_BVC("coalesce"), MDBX_COALESCE},
+                                        {BER_BVNULL, 0}};
 
-static slap_verbmasks oom_flags[] = {{BER_BVC("kill"), MDBX_OOM_KILL},
-                                     {BER_BVC("yield"), MDBX_OOM_YIELD},
-                                     {BER_BVNULL, 0}};
+static slap_verbmasks oom_flags[] = {
+    {BER_BVC("kill"), MDBX_OOM_KILL}, {BER_BVC("yield"), MDBX_OOM_YIELD}, {BER_BVNULL, 0}};
 
 /* perform periodic syncs */
 static void *mdb_checkpoint(void *ctx, void *arg) {
@@ -271,8 +259,7 @@ static void *mdb_online_index(void *ctx, void *arg) {
   }
 
   for (i = 0; i < mdb->mi_nattrs; i++) {
-    if (mdb->mi_attrs[i]->ai_indexmask & MDB_INDEX_DELETING ||
-        mdb->mi_attrs[i]->ai_newmask == 0) {
+    if (mdb->mi_attrs[i]->ai_indexmask & MDB_INDEX_DELETING || mdb->mi_attrs[i]->ai_newmask == 0) {
       continue;
     }
     mdb->mi_attrs[i]->ai_indexmask = mdb->mi_attrs[i]->ai_newmask;
@@ -307,8 +294,7 @@ static int mdb_cf_cleanup(ConfigArgs *c) {
     /* If this fails, we need to restart */
     if (rc) {
       set_shutdown(SHUT_RDWR);
-      snprintf(c->cr_msg, sizeof(c->cr_msg), "failed to reopen database, rc=%d",
-               rc);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "failed to reopen database, rc=%d", rc);
       Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_cf_cleanup) ": %s\n", c->cr_msg);
       rc = LDAP_OTHER;
     }
@@ -345,9 +331,7 @@ static int mdb_cf_gen(ConfigArgs *c) {
       if (mdb->mi_txn_cp) {
         char buf[64];
         struct berval bv;
-        bv.bv_len =
-            snprintf(buf, sizeof(buf), "%ld %ld", (long)mdb->mi_txn_cp_kbyte,
-                     (long)mdb->mi_txn_cp_period);
+        bv.bv_len = snprintf(buf, sizeof(buf), "%ld %ld", (long)mdb->mi_txn_cp_kbyte, (long)mdb->mi_txn_cp_period);
         if (bv.bv_len > 0 && bv.bv_len < sizeof(buf)) {
           bv.bv_val = buf;
           value_add_one(&c->rvalue_vals, &bv);
@@ -363,9 +347,7 @@ static int mdb_cf_gen(ConfigArgs *c) {
       if (mdb->mi_renew_lag) {
         char buf[64];
         struct berval bv;
-        bv.bv_len =
-            snprintf(buf, sizeof(buf), "%ld %ld", (long)mdb->mi_renew_lag,
-                     (long)mdb->mi_renew_percent);
+        bv.bv_len = snprintf(buf, sizeof(buf), "%ld %ld", (long)mdb->mi_renew_lag, (long)mdb->mi_renew_percent);
         if (bv.bv_len > 0 && bv.bv_len < sizeof(buf)) {
           bv.bv_val = buf;
           value_add_one(&c->rvalue_vals, &bv);
@@ -688,8 +670,7 @@ static int mdb_cf_gen(ConfigArgs *c) {
       fprintf(stderr,
               "%s: "
               "invalid %s \"%s\" in \"checkpoint\".\n",
-              c->log, reopenldap_mode_righteous() ? "seconds" : "minutes",
-              c->argv[2]);
+              c->log, reopenldap_mode_righteous() ? "seconds" : "minutes", c->argv[2]);
       return ARG_BAD_CONF;
     }
     mdb->mi_txn_cp_period = l;
@@ -698,12 +679,11 @@ static int mdb_cf_gen(ConfigArgs *c) {
      */
     if ((slapMode & SLAP_SERVER_MODE) && mdb->mi_txn_cp_period) {
       struct re_s *re = mdb->mi_txn_cp_task;
-      unsigned interval_sec = reopenldap_mode_righteous()
-                                  ?
-                                  /* LY: ReOpenLDAP mode, interval in seconds */
+      unsigned interval_sec = reopenldap_mode_righteous() ?
+                                                          /* LY: ReOpenLDAP mode, interval in seconds */
                                   mdb->mi_txn_cp_period
-                                  :
-                                  /* LY: compatible mode, interval in minutes */
+                                                          :
+                                                          /* LY: compatible mode, interval in minutes */
                                   mdb->mi_txn_cp_period * 60;
       if (re) {
         re->interval = ldap_from_seconds(interval_sec);
@@ -716,9 +696,8 @@ static int mdb_cf_gen(ConfigArgs *c) {
           return ARG_BAD_CONF;
         }
         ldap_pvt_thread_mutex_lock(&slapd_rq.rq_mutex);
-        mdb->mi_txn_cp_task = ldap_pvt_runqueue_insert(
-            &slapd_rq, interval_sec, mdb_checkpoint, mdb,
-            LDAP_XSTRING(mdb_checkpoint), c->be->be_suffix[0].bv_val);
+        mdb->mi_txn_cp_task = ldap_pvt_runqueue_insert(&slapd_rq, interval_sec, mdb_checkpoint, mdb,
+                                                       LDAP_XSTRING(mdb_checkpoint), c->be->be_suffix[0].bv_val);
         ldap_pvt_thread_mutex_unlock(&slapd_rq.rq_mutex);
       }
     }
@@ -761,8 +740,7 @@ static int mdb_cf_gen(ConfigArgs *c) {
     }
     ch_free(testpath);
     if (!f) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: invalid path: %s",
-               c->value_string, STRERROR(errno));
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: invalid path: %s", c->value_string, STRERROR(errno));
       Debug(LDAP_DEBUG_ANY, "%s\n", c->cr_msg);
       return ARG_BAD_CONF;
     }
@@ -801,8 +779,7 @@ static int mdb_cf_gen(ConfigArgs *c) {
         mdb->mi_dbenv_flags |= mdb_envflags[j].mask;
       } else {
         /* unknown keyword */
-        snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: unknown keyword \"%s\"",
-                 c->argv[0], c->argv[i]);
+        snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: unknown keyword \"%s\"", c->argv[0], c->argv[i]);
         Debug(LDAP_DEBUG_ANY, "%s %s\n", c->log, c->cr_msg);
         return ARG_BAD_CONF;
       }
@@ -818,8 +795,7 @@ static int mdb_cf_gen(ConfigArgs *c) {
         mdb->mi_oom_flags |= oom_flags[j].mask;
       } else {
         /* unknown keyword */
-        snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: unknown keyword \"%s\"",
-                 c->argv[0], c->argv[i]);
+        snprintf(c->cr_msg, sizeof(c->cr_msg), "%s: unknown keyword \"%s\"", c->argv[0], c->argv[i]);
         Debug(LDAP_DEBUG_ANY, "%s %s\n", c->log, c->cr_msg);
         return ARG_BAD_CONF;
       }
@@ -827,8 +803,7 @@ static int mdb_cf_gen(ConfigArgs *c) {
   } break;
 
   case MDB_INDEX:
-    rc = mdb_attr_index_config(mdb, c->fname, c->lineno, c->argc - 1,
-                               &c->argv[1], &c->reply);
+    rc = mdb_attr_index_config(mdb, c->fname, c->lineno, c->argc - 1, &c->argv[1], &c->reply);
 
     if (rc != LDAP_SUCCESS)
       return ARG_BAD_CONF;
@@ -847,9 +822,8 @@ static int mdb_cf_gen(ConfigArgs *c) {
           return ARG_BAD_CONF;
         }
         ldap_pvt_thread_mutex_lock(&slapd_rq.rq_mutex);
-        mdb->mi_index_task = ldap_pvt_runqueue_insert(
-            &slapd_rq, 36000, mdb_online_index, c->be,
-            LDAP_XSTRING(mdb_online_index), c->be->be_suffix[0].bv_val);
+        mdb->mi_index_task = ldap_pvt_runqueue_insert(&slapd_rq, 36000, mdb_online_index, c->be,
+                                                      LDAP_XSTRING(mdb_online_index), c->be->be_suffix[0].bv_val);
         ldap_pvt_thread_mutex_unlock(&slapd_rq.rq_mutex);
       }
     }
@@ -857,8 +831,7 @@ static int mdb_cf_gen(ConfigArgs *c) {
 
   case MDB_SSTACK:
     if (c->value_int < MINIMUM_SEARCH_STACK_DEPTH) {
-      fprintf(stderr, "%s: depth %d too small, using %d\n", c->log,
-              c->value_int, MINIMUM_SEARCH_STACK_DEPTH);
+      fprintf(stderr, "%s: depth %d too small, using %d\n", c->log, c->value_int, MINIMUM_SEARCH_STACK_DEPTH);
       c->value_int = MINIMUM_SEARCH_STACK_DEPTH;
     }
     mdb->mi_search_stack_depth = c->value_int;
@@ -881,8 +854,7 @@ static int mdb_cf_gen(ConfigArgs *c) {
     break;
 
   case MDB_MULTIVAL:
-    rc = mdb_attr_multi_config(mdb, c->fname, c->lineno, c->argc - 1,
-                               &c->argv[1], &c->reply);
+    rc = mdb_attr_multi_config(mdb, c->fname, c->lineno, c->argc - 1, &c->argv[1], &c->reply);
 
     if (rc != LDAP_SUCCESS)
       return 1;

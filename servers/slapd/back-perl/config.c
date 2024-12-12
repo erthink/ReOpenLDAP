@@ -20,44 +20,41 @@ static ConfigDriver perl_cf;
 
 enum { PERL_MODULE = 1, PERL_PATH, PERL_CONFIG };
 
-static ConfigTable perlcfg[] = {
-    {"perlModule", "module", 2, 2, 0, ARG_STRING | ARG_MAGIC | PERL_MODULE,
-     perl_cf,
-     "( OLcfgDbAt:11.1 NAME 'olcPerlModule' "
-     "DESC 'Perl module name' "
-     "EQUALITY caseExactMatch "
-     "SYNTAX OMsDirectoryString SINGLE-VALUE )",
-     NULL, NULL},
-    {"perlModulePath", "path", 2, 2, 0, ARG_MAGIC | PERL_PATH, perl_cf,
-     "( OLcfgDbAt:11.2 NAME 'olcPerlModulePath' "
-     "DESC 'Perl module path' "
-     "EQUALITY caseExactMatch "
-     "SYNTAX OMsDirectoryString )",
-     NULL, NULL},
-    {"filterSearchResults", "on|off", 2, 2, 0, ARG_ON_OFF | ARG_OFFSET,
-     (void *)offsetof(PerlBackend, pb_filter_search_results),
-     "( OLcfgDbAt:11.3 NAME 'olcPerlFilterSearchResults' "
-     "DESC 'Filter search results before returning to client' "
-     "EQUALITY booleanMatch "
-     "SYNTAX OMsBoolean SINGLE-VALUE )",
-     NULL, NULL},
-    {"perlModuleConfig", "args", 2, 0, 0, ARG_MAGIC | PERL_CONFIG, perl_cf,
-     "( OLcfgDbAt:11.4 NAME 'olcPerlModuleConfig' "
-     "DESC 'Perl module config directives' "
-     "EQUALITY caseExactMatch "
-     "SYNTAX OMsDirectoryString )",
-     NULL, NULL},
-    {NULL}};
+static ConfigTable perlcfg[] = {{"perlModule", "module", 2, 2, 0, ARG_STRING | ARG_MAGIC | PERL_MODULE, perl_cf,
+                                 "( OLcfgDbAt:11.1 NAME 'olcPerlModule' "
+                                 "DESC 'Perl module name' "
+                                 "EQUALITY caseExactMatch "
+                                 "SYNTAX OMsDirectoryString SINGLE-VALUE )",
+                                 NULL, NULL},
+                                {"perlModulePath", "path", 2, 2, 0, ARG_MAGIC | PERL_PATH, perl_cf,
+                                 "( OLcfgDbAt:11.2 NAME 'olcPerlModulePath' "
+                                 "DESC 'Perl module path' "
+                                 "EQUALITY caseExactMatch "
+                                 "SYNTAX OMsDirectoryString )",
+                                 NULL, NULL},
+                                {"filterSearchResults", "on|off", 2, 2, 0, ARG_ON_OFF | ARG_OFFSET,
+                                 (void *)offsetof(PerlBackend, pb_filter_search_results),
+                                 "( OLcfgDbAt:11.3 NAME 'olcPerlFilterSearchResults' "
+                                 "DESC 'Filter search results before returning to client' "
+                                 "EQUALITY booleanMatch "
+                                 "SYNTAX OMsBoolean SINGLE-VALUE )",
+                                 NULL, NULL},
+                                {"perlModuleConfig", "args", 2, 0, 0, ARG_MAGIC | PERL_CONFIG, perl_cf,
+                                 "( OLcfgDbAt:11.4 NAME 'olcPerlModuleConfig' "
+                                 "DESC 'Perl module config directives' "
+                                 "EQUALITY caseExactMatch "
+                                 "SYNTAX OMsDirectoryString )",
+                                 NULL, NULL},
+                                {NULL}};
 
-static ConfigOCs perlocs[] = {
-    {"( OLcfgDbOc:11.1 "
-     "NAME 'olcDbPerlConfig' "
-     "DESC 'Perl DB configuration' "
-     "SUP olcDatabaseConfig "
-     "MUST ( olcPerlModulePath $ olcPerlModule ) "
-     "MAY ( olcPerlFilterSearchResults $ olcPerlModuleConfig ) )",
-     Cft_Database, perlcfg, NULL, NULL},
-    {NULL}};
+static ConfigOCs perlocs[] = {{"( OLcfgDbOc:11.1 "
+                               "NAME 'olcDbPerlConfig' "
+                               "DESC 'Perl DB configuration' "
+                               "SUP olcDatabaseConfig "
+                               "MUST ( olcPerlModulePath $ olcPerlModule ) "
+                               "MAY ( olcPerlFilterSearchResults $ olcPerlModuleConfig ) )",
+                               Cft_Database, perlcfg, NULL, NULL},
+                              {NULL}};
 
 #if 0  /* unused */
 static ConfigOCs ovperlocs[] = {
@@ -77,8 +74,7 @@ static ConfigOCs ovperlocs[] = {
  * Config
  *
  **********************************************************/
-int perl_back_db_config(BackendDB *be, const char *fname, int lineno, int argc,
-                        char **argv) {
+int perl_back_db_config(BackendDB *be, const char *fname, int lineno, int argc, char **argv) {
   int rc = config_generic_wrapper(be, fname, lineno, argc, argv);
   /* backward compatibility: map unknown directives to perlModuleConfig */
   if (rc == SLAP_CONF_UNKNOWN) {
@@ -165,8 +161,7 @@ static int perl_cf(ConfigArgs *c) {
       if (SvTRUE(ERRSV)) {
         STRLEN len;
 
-        snprintf(c->cr_msg, sizeof(c->cr_msg), "%.*s: error %s",
-                 (int)sizeof(c->cr_msg) - 16, c->log, SvPV(ERRSV, len));
+        snprintf(c->cr_msg, sizeof(c->cr_msg), "%.*s: error %s", (int)sizeof(c->cr_msg) - 16, c->log, SvPV(ERRSV, len));
         Debug(LDAP_DEBUG_ANY, "%s: error %s\n", c->log, SvPV(ERRSV, len));
         rc = 1;
       } else {

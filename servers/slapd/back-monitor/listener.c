@@ -67,8 +67,7 @@ int monitor_subsys_listener_init(BackendDB *be, monitor_subsys_t *ms) {
 
     bv.bv_len = snprintf(buf, sizeof(buf), "cn=Listener %d", i);
     bv.bv_val = buf;
-    e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv,
-                           mi->mi_oc_monitoredObject, NULL, NULL);
+    e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv, mi->mi_oc_monitoredObject, NULL, NULL);
 
     if (e == NULL) {
       Debug(LDAP_DEBUG_ANY,
@@ -78,11 +77,9 @@ int monitor_subsys_listener_init(BackendDB *be, monitor_subsys_t *ms) {
       goto bailout;
     }
 
-    attr_merge_normalize_one(e, mi->mi_ad_monitorConnectionLocalAddress,
-                             &l[i]->sl_name, NULL);
+    attr_merge_normalize_one(e, mi->mi_ad_monitorConnectionLocalAddress, &l[i]->sl_name, NULL);
 
-    attr_merge_normalize_one(e, slap_schema.si_ad_labeledURI, &l[i]->sl_url,
-                             NULL);
+    attr_merge_normalize_one(e, slap_schema.si_ad_labeledURI, &l[i]->sl_url, NULL);
 
 #ifdef WITH_TLS
     if (l[i]->sl_is_tls) {

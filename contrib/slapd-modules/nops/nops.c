@@ -122,8 +122,7 @@ static int nops_modify(Operation *op, SlapReply *rs) {
       continue;
 
     /* This is a nop, remove it */
-    Debug(LDAP_DEBUG_TRACE, "removing nop on %s%s%s",
-          a->a_desc->ad_cname.bv_val, "", "");
+    Debug(LDAP_DEBUG_TRACE, "removing nop on %s%s%s", a->a_desc->ad_cname.bv_val, "", "");
 
     nops_rm_mod(&op->orm_modlist, mc);
   }
@@ -155,6 +154,4 @@ static int nops_initialize(void) {
   return overlay_register(&nops_ovl);
 }
 
-SLAP_MODULE_ENTRY(nops, modinit)(int argc, char *argv[]) {
-  return nops_initialize();
-}
+SLAP_MODULE_ENTRY(nops, modinit)(int argc, char *argv[]) { return nops_initialize(); }

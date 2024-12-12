@@ -105,8 +105,7 @@ DuplicateEntryRequest ::= SEQUENCE {
   tag = ber_skip_tag(ber, &len);
   if (tag != LBER_SEQUENCE)
     return LDAP_INVALID_SYNTAX;
-  if (ber_scanf(ber, "{M}", &AttributeDescriptionList, &cnt, off) ==
-      LBER_ERROR) {
+  if (ber_scanf(ber, "{M}", &AttributeDescriptionList, &cnt, off) == LBER_ERROR) {
     rs->sr_text = "Dupent control: dupentSpec decoding error";
     rs->sr_err = LDAP_PROTOCOL_ERROR;
     goto done;
@@ -129,8 +128,7 @@ DuplicateEntryRequest ::= SEQUENCE {
     goto done;
   }
 
-  ds = (dupent_t *)op->o_tmpcalloc(
-      1, sizeof(dupent_t) + sizeof(AttributeName) * cnt, op->o_tmpmemctx);
+  ds = (dupent_t *)op->o_tmpcalloc(1, sizeof(dupent_t) + sizeof(AttributeName) * cnt, op->o_tmpmemctx);
 
   ds->ds_paa = PartialApplicationAllowed;
 
@@ -200,8 +198,7 @@ DuplicateEntryRequest ::= SEQUENCE {
 
   op->o_ctrldupent = (void *)ds;
 
-  op->o_dupent =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_dupent = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   rs->sr_err = LDAP_SUCCESS;
 
@@ -257,8 +254,7 @@ DuplicateEntryResponseDone ::= SEQUENCE {
     return SLAP_CB_CONTINUE;
   }
 
-  ctrl = op->o_tmpcalloc(1, sizeof(LDAPControl) + ctrlval.bv_len + 1,
-                         op->o_tmpmemctx);
+  ctrl = op->o_tmpcalloc(1, sizeof(LDAPControl) + ctrlval.bv_len + 1, op->o_tmpmemctx);
   ctrl->ldctl_value.bv_val = (char *)&ctrl[1];
   ctrl->ldctl_oid = LDAP_CONTROL_DUPENT_RESPONSE;
   ctrl->ldctl_iscritical = 0;
@@ -275,8 +271,7 @@ DuplicateEntryResponseDone ::= SEQUENCE {
   return SLAP_CB_CONTINUE;
 }
 
-static int dupent_response_entry_1level(Operation *op, SlapReply *rs, Entry *e,
-                                        valnum_t *valnum, int nattrs,
+static int dupent_response_entry_1level(Operation *op, SlapReply *rs, Entry *e, valnum_t *valnum, int nattrs,
                                         int level) {
   int i, rc = LDAP_SUCCESS;
 
@@ -320,8 +315,7 @@ static int dupent_response_entry_1level(Operation *op, SlapReply *rs, Entry *e,
   return rc;
 }
 
-static void dupent_attr_prepare(dupent_t *ds, Entry *e, valnum_t *valnum,
-                                int nattrs, int c, Attribute **app,
+static void dupent_attr_prepare(dupent_t *ds, Entry *e, valnum_t *valnum, int nattrs, int c, Attribute **app,
                                 Attribute **ap_listp) {
   valnum[c].ap = *app;
   *app = (*app)->a_next;
@@ -402,8 +396,7 @@ static int dupent_response_entry(Operation *op, SlapReply *rs) {
 
   if (dc->dc_ds->ds_flags & SLAP_USERATTRS_YES) {
     for (app = &e->e_attrs; *app != NULL; app = &(*app)->a_next) {
-      if (!is_at_operational((*app)->a_desc->ad_type) &&
-          (*app)->a_numvals > 1) {
+      if (!is_at_operational((*app)->a_desc->ad_type) && (*app)->a_numvals > 1) {
         assert(c < nattrs);
         dupent_attr_prepare(dc->dc_ds, e, valnum, nattrs, c, app, &ap_list);
         c++;
@@ -475,8 +468,7 @@ static int dupent_op_search(Operation *op, SlapReply *rs) {
     slap_callback *sc;
     dupent_cb_t *dc;
 
-    sc = op->o_tmpcalloc(1, sizeof(slap_callback) + sizeof(dupent_cb_t),
-                         op->o_tmpmemctx);
+    sc = op->o_tmpcalloc(1, sizeof(slap_callback) + sizeof(dupent_cb_t), op->o_tmpmemctx);
 
     dc = (dupent_cb_t *)&sc[1];
     dc->dc_on = (slap_overinst *)op->o_bd->bd_info;
@@ -497,11 +489,9 @@ static int dupent_op_search(Operation *op, SlapReply *rs) {
 static int dupent_initialize(void) {
   int rc;
 
-  rc = register_supported_control(LDAP_CONTROL_DUPENT, SLAP_CTRL_SEARCH, NULL,
-                                  dupent_parseCtrl, &dupent_cid);
+  rc = register_supported_control(LDAP_CONTROL_DUPENT, SLAP_CTRL_SEARCH, NULL, dupent_parseCtrl, &dupent_cid);
   if (rc != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_ANY,
-          "dupent_initialize: Failed to register control (%d)\n", rc);
+    Debug(LDAP_DEBUG_ANY, "dupent_initialize: Failed to register control (%d)\n", rc);
     return -1;
   }
 
@@ -510,6 +500,4 @@ static int dupent_initialize(void) {
   return overlay_register(&dupent);
 }
 
-SLAP_MODULE_ENTRY(dupent, modinit)(int argc, char *argv[]) {
-  return dupent_initialize();
-}
+SLAP_MODULE_ENTRY(dupent, modinit)(int argc, char *argv[]) { return dupent_initialize(); }

@@ -44,8 +44,7 @@ int shell_back_unbind(Operation *op, SlapReply *rs) {
   fprintf(wfp, "UNBIND\n");
   fprintf(wfp, "msgid: %ld\n", (long)op->o_msgid);
   print_suffixes(wfp, op->o_bd);
-  fprintf(wfp, "dn: %s\n",
-          (op->o_conn->c_dn.bv_len ? op->o_conn->c_dn.bv_val : ""));
+  fprintf(wfp, "dn: %s\n", (op->o_conn->c_dn.bv_len ? op->o_conn->c_dn.bv_val : ""));
   fclose(wfp);
 
   /* no response to unbind */

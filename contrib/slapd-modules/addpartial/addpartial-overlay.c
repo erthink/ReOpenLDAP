@@ -47,21 +47,17 @@ static int addpartial_add(Operation *op, SlapReply *rs) {
 
   toAdd = op->oq_add.rs_e;
 
-  Debug(LDAP_DEBUG_TRACE, "%s: toAdd->e_nname.bv_val: %s\n",
-        addpartial.on_bi.bi_type, toAdd->e_nname.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "%s: toAdd->e_nname.bv_val: %s\n", addpartial.on_bi.bi_type, toAdd->e_nname.bv_val);
 
   /* if the user doesn't have access, fall through to the normal ADD */
-  if (!access_allowed(op, toAdd, slap_schema.si_ad_entry, NULL, ACL_WRITE,
-                      NULL)) {
+  if (!access_allowed(op, toAdd, slap_schema.si_ad_entry, NULL, ACL_WRITE, NULL)) {
     return SLAP_CB_CONTINUE;
   }
 
   rc = overlay_entry_get_ov(&nop, &nop.o_req_ndn, NULL, NULL, 0, &found, on);
 
   if (rc != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_TRACE,
-          "%s: no entry found, falling through to normal add\n",
-          addpartial.on_bi.bi_type);
+    Debug(LDAP_DEBUG_TRACE, "%s: no entry found, falling through to normal add\n", addpartial.on_bi.bi_type);
     return SLAP_CB_CONTINUE;
   } else {
     Debug(LDAP_DEBUG_TRACE, "%s: found the dn\n", addpartial.on_bi.bi_type);
@@ -83,8 +79,8 @@ static int addpartial_add(Operation *op, SlapReply *rs) {
 
         at = attr_find(found->e_attrs, attr->a_desc);
         if (!at) {
-          Debug(LDAP_DEBUG_TRACE, "%s: Attribute %s not found!\n",
-                addpartial.on_bi.bi_type, attr->a_desc->ad_cname.bv_val);
+          Debug(LDAP_DEBUG_TRACE, "%s: Attribute %s not found!\n", addpartial.on_bi.bi_type,
+                attr->a_desc->ad_cname.bv_val);
           mod = (Modifications *)ch_malloc(sizeof(Modifications));
           mod->sml_flags = 0;
           mod->sml_op = LDAP_MOD_REPLACE | LDAP_MOD_BVALUES;
@@ -102,20 +98,16 @@ static int addpartial_add(Operation *op, SlapReply *rs) {
           struct berval *bv;
           const char *text;
           int acount, bcount;
-          Debug(LDAP_DEBUG_TRACE, "%s: Attribute %s found\n",
-                addpartial.on_bi.bi_type, attr->a_desc->ad_cname.bv_val);
+          Debug(LDAP_DEBUG_TRACE, "%s: Attribute %s found\n", addpartial.on_bi.bi_type, attr->a_desc->ad_cname.bv_val);
 
-          for (bv = attr->a_vals, acount = 0; bv->bv_val != NULL;
-               bv++, acount++) {
+          for (bv = attr->a_vals, acount = 0; bv->bv_val != NULL; bv++, acount++) {
             /* count num values for attr */
           }
-          for (bv = at->a_vals, bcount = 0; bv->bv_val != NULL;
-               bv++, bcount++) {
+          for (bv = at->a_vals, bcount = 0; bv->bv_val != NULL; bv++, bcount++) {
             /* count num values for attr */
           }
           if (acount != bcount) {
-            Debug(LDAP_DEBUG_TRACE, "%s: acount != bcount, %s\n",
-                  addpartial.on_bi.bi_type, "replace all");
+            Debug(LDAP_DEBUG_TRACE, "%s: acount != bcount, %s\n", addpartial.on_bi.bi_type, "replace all");
             mod = (Modifications *)ch_malloc(sizeof(Modifications));
             mod->sml_flags = 0;
             mod->sml_op = LDAP_MOD_REPLACE | LDAP_MOD_BVALUES;
@@ -137,14 +129,12 @@ static int addpartial_add(Operation *op, SlapReply *rs) {
 
             for (v = at->a_vals; v->bv_val != NULL; v++) {
               int r = ret;
-              if (mr && ((r = value_match(&ret, attr->a_desc, mr,
-                                          SLAP_MR_VALUE_OF_ASSERTION_SYNTAX, bv,
-                                          v, &text)) == 0)) {
+              if (mr &&
+                  ((r = value_match(&ret, attr->a_desc, mr, SLAP_MR_VALUE_OF_ASSERTION_SYNTAX, bv, v, &text)) == 0)) {
                 if (ret == 0)
                   break;
               } else {
-                Debug(LDAP_DEBUG_TRACE, "%s: \tvalue DNE, r: %d \n",
-                      addpartial.on_bi.bi_type, r);
+                Debug(LDAP_DEBUG_TRACE, "%s: \tvalue DNE, r: %d \n", addpartial.on_bi.bi_type, r);
                 ret = strcmp(bv->bv_val, v->bv_val);
                 if (ret == 0)
                   break;
@@ -152,11 +142,9 @@ static int addpartial_add(Operation *op, SlapReply *rs) {
             }
 
             if (ret == 0) {
-              Debug(LDAP_DEBUG_TRACE, "%s: \tvalue %s exists, ret: %d\n",
-                    addpartial.on_bi.bi_type, bv->bv_val, ret);
+              Debug(LDAP_DEBUG_TRACE, "%s: \tvalue %s exists, ret: %d\n", addpartial.on_bi.bi_type, bv->bv_val, ret);
             } else {
-              Debug(LDAP_DEBUG_TRACE, "%s: \tvalue %s DNE, ret: %d\n",
-                    addpartial.on_bi.bi_type, bv->bv_val, ret);
+              Debug(LDAP_DEBUG_TRACE, "%s: \tvalue %s DNE, ret: %d\n", addpartial.on_bi.bi_type, bv->bv_val, ret);
               mod = (Modifications *)ch_malloc(sizeof(Modifications));
               mod->sml_flags = 0;
               mod->sml_op = LDAP_MOD_REPLACE | LDAP_MOD_BVALUES;
@@ -183,9 +171,8 @@ static int addpartial_add(Operation *op, SlapReply *rs) {
         at = NULL;
         at = attr_find(toAdd->e_attrs, attr->a_desc);
         if (!at) {
-          Debug(LDAP_DEBUG_TRACE,
-                "%s: Attribute %s not found in new entry!!!\n",
-                addpartial.on_bi.bi_type, attr->a_desc->ad_cname.bv_val);
+          Debug(LDAP_DEBUG_TRACE, "%s: Attribute %s not found in new entry!!!\n", addpartial.on_bi.bi_type,
+                attr->a_desc->ad_cname.bv_val);
           mod = (Modifications *)ch_malloc(sizeof(Modifications));
           mod->sml_flags = 0;
           mod->sml_op = LDAP_MOD_REPLACE;
@@ -198,8 +185,8 @@ static int addpartial_add(Operation *op, SlapReply *rs) {
           *modtail = mod;
           modtail = &mod->sml_next;
         } else {
-          Debug(LDAP_DEBUG_TRACE, "%s: Attribute %s found in new entry\n",
-                addpartial.on_bi.bi_type, at->a_desc->ad_cname.bv_val);
+          Debug(LDAP_DEBUG_TRACE, "%s: Attribute %s found in new entry\n", addpartial.on_bi.bi_type,
+                at->a_desc->ad_cname.bv_val);
         }
       }
 
@@ -211,8 +198,7 @@ static int addpartial_add(Operation *op, SlapReply *rs) {
         int modcount;
         slap_callback nullcb = {NULL, collect_error_msg_cb, NULL, NULL};
 
-        Debug(LDAP_DEBUG_TRACE, "%s: mods to do...\n",
-              addpartial.on_bi.bi_type);
+        Debug(LDAP_DEBUG_TRACE, "%s: mods to do...\n", addpartial.on_bi.bi_type);
 
         nop.o_tag = LDAP_REQ_MODIFY;
         nop.orm_modlist = mods;
@@ -224,8 +210,7 @@ static int addpartial_add(Operation *op, SlapReply *rs) {
           /* count number of mods */
         }
 
-        Debug(LDAP_DEBUG_TRACE, "%s: number of mods: %d\n",
-              addpartial.on_bi.bi_type, modcount);
+        Debug(LDAP_DEBUG_TRACE, "%s: number of mods: %d\n", addpartial.on_bi.bi_type, modcount);
 
         if (nop.o_bd->be_modify) {
           SlapReply nrs = {REP_RESULT};
@@ -233,27 +218,23 @@ static int addpartial_add(Operation *op, SlapReply *rs) {
         }
 
         if (rc == LDAP_SUCCESS) {
-          Debug(LDAP_DEBUG_TRACE, "%s: modify successful\n",
-                addpartial.on_bi.bi_type);
+          Debug(LDAP_DEBUG_TRACE, "%s: modify successful\n", addpartial.on_bi.bi_type);
         } else {
-          Debug(LDAP_DEBUG_TRACE, "%s: modify unsuccessful: %d\n",
-                addpartial.on_bi.bi_type, rc);
+          Debug(LDAP_DEBUG_TRACE, "%s: modify unsuccessful: %d\n", addpartial.on_bi.bi_type, rc);
           rs->sr_err = rc;
           if (nullcb.sc_private) {
             rs->sr_text = nullcb.sc_private;
           }
         }
 
-        Debug(LDAP_DEBUG_TRACE, "%s: freeing mods...\n",
-              addpartial.on_bi.bi_type);
+        Debug(LDAP_DEBUG_TRACE, "%s: freeing mods...\n", addpartial.on_bi.bi_type);
 
         for (toDel = mods; toDel; toDel = mods) {
           mods = mods->sml_next;
           ch_free(toDel);
         }
       } else {
-        Debug(LDAP_DEBUG_TRACE, "%s: no mods to process\n",
-              addpartial.on_bi.bi_type);
+        Debug(LDAP_DEBUG_TRACE, "%s: no mods to process\n", addpartial.on_bi.bi_type);
       }
     } else {
       Debug(LDAP_DEBUG_TRACE, "%s: no entry!\n", addpartial.on_bi.bi_type);
@@ -283,6 +264,4 @@ static int addpartial_init() {
   return (overlay_register(&addpartial));
 }
 
-SLAP_MODULE_ENTRY(addpartial, modinit)(int argc, char *argv[]) {
-  return addpartial_init();
-}
+SLAP_MODULE_ENTRY(addpartial, modinit)(int argc, char *argv[]) { return addpartial_init(); }

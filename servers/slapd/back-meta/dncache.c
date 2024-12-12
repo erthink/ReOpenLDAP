@@ -87,8 +87,7 @@ int meta_dncache_get_target(metadncache_t *cache, struct berval *ndn) {
 
   tmp_entry.dn = *ndn;
   ldap_pvt_thread_mutex_lock(&cache->mutex);
-  entry = (metadncacheentry_t *)avl_find(cache->tree, (caddr_t)&tmp_entry,
-                                         meta_dncache_cmp);
+  entry = (metadncacheentry_t *)avl_find(cache->tree, (caddr_t)&tmp_entry, meta_dncache_cmp);
 
   if (entry != NULL) {
 
@@ -117,8 +116,7 @@ int meta_dncache_get_target(metadncache_t *cache, struct berval *ndn) {
  * updates target and lastupdated of a struct metadncacheentry if exists,
  * otherwise it gets created; returns -1 in case of error
  */
-int meta_dncache_update_entry(metadncache_t *cache, struct berval *ndn,
-                              int target) {
+int meta_dncache_update_entry(metadncache_t *cache, struct berval *ndn, int target) {
   metadncacheentry_t *entry, tmp_entry;
   time_t curr_time = 0L;
   int err = 0;
@@ -138,8 +136,7 @@ int meta_dncache_update_entry(metadncache_t *cache, struct berval *ndn,
   tmp_entry.dn = *ndn;
 
   ldap_pvt_thread_mutex_lock(&cache->mutex);
-  entry = (metadncacheentry_t *)avl_find(cache->tree, (caddr_t)&tmp_entry,
-                                         meta_dncache_cmp);
+  entry = (metadncacheentry_t *)avl_find(cache->tree, (caddr_t)&tmp_entry, meta_dncache_cmp);
 
   if (entry != NULL) {
     entry->target = target;
@@ -160,8 +157,7 @@ int meta_dncache_update_entry(metadncache_t *cache, struct berval *ndn,
     entry->target = target;
     entry->lastupdated = curr_time;
 
-    err = avl_insert(&cache->tree, (caddr_t)entry, meta_dncache_cmp,
-                     meta_dncache_dup);
+    err = avl_insert(&cache->tree, (caddr_t)entry, meta_dncache_cmp, meta_dncache_dup);
   }
 
 error_return:;

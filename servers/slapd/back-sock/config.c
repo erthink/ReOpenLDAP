@@ -38,40 +38,39 @@ enum { BS_EXT = 1, BS_OPS, BS_RESP, BS_DNPAT };
 /* The number of overlay-only config attrs */
 #define NUM_OV_ATTRS 3
 
-static ConfigTable bscfg[] = {
-    {"sockops", "ops", 2, 0, 0, ARG_MAGIC | BS_OPS, bs_cf_gen,
-     "( OLcfgDbAt:7.3 NAME 'olcOvSocketOps' "
-     "DESC 'Operation types to forward' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString )",
-     NULL, NULL},
-    {"sockresps", "resps", 2, 0, 0, ARG_MAGIC | BS_RESP, bs_cf_gen,
-     "( OLcfgDbAt:7.4 NAME 'olcOvSocketResps' "
-     "DESC 'Response types to forward' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString )",
-     NULL, NULL},
-    {"sockdnpat", "regexp", 2, 2, 0, ARG_MAGIC | BS_DNPAT, bs_cf_gen,
-     "( OLcfgDbAt:7.5 NAME 'olcOvSocketDNpat' "
-     "DESC 'DN pattern to match' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString SINGLE-VALUE )",
-     NULL, NULL},
+static ConfigTable bscfg[] = {{"sockops", "ops", 2, 0, 0, ARG_MAGIC | BS_OPS, bs_cf_gen,
+                               "( OLcfgDbAt:7.3 NAME 'olcOvSocketOps' "
+                               "DESC 'Operation types to forward' "
+                               "EQUALITY caseIgnoreMatch "
+                               "SYNTAX OMsDirectoryString )",
+                               NULL, NULL},
+                              {"sockresps", "resps", 2, 0, 0, ARG_MAGIC | BS_RESP, bs_cf_gen,
+                               "( OLcfgDbAt:7.4 NAME 'olcOvSocketResps' "
+                               "DESC 'Response types to forward' "
+                               "EQUALITY caseIgnoreMatch "
+                               "SYNTAX OMsDirectoryString )",
+                               NULL, NULL},
+                              {"sockdnpat", "regexp", 2, 2, 0, ARG_MAGIC | BS_DNPAT, bs_cf_gen,
+                               "( OLcfgDbAt:7.5 NAME 'olcOvSocketDNpat' "
+                               "DESC 'DN pattern to match' "
+                               "EQUALITY caseIgnoreMatch "
+                               "SYNTAX OMsDirectoryString SINGLE-VALUE )",
+                               NULL, NULL},
 
-    {"socketpath", "pathname", 2, 2, 0, ARG_STRING | ARG_OFFSET,
-     (void *)offsetof(struct sockinfo, si_sockpath),
-     "( OLcfgDbAt:7.1 NAME 'olcDbSocketPath' "
-     "DESC 'Pathname for Unix domain socket' "
-     "EQUALITY caseExactMatch "
-     "SYNTAX OMsDirectoryString SINGLE-VALUE )",
-     NULL, NULL},
-    {"extensions", "ext", 2, 0, 0, ARG_MAGIC | BS_EXT, bs_cf_gen,
-     "( OLcfgDbAt:7.2 NAME 'olcDbSocketExtensions' "
-     "DESC 'binddn, peername, or ssf' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString )",
-     NULL, NULL},
-    {NULL, NULL}};
+                              {"socketpath", "pathname", 2, 2, 0, ARG_STRING | ARG_OFFSET,
+                               (void *)offsetof(struct sockinfo, si_sockpath),
+                               "( OLcfgDbAt:7.1 NAME 'olcDbSocketPath' "
+                               "DESC 'Pathname for Unix domain socket' "
+                               "EQUALITY caseExactMatch "
+                               "SYNTAX OMsDirectoryString SINGLE-VALUE )",
+                               NULL, NULL},
+                              {"extensions", "ext", 2, 0, 0, ARG_MAGIC | BS_EXT, bs_cf_gen,
+                               "( OLcfgDbAt:7.2 NAME 'olcDbSocketExtensions' "
+                               "DESC 'binddn, peername, or ssf' "
+                               "EQUALITY caseIgnoreMatch "
+                               "SYNTAX OMsDirectoryString )",
+                               NULL, NULL},
+                              {NULL, NULL}};
 
 static ConfigOCs bsocs[] = {{"( OLcfgDbOc:7.1 "
                              "NAME 'olcDbSocketConfig' "
@@ -112,20 +111,14 @@ static slap_verbmasks bs_exts[] = {{BER_BVC("binddn"), SOCK_EXT_BINDDN},
                                    {BER_BVC("connid"), SOCK_EXT_CONNID},
                                    {BER_BVNULL, 0}};
 
-static slap_verbmasks ov_ops[] = {{BER_BVC("bind"), SOCK_OP_BIND},
-                                  {BER_BVC("unbind"), SOCK_OP_UNBIND},
-                                  {BER_BVC("search"), SOCK_OP_SEARCH},
-                                  {BER_BVC("compare"), SOCK_OP_COMPARE},
-                                  {BER_BVC("modify"), SOCK_OP_MODIFY},
-                                  {BER_BVC("modrdn"), SOCK_OP_MODRDN},
-                                  {BER_BVC("add"), SOCK_OP_ADD},
-                                  {BER_BVC("delete"), SOCK_OP_DELETE},
-                                  {BER_BVC("extended"), SOCK_OP_EXTENDED},
-                                  {BER_BVNULL, 0}};
+static slap_verbmasks ov_ops[] = {{BER_BVC("bind"), SOCK_OP_BIND},         {BER_BVC("unbind"), SOCK_OP_UNBIND},
+                                  {BER_BVC("search"), SOCK_OP_SEARCH},     {BER_BVC("compare"), SOCK_OP_COMPARE},
+                                  {BER_BVC("modify"), SOCK_OP_MODIFY},     {BER_BVC("modrdn"), SOCK_OP_MODRDN},
+                                  {BER_BVC("add"), SOCK_OP_ADD},           {BER_BVC("delete"), SOCK_OP_DELETE},
+                                  {BER_BVC("extended"), SOCK_OP_EXTENDED}, {BER_BVNULL, 0}};
 
-static slap_verbmasks ov_resps[] = {{BER_BVC("result"), SOCK_REP_RESULT},
-                                    {BER_BVC("search"), SOCK_REP_SEARCH},
-                                    {BER_BVNULL, 0}};
+static slap_verbmasks ov_resps[] = {
+    {BER_BVC("result"), SOCK_REP_RESULT}, {BER_BVC("search"), SOCK_REP_SEARCH}, {BER_BVNULL, 0}};
 
 static int bs_cf_gen(ConfigArgs *c) {
   struct sockinfo *si;
@@ -201,8 +194,7 @@ static int bs_cf_gen(ConfigArgs *c) {
     case BS_RESP:
       return verbs_to_mask(c->argc, c->argv, ov_resps, &si->si_resps);
     case BS_DNPAT:
-      if (!regcomp(&si->si_dnpat, c->argv[1],
-                   REG_EXTENDED | REG_ICASE | REG_NOSUB)) {
+      if (!regcomp(&si->si_dnpat, c->argv[1], REG_EXTENDED | REG_ICASE | REG_NOSUB)) {
         ber_str2bv(c->argv[1], 0, 1, &si->si_dnpatstr);
         return 0;
       } else {
@@ -229,17 +221,15 @@ static slap_overinst sockover;
 static int sock_over_db_init(Backend *be, struct config_reply_s *cr);
 static int sock_over_db_destroy(Backend *be, struct config_reply_s *cr);
 
-static BI_op_bind *sockfuncs[] = {
-    sock_back_bind,    sock_back_unbind, sock_back_search,
-    sock_back_compare, sock_back_modify, sock_back_modrdn,
-    sock_back_add,     sock_back_delete, 0, /* abandon not supported */
-    sock_back_extended};
+static BI_op_bind *sockfuncs[] = {sock_back_bind,    sock_back_unbind, sock_back_search,
+                                  sock_back_compare, sock_back_modify, sock_back_modrdn,
+                                  sock_back_add,     sock_back_delete, 0, /* abandon not supported */
+                                  sock_back_extended};
 
-static const int sockopflags[] = {
-    SOCK_OP_BIND,    SOCK_OP_UNBIND, SOCK_OP_SEARCH,
-    SOCK_OP_COMPARE, SOCK_OP_MODIFY, SOCK_OP_MODRDN,
-    SOCK_OP_ADD,     SOCK_OP_DELETE, 0, /* abandon not supported */
-    SOCK_OP_EXTENDED};
+static const int sockopflags[] = {SOCK_OP_BIND,    SOCK_OP_UNBIND, SOCK_OP_SEARCH,
+                                  SOCK_OP_COMPARE, SOCK_OP_MODIFY, SOCK_OP_MODRDN,
+                                  SOCK_OP_ADD,     SOCK_OP_DELETE, 0, /* abandon not supported */
+                                  SOCK_OP_EXTENDED};
 
 static int sock_over_op(Operation *op, SlapReply *rs) {
   slap_overinst *on = (slap_overinst *)op->o_bd->bd_info;
@@ -283,8 +273,7 @@ static int sock_over_op(Operation *op, SlapReply *rs) {
   if (!(si->si_ops & sockopflags[which]))
     return SLAP_CB_CONTINUE;
 
-  if (!BER_BVISEMPTY(&si->si_dnpatstr) &&
-      regexec(&si->si_dnpat, op->o_req_ndn.bv_val, 0, NULL, 0))
+  if (!BER_BVISEMPTY(&si->si_dnpatstr) && regexec(&si->si_dnpat, op->o_req_ndn.bv_val, 0, NULL, 0))
     return SLAP_CB_CONTINUE;
 
   op->o_bd->be_private = si;

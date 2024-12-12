@@ -30,8 +30,8 @@ static const struct berval scheme = BER_BVC("{RADIUS}");
 static char *config_filename;
 static ldap_pvt_thread_mutex_t libradius_mutex;
 
-static int chk_radius(const struct berval *sc, const struct berval *passwd,
-                      const struct berval *cred, const char **text) {
+static int chk_radius(const struct berval *sc, const struct berval *passwd, const struct berval *cred,
+                      const char **text) {
   unsigned int i;
   int rc = LUTIL_PASSWD_ERR;
 
@@ -110,9 +110,7 @@ done:;
   return rc;
 }
 
-SLAP_MODULE_ENTRY(pw_radius, modterm) {
-  return ldap_pvt_thread_mutex_destroy(&libradius_mutex);
-}
+SLAP_MODULE_ENTRY(pw_radius, modterm) { return ldap_pvt_thread_mutex_destroy(&libradius_mutex); }
 
 SLAP_MODULE_ENTRY(pw_radius, modinit)(int argc, char *argv[]) {
   int i;
@@ -126,8 +124,7 @@ SLAP_MODULE_ENTRY(pw_radius, modinit)(int argc, char *argv[]) {
       }
 
     } else {
-      fprintf(stderr, "init_module(radius): unknown arg#%d=\"%s\".\n", i,
-              argv[i]);
+      fprintf(stderr, "init_module(radius): unknown arg#%d=\"%s\".\n", i, argv[i]);
       return 1;
     }
   }

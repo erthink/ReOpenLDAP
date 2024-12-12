@@ -98,8 +98,7 @@ static int denyop_func(Operation *op, SlapReply *rs) {
   }
 
   op->o_bd->bd_info = (BackendInfo *)on->on_info;
-  send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                  "operation not allowed within namingContext");
+  send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "operation not allowed within namingContext");
 
   return 0;
 }
@@ -115,8 +114,7 @@ static int denyop_over_init(BackendDB *be, ConfigReply *cr) {
   return 0;
 }
 
-static int denyop_config(BackendDB *be, const char *fname, int lineno, int argc,
-                         char **argv) {
+static int denyop_config(BackendDB *be, const char *fname, int lineno, int argc, char **argv) {
   slap_overinst *on = (slap_overinst *)be->bd_info;
   denyop_info *oi = (denyop_info *)on->on_bi.bi_private;
 
@@ -230,6 +228,4 @@ static int denyop_initialize(void) {
   return overlay_register(&denyop);
 }
 
-SLAP_MODULE_ENTRY(denyop, modinit)(int argc, char *argv[]) {
-  return denyop_initialize();
-}
+SLAP_MODULE_ENTRY(denyop, modinit)(int argc, char *argv[]) { return denyop_initialize(); }

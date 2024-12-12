@@ -33,8 +33,7 @@ int wt_bind(Operation *op, SlapReply *rs) {
   Attribute *a;
   AttributeDescription *password = slap_schema.si_ad_userPassword;
 
-  Debug(LDAP_DEBUG_ARGS, "==> " LDAP_XSTRING(wt_bind) ": dn: %s\n",
-        op->o_req_dn.bv_val);
+  Debug(LDAP_DEBUG_ARGS, "==> " LDAP_XSTRING(wt_bind) ": dn: %s\n", op->o_req_dn.bv_val);
 
   /* allow noauth binds */
   switch (be_rootdn_bind(op, NULL)) {

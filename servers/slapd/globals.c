@@ -125,8 +125,7 @@ void *slap_tsan__read_ptr(void *ptr) { return *(void *volatile *)ptr; }
 #endif /* __SANITIZE_THREAD__ */
 
 ATTRIBUTE_NO_SANITIZE_THREAD
-void slap_op_copy(const volatile Operation *src, Operation *op, Opheader *hdr,
-                  BackendDB *be) {
+void slap_op_copy(const volatile Operation *src, Operation *op, Opheader *hdr, BackendDB *be) {
   BackendDB *bd;
   slap_mask_t flags;
   BackendInfo *bi;
@@ -161,8 +160,7 @@ retry:
 void ber_debug_print(const char *str) { Debug(LDAP_DEBUG_BER, "%s", str); }
 
 LDAP_SLAPD_F(void)
-__ldap_assert_fail(const char *assertion, const char *file, unsigned line,
-                   const char *function) {
+__ldap_assert_fail(const char *assertion, const char *file, unsigned line, const char *function) {
   slap_backtrace_debug();
   __assert_fail(assertion, file, line, function);
 }

@@ -73,12 +73,11 @@ static int ldap_pvt_close_socket(LDAP *ld, int s) {
 }
 
 #undef TRACE
-#define TRACE                                                                  \
-  do {                                                                         \
-    char ebuf[128];                                                            \
-    oslocal_debug(                                                             \
-        ld, "ldap_is_socket_ready: error on socket %d: errno: %d (%s)\n", s,   \
-        errno, AC_STRERROR_R(errno, ebuf, sizeof ebuf));                       \
+#define TRACE                                                                                                          \
+  do {                                                                                                                 \
+    char ebuf[128];                                                                                                    \
+    oslocal_debug(ld, "ldap_is_socket_ready: error on socket %d: errno: %d (%s)\n", s, errno,                          \
+                  AC_STRERROR_R(errno, ebuf, sizeof ebuf));                                                            \
   } while (0)
 
 /*
@@ -91,8 +90,7 @@ static int ldap_pvt_is_socket_ready(LDAP *ld, int s) {
   {
     int so_errno;
     ber_socklen_t dummy = sizeof(so_errno);
-    if (getsockopt(s, SOL_SOCKET, SO_ERROR, &so_errno, &dummy) ==
-        AC_SOCKET_ERROR) {
+    if (getsockopt(s, SOL_SOCKET, SO_ERROR, &so_errno, &dummy) == AC_SOCKET_ERROR) {
       return -1;
     }
     if (so_errno) {
@@ -122,12 +120,10 @@ static int ldap_pvt_is_socket_ready(LDAP *ld, int s) {
 #undef TRACE
 
 #ifdef LDAP_PF_LOCAL_SENDMSG
-static const char abandonPDU[] = {
-    LDAP_TAG_MESSAGE, 6, LDAP_TAG_MSGID, 1, 0, LDAP_REQ_ABANDON, 1, 0};
+static const char abandonPDU[] = {LDAP_TAG_MESSAGE, 6, LDAP_TAG_MSGID, 1, 0, LDAP_REQ_ABANDON, 1, 0};
 #endif
 
-static int ldap_pvt_connect(LDAP *ld, ber_socket_t s, struct sockaddr_un *sa,
-                            int async) {
+static int ldap_pvt_connect(LDAP *ld, ber_socket_t s, struct sockaddr_un *sa, int async) {
   int rc;
   struct timeval tv, *opt_tv = NULL;
 
@@ -136,14 +132,12 @@ static int ldap_pvt_connect(LDAP *ld, ber_socket_t s, struct sockaddr_un *sa,
     opt_tv = &tv;
   }
 
-  oslocal_debug(ld, "ldap_connect_timeout: fd: %d tm: %ld async: %d\n", s,
-                opt_tv ? tv.tv_sec : -1L, async);
+  oslocal_debug(ld, "ldap_connect_timeout: fd: %d tm: %ld async: %d\n", s, opt_tv ? tv.tv_sec : -1L, async);
 
   if (ldap_pvt_ndelay_on(ld, s) == -1)
     return -1;
 
-  if (connect(s, (struct sockaddr *)sa, sizeof(struct sockaddr_un)) !=
-      AC_SOCKET_ERROR) {
+  if (connect(s, (struct sockaddr *)sa, sizeof(struct sockaddr_un)) != AC_SOCKET_ERROR) {
     if (ldap_pvt_ndelay_off(ld, s) == -1)
       return -1;
 
@@ -228,8 +222,7 @@ static int ldap_pvt_connect(LDAP *ld, ber_socket_t s, struct sockaddr_un *sa,
     do {
       fd.revents = 0;
       rc = poll(&fd, 1, timeout);
-    } while (rc == AC_SOCKET_ERROR && errno == EINTR &&
-             LDAP_BOOL_GET(&ld->ld_options, LDAP_BOOL_RESTART));
+    } while (rc == AC_SOCKET_ERROR && errno == EINTR && LDAP_BOOL_GET(&ld->ld_options, LDAP_BOOL_RESTART));
 
     if (rc == AC_SOCKET_ERROR)
       return rc;
@@ -263,8 +256,7 @@ static int ldap_pvt_connect(LDAP *ld, ber_socket_t s, struct sockaddr_un *sa,
       FD_ZERO(&wfds);
       FD_SET(s, &wfds);
       rc = select(ldap_int_tblsize, z, &wfds, z, opt_tv ? &tv : NULL);
-    } while (rc == AC_SOCKET_ERROR && errno == EINTR &&
-             LDAP_BOOL_GET(&ld->ld_options, LDAP_BOOL_RESTART));
+    } while (rc == AC_SOCKET_ERROR && errno == EINTR && LDAP_BOOL_GET(&ld->ld_options, LDAP_BOOL_RESTART));
 
     if (rc == AC_SOCKET_ERROR)
       return rc;

@@ -37,8 +37,7 @@
 
 #define SHA2_SALT_SIZE 8
 
-static int hash_ssha256(const struct berval *scheme,
-                        const struct berval *passwd, struct berval *hash,
+static int hash_ssha256(const struct berval *scheme, const struct berval *passwd, struct berval *hash,
                         const char **text) {
   SHA256_CTX ct;
   unsigned char hash256[SHA256_DIGEST_LENGTH];
@@ -63,8 +62,8 @@ static int hash_ssha256(const struct berval *scheme,
   return lutil_passwd_string64(scheme, &digest, hash, &salt);
 }
 
-static int hash_sha256(const struct berval *scheme, const struct berval *passwd,
-                       struct berval *hash, const char **text) {
+static int hash_sha256(const struct berval *scheme, const struct berval *passwd, struct berval *hash,
+                       const char **text) {
   SHA256_CTX ct;
   unsigned char hash256[SHA256_DIGEST_LENGTH];
   struct berval digest;
@@ -78,8 +77,7 @@ static int hash_sha256(const struct berval *scheme, const struct berval *passwd,
   return lutil_passwd_string64(scheme, &digest, hash, NULL);
 }
 
-static int hash_ssha384(const struct berval *scheme,
-                        const struct berval *passwd, struct berval *hash,
+static int hash_ssha384(const struct berval *scheme, const struct berval *passwd, struct berval *hash,
                         const char **text) {
   SHA384_CTX ct;
   unsigned char hash384[SHA384_DIGEST_LENGTH];
@@ -104,8 +102,8 @@ static int hash_ssha384(const struct berval *scheme,
   return lutil_passwd_string64(scheme, &digest, hash, &salt);
 }
 
-static int hash_sha384(const struct berval *scheme, const struct berval *passwd,
-                       struct berval *hash, const char **text) {
+static int hash_sha384(const struct berval *scheme, const struct berval *passwd, struct berval *hash,
+                       const char **text) {
   SHA384_CTX ct;
   unsigned char hash384[SHA384_DIGEST_LENGTH];
   struct berval digest;
@@ -119,8 +117,7 @@ static int hash_sha384(const struct berval *scheme, const struct berval *passwd,
   return lutil_passwd_string64(scheme, &digest, hash, NULL);
 }
 
-static int hash_ssha512(const struct berval *scheme,
-                        const struct berval *passwd, struct berval *hash,
+static int hash_ssha512(const struct berval *scheme, const struct berval *passwd, struct berval *hash,
                         const char **text) {
   SHA512_CTX ct;
   unsigned char hash512[SHA512_DIGEST_LENGTH];
@@ -145,8 +142,8 @@ static int hash_ssha512(const struct berval *scheme,
   return lutil_passwd_string64(scheme, &digest, hash, &salt);
 }
 
-static int hash_sha512(const struct berval *scheme, const struct berval *passwd,
-                       struct berval *hash, const char **text) {
+static int hash_sha512(const struct berval *scheme, const struct berval *passwd, struct berval *hash,
+                       const char **text) {
   SHA512_CTX ct;
   unsigned char hash512[SHA512_DIGEST_LENGTH];
   struct berval digest;
@@ -161,10 +158,8 @@ static int hash_sha512(const struct berval *scheme, const struct berval *passwd,
 }
 
 #ifdef SLAPD_SHA2_DEBUG
-static void chk_sha_debug(const struct berval *scheme,
-                          const struct berval *passwd,
-                          const struct berval *cred, const char *cred_hash,
-                          size_t cred_len, int cmp_rc) {
+static void chk_sha_debug(const struct berval *scheme, const struct berval *passwd, const struct berval *cred,
+                          const char *cred_hash, size_t cred_len, int cmp_rc) {
   int rc;
   struct berval cred_b64;
 
@@ -175,8 +170,7 @@ static void chk_sha_debug(const struct berval *scheme,
     return;
   }
 
-  rc = lutil_b64_ntop((unsigned char *)cred_hash, cred_len, cred_b64.bv_val,
-                      cred_b64.bv_len);
+  rc = lutil_b64_ntop((unsigned char *)cred_hash, cred_len, cred_b64.bv_val, cred_b64.bv_len);
 
   if (rc < 0) {
     ber_memfree(cred_b64.bv_val);
@@ -194,12 +188,10 @@ static void chk_sha_debug(const struct berval *scheme,
 }
 #endif
 
-static int chk_ssha256(
-    const struct berval *scheme, /* Scheme of hashed reference password */
-    const struct berval
-        *passwd,               /* Hashed reference password to check against */
-    const struct berval *cred, /* user-supplied password to check */
-    const char **text) {
+static int chk_ssha256(const struct berval *scheme, /* Scheme of hashed reference password */
+                       const struct berval *passwd, /* Hashed reference password to check against */
+                       const struct berval *cred,   /* user-supplied password to check */
+                       const char **text) {
   SHA256_CTX SHAcontext;
   unsigned char SHAdigest[SHA256_DIGEST_LENGTH];
   int rc;
@@ -227,9 +219,7 @@ static int chk_ssha256(
   /* hash credentials with salt */
   SHA256_Init(&SHAcontext);
   SHA256_Update(&SHAcontext, (const unsigned char *)cred->bv_val, cred->bv_len);
-  SHA256_Update(&SHAcontext,
-                (const unsigned char *)&orig_pass[sizeof(SHAdigest)],
-                rc - sizeof(SHAdigest));
+  SHA256_Update(&SHAcontext, (const unsigned char *)&orig_pass[sizeof(SHAdigest)], rc - sizeof(SHAdigest));
   SHA256_Final(SHAdigest, &SHAcontext);
 
   /* compare */
@@ -238,12 +228,10 @@ static int chk_ssha256(
   return rc ? LUTIL_PASSWD_ERR : LUTIL_PASSWD_OK;
 }
 
-static int chk_sha256(
-    const struct berval *scheme, /* Scheme of hashed reference password */
-    const struct berval
-        *passwd,               /* Hashed reference password to check against */
-    const struct berval *cred, /* user-supplied password to check */
-    const char **text) {
+static int chk_sha256(const struct berval *scheme, /* Scheme of hashed reference password */
+                      const struct berval *passwd, /* Hashed reference password to check against */
+                      const struct berval *cred,   /* user-supplied password to check */
+                      const char **text) {
   SHA256_CTX SHAcontext;
   unsigned char SHAdigest[SHA256_DIGEST_LENGTH];
   int rc;
@@ -282,12 +270,10 @@ static int chk_sha256(
   return rc ? LUTIL_PASSWD_ERR : LUTIL_PASSWD_OK;
 }
 
-static int chk_ssha384(
-    const struct berval *scheme, /* Scheme of hashed reference password */
-    const struct berval
-        *passwd,               /* Hashed reference password to check against */
-    const struct berval *cred, /* user-supplied password to check */
-    const char **text) {
+static int chk_ssha384(const struct berval *scheme, /* Scheme of hashed reference password */
+                       const struct berval *passwd, /* Hashed reference password to check against */
+                       const struct berval *cred,   /* user-supplied password to check */
+                       const char **text) {
   SHA384_CTX SHAcontext;
   unsigned char SHAdigest[SHA384_DIGEST_LENGTH];
   int rc;
@@ -315,9 +301,7 @@ static int chk_ssha384(
   /* hash credentials with salt */
   SHA384_Init(&SHAcontext);
   SHA384_Update(&SHAcontext, (const unsigned char *)cred->bv_val, cred->bv_len);
-  SHA384_Update(&SHAcontext,
-                (const unsigned char *)&orig_pass[sizeof(SHAdigest)],
-                rc - sizeof(SHAdigest));
+  SHA384_Update(&SHAcontext, (const unsigned char *)&orig_pass[sizeof(SHAdigest)], rc - sizeof(SHAdigest));
   SHA384_Final(SHAdigest, &SHAcontext);
 
   /* compare */
@@ -326,12 +310,10 @@ static int chk_ssha384(
   return rc ? LUTIL_PASSWD_ERR : LUTIL_PASSWD_OK;
 }
 
-static int chk_sha384(
-    const struct berval *scheme, /* Scheme of hashed reference password */
-    const struct berval
-        *passwd,               /* Hashed reference password to check against */
-    const struct berval *cred, /* user-supplied password to check */
-    const char **text) {
+static int chk_sha384(const struct berval *scheme, /* Scheme of hashed reference password */
+                      const struct berval *passwd, /* Hashed reference password to check against */
+                      const struct berval *cred,   /* user-supplied password to check */
+                      const char **text) {
   SHA384_CTX SHAcontext;
   unsigned char SHAdigest[SHA384_DIGEST_LENGTH];
   int rc;
@@ -370,12 +352,10 @@ static int chk_sha384(
   return rc ? LUTIL_PASSWD_ERR : LUTIL_PASSWD_OK;
 }
 
-static int chk_ssha512(
-    const struct berval *scheme, /* Scheme of hashed reference password */
-    const struct berval
-        *passwd,               /* Hashed reference password to check against */
-    const struct berval *cred, /* user-supplied password to check */
-    const char **text) {
+static int chk_ssha512(const struct berval *scheme, /* Scheme of hashed reference password */
+                       const struct berval *passwd, /* Hashed reference password to check against */
+                       const struct berval *cred,   /* user-supplied password to check */
+                       const char **text) {
   SHA512_CTX SHAcontext;
   unsigned char SHAdigest[SHA512_DIGEST_LENGTH];
   int rc;
@@ -403,9 +383,7 @@ static int chk_ssha512(
   /* hash credentials with salt */
   SHA512_Init(&SHAcontext);
   SHA512_Update(&SHAcontext, (const unsigned char *)cred->bv_val, cred->bv_len);
-  SHA512_Update(&SHAcontext,
-                (const unsigned char *)&orig_pass[sizeof(SHAdigest)],
-                rc - sizeof(SHAdigest));
+  SHA512_Update(&SHAcontext, (const unsigned char *)&orig_pass[sizeof(SHAdigest)], rc - sizeof(SHAdigest));
   SHA512_Final(SHAdigest, &SHAcontext);
 
   /* compare */
@@ -414,12 +392,10 @@ static int chk_ssha512(
   return rc ? LUTIL_PASSWD_ERR : LUTIL_PASSWD_OK;
 }
 
-static int chk_sha512(
-    const struct berval *scheme, /* Scheme of hashed reference password */
-    const struct berval
-        *passwd,               /* Hashed reference password to check against */
-    const struct berval *cred, /* user-supplied password to check */
-    const char **text) {
+static int chk_sha512(const struct berval *scheme, /* Scheme of hashed reference password */
+                      const struct berval *passwd, /* Hashed reference password to check against */
+                      const struct berval *cred,   /* user-supplied password to check */
+                      const char **text) {
   SHA512_CTX SHAcontext;
   unsigned char SHAdigest[SHA512_DIGEST_LENGTH];
   int rc;
@@ -467,27 +443,21 @@ const struct berval sha512scheme = BER_BVC("{SHA512}");
 
 SLAP_MODULE_ENTRY(pw_sha2, modinit)(int argc, char *argv[]) {
   int result = 0;
-  result = lutil_passwd_add((struct berval *)&ssha256scheme, chk_ssha256,
-                            hash_ssha256);
+  result = lutil_passwd_add((struct berval *)&ssha256scheme, chk_ssha256, hash_ssha256);
   if (result != 0)
     return result;
-  result =
-      lutil_passwd_add((struct berval *)&sha256scheme, chk_sha256, hash_sha256);
+  result = lutil_passwd_add((struct berval *)&sha256scheme, chk_sha256, hash_sha256);
   if (result != 0)
     return result;
-  result = lutil_passwd_add((struct berval *)&ssha384scheme, chk_ssha384,
-                            hash_ssha384);
+  result = lutil_passwd_add((struct berval *)&ssha384scheme, chk_ssha384, hash_ssha384);
   if (result != 0)
     return result;
-  result =
-      lutil_passwd_add((struct berval *)&sha384scheme, chk_sha384, hash_sha384);
+  result = lutil_passwd_add((struct berval *)&sha384scheme, chk_sha384, hash_sha384);
   if (result != 0)
     return result;
-  result = lutil_passwd_add((struct berval *)&ssha512scheme, chk_ssha512,
-                            hash_ssha512);
+  result = lutil_passwd_add((struct berval *)&ssha512scheme, chk_ssha512, hash_ssha512);
   if (result != 0)
     return result;
-  result =
-      lutil_passwd_add((struct berval *)&sha512scheme, chk_sha512, hash_sha512);
+  result = lutil_passwd_add((struct berval *)&sha512scheme, chk_sha512, hash_sha512);
   return result;
 }

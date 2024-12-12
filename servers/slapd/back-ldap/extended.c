@@ -36,11 +36,9 @@ static ldap_back_exop_f ldap_back_exop_generic;
 static struct exop {
   struct berval oid;
   ldap_back_exop_f *extended;
-} exop_table[] = {{BER_BVC(LDAP_EXOP_MODIFY_PASSWD), ldap_back_exop_passwd},
-                  {BER_BVNULL, NULL}};
+} exop_table[] = {{BER_BVC(LDAP_EXOP_MODIFY_PASSWD), ldap_back_exop_passwd}, {BER_BVNULL, NULL}};
 
-static int ldap_back_extended_one(Operation *op, SlapReply *rs,
-                                  ldap_back_exop_f exop) {
+static int ldap_back_extended_one(Operation *op, SlapReply *rs, ldap_back_exop_f exop) {
   ldapinfo_t *li = (ldapinfo_t *)op->o_bd->be_private;
 
   ldapconn_t *lc = NULL;
@@ -97,8 +95,7 @@ int ldap_back_extended(Operation *op, SlapReply *rs) {
   return ldap_back_extended_one(op, rs, ldap_back_exop_generic);
 }
 
-static int ldap_back_exop_passwd(Operation *op, SlapReply *rs,
-                                 ldapconn_t **lcp) {
+static int ldap_back_exop_passwd(Operation *op, SlapReply *rs, ldapconn_t **lcp) {
   ldapinfo_t *li = (ldapinfo_t *)op->o_bd->be_private;
 
   ldapconn_t *lc = *lcp;
@@ -167,13 +164,11 @@ static int ldap_back_exop_passwd(Operation *op, SlapReply *rs,
 
   isproxy = ber_bvcmp(&ndn, &op->o_ndn);
 
-  Debug(LDAP_DEBUG_ARGS, "==> ldap_back_exop_passwd(\"%s\")%s\n", dn.bv_val,
-        isproxy ? " (proxy)" : "");
+  Debug(LDAP_DEBUG_ARGS, "==> ldap_back_exop_passwd(\"%s\")%s\n", dn.bv_val, isproxy ? " (proxy)" : "");
 
 retry:
-  rc = ldap_passwd(lc->lc_ld, &dn, qpw->rs_old.bv_val ? &qpw->rs_old : NULL,
-                   qpw->rs_new.bv_val ? &qpw->rs_new : NULL, op->o_ctrls, NULL,
-                   &msgid);
+  rc = ldap_passwd(lc->lc_ld, &dn, qpw->rs_old.bv_val ? &qpw->rs_old : NULL, qpw->rs_new.bv_val ? &qpw->rs_new : NULL,
+                   op->o_ctrls, NULL, &msgid);
 
   if (rc == LDAP_SUCCESS) {
     /* TODO: set timeout? */
@@ -192,9 +187,7 @@ retry:
       /* sigh. parse twice, because parse_passwd
        * doesn't give us the err / match / msg info.
        */
-      rc = ldap_parse_result(lc->lc_ld, res, &rs->sr_err,
-                             (char **)&rs->sr_matched, &text, NULL,
-                             &rs->sr_ctrls, 0);
+      rc = ldap_parse_result(lc->lc_ld, res, &rs->sr_err, (char **)&rs->sr_matched, &text, NULL, &rs->sr_ctrls, 0);
 
       if (rc == LDAP_SUCCESS) {
         if (rs->sr_err == LDAP_SUCCESS) {
@@ -278,8 +271,7 @@ retry:
   return rc;
 }
 
-static int ldap_back_exop_generic(Operation *op, SlapReply *rs,
-                                  ldapconn_t **lcp) {
+static int ldap_back_exop_generic(Operation *op, SlapReply *rs, ldapconn_t **lcp) {
   ldapinfo_t *li = (ldapinfo_t *)op->o_bd->be_private;
 
   ldapconn_t *lc = *lcp;
@@ -289,14 +281,12 @@ static int ldap_back_exop_generic(Operation *op, SlapReply *rs,
   int do_retry = 1;
   char *text = NULL;
 
-  Debug(LDAP_DEBUG_ARGS, "==> ldap_back_exop_generic(%s, \"%s\")\n",
-        op->ore_reqoid.bv_val, op->o_req_dn.bv_val);
+  Debug(LDAP_DEBUG_ARGS, "==> ldap_back_exop_generic(%s, \"%s\")\n", op->ore_reqoid.bv_val, op->o_req_dn.bv_val);
   assert(lc != NULL);
   assert(rs->sr_ctrls == NULL);
 
 retry:
-  rc = ldap_extended_operation(lc->lc_ld, op->ore_reqoid.bv_val,
-                               op->ore_reqdata, op->o_ctrls, NULL, &msgid);
+  rc = ldap_extended_operation(lc->lc_ld, op->ore_reqoid.bv_val, op->ore_reqdata, op->o_ctrls, NULL, &msgid);
 
   if (rc == LDAP_SUCCESS) {
     /* TODO: set timeout? */
@@ -315,13 +305,10 @@ retry:
       /* sigh. parse twice, because parse_passwd
        * doesn't give us the err / match / msg info.
        */
-      rc = ldap_parse_result(lc->lc_ld, res, &rs->sr_err,
-                             (char **)&rs->sr_matched, &text, NULL,
-                             &rs->sr_ctrls, 0);
+      rc = ldap_parse_result(lc->lc_ld, res, &rs->sr_err, (char **)&rs->sr_matched, &text, NULL, &rs->sr_ctrls, 0);
       if (rc == LDAP_SUCCESS) {
         if (rs->sr_err == LDAP_SUCCESS) {
-          rc = ldap_parse_extended_result(
-              lc->lc_ld, res, (char **)&rs->sr_rspoid, &rs->sr_rspdata, 0);
+          rc = ldap_parse_extended_result(lc->lc_ld, res, (char **)&rs->sr_rspoid, &rs->sr_rspdata, 0);
           if (rc == LDAP_SUCCESS) {
             rs->sr_type = REP_EXTENDED;
           }

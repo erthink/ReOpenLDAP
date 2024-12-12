@@ -296,8 +296,7 @@ ber_slen_t ber_pvt_sb_do_write(Sockbuf_IO_Desc *sbiod, Sockbuf_Buf *buf_out) {
   assert(to_go > 0);
 
   for (;;) {
-    ret = LBER_SBIOD_WRITE_NEXT(sbiod, buf_out->buf_base + buf_out->buf_ptr,
-                                to_go);
+    ret = LBER_SBIOD_WRITE_NEXT(sbiod, buf_out->buf_base + buf_out->buf_ptr, to_go);
 #ifdef EINTR
     if ((ret < 0) && (errno == EINTR))
       continue;
@@ -426,16 +425,14 @@ ber_slen_t ber_int_sb_write(Sockbuf *sb, void *buf, ber_len_t len) {
  * Support for TCP
  */
 
-static ber_slen_t sb_stream_read(Sockbuf_IO_Desc *sbiod, void *buf,
-                                 ber_len_t len) {
+static ber_slen_t sb_stream_read(Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len) {
   assert(sbiod != NULL);
   assert(SOCKBUF_VALID(sbiod->sbiod_sb));
 
   return read(sbiod->sbiod_sb->sb_fd, buf, len);
 }
 
-static ber_slen_t sb_stream_write(Sockbuf_IO_Desc *sbiod, void *buf,
-                                  ber_len_t len) {
+static ber_slen_t sb_stream_write(Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len) {
   assert(sbiod != NULL);
   assert(SOCKBUF_VALID(sbiod->sbiod_sb));
 
@@ -448,8 +445,7 @@ static int sb_stream_close(Sockbuf_IO_Desc *sbiod) {
   if (sbiod->sbiod_sb->sb_fd != AC_SOCKET_INVALID) {
     ber_socket_t fd = sbiod->sbiod_sb->sb_fd;
     sbiod->sbiod_sb->sb_fd = AC_SOCKET_INVALID;
-    ber_pvt_log_printf(LDAP_DEBUG_CONNS, sbiod->sbiod_sb->sb_debug,
-                       "libreldap: closing stream-socket %d\n", fd);
+    ber_pvt_log_printf(LDAP_DEBUG_CONNS, sbiod->sbiod_sb->sb_debug, "libreldap: closing stream-socket %d\n", fd);
     tcp_close(fd);
   }
   return 0;
@@ -521,8 +517,7 @@ static int sb_rdahead_remove(Sockbuf_IO_Desc *sbiod) {
   return 0;
 }
 
-static ber_slen_t sb_rdahead_read(Sockbuf_IO_Desc *sbiod, void *buf,
-                                  ber_len_t len) {
+static ber_slen_t sb_rdahead_read(Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len) {
   Sockbuf_Buf *p;
   ber_slen_t bufptr = 0, ret, max;
 
@@ -562,8 +557,7 @@ static ber_slen_t sb_rdahead_read(Sockbuf_IO_Desc *sbiod, void *buf,
   return bufptr;
 }
 
-static ber_slen_t sb_rdahead_write(Sockbuf_IO_Desc *sbiod, void *buf,
-                                   ber_len_t len) {
+static ber_slen_t sb_rdahead_write(Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len) {
   assert(sbiod != NULL);
   assert(sbiod->sbiod_next != NULL);
 
@@ -625,8 +619,7 @@ static ber_slen_t sb_fd_read(Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len) {
     len -= blen;
     sbiod->sbiod_sb->sb_ungetlen -= blen;
     if (sbiod->sbiod_sb->sb_ungetlen) {
-      memcpy(sbiod->sbiod_sb->sb_ungetbuf, sbiod->sbiod_sb->sb_ungetbuf + blen,
-             sbiod->sbiod_sb->sb_ungetlen);
+      memcpy(sbiod->sbiod_sb->sb_ungetbuf, sbiod->sbiod_sb->sb_ungetbuf + blen, sbiod->sbiod_sb->sb_ungetlen);
     }
     if (len == 0)
       return blen;
@@ -635,8 +628,7 @@ static ber_slen_t sb_fd_read(Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len) {
   return read(sbiod->sbiod_sb->sb_fd, buf, len);
 }
 
-static ber_slen_t sb_fd_write(Sockbuf_IO_Desc *sbiod, void *buf,
-                              ber_len_t len) {
+static ber_slen_t sb_fd_write(Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len) {
   assert(sbiod != NULL);
   assert(SOCKBUF_VALID(sbiod->sbiod_sb));
 
@@ -702,12 +694,9 @@ static int sb_debug_remove(Sockbuf_IO_Desc *sbiod) {
   return 0;
 }
 
-static int sb_debug_ctrl(Sockbuf_IO_Desc *sbiod, int opt, void *arg) {
-  return LBER_SBIOD_CTRL_NEXT(sbiod, opt, arg);
-}
+static int sb_debug_ctrl(Sockbuf_IO_Desc *sbiod, int opt, void *arg) { return LBER_SBIOD_CTRL_NEXT(sbiod, opt, arg); }
 
-static ber_slen_t sb_debug_read(Sockbuf_IO_Desc *sbiod, void *buf,
-                                ber_len_t len) {
+static ber_slen_t sb_debug_read(Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len) {
   ber_slen_t ret;
   char ebuf[128];
 
@@ -715,23 +704,19 @@ static ber_slen_t sb_debug_read(Sockbuf_IO_Desc *sbiod, void *buf,
   if (sbiod->sbiod_sb->sb_debug & LDAP_DEBUG_PACKETS) {
     int err = sock_errno();
     if (ret < 0) {
-      ber_log_printf(LDAP_DEBUG_PACKETS, sbiod->sbiod_sb->sb_debug,
-                     "%sread: want=%ld error=%s\n", (char *)sbiod->sbiod_pvt,
-                     (long)len, AC_STRERROR_R(err, ebuf, sizeof ebuf));
+      ber_log_printf(LDAP_DEBUG_PACKETS, sbiod->sbiod_sb->sb_debug, "%sread: want=%ld error=%s\n",
+                     (char *)sbiod->sbiod_pvt, (long)len, AC_STRERROR_R(err, ebuf, sizeof ebuf));
     } else {
-      ber_log_printf(LDAP_DEBUG_PACKETS, sbiod->sbiod_sb->sb_debug,
-                     "%sread: want=%ld, got=%ld\n", (char *)sbiod->sbiod_pvt,
-                     (long)len, (long)ret);
-      ber_log_bprint(LDAP_DEBUG_PACKETS, sbiod->sbiod_sb->sb_debug,
-                     (const char *)buf, ret);
+      ber_log_printf(LDAP_DEBUG_PACKETS, sbiod->sbiod_sb->sb_debug, "%sread: want=%ld, got=%ld\n",
+                     (char *)sbiod->sbiod_pvt, (long)len, (long)ret);
+      ber_log_bprint(LDAP_DEBUG_PACKETS, sbiod->sbiod_sb->sb_debug, (const char *)buf, ret);
     }
     sock_errset(err);
   }
   return ret;
 }
 
-static ber_slen_t sb_debug_write(Sockbuf_IO_Desc *sbiod, void *buf,
-                                 ber_len_t len) {
+static ber_slen_t sb_debug_write(Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len) {
   ber_slen_t ret;
   char ebuf[128];
 
@@ -739,15 +724,12 @@ static ber_slen_t sb_debug_write(Sockbuf_IO_Desc *sbiod, void *buf,
   if (sbiod->sbiod_sb->sb_debug & LDAP_DEBUG_PACKETS) {
     int err = sock_errno();
     if (ret < 0) {
-      ber_log_printf(LDAP_DEBUG_PACKETS, sbiod->sbiod_sb->sb_debug,
-                     "%swrite: want=%ld error=%s\n", (char *)sbiod->sbiod_pvt,
-                     (long)len, AC_STRERROR_R(err, ebuf, sizeof ebuf));
+      ber_log_printf(LDAP_DEBUG_PACKETS, sbiod->sbiod_sb->sb_debug, "%swrite: want=%ld error=%s\n",
+                     (char *)sbiod->sbiod_pvt, (long)len, AC_STRERROR_R(err, ebuf, sizeof ebuf));
     } else {
-      ber_log_printf(LDAP_DEBUG_PACKETS, sbiod->sbiod_sb->sb_debug,
-                     "%swrite: want=%ld, written=%ld\n",
+      ber_log_printf(LDAP_DEBUG_PACKETS, sbiod->sbiod_sb->sb_debug, "%swrite: want=%ld, written=%ld\n",
                      (char *)sbiod->sbiod_pvt, (long)len, (long)ret);
-      ber_log_bprint(LDAP_DEBUG_PACKETS, sbiod->sbiod_sb->sb_debug,
-                     (const char *)buf, ret);
+      ber_log_bprint(LDAP_DEBUG_PACKETS, sbiod->sbiod_sb->sb_debug, (const char *)buf, ret);
     }
     sock_errset(err);
   }
@@ -785,8 +767,7 @@ static int sb_dgram_setup(Sockbuf_IO_Desc *sbiod, void *arg) {
   return 0;
 }
 
-static ber_slen_t sb_dgram_read(Sockbuf_IO_Desc *sbiod, void *buf,
-                                ber_len_t len) {
+static ber_slen_t sb_dgram_read(Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len) {
   ber_slen_t rc;
   ber_socklen_t addrlen;
   struct sockaddr *src;
@@ -804,8 +785,7 @@ static ber_slen_t sb_dgram_read(Sockbuf_IO_Desc *sbiod, void *buf,
   return rc > 0 ? rc + sizeof(struct sockaddr_storage) : rc;
 }
 
-static ber_slen_t sb_dgram_write(Sockbuf_IO_Desc *sbiod, void *buf,
-                                 ber_len_t len) {
+static ber_slen_t sb_dgram_write(Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len) {
   ber_slen_t rc;
   struct sockaddr *dst;
   socklen_t dstsize;
@@ -845,8 +825,7 @@ static int sb_dgram_close(Sockbuf_IO_Desc *sbiod) {
   if (sbiod->sbiod_sb->sb_fd != AC_SOCKET_INVALID) {
     ber_socket_t fd = sbiod->sbiod_sb->sb_fd;
     sbiod->sbiod_sb->sb_fd = AC_SOCKET_INVALID;
-    ber_pvt_log_printf(LDAP_DEBUG_CONNS, sbiod->sbiod_sb->sb_debug,
-                       "libreldap: closing dgram-socket %d\n", fd);
+    ber_pvt_log_printf(LDAP_DEBUG_CONNS, sbiod->sbiod_sb->sb_debug, "libreldap: closing dgram-socket %d\n", fd);
     tcp_close(fd);
   }
   return 0;

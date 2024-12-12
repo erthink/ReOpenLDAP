@@ -28,17 +28,13 @@
 const Filter *slap_filter_objectClass_pres;
 const struct berval *slap_filterstr_objectClass_pres;
 
-static int get_filter_list(Operation *op, BerElement *ber, Filter **f,
-                           const char **text);
+static int get_filter_list(Operation *op, BerElement *ber, Filter **f, const char **text);
 
-static int get_ssa(Operation *op, BerElement *ber, Filter *f,
-                   const char **text);
+static int get_ssa(Operation *op, BerElement *ber, Filter *f, const char **text);
 
-static void simple_vrFilter2bv(Operation *op, ValuesReturnFilter *f,
-                               struct berval *fstr);
+static void simple_vrFilter2bv(Operation *op, ValuesReturnFilter *f, struct berval *fstr);
 
-static int get_simple_vrFilter(Operation *op, BerElement *ber,
-                               ValuesReturnFilter **f, const char **text);
+static int get_simple_vrFilter(Operation *op, BerElement *ber, ValuesReturnFilter **f, const char **text);
 
 int filter_init(void) {
   static Filter filter_objectClass_pres = {LDAP_FILTER_PRESENT};
@@ -54,8 +50,7 @@ int filter_init(void) {
 
 void filter_destroy(void) { return; }
 
-int get_filter(Operation *op, BerElement *ber, Filter **filt,
-               const char **text) {
+int get_filter(Operation *op, BerElement *ber, Filter **filt, const char **text) {
   ber_tag_t tag;
   ber_len_t len;
   int err;
@@ -164,8 +159,7 @@ int get_filter(Operation *op, BerElement *ber, Filter **filt,
     if (err == LDAP_UNDEFINED_TYPE) {
       /* allow undefined attrs to be "proxied" (ITS#3959) */
       f.f_choice |= SLAPD_FILTER_UNDEFINED;
-      err = slap_bv2undef_ad(&type, &f.f_desc, text,
-                             SLAP_AD_PROXIED | SLAP_AD_NOINSERT);
+      err = slap_bv2undef_ad(&type, &f.f_desc, text, SLAP_AD_PROXIED | SLAP_AD_NOINSERT);
     }
 
     if (err != LDAP_SUCCESS) {
@@ -180,9 +174,8 @@ int get_filter(Operation *op, BerElement *ber, Filter **filt,
       }
 
       /* unrecognized attribute description or other error */
-      Debug(LDAP_DEBUG_ANY,
-            "get_filter: conn %lu unknown attribute type=%s (%s, %d)\n",
-            op->o_connid, type.bv_val, *text, err);
+      Debug(LDAP_DEBUG_ANY, "get_filter: conn %lu unknown attribute type=%s (%s, %d)\n", op->o_connid, type.bv_val,
+            *text, err);
 
       f.f_desc = slap_bv2tmp_ad(&type, op->o_tmpmemctx);
       *text = NULL;
@@ -292,8 +285,7 @@ int get_filter(Operation *op, BerElement *ber, Filter **filt,
   return (err);
 }
 
-static int get_filter_list(Operation *op, BerElement *ber, Filter **f,
-                           const char **text) {
+static int get_filter_list(Operation *op, BerElement *ber, Filter **f, const char **text) {
   Filter **new;
   int err;
   ber_tag_t tag;
@@ -302,8 +294,7 @@ static int get_filter_list(Operation *op, BerElement *ber, Filter **f,
 
   Debug(LDAP_DEBUG_FILTER, "begin get_filter_list\n");
   new = f;
-  for (tag = ber_first_element(ber, &len, &last); tag != LBER_DEFAULT;
-       tag = ber_next_element(ber, &len, last)) {
+  for (tag = ber_first_element(ber, &len, &last); tag != LBER_DEFAULT; tag = ber_next_element(ber, &len, last)) {
     err = get_filter(op, ber, new, text);
     if (err != LDAP_SUCCESS)
       return (err);
@@ -315,8 +306,7 @@ static int get_filter_list(Operation *op, BerElement *ber, Filter **f,
   return (LDAP_SUCCESS);
 }
 
-static int get_ssa(Operation *op, BerElement *ber, Filter *f,
-                   const char **text) {
+static int get_ssa(Operation *op, BerElement *ber, Filter *f, const char **text) {
   ber_tag_t tag;
   ber_len_t len;
   int rc;
@@ -340,23 +330,20 @@ static int get_ssa(Operation *op, BerElement *ber, Filter *f,
   if (rc == LDAP_UNDEFINED_TYPE) {
     /* allow undefined attrs to be "proxied" (ITS#3959) */
     f->f_choice |= SLAPD_FILTER_UNDEFINED;
-    rc = slap_bv2undef_ad(&desc, &ssa.sa_desc, text,
-                          SLAP_AD_PROXIED | SLAP_AD_NOINSERT);
+    rc = slap_bv2undef_ad(&desc, &ssa.sa_desc, text, SLAP_AD_PROXIED | SLAP_AD_NOINSERT);
   }
 
   if (rc != LDAP_SUCCESS) {
     if (rc != LDAP_UNDEFINED_TYPE) {
       /* syntax or other syntax-related error */
-      Debug(LDAP_DEBUG_FILTER,
-            "get_ssa: conn %lu invalid filter-preset attribute %s (%s, %d)\n",
-            op->o_connid, desc.bv_val, *text, rc);
+      Debug(LDAP_DEBUG_FILTER, "get_ssa: conn %lu invalid filter-preset attribute %s (%s, %d)\n", op->o_connid,
+            desc.bv_val, *text, rc);
       assert(*text != NULL);
       return rc;
     }
 
-    Debug(LDAP_DEBUG_ANY,
-          "get_ssa: conn %lu unknown attribute type=%s (%s, %d)\n",
-          op->o_connid, desc.bv_val, *text, rc);
+    Debug(LDAP_DEBUG_ANY, "get_ssa: conn %lu unknown attribute type=%s (%s, %d)\n", op->o_connid, desc.bv_val, *text,
+          rc);
 
     ssa.sa_desc = slap_bv2tmp_ad(&desc, op->o_tmpmemctx);
   }
@@ -369,13 +356,10 @@ static int get_ssa(Operation *op, BerElement *ber, Filter *f,
    */
   if (ssa.sa_desc->ad_type->sat_substr == NULL) {
     f->f_choice |= SLAPD_FILTER_UNDEFINED;
-    Debug(LDAP_DEBUG_FILTER,
-          "get_ssa: no substring matching rule for attributeType %s\n",
-          desc.bv_val);
+    Debug(LDAP_DEBUG_FILTER, "get_ssa: no substring matching rule for attributeType %s\n", desc.bv_val);
   }
 
-  for (tag = ber_first_element(ber, &len, &last); tag != LBER_DEFAULT;
-       tag = ber_next_element(ber, &len, last)) {
+  for (tag = ber_first_element(ber, &len, &last); tag != LBER_DEFAULT; tag = ber_next_element(ber, &len, last)) {
     unsigned usage;
 
     if (ber_scanf(ber, "m", &value) == LBER_ERROR) {
@@ -390,8 +374,7 @@ static int get_ssa(Operation *op, BerElement *ber, Filter *f,
 
     switch (tag) {
     case LDAP_SUBSTRING_INITIAL:
-      if (ssa.sa_initial.bv_val != NULL || ssa.sa_any != NULL ||
-          ssa.sa_final.bv_val != NULL) {
+      if (ssa.sa_initial.bv_val != NULL || ssa.sa_any != NULL || ssa.sa_final.bv_val != NULL) {
         rc = LDAP_PROTOCOL_ERROR;
         goto return_error;
       }
@@ -423,14 +406,11 @@ static int get_ssa(Operation *op, BerElement *ber, Filter *f,
     }
 
     /* validate/normalize using equality matching rule validator! */
-    rc = asserted_value_validate_normalize(
-        ssa.sa_desc, ssa.sa_desc->ad_type->sat_equality, usage, &value, &nvalue,
-        text, op->o_tmpmemctx);
+    rc = asserted_value_validate_normalize(ssa.sa_desc, ssa.sa_desc->ad_type->sat_equality, usage, &value, &nvalue,
+                                           text, op->o_tmpmemctx);
     if (rc != LDAP_SUCCESS) {
       f->f_choice |= SLAPD_FILTER_UNDEFINED;
-      Debug(LDAP_DEBUG_FILTER,
-            "get_ssa: illegal value for attributeType %s (%d) %s\n",
-            desc.bv_val, rc, *text);
+      Debug(LDAP_DEBUG_FILTER, "get_ssa: illegal value for attributeType %s (%d) %s\n", desc.bv_val, rc, *text);
       ber_dupbv_x(&nvalue, &value, op->o_tmpmemctx);
     }
 
@@ -530,8 +510,7 @@ void filter_free_x(Operation *op, Filter *f, int freeme) {
     break;
 
   default:
-    Debug(LDAP_DEBUG_ANY, "filter_free: unknown filter type=%lu\n",
-          f->f_choice);
+    Debug(LDAP_DEBUG_ANY, "filter_free: unknown filter type=%lu\n", f->f_choice);
     break;
   }
 
@@ -550,21 +529,15 @@ void filter_free(Filter *f) {
   filter_free_x(&op, f, 1);
 }
 
-void filter2bv_x(Operation *op, Filter *f, struct berval *fstr) {
-  filter2bv_undef_x(op, f, 0, fstr);
-}
+void filter2bv_x(Operation *op, Filter *f, struct berval *fstr) { filter2bv_undef_x(op, f, 0, fstr); }
 
-void filter2bv_undef_x(Operation *op, Filter *f, int noundef,
-                       struct berval *fstr) {
+void filter2bv_undef_x(Operation *op, Filter *f, int noundef, struct berval *fstr) {
   int i;
   Filter *p;
   struct berval tmp, value;
-  static struct berval ber_bvfalse = BER_BVC("(?=false)"),
-                       ber_bvtrue = BER_BVC("(?=true)"),
-                       ber_bvundefined = BER_BVC("(?=undefined)"),
-                       ber_bverror = BER_BVC("(?=error)"),
-                       ber_bvunknown = BER_BVC("(?=unknown)"),
-                       ber_bvnone = BER_BVC("(?=none)"),
+  static struct berval ber_bvfalse = BER_BVC("(?=false)"), ber_bvtrue = BER_BVC("(?=true)"),
+                       ber_bvundefined = BER_BVC("(?=undefined)"), ber_bverror = BER_BVC("(?=error)"),
+                       ber_bvunknown = BER_BVC("(?=unknown)"), ber_bvnone = BER_BVC("(?=none)"),
                        ber_bvF = BER_BVC("(|)"), ber_bvT = BER_BVC("(&)");
   ber_len_t len;
   ber_tag_t choice;
@@ -600,11 +573,9 @@ void filter2bv_undef_x(Operation *op, Filter *f, int noundef,
   simple:
     value = f->f_av_value;
     if (f->f_av_desc->ad_type->sat_equality && !undef &&
-        (f->f_av_desc->ad_type->sat_equality->smr_usage &
-         SLAP_MR_MUTATION_NORMALIZER)) {
-      f->f_av_desc->ad_type->sat_equality->smr_normalize(
-          (SLAP_MR_DENORMALIZE | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX), NULL, NULL,
-          &f->f_av_value, &value, op->o_tmpmemctx);
+        (f->f_av_desc->ad_type->sat_equality->smr_usage & SLAP_MR_MUTATION_NORMALIZER)) {
+      f->f_av_desc->ad_type->sat_equality->smr_normalize((SLAP_MR_DENORMALIZE | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX),
+                                                         NULL, NULL, &f->f_av_value, &value, op->o_tmpmemctx);
     }
 
     filter_escape_value_x(&value, &tmp, op->o_tmpmemctx);
@@ -618,8 +589,8 @@ void filter2bv_undef_x(Operation *op, Filter *f, int noundef,
       fstr->bv_len++;
     fstr->bv_val = op->o_tmpalloc(fstr->bv_len + 1, op->o_tmpmemctx);
 
-    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s%s%s%s)", undef2 ? "?" : "",
-             f->f_av_desc->ad_cname.bv_val, sign, tmp.bv_len ? tmp.bv_val : "");
+    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s%s%s%s)", undef2 ? "?" : "", f->f_av_desc->ad_cname.bv_val, sign,
+             tmp.bv_len ? tmp.bv_val : "");
 
     if (value.bv_val != f->f_av_value.bv_val) {
       ber_memfree_x(value.bv_val, op->o_tmpmemctx);
@@ -634,8 +605,7 @@ void filter2bv_undef_x(Operation *op, Filter *f, int noundef,
       fstr->bv_len++;
     fstr->bv_val = op->o_tmpalloc(fstr->bv_len + 128, op->o_tmpmemctx);
 
-    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s%s=*)", undef2 ? "?" : "",
-             f->f_sub_desc->ad_cname.bv_val);
+    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s%s=*)", undef2 ? "?" : "", f->f_sub_desc->ad_cname.bv_val);
 
     if (f->f_sub_initial.bv_val != NULL) {
       ber_len_t tmplen;
@@ -646,8 +616,7 @@ void filter2bv_undef_x(Operation *op, Filter *f, int noundef,
       tmplen = tmp.bv_len;
 
       fstr->bv_len += tmplen;
-      fstr->bv_val =
-          op->o_tmprealloc(fstr->bv_val, fstr->bv_len + 1, op->o_tmpmemctx);
+      fstr->bv_val = op->o_tmprealloc(fstr->bv_val, fstr->bv_len + 1, op->o_tmpmemctx);
 
       snprintf(&fstr->bv_val[len - 2], tmplen + STRLENOF(/*(*/ "*)") + 1,
                /* "(attr=" */ "%s*)", tmp.bv_len ? tmp.bv_val : "");
@@ -664,12 +633,10 @@ void filter2bv_undef_x(Operation *op, Filter *f, int noundef,
         tmplen = tmp.bv_len;
 
         fstr->bv_len += tmplen + STRLENOF(/*(*/ ")");
-        fstr->bv_val =
-            op->o_tmprealloc(fstr->bv_val, fstr->bv_len + 1, op->o_tmpmemctx);
+        fstr->bv_val = op->o_tmprealloc(fstr->bv_val, fstr->bv_len + 1, op->o_tmpmemctx);
 
         snprintf(&fstr->bv_val[len - 1], tmplen + STRLENOF(/*(*/ "*)") + 1,
-                 /* "(attr=[init]*[any*]" */ "%s*)",
-                 tmp.bv_len ? tmp.bv_val : "");
+                 /* "(attr=[init]*[any*]" */ "%s*)", tmp.bv_len ? tmp.bv_val : "");
         ber_memfree_x(tmp.bv_val, op->o_tmpmemctx);
       }
     }
@@ -683,8 +650,7 @@ void filter2bv_undef_x(Operation *op, Filter *f, int noundef,
       tmplen = tmp.bv_len;
 
       fstr->bv_len += tmplen;
-      fstr->bv_val =
-          op->o_tmprealloc(fstr->bv_val, fstr->bv_len + 1, op->o_tmpmemctx);
+      fstr->bv_val = op->o_tmprealloc(fstr->bv_val, fstr->bv_len + 1, op->o_tmpmemctx);
 
       snprintf(&fstr->bv_val[len - 1], tmplen + STRLENOF(/*(*/ ")") + 1,
                /* "(attr=[init*][any*]" */ "%s)", tmp.bv_len ? tmp.bv_val : "");
@@ -701,8 +667,7 @@ void filter2bv_undef_x(Operation *op, Filter *f, int noundef,
 
     fstr->bv_val = op->o_tmpalloc(fstr->bv_len + 1, op->o_tmpmemctx);
 
-    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s%s=*)", undef2 ? "?" : "",
-             f->f_desc->ad_cname.bv_val);
+    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s%s=*)", undef2 ? "?" : "", f->f_desc->ad_cname.bv_val);
     break;
 
   case LDAP_FILTER_AND:
@@ -722,8 +687,7 @@ void filter2bv_undef_x(Operation *op, Filter *f, int noundef,
       filter2bv_undef_x(op, p, noundef, &tmp);
 
       fstr->bv_len += tmp.bv_len;
-      fstr->bv_val =
-          op->o_tmprealloc(fstr->bv_val, fstr->bv_len + 1, op->o_tmpmemctx);
+      fstr->bv_val = op->o_tmprealloc(fstr->bv_val, fstr->bv_len + 1, op->o_tmpmemctx);
 
       snprintf(&fstr->bv_val[len - 1], tmp.bv_len + STRLENOF(/*(*/ ")") + 1,
                /*"("*/ "%s)", tmp.bv_val);
@@ -749,18 +713,14 @@ void filter2bv_undef_x(Operation *op, Filter *f, int noundef,
       ad.bv_val = "";
     }
 
-    fstr->bv_len =
-        ad.bv_len + (undef2 ? 1 : 0) + (f->f_mr_dnattrs ? STRLENOF(":dn") : 0) +
-        (f->f_mr_rule_text.bv_len ? f->f_mr_rule_text.bv_len + STRLENOF(":")
-                                  : 0) +
-        tmp.bv_len + STRLENOF("(:=)");
+    fstr->bv_len = ad.bv_len + (undef2 ? 1 : 0) + (f->f_mr_dnattrs ? STRLENOF(":dn") : 0) +
+                   (f->f_mr_rule_text.bv_len ? f->f_mr_rule_text.bv_len + STRLENOF(":") : 0) + tmp.bv_len +
+                   STRLENOF("(:=)");
     fstr->bv_val = op->o_tmpalloc(fstr->bv_len + 1, op->o_tmpmemctx);
 
-    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s%s%s%s%s:=%s)",
-             undef2 ? "?" : "", ad.bv_val, f->f_mr_dnattrs ? ":dn" : "",
-             f->f_mr_rule_text.bv_len ? ":" : "",
-             f->f_mr_rule_text.bv_len ? f->f_mr_rule_text.bv_val : "",
-             tmp.bv_len ? tmp.bv_val : "");
+    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s%s%s%s%s:=%s)", undef2 ? "?" : "", ad.bv_val,
+             f->f_mr_dnattrs ? ":dn" : "", f->f_mr_rule_text.bv_len ? ":" : "",
+             f->f_mr_rule_text.bv_len ? f->f_mr_rule_text.bv_val : "", tmp.bv_len ? tmp.bv_val : "");
     ber_memfree_x(tmp.bv_val, op->o_tmpmemctx);
   } break;
 
@@ -871,8 +831,7 @@ Filter *filter_dup(Filter *f, void *memctx) {
     ber_dupbv_x(&n->f_mr_value, &f->f_mr_value, memctx);
     if (!BER_BVISNULL(&f->f_mr_rule_text)) {
       n->f_mr_rule_text.bv_val = (char *)(n->f_mra + 1);
-      memcpy(n->f_mr_rule_text.bv_val, f->f_mr_rule_text.bv_val,
-             f->f_mr_rule_text.bv_len);
+      memcpy(n->f_mr_rule_text.bv_val, f->f_mr_rule_text.bv_val, f->f_mr_rule_text.bv_len);
     }
   } break;
   case LDAP_FILTER_AND:
@@ -888,8 +847,7 @@ Filter *filter_dup(Filter *f, void *memctx) {
   return n;
 }
 
-static int get_simple_vrFilter(Operation *op, BerElement *ber,
-                               ValuesReturnFilter **filt, const char **text) {
+static int get_simple_vrFilter(Operation *op, BerElement *ber, ValuesReturnFilter **filt, const char **text) {
   ber_tag_t tag;
   ber_len_t len;
   int err;
@@ -994,8 +952,7 @@ static int get_simple_vrFilter(Operation *op, BerElement *ber,
 
   default:
     (void)ber_scanf(ber, "x"); /* skip the element */
-    Debug(LDAP_DEBUG_ANY, "get_simple_vrFilter: unknown filter type=%lu\n",
-          vrf.vrf_choice);
+    Debug(LDAP_DEBUG_ANY, "get_simple_vrFilter: unknown filter type=%lu\n", vrf.vrf_choice);
     vrf.vrf_choice = SLAPD_FILTER_COMPUTED;
     vrf.vrf_result = SLAPD_COMPARE_UNDEFINED;
     break;
@@ -1018,8 +975,7 @@ static int get_simple_vrFilter(Operation *op, BerElement *ber,
   return err;
 }
 
-int get_vrFilter(Operation *op, BerElement *ber, ValuesReturnFilter **vrf,
-                 const char **text) {
+int get_vrFilter(Operation *op, BerElement *ber, ValuesReturnFilter **vrf, const char **text) {
   /*
    * A ValuesReturnFilter looks like this:
    *
@@ -1069,8 +1025,7 @@ int get_vrFilter(Operation *op, BerElement *ber, ValuesReturnFilter **vrf,
   }
 
   n = vrf;
-  for (tag = ber_first_element(ber, &len, &last); tag != LBER_DEFAULT;
-       tag = ber_next_element(ber, &len, last)) {
+  for (tag = ber_first_element(ber, &len, &last); tag != LBER_DEFAULT; tag = ber_next_element(ber, &len, last)) {
     int err = get_simple_vrFilter(op, ber, n, text);
 
     if (err != LDAP_SUCCESS)
@@ -1120,8 +1075,7 @@ void vrFilter_free(Operation *op, ValuesReturnFilter *vrf) {
       break;
 
     default:
-      Debug(LDAP_DEBUG_ANY, "filter_free: unknown filter type=%lu\n",
-            vrf->vrf_choice);
+      Debug(LDAP_DEBUG_ANY, "filter_free: unknown filter type=%lu\n", vrf->vrf_choice);
       break;
     }
 
@@ -1135,8 +1089,7 @@ void vrFilter2bv(Operation *op, ValuesReturnFilter *vrf, struct berval *fstr) {
   ber_len_t len;
 
   if (vrf == NULL) {
-    ber_str2bv_x("No filter!", STRLENOF("No filter!"), 1, fstr,
-                 op->o_tmpmemctx);
+    ber_str2bv_x("No filter!", STRLENOF("No filter!"), 1, fstr, op->o_tmpmemctx);
     return;
   }
 
@@ -1151,8 +1104,7 @@ void vrFilter2bv(Operation *op, ValuesReturnFilter *vrf, struct berval *fstr) {
     simple_vrFilter2bv(op, p, &tmp);
 
     fstr->bv_len += tmp.bv_len;
-    fstr->bv_val =
-        op->o_tmprealloc(fstr->bv_val, fstr->bv_len + 1, op->o_tmpmemctx);
+    fstr->bv_val = op->o_tmprealloc(fstr->bv_val, fstr->bv_len + 1, op->o_tmpmemctx);
 
     snprintf(&fstr->bv_val[len - 1], tmp.bv_len + 2,
              /*"("*/ "%s)", tmp.bv_val);
@@ -1161,15 +1113,13 @@ void vrFilter2bv(Operation *op, ValuesReturnFilter *vrf, struct berval *fstr) {
   }
 }
 
-static void simple_vrFilter2bv(Operation *op, ValuesReturnFilter *vrf,
-                               struct berval *fstr) {
+static void simple_vrFilter2bv(Operation *op, ValuesReturnFilter *vrf, struct berval *fstr) {
   struct berval tmp;
   ber_len_t len;
   int undef;
 
   if (vrf == NULL) {
-    ber_str2bv_x("No filter!", STRLENOF("No filter!"), 1, fstr,
-                 op->o_tmpmemctx);
+    ber_str2bv_x("No filter!", STRLENOF("No filter!"), 1, fstr, op->o_tmpmemctx);
     return;
   }
   undef = vrf->vrf_choice & SLAPD_FILTER_UNDEFINED;
@@ -1178,14 +1128,12 @@ static void simple_vrFilter2bv(Operation *op, ValuesReturnFilter *vrf,
   case LDAP_FILTER_EQUALITY:
     filter_escape_value_x(&vrf->vrf_av_value, &tmp, op->o_tmpmemctx);
 
-    fstr->bv_len =
-        vrf->vrf_av_desc->ad_cname.bv_len + tmp.bv_len + STRLENOF("(=)");
+    fstr->bv_len = vrf->vrf_av_desc->ad_cname.bv_len + tmp.bv_len + STRLENOF("(=)");
     if (undef)
       fstr->bv_len++;
     fstr->bv_val = op->o_tmpalloc(fstr->bv_len + 1, op->o_tmpmemctx);
 
-    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s=%s)",
-             vrf->vrf_av_desc->ad_cname.bv_val, tmp.bv_val);
+    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s=%s)", vrf->vrf_av_desc->ad_cname.bv_val, tmp.bv_val);
 
     ber_memfree_x(tmp.bv_val, op->o_tmpmemctx);
     break;
@@ -1193,14 +1141,12 @@ static void simple_vrFilter2bv(Operation *op, ValuesReturnFilter *vrf,
   case LDAP_FILTER_GE:
     filter_escape_value_x(&vrf->vrf_av_value, &tmp, op->o_tmpmemctx);
 
-    fstr->bv_len =
-        vrf->vrf_av_desc->ad_cname.bv_len + tmp.bv_len + STRLENOF("(>=)");
+    fstr->bv_len = vrf->vrf_av_desc->ad_cname.bv_len + tmp.bv_len + STRLENOF("(>=)");
     if (undef)
       fstr->bv_len++;
     fstr->bv_val = op->o_tmpalloc(fstr->bv_len + 1, op->o_tmpmemctx);
 
-    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s>=%s)",
-             vrf->vrf_av_desc->ad_cname.bv_val, tmp.bv_val);
+    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s>=%s)", vrf->vrf_av_desc->ad_cname.bv_val, tmp.bv_val);
 
     ber_memfree_x(tmp.bv_val, op->o_tmpmemctx);
     break;
@@ -1208,14 +1154,12 @@ static void simple_vrFilter2bv(Operation *op, ValuesReturnFilter *vrf,
   case LDAP_FILTER_LE:
     filter_escape_value_x(&vrf->vrf_av_value, &tmp, op->o_tmpmemctx);
 
-    fstr->bv_len =
-        vrf->vrf_av_desc->ad_cname.bv_len + tmp.bv_len + STRLENOF("(<=)");
+    fstr->bv_len = vrf->vrf_av_desc->ad_cname.bv_len + tmp.bv_len + STRLENOF("(<=)");
     if (undef)
       fstr->bv_len++;
     fstr->bv_val = op->o_tmpalloc(fstr->bv_len + 1, op->o_tmpmemctx);
 
-    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s<=%s)",
-             vrf->vrf_av_desc->ad_cname.bv_val, tmp.bv_val);
+    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s<=%s)", vrf->vrf_av_desc->ad_cname.bv_val, tmp.bv_val);
 
     ber_memfree_x(tmp.bv_val, op->o_tmpmemctx);
     break;
@@ -1223,14 +1167,12 @@ static void simple_vrFilter2bv(Operation *op, ValuesReturnFilter *vrf,
   case LDAP_FILTER_APPROX:
     filter_escape_value_x(&vrf->vrf_av_value, &tmp, op->o_tmpmemctx);
 
-    fstr->bv_len =
-        vrf->vrf_av_desc->ad_cname.bv_len + tmp.bv_len + STRLENOF("(~=)");
+    fstr->bv_len = vrf->vrf_av_desc->ad_cname.bv_len + tmp.bv_len + STRLENOF("(~=)");
     if (undef)
       fstr->bv_len++;
     fstr->bv_val = op->o_tmpalloc(fstr->bv_len + 1, op->o_tmpmemctx);
 
-    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s~=%s)",
-             vrf->vrf_av_desc->ad_cname.bv_val, tmp.bv_val);
+    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s~=%s)", vrf->vrf_av_desc->ad_cname.bv_val, tmp.bv_val);
     ber_memfree_x(tmp.bv_val, op->o_tmpmemctx);
     break;
 
@@ -1240,8 +1182,7 @@ static void simple_vrFilter2bv(Operation *op, ValuesReturnFilter *vrf,
       fstr->bv_len++;
     fstr->bv_val = op->o_tmpalloc(fstr->bv_len + 128, op->o_tmpmemctx);
 
-    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s=*)",
-             vrf->vrf_sub_desc->ad_cname.bv_val);
+    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s=*)", vrf->vrf_sub_desc->ad_cname.bv_val);
 
     if (vrf->vrf_sub_initial.bv_val != NULL) {
       len = fstr->bv_len;
@@ -1249,8 +1190,7 @@ static void simple_vrFilter2bv(Operation *op, ValuesReturnFilter *vrf,
       filter_escape_value_x(&vrf->vrf_sub_initial, &tmp, op->o_tmpmemctx);
 
       fstr->bv_len += tmp.bv_len;
-      fstr->bv_val =
-          op->o_tmprealloc(fstr->bv_val, fstr->bv_len + 1, op->o_tmpmemctx);
+      fstr->bv_val = op->o_tmprealloc(fstr->bv_val, fstr->bv_len + 1, op->o_tmpmemctx);
 
       snprintf(&fstr->bv_val[len - 2], tmp.bv_len + 3,
                /* "(attr=" */ "%s*)", tmp.bv_val);
@@ -1265,8 +1205,7 @@ static void simple_vrFilter2bv(Operation *op, ValuesReturnFilter *vrf,
         filter_escape_value_x(&vrf->vrf_sub_any[i], &tmp, op->o_tmpmemctx);
 
         fstr->bv_len += tmp.bv_len + 1;
-        fstr->bv_val =
-            op->o_tmprealloc(fstr->bv_val, fstr->bv_len + 1, op->o_tmpmemctx);
+        fstr->bv_val = op->o_tmprealloc(fstr->bv_val, fstr->bv_len + 1, op->o_tmpmemctx);
 
         snprintf(&fstr->bv_val[len - 1], tmp.bv_len + 3,
                  /* "(attr=[init]*[any*]" */ "%s*)", tmp.bv_val);
@@ -1280,8 +1219,7 @@ static void simple_vrFilter2bv(Operation *op, ValuesReturnFilter *vrf,
       filter_escape_value_x(&vrf->vrf_sub_final, &tmp, op->o_tmpmemctx);
 
       fstr->bv_len += tmp.bv_len;
-      fstr->bv_val =
-          op->o_tmprealloc(fstr->bv_val, fstr->bv_len + 1, op->o_tmpmemctx);
+      fstr->bv_val = op->o_tmprealloc(fstr->bv_val, fstr->bv_len + 1, op->o_tmpmemctx);
 
       snprintf(&fstr->bv_val[len - 1], tmp.bv_len + 3,
                /* "(attr=[init*][any*]" */ "%s)", tmp.bv_val);
@@ -1297,8 +1235,7 @@ static void simple_vrFilter2bv(Operation *op, ValuesReturnFilter *vrf,
       fstr->bv_len++;
     fstr->bv_val = op->o_tmpalloc(fstr->bv_len + 1, op->o_tmpmemctx);
 
-    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s=*)",
-             vrf->vrf_desc->ad_cname.bv_val);
+    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s=*)", vrf->vrf_desc->ad_cname.bv_val);
     break;
 
   case LDAP_FILTER_EXT: {
@@ -1312,18 +1249,15 @@ static void simple_vrFilter2bv(Operation *op, ValuesReturnFilter *vrf,
       ad.bv_val = "";
     }
 
-    fstr->bv_len =
-        ad.bv_len + (vrf->vrf_mr_dnattrs ? STRLENOF(":dn") : 0) +
-        (vrf->vrf_mr_rule_text.bv_len ? vrf->vrf_mr_rule_text.bv_len + 1 : 0) +
-        tmp.bv_len + STRLENOF("(:=)");
+    fstr->bv_len = ad.bv_len + (vrf->vrf_mr_dnattrs ? STRLENOF(":dn") : 0) +
+                   (vrf->vrf_mr_rule_text.bv_len ? vrf->vrf_mr_rule_text.bv_len + 1 : 0) + tmp.bv_len +
+                   STRLENOF("(:=)");
     if (undef)
       fstr->bv_len++;
     fstr->bv_val = op->o_tmpalloc(fstr->bv_len + 1, op->o_tmpmemctx);
 
-    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s%s%s%s:=%s)", ad.bv_val,
-             vrf->vrf_mr_dnattrs ? ":dn" : "",
-             vrf->vrf_mr_rule_text.bv_len ? ":" : "",
-             vrf->vrf_mr_rule_text.bv_len ? vrf->vrf_mr_rule_text.bv_val : "",
+    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s%s%s%s:=%s)", ad.bv_val, vrf->vrf_mr_dnattrs ? ":dn" : "",
+             vrf->vrf_mr_rule_text.bv_len ? ":" : "", vrf->vrf_mr_rule_text.bv_len ? vrf->vrf_mr_rule_text.bv_val : "",
              tmp.bv_val);
 
     ber_memfree_x(tmp.bv_val, op->o_tmpmemctx);
@@ -1334,17 +1268,15 @@ static void simple_vrFilter2bv(Operation *op, ValuesReturnFilter *vrf,
                  : vrf->vrf_result == LDAP_COMPARE_TRUE       ? "(?=true)"
                  : vrf->vrf_result == SLAPD_COMPARE_UNDEFINED ? "(?=undefined)"
                                                               : "(?=error)",
-                 vrf->vrf_result == LDAP_COMPARE_FALSE  ? STRLENOF("(?=false)")
-                 : vrf->vrf_result == LDAP_COMPARE_TRUE ? STRLENOF("(?=true)")
-                 : vrf->vrf_result == SLAPD_COMPARE_UNDEFINED
-                     ? STRLENOF("(?=undefined)")
-                     : STRLENOF("(?=error)"),
+                 vrf->vrf_result == LDAP_COMPARE_FALSE        ? STRLENOF("(?=false)")
+                 : vrf->vrf_result == LDAP_COMPARE_TRUE       ? STRLENOF("(?=true)")
+                 : vrf->vrf_result == SLAPD_COMPARE_UNDEFINED ? STRLENOF("(?=undefined)")
+                                                              : STRLENOF("(?=error)"),
                  1, fstr, op->o_tmpmemctx);
     break;
 
   default:
-    ber_str2bv_x("(?=unknown)", STRLENOF("(?=unknown)"), 1, fstr,
-                 op->o_tmpmemctx);
+    ber_str2bv_x("(?=unknown)", STRLENOF("(?=unknown)"), 1, fstr, op->o_tmpmemctx);
     break;
   }
 }

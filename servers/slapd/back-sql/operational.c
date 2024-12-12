@@ -32,8 +32,7 @@
  * sets the supported operational attributes (if required)
  */
 
-Attribute *backsql_operational_entryUUID(backsql_info *bi,
-                                         backsql_entryID *id) {
+Attribute *backsql_operational_entryUUID(backsql_info *bi, backsql_entryID *id) {
   int rc;
   struct berval val, nval;
   AttributeDescription *desc = slap_schema.si_ad_entryUUID;
@@ -41,9 +40,8 @@ Attribute *backsql_operational_entryUUID(backsql_info *bi,
 
   backsql_entryUUID(bi, id, &val, NULL);
 
-  rc = (*desc->ad_type->sat_equality->smr_normalize)(
-      SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, desc->ad_type->sat_syntax,
-      desc->ad_type->sat_equality, &val, &nval, NULL);
+  rc = (*desc->ad_type->sat_equality->smr_normalize)(SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, desc->ad_type->sat_syntax,
+                                                     desc->ad_type->sat_equality, &val, &nval, NULL);
   if (rc != LDAP_SUCCESS) {
     ber_memfree(val.bv_val);
     return NULL;
@@ -109,8 +107,7 @@ int backsql_operational(Operation *op, SlapReply *rs) {
   };
   int get_conn = BACKSQL_OP_LAST, got[BACKSQL_OP_LAST] = {0};
 
-  Debug(LDAP_DEBUG_TRACE, "==>backsql_operational(): entry \"%s\"\n",
-        rs->sr_entry->e_nname.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "==>backsql_operational(): entry \"%s\"\n", rs->sr_entry->e_nname.bv_val);
 
   for (ap = &rs->sr_entry->e_attrs; *ap; ap = &(*ap)->a_next) {
     if ((*ap)->a_desc == slap_schema.si_ad_hasSubordinates) {
@@ -128,18 +125,15 @@ int backsql_operational(Operation *op, SlapReply *rs) {
   }
 
   for (ap = &rs->sr_operational_attrs; *ap; ap = &(*ap)->a_next) {
-    if (!got[BACKSQL_OP_HASSUBORDINATES] &&
-        (*ap)->a_desc == slap_schema.si_ad_hasSubordinates) {
+    if (!got[BACKSQL_OP_HASSUBORDINATES] && (*ap)->a_desc == slap_schema.si_ad_hasSubordinates) {
       get_conn--;
       got[BACKSQL_OP_HASSUBORDINATES] = 1;
 
-    } else if (!got[BACKSQL_OP_ENTRYUUID] &&
-               (*ap)->a_desc == slap_schema.si_ad_entryUUID) {
+    } else if (!got[BACKSQL_OP_ENTRYUUID] && (*ap)->a_desc == slap_schema.si_ad_entryUUID) {
       get_conn--;
       got[BACKSQL_OP_ENTRYUUID] = 1;
 
-    } else if (!got[BACKSQL_OP_ENTRYCSN] &&
-               (*ap)->a_desc == slap_schema.si_ad_entryCSN) {
+    } else if (!got[BACKSQL_OP_ENTRYCSN] && (*ap)->a_desc == slap_schema.si_ad_entryCSN) {
       get_conn--;
       got[BACKSQL_OP_ENTRYCSN] = 1;
     }
@@ -156,11 +150,8 @@ int backsql_operational(Operation *op, SlapReply *rs) {
     return 1;
   }
 
-  if ((SLAP_OPATTRS(rs->sr_attr_flags) ||
-       ad_inlist(slap_schema.si_ad_hasSubordinates, rs->sr_attrs)) &&
-      !got[BACKSQL_OP_HASSUBORDINATES] &&
-      attr_find(rs->sr_entry->e_attrs, slap_schema.si_ad_hasSubordinates) ==
-          NULL) {
+  if ((SLAP_OPATTRS(rs->sr_attr_flags) || ad_inlist(slap_schema.si_ad_hasSubordinates, rs->sr_attrs)) &&
+      !got[BACKSQL_OP_HASSUBORDINATES] && attr_find(rs->sr_entry->e_attrs, slap_schema.si_ad_hasSubordinates) == NULL) {
     rc = backsql_has_children(op, dbh, &rs->sr_entry->e_nname);
 
     switch (rc) {
@@ -181,14 +172,11 @@ int backsql_operational(Operation *op, SlapReply *rs) {
     }
   }
 
-  if ((SLAP_OPATTRS(rs->sr_attr_flags) ||
-       ad_inlist(slap_schema.si_ad_entryUUID, rs->sr_attrs)) &&
-      !got[BACKSQL_OP_ENTRYUUID] &&
-      attr_find(rs->sr_entry->e_attrs, slap_schema.si_ad_entryUUID) == NULL) {
+  if ((SLAP_OPATTRS(rs->sr_attr_flags) || ad_inlist(slap_schema.si_ad_entryUUID, rs->sr_attrs)) &&
+      !got[BACKSQL_OP_ENTRYUUID] && attr_find(rs->sr_entry->e_attrs, slap_schema.si_ad_entryUUID) == NULL) {
     backsql_srch_info bsi = {0};
 
-    rc = backsql_init_search(&bsi, &rs->sr_entry->e_nname, LDAP_SCOPE_BASE,
-                             (time_t)(-1), NULL, dbh, op, rs, NULL,
+    rc = backsql_init_search(&bsi, &rs->sr_entry->e_nname, LDAP_SCOPE_BASE, (time_t)(-1), NULL, dbh, op, rs, NULL,
                              BACKSQL_ISF_GET_ID);
     if (rc != LDAP_SUCCESS) {
       Debug(LDAP_DEBUG_TRACE, "backsql_operational(): "
@@ -213,10 +201,8 @@ int backsql_operational(Operation *op, SlapReply *rs) {
     ap = &(*ap)->a_next;
   }
 
-  if ((SLAP_OPATTRS(rs->sr_attr_flags) ||
-       ad_inlist(slap_schema.si_ad_entryCSN, rs->sr_attrs)) &&
-      !got[BACKSQL_OP_ENTRYCSN] &&
-      attr_find(rs->sr_entry->e_attrs, slap_schema.si_ad_entryCSN) == NULL) {
+  if ((SLAP_OPATTRS(rs->sr_attr_flags) || ad_inlist(slap_schema.si_ad_entryCSN, rs->sr_attrs)) &&
+      !got[BACKSQL_OP_ENTRYCSN] && attr_find(rs->sr_entry->e_attrs, slap_schema.si_ad_entryCSN) == NULL) {
     *ap = backsql_operational_entryCSN(op);
     if (*ap == NULL) {
       Debug(LDAP_DEBUG_TRACE, "backsql_operational(): "

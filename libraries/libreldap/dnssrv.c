@@ -63,10 +63,8 @@ int ldap_dn2domain(const char *dn_in, char **domainp) {
       for (j = 0; rdn[j] != NULL; j++) {
         ava = rdn[j];
 
-        if (rdn[j + 1] == NULL && (ava->la_flags & LDAP_AVA_STRING) &&
-            ava->la_value.bv_len &&
-            (ber_bvstrcasecmp(&ava->la_attr, &DC) == 0 ||
-             ber_bvcmp(&ava->la_attr, &DCOID) == 0)) {
+        if (rdn[j + 1] == NULL && (ava->la_flags & LDAP_AVA_STRING) && ava->la_value.bv_len &&
+            (ber_bvstrcasecmp(&ava->la_attr, &DC) == 0 || ber_bvcmp(&ava->la_attr, &DCOID) == 0)) {
           if (domain.bv_len == 0) {
             ndomain = LDAP_REALLOC(domain.bv_val, ava->la_value.bv_len + 1);
 
@@ -82,9 +80,7 @@ int ldap_dn2domain(const char *dn_in, char **domainp) {
             domain.bv_val[domain.bv_len] = '\0';
 
           } else {
-            ndomain =
-                LDAP_REALLOC(domain.bv_val, ava->la_value.bv_len + sizeof(".") +
-                                                domain.bv_len);
+            ndomain = LDAP_REALLOC(domain.bv_val, ava->la_value.bv_len + sizeof(".") + domain.bv_len);
 
             if (ndomain == NULL) {
               goto return_error;
@@ -92,8 +88,7 @@ int ldap_dn2domain(const char *dn_in, char **domainp) {
 
             domain.bv_val = ndomain;
             domain.bv_val[domain.bv_len++] = '.';
-            memcpy(&domain.bv_val[domain.bv_len], ava->la_value.bv_val,
-                   ava->la_value.bv_len);
+            memcpy(&domain.bv_val[domain.bv_len], ava->la_value.bv_val, ava->la_value.bv_len);
             domain.bv_len += ava->la_value.bv_len;
             domain.bv_val[domain.bv_len] = '\0';
           }
@@ -132,8 +127,7 @@ int ldap_domain2dn(const char *domain_in, char **dnp) {
   dn = NULL;
   loc = 0;
 
-  for (s = ldap_pvt_strtok(domain, ".", &tok_r); s != NULL;
-       s = ldap_pvt_strtok(NULL, ".", &tok_r)) {
+  for (s = ldap_pvt_strtok(domain, ".", &tok_r); s != NULL; s = ldap_pvt_strtok(NULL, ".", &tok_r)) {
     size_t len = strlen(s);
 
     dntmp = (char *)LDAP_REALLOC(dn, loc + sizeof(",dc=") + len);
@@ -339,8 +333,7 @@ int ldap_domain2hostlist(const char *domain, char **list) {
           goto add_size;
         }
 
-        hostent_head = (srv_record *)LDAP_REALLOC(
-            hostent_head, (hostent_count + 1) * (sizeof(srv_record)));
+        hostent_head = (srv_record *)LDAP_REALLOC(hostent_head, (hostent_count + 1) * (sizeof(srv_record)));
         if (hostent_head == NULL) {
           rc = LDAP_NO_MEMORY;
           goto out;
@@ -387,8 +380,7 @@ int ldap_domain2hostlist(const char *domain, char **list) {
       if (cur > 0) {
         hostlist[cur++] = ' ';
       }
-      cur += sprintf(&hostlist[cur], "%s:%hu", hostent_head[i].hostname,
-                     hostent_head[i].port);
+      cur += sprintf(&hostlist[cur], "%s:%hu", hostent_head[i].hostname, hostent_head[i].port);
     }
   }
 

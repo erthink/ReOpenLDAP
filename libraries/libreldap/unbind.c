@@ -49,8 +49,7 @@ int ldap_unbind_ext_s(LDAP *ld, LDAPControl **sctrls, LDAPControl **cctrls) {
   return ldap_unbind_ext(ld, sctrls, cctrls);
 }
 
-int ldap_ld_free(LDAP *ld, int close, LDAPControl **sctrls,
-                 LDAPControl **cctrls) {
+int ldap_ld_free(LDAP *ld, int close, LDAPControl **sctrls, LDAPControl **cctrls) {
   LDAPMessage *lm, *next;
   int err = LDAP_SUCCESS;
 
@@ -72,8 +71,7 @@ int ldap_ld_free(LDAP *ld, int close, LDAPControl **sctrls,
       LDAP_VFREE(ld->ld_referrals);
       ld->ld_referrals = NULL;
     }
-    Debug(LDAP_DEBUG_TRACE, "ldap_ld_free %p/%p still using (%d)\n", ld,
-          ld->ldc, ld->ld_ldcrefcnt);
+    Debug(LDAP_DEBUG_TRACE, "ldap_ld_free %p/%p still using (%d)\n", ld, ld->ldc, ld->ld_ldcrefcnt);
     LDAP_MUTEX_UNLOCK(&ld->ld_ldcmutex);
     LDAP_FREE((char *)ld);
     return (err);
@@ -219,8 +217,7 @@ int ldap_destroy(LDAP *ld) { return (ldap_ld_free(ld, 1, NULL, NULL)); }
 
 /* FIXME: this function is called only by ldap_free_connection(),
  * which, most of the times, is called with ld_req_mutex locked */
-int ldap_send_unbind(LDAP *ld, Sockbuf *sb, LDAPControl **sctrls,
-                     LDAPControl **cctrls) {
+int ldap_send_unbind(LDAP *ld, Sockbuf *sb, LDAPControl **sctrls, LDAPControl **cctrls) {
   BerElement *ber;
   ber_int_t id;
 

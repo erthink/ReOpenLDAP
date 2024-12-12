@@ -114,15 +114,13 @@ void slap_tool_init(const char *name, int tool, int argc, char **argv);
 
 int slap_tool_destroy(void);
 
-int slap_tool_update_ctxcsn(const char *progname, unsigned long sid,
-                            struct berval *bvtext);
+int slap_tool_update_ctxcsn(const char *progname, unsigned long sid, struct berval *bvtext);
 
 unsigned long slap_tool_update_ctxcsn_check(const char *progname, Entry *e);
 
 int slap_tool_update_ctxcsn_init(void);
 
-int slap_tool_entry_check(const char *progname, Operation *op, Entry *e,
-                          int lineno, const char **text, char *textbuf,
+int slap_tool_entry_check(const char *progname, Operation *op, Entry *e, int lineno, const char **text, char *textbuf,
                           size_t textlen);
 
 #endif /* SLAPCOMMON_H_ */

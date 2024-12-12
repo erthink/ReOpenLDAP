@@ -57,10 +57,8 @@
  *and Controls are as defined in RFC 4511.
  */
 
-int ldap_parse_verify_credentials(LDAP *ld, LDAPMessage *res, int *code,
-                                  char **diagmsg, struct berval **cookie,
-                                  struct berval **screds,
-                                  LDAPControl ***ctrls) {
+int ldap_parse_verify_credentials(LDAP *ld, LDAPMessage *res, int *code, char **diagmsg, struct berval **cookie,
+                                  struct berval **screds, LDAPControl ***ctrls) {
   int rc;
   char *retoid = NULL;
   struct berval *retdata = NULL;
@@ -127,8 +125,7 @@ int ldap_parse_verify_credentials(LDAP *ld, LDAPMessage *res, int *code,
 
       *ctrls[nctrls] = NULL;
 
-      for (tag = ber_first_element(ber, &len, &opaque); tag != LBER_ERROR;
-           tag = ber_next_element(ber, &len, opaque)) {
+      for (tag = ber_first_element(ber, &len, &opaque); tag != LBER_ERROR; tag = ber_next_element(ber, &len, opaque)) {
         LDAPControl *tctrl;
         LDAPControl **tctrls;
 
@@ -137,9 +134,7 @@ int ldap_parse_verify_credentials(LDAP *ld, LDAPMessage *res, int *code,
         /* allocate pointer space for current controls (nctrls)
          * + this control + extra NULL
          */
-        tctrls =
-            !tctrl ? NULL
-                   : LDAP_REALLOC(*ctrls, (nctrls + 2) * sizeof(LDAPControl *));
+        tctrls = !tctrl ? NULL : LDAP_REALLOC(*ctrls, (nctrls + 2) * sizeof(LDAPControl *));
 
         if (!tctrls) {
           /* allocation failure */
@@ -191,10 +186,8 @@ done:
   return rc;
 }
 
-int ldap_verify_credentials(LDAP *ld, struct berval *cookie, const char *dn,
-                            const char *mechanism, struct berval *cred,
-                            LDAPControl **vcctrls, LDAPControl **sctrls,
-                            LDAPControl **cctrls, int *msgidp) {
+int ldap_verify_credentials(LDAP *ld, struct berval *cookie, const char *dn, const char *mechanism, struct berval *cred,
+                            LDAPControl **vcctrls, LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
   int rc;
   BerElement *ber;
   struct berval reqdata;
@@ -215,20 +208,17 @@ int ldap_verify_credentials(LDAP *ld, struct berval *cookie, const char *dn,
   } else {
     if (!cred || BER_BVISNULL(cred)) {
       if (cookie) {
-        rc = ber_printf(ber, "{tOst{sN}" /*"}"*/,
-                        LDAP_TAG_EXOP_VERIFY_CREDENTIALS_COOKIE, cookie, dn,
-                        LDAP_AUTH_SASL, mechanism);
+        rc = ber_printf(ber, "{tOst{sN}" /*"}"*/, LDAP_TAG_EXOP_VERIFY_CREDENTIALS_COOKIE, cookie, dn, LDAP_AUTH_SASL,
+                        mechanism);
       } else {
         rc = ber_printf(ber, "{st{sN}N" /*"}"*/, dn, LDAP_AUTH_SASL, mechanism);
       }
     } else {
       if (cookie) {
-        rc = ber_printf(ber, "{tOst{sON}" /*"}"*/,
-                        LDAP_TAG_EXOP_VERIFY_CREDENTIALS_COOKIE, cookie, dn,
-                        LDAP_AUTH_SASL, mechanism, cred);
+        rc = ber_printf(ber, "{tOst{sON}" /*"}"*/, LDAP_TAG_EXOP_VERIFY_CREDENTIALS_COOKIE, cookie, dn, LDAP_AUTH_SASL,
+                        mechanism, cred);
       } else {
-        rc = ber_printf(ber, "{st{sON}" /*"}"*/, dn, LDAP_AUTH_SASL, mechanism,
-                        cred);
+        rc = ber_printf(ber, "{st{sON}" /*"}"*/, dn, LDAP_AUTH_SASL, mechanism, cred);
       }
     }
   }
@@ -241,8 +231,7 @@ int ldap_verify_credentials(LDAP *ld, struct berval *cookie, const char *dn,
   if (vcctrls && *vcctrls) {
     LDAPControl *const *c;
 
-    rc = ber_printf(ber, "t{" /*"}"*/,
-                    LDAP_TAG_EXOP_VERIFY_CREDENTIALS_CONTROLS);
+    rc = ber_printf(ber, "t{" /*"}"*/, LDAP_TAG_EXOP_VERIFY_CREDENTIALS_CONTROLS);
 
     for (c = vcctrls; *c; c++) {
       rc = ldap_pvt_put_control(*c, ber);
@@ -269,37 +258,30 @@ int ldap_verify_credentials(LDAP *ld, struct berval *cookie, const char *dn,
     goto done;
   }
 
-  rc = ldap_extended_operation(ld, LDAP_EXOP_VERIFY_CREDENTIALS, &reqdata,
-                               sctrls, cctrls, msgidp);
+  rc = ldap_extended_operation(ld, LDAP_EXOP_VERIFY_CREDENTIALS, &reqdata, sctrls, cctrls, msgidp);
 
 done:
   ber_free(ber, 1);
   return rc;
 }
 
-int ldap_verify_credentials_s(LDAP *ld, struct berval *cookie, const char *dn,
-                              const char *mechanism, struct berval *cred,
-                              LDAPControl **vcictrls, LDAPControl **sctrls,
-                              LDAPControl **cctrls, int *rcode, char **diagmsg,
-                              struct berval **scookie, struct berval **scred,
+int ldap_verify_credentials_s(LDAP *ld, struct berval *cookie, const char *dn, const char *mechanism,
+                              struct berval *cred, LDAPControl **vcictrls, LDAPControl **sctrls, LDAPControl **cctrls,
+                              int *rcode, char **diagmsg, struct berval **scookie, struct berval **scred,
                               LDAPControl ***vcoctrls) {
   int rc;
   int msgid;
   LDAPMessage *res;
 
-  rc = ldap_verify_credentials(ld, cookie, dn, mechanism, cred, vcictrls,
-                               sctrls, cctrls, &msgid);
+  rc = ldap_verify_credentials(ld, cookie, dn, mechanism, cred, vcictrls, sctrls, cctrls, &msgid);
   if (rc != LDAP_SUCCESS)
     return rc;
 
-  if (ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res) ==
-          -1 ||
-      !res) {
+  if (ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res) == -1 || !res) {
     return ld->ld_errno;
   }
 
-  rc = ldap_parse_verify_credentials(ld, res, rcode, diagmsg, scookie, scred,
-                                     vcoctrls);
+  rc = ldap_parse_verify_credentials(ld, res, rcode, diagmsg, scookie, scred, vcoctrls);
   if (rc != LDAP_SUCCESS) {
     ldap_msgfree(res);
     return rc;
@@ -309,20 +291,18 @@ int ldap_verify_credentials_s(LDAP *ld, struct berval *cookie, const char *dn,
 }
 
 #ifdef LDAP_API_FEATURE_VERIFY_CREDENTIALS_INTERACTIVE
-int ldap_verify_credentials_interactive(
-    LDAP *ld, const char *dn, /* usually NULL */
-    const char *mech, LDAPControl **vcControls, LDAPControl **serverControls,
-    LDAPControl **clientControls,
+int ldap_verify_credentials_interactive(LDAP *ld, const char *dn, /* usually NULL */
+                                        const char *mech, LDAPControl **vcControls, LDAPControl **serverControls,
+                                        LDAPControl **clientControls,
 
-    /* should be client controls */
-    unsigned flags, LDAP_SASL_INTERACT_PROC *proc, void *defaults,
-    void *context;
+                                        /* should be client controls */
+                                        unsigned flags, LDAP_SASL_INTERACT_PROC *proc, void *defaults, void *context;
 
-    /* as obtained from ldap_result() */
-    LDAPMessage * result,
+                                        /* as obtained from ldap_result() */
+                                        LDAPMessage * result,
 
-    /* returned during bind processing */
-    const char **rmech, int *msgid) {
+                                        /* returned during bind processing */
+                                        const char **rmech, int *msgid) {
   if (!ld && context) {
     assert(!dn);
     assert(!mech);

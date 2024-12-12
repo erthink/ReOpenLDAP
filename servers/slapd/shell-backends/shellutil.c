@@ -40,12 +40,11 @@
 int debugflg;
 char *progname;
 
-static struct inputparams ips[] = {
-    {IP_TYPE_SUFFIX, "suffix"},       {IP_TYPE_BASE, "base"},
-    {IP_TYPE_SCOPE, "scope"},         {IP_TYPE_ALIASDEREF, "deref"},
-    {IP_TYPE_SIZELIMIT, "sizelimit"}, {IP_TYPE_TIMELIMIT, "timelimit"},
-    {IP_TYPE_FILTER, "filter"},       {IP_TYPE_ATTRS, "attrs"},
-    {IP_TYPE_ATTRSONLY, "attrsonly"}, {0, NULL}};
+static struct inputparams ips[] = {{IP_TYPE_SUFFIX, "suffix"},       {IP_TYPE_BASE, "base"},
+                                   {IP_TYPE_SCOPE, "scope"},         {IP_TYPE_ALIASDEREF, "deref"},
+                                   {IP_TYPE_SIZELIMIT, "sizelimit"}, {IP_TYPE_TIMELIMIT, "timelimit"},
+                                   {IP_TYPE_FILTER, "filter"},       {IP_TYPE_ATTRS, "attrs"},
+                                   {IP_TYPE_ATTRSONLY, "attrsonly"}, {0, NULL}};
 
 void write_result(FILE *fp, int code, char *matched, char *info) {
   fprintf(fp, "RESULT\ncode: %d\n", code);
@@ -127,8 +126,7 @@ int parse_input(FILE *ifp, FILE *ofp, struct ldop *op) {
   }
   line[strlen(line) - 1] = '\0';
   if (strncasecmp(line, STR_OP_SEARCH, sizeof(STR_OP_SEARCH) - 1) != 0) {
-    write_result(ofp, LDAP_UNWILLING_TO_PERFORM, NULL,
-                 "Operation Not Supported");
+    write_result(ofp, LDAP_UNWILLING_TO_PERFORM, NULL, "Operation Not Supported");
     return (-1);
   }
 
@@ -153,8 +151,7 @@ int parse_input(FILE *ifp, FILE *ofp, struct ldop *op) {
       break;
     case IP_TYPE_SCOPE:
       if (lutil_atoi(&op->ldop_srch.ldsp_scope, args) != 0 ||
-          (op->ldop_srch.ldsp_scope != LDAP_SCOPE_BASE &&
-           op->ldop_srch.ldsp_scope != LDAP_SCOPE_ONELEVEL &&
+          (op->ldop_srch.ldsp_scope != LDAP_SCOPE_BASE && op->ldop_srch.ldsp_scope != LDAP_SCOPE_ONELEVEL &&
            op->ldop_srch.ldsp_scope != LDAP_SCOPE_SUBTREE)) {
         write_result(ofp, LDAP_OTHER, NULL, "Bad scope");
         return (-1);
@@ -203,18 +200,15 @@ int parse_input(FILE *ifp, FILE *ofp, struct ldop *op) {
     }
   }
 
-  if (op->ldop_suffixes == NULL || op->ldop_dn == NULL ||
-      op->ldop_srch.ldsp_filter == NULL) {
-    write_result(ofp, LDAP_OTHER, NULL,
-                 "Required suffix:, base:, or filter: missing");
+  if (op->ldop_suffixes == NULL || op->ldop_dn == NULL || op->ldop_srch.ldsp_filter == NULL) {
+    write_result(ofp, LDAP_OTHER, NULL, "Required suffix:, base:, or filter: missing");
     return (-1);
   }
 
   return (0);
 }
 
-struct inputparams *
-find_input_tag(char **linep) /* linep is set to start of args */
+struct inputparams *find_input_tag(char **linep) /* linep is set to start of args */
 {
   int i;
   char *p;

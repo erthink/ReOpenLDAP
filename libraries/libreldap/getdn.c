@@ -31,51 +31,38 @@
 #define DC_IN_UFN
 
 /* parsing/printing routines */
-static int str2strval(const char *str, ber_len_t stoplen, struct berval *val,
-                      const char **next, unsigned flags, int *retFlags,
-                      void *ctx);
-static int DCE2strval(const char *str, struct berval *val, const char **next,
-                      unsigned flags, void *ctx);
-static int IA52strval(const char *str, struct berval *val, const char **next,
-                      unsigned flags, void *ctx);
-static int quotedIA52strval(const char *str, struct berval *val,
-                            const char **next, unsigned flags, void *ctx);
-static int hexstr2binval(const char *str, struct berval *val, const char **next,
-                         unsigned flags, void *ctx);
+static int str2strval(const char *str, ber_len_t stoplen, struct berval *val, const char **next, unsigned flags,
+                      int *retFlags, void *ctx);
+static int DCE2strval(const char *str, struct berval *val, const char **next, unsigned flags, void *ctx);
+static int IA52strval(const char *str, struct berval *val, const char **next, unsigned flags, void *ctx);
+static int quotedIA52strval(const char *str, struct berval *val, const char **next, unsigned flags, void *ctx);
+static int hexstr2binval(const char *str, struct berval *val, const char **next, unsigned flags, void *ctx);
 static int hexstr2bin(const char *str, char *c);
 static int byte2hexpair(const char *val, char *pair);
 static int binval2hexstr(struct berval *val, char *str);
 static int strval2strlen(struct berval *val, unsigned flags, ber_len_t *len);
-static int strval2str(struct berval *val, char *str, unsigned flags,
-                      ber_len_t *len);
+static int strval2str(struct berval *val, char *str, unsigned flags, ber_len_t *len);
 static int strval2IA5strlen(struct berval *val, unsigned flags, ber_len_t *len);
-static int strval2IA5str(struct berval *val, char *str, unsigned flags,
-                         ber_len_t *len);
+static int strval2IA5str(struct berval *val, char *str, unsigned flags, ber_len_t *len);
 static int strval2DCEstrlen(struct berval *val, unsigned flags, ber_len_t *len);
-static int strval2DCEstr(struct berval *val, char *str, unsigned flags,
-                         ber_len_t *len);
+static int strval2DCEstr(struct berval *val, char *str, unsigned flags, ber_len_t *len);
 static int strval2ADstrlen(struct berval *val, unsigned flags, ber_len_t *len);
-static int strval2ADstr(struct berval *val, char *str, unsigned flags,
-                        ber_len_t *len);
+static int strval2ADstr(struct berval *val, char *str, unsigned flags, ber_len_t *len);
 static int dn2domain(LDAPDN dn, struct berval *bv, int pos, int *iRDN);
 
 /* AVA helpers */
-static LDAPAVA *ldapava_new(const struct berval *attr, const struct berval *val,
-                            unsigned flags, void *ctx);
+static LDAPAVA *ldapava_new(const struct berval *attr, const struct berval *val, unsigned flags, void *ctx);
 
 /* Higher level helpers */
-static int rdn2strlen(LDAPRDN rdn, unsigned flags, ber_len_t *len,
-                      int (*s2l)(struct berval *, unsigned, ber_len_t *));
+static int rdn2strlen(LDAPRDN rdn, unsigned flags, ber_len_t *len, int (*s2l)(struct berval *, unsigned, ber_len_t *));
 static int rdn2str(LDAPRDN rdn, char *str, unsigned flags, ber_len_t *len,
                    int (*s2s)(struct berval *, char *, unsigned, ber_len_t *));
 static int rdn2UFNstrlen(LDAPRDN rdn, unsigned flags, ber_len_t *len);
 static int rdn2UFNstr(LDAPRDN rdn, char *str, unsigned flags, ber_len_t *len);
 static int rdn2DCEstrlen(LDAPRDN rdn, unsigned flags, ber_len_t *len);
-static int rdn2DCEstr(LDAPRDN rdn, char *str, unsigned flag, ber_len_t *len,
-                      int first);
+static int rdn2DCEstr(LDAPRDN rdn, char *str, unsigned flag, ber_len_t *len, int first);
 static int rdn2ADstrlen(LDAPRDN rdn, unsigned flags, ber_len_t *len);
-static int rdn2ADstr(LDAPRDN rdn, char *str, unsigned flags, ber_len_t *len,
-                     int first);
+static int rdn2ADstr(LDAPRDN rdn, char *str, unsigned flags, ber_len_t *len, int first);
 
 /*
  * RFC 1823 ldap_get_dn
@@ -99,8 +86,7 @@ char *ldap_get_dn(LDAP *ld, LDAPMessage *entry) {
   return (dn);
 }
 
-int ldap_get_dn_ber(LDAP *ld, LDAPMessage *entry, BerElement **berout,
-                    BerValue *dn) {
+int ldap_get_dn_ber(LDAP *ld, LDAPMessage *entry, BerElement **berout, BerValue *dn) {
   BerElement tmp, *ber;
   ber_len_t len = 0;
   int rc = LDAP_SUCCESS;
@@ -199,8 +185,7 @@ char **ldap_explode_rdn(const char *rdn, int notypes) {
    * FIXME: we prefer efficiency over checking if the _ENTIRE_
    * dn can be parsed
    */
-  if (ldap_str2rdn(rdn, &tmpRDN, (char **)&p, LDAP_DN_FORMAT_LDAP) !=
-      LDAP_SUCCESS) {
+  if (ldap_str2rdn(rdn, &tmpRDN, (char **)&p, LDAP_DN_FORMAT_LDAP) != LDAP_SUCCESS) {
     return (NULL);
   }
 
@@ -282,8 +267,7 @@ error_return:;
  * 	LDAP_DN_FORMAT_UFN		(RFC 1781, partial and with extensions)
  * 	LDAP_DN_FORMAT_AD_CANONICAL	(?)
  */
-int ldap_dn_normalize(const char *dnin, unsigned fin, char **dnout,
-                      unsigned fout) {
+int ldap_dn_normalize(const char *dnin, unsigned fin, char **dnout, unsigned fout) {
   int rc;
   LDAPDN tmpDN = NULL;
 
@@ -332,8 +316,7 @@ int ldap_dn_normalize(const char *dnin, unsigned fin, char **dnout,
  * c is assumed to Unicode in an ASCII compatible format (UTF-8)
  * Macros assume "C" Locale (ASCII)
  */
-#define LDAP_DN_ASCII_SPACE(c)                                                 \
-  ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\r')
+#define LDAP_DN_ASCII_SPACE(c) ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\r')
 #define LDAP_DN_ASCII_LOWER(c) LDAP_LOWER(c)
 #define LDAP_DN_ASCII_UPPER(c) LDAP_UPPER(c)
 #define LDAP_DN_ASCII_ALPHA(c) LDAP_ALPHA(c)
@@ -370,32 +353,25 @@ int ldap_dn_normalize(const char *dnin, unsigned fin, char **dnout,
  * produced escaped '\3D'; this changes since 2.3, if compatibility issues
  * do not arise
  */
-#define LDAP_DN_NE(c)                                                          \
-  (LDAP_DN_RDN_SEP_V2(c) || LDAP_DN_AVA_SEP(c) || LDAP_DN_QUOTES(c) ||         \
-   (c) == '<' || (c) == '>')
-#define LDAP_DN_MAYESCAPE(c)                                                   \
-  (LDAP_DN_ESCAPE(c) || LDAP_DN_NE(c) || LDAP_DN_AVA_EQUALS(c) ||              \
-   LDAP_DN_ASCII_SPACE(c) || LDAP_DN_OCTOTHORPE(c))
+#define LDAP_DN_NE(c) (LDAP_DN_RDN_SEP_V2(c) || LDAP_DN_AVA_SEP(c) || LDAP_DN_QUOTES(c) || (c) == '<' || (c) == '>')
+#define LDAP_DN_MAYESCAPE(c)                                                                                           \
+  (LDAP_DN_ESCAPE(c) || LDAP_DN_NE(c) || LDAP_DN_AVA_EQUALS(c) || LDAP_DN_ASCII_SPACE(c) || LDAP_DN_OCTOTHORPE(c))
 #define LDAP_DN_SHOULDESCAPE(c) (LDAP_DN_AVA_EQUALS(c))
 
 #define LDAP_DN_NEEDESCAPE(c) (LDAP_DN_ESCAPE(c) || LDAP_DN_NE(c))
 #define LDAP_DN_NEEDESCAPE_LEAD(c) LDAP_DN_MAYESCAPE(c)
-#define LDAP_DN_NEEDESCAPE_TRAIL(c)                                            \
-  (LDAP_DN_ASCII_SPACE(c) || LDAP_DN_NEEDESCAPE(c))
-#define LDAP_DN_WILLESCAPE_CHAR(c)                                             \
-  (LDAP_DN_RDN_SEP(c) || LDAP_DN_AVA_SEP(c) || LDAP_DN_ESCAPE(c))
+#define LDAP_DN_NEEDESCAPE_TRAIL(c) (LDAP_DN_ASCII_SPACE(c) || LDAP_DN_NEEDESCAPE(c))
+#define LDAP_DN_WILLESCAPE_CHAR(c) (LDAP_DN_RDN_SEP(c) || LDAP_DN_AVA_SEP(c) || LDAP_DN_ESCAPE(c))
 #define LDAP_DN_IS_PRETTY(f) ((f) & LDAP_DN_PRETTY)
-#define LDAP_DN_WILLESCAPE_HEX(f, c)                                           \
-  ((!LDAP_DN_IS_PRETTY(f)) && LDAP_DN_WILLESCAPE_CHAR(c))
+#define LDAP_DN_WILLESCAPE_HEX(f, c) ((!LDAP_DN_IS_PRETTY(f)) && LDAP_DN_WILLESCAPE_CHAR(c))
 
 /* LDAPv2 */
 #define LDAP_DN_VALUE_END_V2(c) (LDAP_DN_RDN_SEP_V2(c) || LDAP_DN_AVA_SEP(c))
 /* RFC 1779 */
-#define LDAP_DN_V2_SPECIAL(c)                                                  \
-  (LDAP_DN_RDN_SEP_V2(c) || LDAP_DN_AVA_EQUALS(c) || LDAP_DN_AVA_SEP(c) ||     \
-   (c) == '<' || (c) == '>' || LDAP_DN_OCTOTHORPE(c))
-#define LDAP_DN_V2_PAIR(c)                                                     \
-  (LDAP_DN_V2_SPECIAL(c) || LDAP_DN_ESCAPE(c) || LDAP_DN_QUOTES(c))
+#define LDAP_DN_V2_SPECIAL(c)                                                                                          \
+  (LDAP_DN_RDN_SEP_V2(c) || LDAP_DN_AVA_EQUALS(c) || LDAP_DN_AVA_SEP(c) || (c) == '<' || (c) == '>' ||                 \
+   LDAP_DN_OCTOTHORPE(c))
+#define LDAP_DN_V2_PAIR(c) (LDAP_DN_V2_SPECIAL(c) || LDAP_DN_ESCAPE(c) || LDAP_DN_QUOTES(c))
 
 /*
  * DCE (mostly from Luke Howard and IBM implementation for AIX)
@@ -421,22 +397,18 @@ int ldap_dn_normalize(const char *dnin, unsigned fin, char **dnout,
 #define LDAP_DN_RDN_SEP_DCE(c) ((c) == '/')
 #define LDAP_DN_AVA_SEP_DCE(c) ((c) == ',')
 #define LDAP_DN_ESCAPE_DCE(c) (LDAP_DN_ESCAPE(c))
-#define LDAP_DN_VALUE_END_DCE(c)                                               \
-  (LDAP_DN_RDN_SEP_DCE(c) || LDAP_DN_AVA_SEP_DCE(c))
-#define LDAP_DN_NEEDESCAPE_DCE(c)                                              \
-  (LDAP_DN_VALUE_END_DCE(c) || LDAP_DN_AVA_EQUALS(c))
+#define LDAP_DN_VALUE_END_DCE(c) (LDAP_DN_RDN_SEP_DCE(c) || LDAP_DN_AVA_SEP_DCE(c))
+#define LDAP_DN_NEEDESCAPE_DCE(c) (LDAP_DN_VALUE_END_DCE(c) || LDAP_DN_AVA_EQUALS(c))
 
 /* AD Canonical */
 #define LDAP_DN_RDN_SEP_AD(c) ((c) == '/')
 #define LDAP_DN_ESCAPE_AD(c) (LDAP_DN_ESCAPE(c))
 #define LDAP_DN_AVA_SEP_AD(c) ((c) == ',') /* assume same as DCE */
 #define LDAP_DN_VALUE_END_AD(c) (LDAP_DN_RDN_SEP_AD(c) || LDAP_DN_AVA_SEP_AD(c))
-#define LDAP_DN_NEEDESCAPE_AD(c)                                               \
-  (LDAP_DN_VALUE_END_AD(c) || LDAP_DN_AVA_EQUALS(c))
+#define LDAP_DN_NEEDESCAPE_AD(c) (LDAP_DN_VALUE_END_AD(c) || LDAP_DN_AVA_EQUALS(c))
 
 /* generics */
-#define LDAP_DN_HEXPAIR(s)                                                     \
-  (LDAP_DN_ASCII_HEXDIGIT((s)[0]) && LDAP_DN_ASCII_HEXDIGIT((s)[1]))
+#define LDAP_DN_HEXPAIR(s) (LDAP_DN_ASCII_HEXDIGIT((s)[0]) && LDAP_DN_ASCII_HEXDIGIT((s)[1]))
 /* better look at the AttributeDescription? */
 
 /* FIXME: no composite rdn or non-"dc" types, right?
@@ -446,35 +418,28 @@ int ldap_dn_normalize(const char *dnin, unsigned fin, char **dnout,
 /* NOTE: don't use strcasecmp() as it is locale specific! */
 #define LDAP_DC_ATTR "dc"
 #define LDAP_DC_ATTRU "DC"
-#define LDAP_DN_IS_RDN_DC(r)                                                   \
-  ((r) && (r)[0] && !(r)[1] && ((r)[0]->la_flags & LDAP_AVA_STRING) &&         \
-   ((r)[0]->la_attr.bv_len == 2) &&                                            \
-   (((r)[0]->la_attr.bv_val[0] == LDAP_DC_ATTR[0]) ||                          \
-    ((r)[0]->la_attr.bv_val[0] == LDAP_DC_ATTRU[0])) &&                        \
-   (((r)[0]->la_attr.bv_val[1] == LDAP_DC_ATTR[1]) ||                          \
-    ((r)[0]->la_attr.bv_val[1] == LDAP_DC_ATTRU[1])))
+#define LDAP_DN_IS_RDN_DC(r)                                                                                           \
+  ((r) && (r)[0] && !(r)[1] && ((r)[0]->la_flags & LDAP_AVA_STRING) && ((r)[0]->la_attr.bv_len == 2) &&                \
+   (((r)[0]->la_attr.bv_val[0] == LDAP_DC_ATTR[0]) || ((r)[0]->la_attr.bv_val[0] == LDAP_DC_ATTRU[0])) &&              \
+   (((r)[0]->la_attr.bv_val[1] == LDAP_DC_ATTR[1]) || ((r)[0]->la_attr.bv_val[1] == LDAP_DC_ATTRU[1])))
 
 /* Composite rules */
-#define LDAP_DN_ALLOW_ONE_SPACE(f)                                             \
-  (LDAP_DN_LDAPV2(f) || !((f) & LDAP_DN_P_NOSPACEAFTERRDN))
-#define LDAP_DN_ALLOW_SPACES(f)                                                \
-  (LDAP_DN_LDAPV2(f) ||                                                        \
-   !((f) & (LDAP_DN_P_NOLEADTRAILSPACES | LDAP_DN_P_NOSPACEAFTERRDN)))
+#define LDAP_DN_ALLOW_ONE_SPACE(f) (LDAP_DN_LDAPV2(f) || !((f) & LDAP_DN_P_NOSPACEAFTERRDN))
+#define LDAP_DN_ALLOW_SPACES(f)                                                                                        \
+  (LDAP_DN_LDAPV2(f) || !((f) & (LDAP_DN_P_NOLEADTRAILSPACES | LDAP_DN_P_NOSPACEAFTERRDN)))
 #define LDAP_DN_LDAP(f) (((f) & LDAP_DN_FORMAT_MASK) == LDAP_DN_FORMAT_LDAP)
 #define LDAP_DN_LDAPV3(f) (((f) & LDAP_DN_FORMAT_MASK) == LDAP_DN_FORMAT_LDAPV3)
 #define LDAP_DN_LDAPV2(f) (((f) & LDAP_DN_FORMAT_MASK) == LDAP_DN_FORMAT_LDAPV2)
 #define LDAP_DN_DCE(f) (((f) & LDAP_DN_FORMAT_MASK) == LDAP_DN_FORMAT_DCE)
 #define LDAP_DN_UFN(f) (((f) & LDAP_DN_FORMAT_MASK) == LDAP_DN_FORMAT_UFN)
-#define LDAP_DN_ADC(f)                                                         \
-  (((f) & LDAP_DN_FORMAT_MASK) == LDAP_DN_FORMAT_AD_CANONICAL)
+#define LDAP_DN_ADC(f) (((f) & LDAP_DN_FORMAT_MASK) == LDAP_DN_FORMAT_AD_CANONICAL)
 #define LDAP_DN_FORMAT(f) ((f) & LDAP_DN_FORMAT_MASK)
 
 /*
  * LDAPAVA helpers (will become part of the API for operations
  * on structural representations of DNs).
  */
-static LDAPAVA *ldapava_new(const struct berval *attr, const struct berval *val,
-                            unsigned flags, void *ctx) {
+static LDAPAVA *ldapava_new(const struct berval *attr, const struct berval *val, unsigned flags, void *ctx) {
   LDAPAVA *ava;
 
   assert(attr != NULL);
@@ -579,9 +544,7 @@ int ldap_str2dn(const char *str, LDAPDN *dn, unsigned flags) {
   return ldap_bv2dn_x(&bv, dn, flags, NULL);
 }
 
-int ldap_bv2dn(struct berval *bv, LDAPDN *dn, unsigned flags) {
-  return ldap_bv2dn_x(bv, dn, flags, NULL);
-}
+int ldap_bv2dn(struct berval *bv, LDAPDN *dn, unsigned flags) { return ldap_bv2dn_x(bv, dn, flags, NULL); }
 
 int ldap_bv2dn_x(struct berval *bvin, LDAPDN *dn, unsigned flags, void *ctx) {
   const char *p;
@@ -783,8 +746,7 @@ return_result:;
     LDAP_FREEX(tmpDN, ctx);
   }
 
-  Debug(LDAP_DEBUG_ARGS, "<= ldap_bv2dn(%s)=%d %s\n", str, rc,
-        rc ? ldap_err2string(rc) : "");
+  Debug(LDAP_DEBUG_ARGS, "<= ldap_bv2dn(%s)=%d %s\n", str, rc, rc ? ldap_err2string(rc) : "");
   *dn = newDN;
 
   return (rc);
@@ -814,8 +776,7 @@ int ldap_bv2rdn(struct berval *bv, LDAPRDN *rdn, char **n_in, unsigned flags) {
   return ldap_bv2rdn_x(bv, rdn, n_in, flags, NULL);
 }
 
-int ldap_bv2rdn_x(struct berval *bv, LDAPRDN *rdn, char **n_in, unsigned flags,
-                  void *ctx) {
+int ldap_bv2rdn_x(struct berval *bv, LDAPRDN *rdn, char **n_in, unsigned flags, void *ctx) {
   const char **n = (const char **)n_in;
   const char *p;
   int navas = 0;
@@ -1127,8 +1088,7 @@ int ldap_bv2rdn_x(struct berval *bv, LDAPRDN *rdn, char **n_in, unsigned flags,
       switch (LDAP_DN_FORMAT(flags)) {
       case LDAP_DN_FORMAT_LDAP:
       case LDAP_DN_FORMAT_LDAPV3:
-        if (str2strval(p, stoplen - (p - str), &attrValue, &p, flags,
-                       &attrValueEncoding, ctx)) {
+        if (str2strval(p, stoplen - (p - str), &attrValue, &p, flags, &attrValueEncoding, ctx)) {
           goto parsing_error;
         }
         break;
@@ -1295,9 +1255,8 @@ return_result:;
  * '\' + LDAP_DN_NEEDESCAPE(c) -> 'c'
  * '\' + HEXPAIR(p) -> unhex(p)
  */
-static int str2strval(const char *str, ber_len_t stoplen, struct berval *val,
-                      const char **next, unsigned flags, int *retFlags,
-                      void *ctx) {
+static int str2strval(const char *str, ber_len_t stoplen, struct berval *val, const char **next, unsigned flags,
+                      int *retFlags, void *ctx) {
   const char *p, *end, *startPos, *endPos = NULL;
   ber_len_t len, escapes;
 
@@ -1370,16 +1329,13 @@ static int str2strval(const char *str, ber_len_t stoplen, struct berval *val,
    * we do allow unescaped spaces at the end
    * of the value only in non-pedantic mode
    */
-  if (p > startPos + 1 && LDAP_DN_ASCII_SPACE(p[-1]) &&
-      !LDAP_DN_ESCAPE(p[-2])) {
+  if (p > startPos + 1 && LDAP_DN_ASCII_SPACE(p[-1]) && !LDAP_DN_ESCAPE(p[-2])) {
     if (flags & LDAP_DN_PEDANTIC) {
       return (1);
     }
 
     /* strip trailing (unescaped) spaces */
-    for (endPos = p - 1;
-         endPos > startPos + 1 && LDAP_DN_ASCII_SPACE(endPos[-1]) &&
-         !LDAP_DN_ESCAPE(endPos[-2]);
+    for (endPos = p - 1; endPos > startPos + 1 && LDAP_DN_ASCII_SPACE(endPos[-1]) && !LDAP_DN_ESCAPE(endPos[-2]);
          endPos--) {
       /* no op */
     }
@@ -1439,8 +1395,7 @@ static int str2strval(const char *str, ber_len_t stoplen, struct berval *val,
   return (0);
 }
 
-static int DCE2strval(const char *str, struct berval *val, const char **next,
-                      unsigned flags, void *ctx) {
+static int DCE2strval(const char *str, struct berval *val, const char **next, unsigned flags, void *ctx) {
   const char *p, *startPos, *endPos = NULL;
   ber_len_t len, escapes;
 
@@ -1474,16 +1429,13 @@ static int DCE2strval(const char *str, struct berval *val, const char **next,
    * (unescaped) trailing spaces are trimmed must be silently ignored;
    * so we eat them
    */
-  if (p > startPos + 1 && LDAP_DN_ASCII_SPACE(p[-1]) &&
-      !LDAP_DN_ESCAPE(p[-2])) {
+  if (p > startPos + 1 && LDAP_DN_ASCII_SPACE(p[-1]) && !LDAP_DN_ESCAPE(p[-2])) {
     if (flags & LDAP_DN_PEDANTIC) {
       return (1);
     }
 
     /* strip trailing (unescaped) spaces */
-    for (endPos = p - 1;
-         endPos > startPos + 1 && LDAP_DN_ASCII_SPACE(endPos[-1]) &&
-         !LDAP_DN_ESCAPE(endPos[-2]);
+    for (endPos = p - 1; endPos > startPos + 1 && LDAP_DN_ASCII_SPACE(endPos[-1]) && !LDAP_DN_ESCAPE(endPos[-2]);
          endPos--) {
       /* no op */
     }
@@ -1521,8 +1473,7 @@ static int DCE2strval(const char *str, struct berval *val, const char **next,
   return (0);
 }
 
-static int IA52strval(const char *str, struct berval *val, const char **next,
-                      unsigned flags, void *ctx) {
+static int IA52strval(const char *str, struct berval *val, const char **next, unsigned flags, void *ctx) {
   const char *p, *startPos, *endPos = NULL;
   ber_len_t len, escapes;
 
@@ -1559,9 +1510,7 @@ static int IA52strval(const char *str, struct berval *val, const char **next,
   }
 
   /* strip trailing (unescaped) spaces */
-  for (endPos = p; endPos > startPos + 1 && LDAP_DN_ASCII_SPACE(endPos[-1]) &&
-                   !LDAP_DN_ESCAPE(endPos[-2]);
-       endPos--) {
+  for (endPos = p; endPos > startPos + 1 && LDAP_DN_ASCII_SPACE(endPos[-1]) && !LDAP_DN_ESCAPE(endPos[-2]); endPos--) {
     /* no op */
   }
 
@@ -1592,8 +1541,7 @@ static int IA52strval(const char *str, struct berval *val, const char **next,
   return (0);
 }
 
-static int quotedIA52strval(const char *str, struct berval *val,
-                            const char **next, unsigned flags, void *ctx) {
+static int quotedIA52strval(const char *str, struct berval *val, const char **next, unsigned flags, void *ctx) {
   const char *p, *startPos, *endPos = NULL;
   ber_len_t len;
   unsigned escapes = 0;
@@ -1720,8 +1668,7 @@ static int hexstr2bin(const char *str, char *c) {
   return (0);
 }
 
-static int hexstr2binval(const char *str, struct berval *val, const char **next,
-                         unsigned flags, void *ctx) {
+static int hexstr2binval(const char *str, struct berval *val, const char **next, unsigned flags, void *ctx) {
   const char *p, *startPos, *endPos = NULL;
   ber_len_t len;
   ber_len_t s, d;
@@ -1913,8 +1860,7 @@ static int strval2strlen(struct berval *val, unsigned flags, ber_len_t *len) {
       l += escaped_byte_len * cl;
 
     } else if (LDAP_DN_NEEDESCAPE(p[0]) || LDAP_DN_SHOULDESCAPE(p[0]) ||
-               (p == val->bv_val && LDAP_DN_NEEDESCAPE_LEAD(p[0])) ||
-               (p == end && LDAP_DN_NEEDESCAPE_TRAIL(p[0]))) {
+               (p == val->bv_val && LDAP_DN_NEEDESCAPE_LEAD(p[0])) || (p == end && LDAP_DN_NEEDESCAPE_TRAIL(p[0]))) {
 #ifdef PRETTY_ESCAPE
 #if 0
 			if ( LDAP_DN_WILLESCAPE_HEX( flags, p[ 0 ] ) ) {
@@ -1949,8 +1895,7 @@ static int strval2strlen(struct berval *val, unsigned flags, ber_len_t *len) {
  * convert to string representation, escaping with hex the UTF-8 stuff;
  * assume the destination has enough room for escaping
  */
-static int strval2str(struct berval *val, char *str, unsigned flags,
-                      ber_len_t *len) {
+static int strval2str(struct berval *val, char *str, unsigned flags, ber_len_t *len) {
   ber_len_t s, d, end;
 
   assert(val != NULL);
@@ -1998,10 +1943,8 @@ static int strval2str(struct berval *val, char *str, unsigned flags,
         || LDAP_DN_WILLESCAPE_CHAR(val->bv_val[s])
 #endif
 #else /* ! PRETTY_ESCAPE */
-        || LDAP_DN_NEEDESCAPE(val->bv_val[s]) ||
-        LDAP_DN_SHOULDESCAPE(val->bv_val[s]) ||
-        (d == 0 && LDAP_DN_NEEDESCAPE_LEAD(val->bv_val[s])) ||
-        (s == end && LDAP_DN_NEEDESCAPE_TRAIL(val->bv_val[s]))
+        || LDAP_DN_NEEDESCAPE(val->bv_val[s]) || LDAP_DN_SHOULDESCAPE(val->bv_val[s]) ||
+        (d == 0 && LDAP_DN_NEEDESCAPE_LEAD(val->bv_val[s])) || (s == end && LDAP_DN_NEEDESCAPE_TRAIL(val->bv_val[s]))
 
 #endif /* ! PRETTY_ESCAPE */
     ) {
@@ -2019,8 +1962,7 @@ static int strval2str(struct berval *val, char *str, unsigned flags,
 
     } else {
 #ifdef PRETTY_ESCAPE
-      if (LDAP_DN_NEEDESCAPE(val->bv_val[s]) ||
-          LDAP_DN_SHOULDESCAPE(val->bv_val[s]) ||
+      if (LDAP_DN_NEEDESCAPE(val->bv_val[s]) || LDAP_DN_SHOULDESCAPE(val->bv_val[s]) ||
           (d == 0 && LDAP_DN_NEEDESCAPE_LEAD(val->bv_val[s])) ||
           (s == end && LDAP_DN_NEEDESCAPE_TRAIL(val->bv_val[s]))) {
         str[d++] = '\\';
@@ -2044,8 +1986,7 @@ static int strval2str(struct berval *val, char *str, unsigned flags,
 /*
  * Length of the IA5 string representation (no UTF-8 allowed)
  */
-static int strval2IA5strlen(struct berval *val, unsigned flags,
-                            ber_len_t *len) {
+static int strval2IA5strlen(struct berval *val, unsigned flags, ber_len_t *len) {
   ber_len_t l;
   char *p;
 
@@ -2066,8 +2007,7 @@ static int strval2IA5strlen(struct berval *val, unsigned flags,
   } else {
     for (l = 0, p = val->bv_val; p[0]; p++) {
       if (LDAP_DN_NEEDESCAPE(p[0]) || LDAP_DN_SHOULDESCAPE(p[0]) ||
-          (p == val->bv_val && LDAP_DN_NEEDESCAPE_LEAD(p[0])) ||
-          (!p[1] && LDAP_DN_NEEDESCAPE_TRAIL(p[0]))) {
+          (p == val->bv_val && LDAP_DN_NEEDESCAPE_LEAD(p[0])) || (!p[1] && LDAP_DN_NEEDESCAPE_TRAIL(p[0]))) {
         l += 2;
 
       } else {
@@ -2085,8 +2025,7 @@ static int strval2IA5strlen(struct berval *val, unsigned flags,
  * convert to string representation (np UTF-8)
  * assume the destination has enough room for escaping
  */
-static int strval2IA5str(struct berval *val, char *str, unsigned flags,
-                         ber_len_t *len) {
+static int strval2IA5str(struct berval *val, char *str, unsigned flags, ber_len_t *len) {
   ber_len_t s, d, end;
 
   assert(val != NULL);
@@ -2112,8 +2051,7 @@ static int strval2IA5str(struct berval *val, char *str, unsigned flags,
      */
 
     for (s = 0, d = 0, end = val->bv_len - 1; s < val->bv_len;) {
-      if (LDAP_DN_NEEDESCAPE(val->bv_val[s]) ||
-          LDAP_DN_SHOULDESCAPE(val->bv_val[s]) ||
+      if (LDAP_DN_NEEDESCAPE(val->bv_val[s]) || LDAP_DN_SHOULDESCAPE(val->bv_val[s]) ||
           (s == 0 && LDAP_DN_NEEDESCAPE_LEAD(val->bv_val[s])) ||
           (s == end && LDAP_DN_NEEDESCAPE_TRAIL(val->bv_val[s]))) {
         str[d++] = '\\';
@@ -2131,8 +2069,7 @@ static int strval2IA5str(struct berval *val, char *str, unsigned flags,
  * Length of the (supposedly) DCE string representation,
  * accounting for escaped hex of UTF-8 chars
  */
-static int strval2DCEstrlen(struct berval *val, unsigned flags,
-                            ber_len_t *len) {
+static int strval2DCEstrlen(struct berval *val, unsigned flags, ber_len_t *len) {
   ber_len_t l;
   char *p;
 
@@ -2171,8 +2108,7 @@ static int strval2DCEstrlen(struct berval *val, unsigned flags,
  * escaping with hex the UTF-8 stuff;
  * assume the destination has enough room for escaping
  */
-static int strval2DCEstr(struct berval *val, char *str, unsigned flags,
-                         ber_len_t *len) {
+static int strval2DCEstr(struct berval *val, char *str, unsigned flags, ber_len_t *len) {
   ber_len_t s, d;
 
   assert(val != NULL);
@@ -2248,8 +2184,7 @@ static int strval2ADstrlen(struct berval *val, unsigned flags, ber_len_t *len) {
  * convert to (supposedly) AD string representation,
  * assume the destination has enough room for escaping
  */
-static int strval2ADstr(struct berval *val, char *str, unsigned flags,
-                        ber_len_t *len) {
+static int strval2ADstr(struct berval *val, char *str, unsigned flags, ber_len_t *len) {
   ber_len_t s, d, cl;
 
   assert(val != NULL);
@@ -2380,8 +2315,7 @@ static int rdn2strlen(LDAPRDN rdn, unsigned flags, ber_len_t *len,
 }
 
 static int rdn2str(LDAPRDN rdn, char *str, unsigned flags, ber_len_t *len,
-                   int (*s2s)(struct berval *v, char *s, unsigned f,
-                              ber_len_t *l)) {
+                   int (*s2s)(struct berval *v, char *s, unsigned f, ber_len_t *l)) {
   int iAVA;
   ber_len_t l = 0;
 
@@ -2448,8 +2382,7 @@ static int rdn2DCEstrlen(LDAPRDN rdn, unsigned flags, ber_len_t *len) {
   return (0);
 }
 
-static int rdn2DCEstr(LDAPRDN rdn, char *str, unsigned flags, ber_len_t *len,
-                      int first) {
+static int rdn2DCEstr(LDAPRDN rdn, char *str, unsigned flags, ber_len_t *len, int first) {
   int iAVA;
   ber_len_t l = 0;
 
@@ -2599,8 +2532,7 @@ static int rdn2ADstrlen(LDAPRDN rdn, unsigned flags, ber_len_t *len) {
   return (0);
 }
 
-static int rdn2ADstr(LDAPRDN rdn, char *str, unsigned flags, ber_len_t *len,
-                     int first) {
+static int rdn2ADstr(LDAPRDN rdn, char *str, unsigned flags, ber_len_t *len, int first) {
   int iAVA;
   ber_len_t l = 0;
 
@@ -2657,9 +2589,7 @@ int ldap_rdn2str(LDAPRDN rdn, char **str, unsigned flags) {
   return rc;
 }
 
-int ldap_rdn2bv(LDAPRDN rdn, struct berval *bv, unsigned flags) {
-  return ldap_rdn2bv_x(rdn, bv, flags, NULL);
-}
+int ldap_rdn2bv(LDAPRDN rdn, struct berval *bv, unsigned flags) { return ldap_rdn2bv_x(rdn, bv, flags, NULL); }
 
 int ldap_rdn2bv_x(LDAPRDN rdn, struct berval *bv, unsigned flags, void *ctx) {
   int rc, back;
@@ -2785,9 +2715,7 @@ int ldap_dn2str(LDAPDN dn, char **str, unsigned flags) {
   return rc;
 }
 
-int ldap_dn2bv(LDAPDN dn, struct berval *bv, unsigned flags) {
-  return ldap_dn2bv_x(dn, bv, flags, NULL);
-}
+int ldap_dn2bv(LDAPDN dn, struct berval *bv, unsigned flags) { return ldap_dn2bv_x(dn, bv, flags, NULL); }
 
 int ldap_dn2bv_x(LDAPDN dn, struct berval *bv, unsigned flags, void *ctx) {
   int iRDN;
@@ -3104,8 +3032,7 @@ the first attribute is of type OrganisationalUnit.
     return LDAP_PARAM_ERROR;
   }
 
-  Debug(LDAP_DEBUG_ARGS, "<= ldap_dn2bv(%s)=%d %s\n", bv->bv_val, rc,
-        rc ? ldap_err2string(rc) : "");
+  Debug(LDAP_DEBUG_ARGS, "<= ldap_dn2bv(%s)=%d %s\n", bv->bv_val, rc, rc ? ldap_err2string(rc) : "");
 
 return_results:;
   return (rc);

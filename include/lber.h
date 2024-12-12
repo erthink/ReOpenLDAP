@@ -185,14 +185,10 @@ struct sockbuf_io {
 };
 
 /* Helper macros for LBER IO functions */
-#define LBER_SBIOD_READ_NEXT(sbiod, buf, len)                                  \
-  ((sbiod)->sbiod_next->sbiod_io->sbi_read((sbiod)->sbiod_next, buf, len))
-#define LBER_SBIOD_WRITE_NEXT(sbiod, buf, len)                                 \
-  ((sbiod)->sbiod_next->sbiod_io->sbi_write((sbiod)->sbiod_next, buf, len))
-#define LBER_SBIOD_CTRL_NEXT(sbiod, opt, arg)                                  \
-  ((sbiod)->sbiod_next ? ((sbiod)->sbiod_next->sbiod_io->sbi_ctrl(             \
-                             (sbiod)->sbiod_next, opt, arg))                   \
-                       : 0)
+#define LBER_SBIOD_READ_NEXT(sbiod, buf, len) ((sbiod)->sbiod_next->sbiod_io->sbi_read((sbiod)->sbiod_next, buf, len))
+#define LBER_SBIOD_WRITE_NEXT(sbiod, buf, len) ((sbiod)->sbiod_next->sbiod_io->sbi_write((sbiod)->sbiod_next, buf, len))
+#define LBER_SBIOD_CTRL_NEXT(sbiod, opt, arg)                                                                          \
+  ((sbiod)->sbiod_next ? ((sbiod)->sbiod_next->sbiod_io->sbi_ctrl((sbiod)->sbiod_next, opt, arg)) : 0)
 
 /* structure for returning a sequence of octet strings + length */
 typedef struct berval {
@@ -312,8 +308,7 @@ LBER_F(int)
 ber_put_string(BerElement *ber, const char *str, ber_tag_t tag);
 
 LBER_F(int)
-ber_put_bitstring(BerElement *ber, const char *str, ber_len_t bitlen,
-                  ber_tag_t tag);
+ber_put_bitstring(BerElement *ber, const char *str, ber_len_t bitlen, ber_tag_t tag);
 
 LBER_F(int)
 ber_put_null(BerElement *ber, ber_tag_t tag);
@@ -347,8 +342,7 @@ LBER_F(ber_slen_t)
 ber_read(BerElement *ber, char *buf, ber_len_t len);
 
 LBER_F(ber_slen_t)
-ber_write(BerElement *ber, const char *buf, ber_len_t len,
-          int zero); /* nonzero is unsupported from OpenLDAP 2.4.18 */
+ber_write(BerElement *ber, const char *buf, ber_len_t len, int zero); /* nonzero is unsupported from OpenLDAP 2.4.18 */
 
 LBER_F(void)
 ber_free(BerElement *ber, int freebuf);
@@ -361,12 +355,10 @@ ber_flush2(Sockbuf *sb, BerElement *ber, int freeit);
 #define LBER_FLUSH_FREE_NEVER (0x0)      /* traditional behavior */
 #define LBER_FLUSH_FREE_ON_SUCCESS (0x1) /* traditional behavior */
 #define LBER_FLUSH_FREE_ON_ERROR (0x2)
-#define LBER_FLUSH_FREE_ALWAYS                                                 \
-  (LBER_FLUSH_FREE_ON_SUCCESS | LBER_FLUSH_FREE_ON_ERROR)
+#define LBER_FLUSH_FREE_ALWAYS (LBER_FLUSH_FREE_ON_SUCCESS | LBER_FLUSH_FREE_ON_ERROR)
 
 LBER_F(int)
-ber_flush(Sockbuf *sb, BerElement *ber, int freeit)
-    __reldap_deprecated_msg("use ber_flush2");
+ber_flush(Sockbuf *sb, BerElement *ber, int freeit) __reldap_deprecated_msg("use ber_flush2");
 
 LBER_F(BerElement *)
 ber_alloc(void) __reldap_deprecated_msg("use ber_alloc_t(0)");
@@ -387,8 +379,7 @@ LBER_F(void)
 ber_init2(BerElement *ber, struct berval *bv, int options);
 
 LBER_F(void)
-ber_init_w_nullc(BerElement *ber, int options)
-    __reldap_deprecated_msg("use ber_init2");
+ber_init_w_nullc(BerElement *ber, int options) __reldap_deprecated_msg("use ber_init2");
 
 LBER_F(void)
 ber_reset(BerElement *ber, int was_writing);
@@ -500,12 +491,9 @@ ber_bvarray_free(BerVarray p);
 LBER_F(int)
 ber_bvarray_add(BerVarray *p, BerValue *bv);
 
-#define ber_bvcmp(v1, v2)                                                      \
-  ((v1)->bv_len < (v2)->bv_len                                                 \
-       ? -1                                                                    \
-       : ((v1)->bv_len > (v2)->bv_len                                          \
-              ? 1                                                              \
-              : memcmp((v1)->bv_val, (v2)->bv_val, (v1)->bv_len)))
+#define ber_bvcmp(v1, v2)                                                                                              \
+  ((v1)->bv_len < (v2)->bv_len ? -1                                                                                    \
+                               : ((v1)->bv_len > (v2)->bv_len ? 1 : memcmp((v1)->bv_val, (v2)->bv_val, (v1)->bv_len)))
 
 /*
  * error.c

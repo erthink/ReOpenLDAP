@@ -37,8 +37,7 @@ int ldap_int_thread_destroy(void) { return 0; }
 
 static void *ldap_int_status = NULL;
 
-int ldap_pvt_thread_create(ldap_pvt_thread_t *thread, int detach,
-                           void *(*start_routine)(void *), void *arg) {
+int ldap_pvt_thread_create(ldap_pvt_thread_t *thread, int detach, void *(*start_routine)(void *), void *arg) {
   if (!detach)
     ldap_int_status = NULL;
   start_routine(arg);
@@ -70,16 +69,11 @@ int ldap_pvt_thread_cond_signal(ldap_pvt_thread_cond_t *cond) { return 0; }
 
 int ldap_pvt_thread_cond_broadcast(ldap_pvt_thread_cond_t *cond) { return 0; }
 
-int ldap_pvt_thread_cond_wait(ldap_pvt_thread_cond_t *cond,
-                              ldap_pvt_thread_mutex_t *mutex) {
-  return 0;
-}
+int ldap_pvt_thread_cond_wait(ldap_pvt_thread_cond_t *cond, ldap_pvt_thread_mutex_t *mutex) { return 0; }
 
 int ldap_pvt_thread_mutex_init(ldap_pvt_thread_mutex_t *mutex) { return 0; }
 
-int ldap_pvt_thread_mutex_recursive_init(ldap_pvt_thread_mutex_t *mutex) {
-  return 0;
-}
+int ldap_pvt_thread_mutex_recursive_init(ldap_pvt_thread_mutex_t *mutex) { return 0; }
 
 int ldap_pvt_thread_mutex_destroy(ldap_pvt_thread_mutex_t *mutex) { return 0; }
 
@@ -93,43 +87,30 @@ int ldap_pvt_thread_mutex_unlock(ldap_pvt_thread_mutex_t *mutex) { return 0; }
  * NO_THREADS requires a separate tpool implementation since
  * generic ldap_pvt_thread_pool_wrapper loops forever.
  */
-int ldap_pvt_thread_pool_init(ldap_pvt_thread_pool_t *pool_out,
-                              int max_concurrency, int max_pending) {
+int ldap_pvt_thread_pool_init(ldap_pvt_thread_pool_t *pool_out, int max_concurrency, int max_pending) {
   *pool_out = (ldap_pvt_thread_pool_t)0;
   return (0);
 }
 
-int ldap_pvt_thread_pool_submit(ldap_pvt_thread_pool_t *pool,
-                                ldap_pvt_thread_start_t *start_routine,
-                                void *arg) {
+int ldap_pvt_thread_pool_submit(ldap_pvt_thread_pool_t *pool, ldap_pvt_thread_start_t *start_routine, void *arg) {
   (start_routine)(NULL, arg);
   return (0);
 }
 
 int ldap_pvt_thread_pool_retract(void *cookie) { return (0); }
 
-int ldap_pvt_thread_pool_maxthreads(ldap_pvt_thread_pool_t *tpool,
-                                    int max_threads) {
-  return (0);
-}
+int ldap_pvt_thread_pool_maxthreads(ldap_pvt_thread_pool_t *tpool, int max_threads) { return (0); }
 
-int ldap_pvt_thread_pool_query(ldap_pvt_thread_pool_t *tpool,
-                               ldap_pvt_thread_pool_param_t param,
-                               void *value) {
+int ldap_pvt_thread_pool_query(ldap_pvt_thread_pool_t *tpool, ldap_pvt_thread_pool_param_t param, void *value) {
   *(int *)value = -1;
   return (-1);
 }
 
 int ldap_pvt_thread_pool_backload(ldap_pvt_thread_pool_t *pool) { return (0); }
 
-int ldap_pvt_thread_pool_destroy(ldap_pvt_thread_pool_t *pool,
-                                 int run_pending) {
-  return (0);
-}
+int ldap_pvt_thread_pool_destroy(ldap_pvt_thread_pool_t *pool, int run_pending) { return (0); }
 
-int ldap_pvt_thread_pool_close(ldap_pvt_thread_pool_t *pool, int run_pending) {
-  return (0);
-}
+int ldap_pvt_thread_pool_close(ldap_pvt_thread_pool_t *pool, int run_pending) { return (0); }
 
 int ldap_pvt_thread_pool_free(ldap_pvt_thread_pool_t *pool) { return (0); }
 
@@ -137,15 +118,12 @@ void ldap_pvt_thread_pool_idle(ldap_pvt_thread_pool_t *pool) { return; }
 
 void ldap_pvt_thread_pool_unidle(ldap_pvt_thread_pool_t *pool) { return; }
 
-int ldap_pvt_thread_pool_getkey(void *ctx, void *key, void **data,
-                                ldap_pvt_thread_pool_keyfree_t **kfree) {
+int ldap_pvt_thread_pool_getkey(void *ctx, void *key, void **data, ldap_pvt_thread_pool_keyfree_t **kfree) {
   return (0);
 }
 
-int ldap_pvt_thread_pool_setkey(void *ctx, void *key, void *data,
-                                ldap_pvt_thread_pool_keyfree_t *kfree,
-                                void **olddatap,
-                                ldap_pvt_thread_pool_keyfree_t **oldkfreep) {
+int ldap_pvt_thread_pool_setkey(void *ctx, void *key, void *data, ldap_pvt_thread_pool_keyfree_t *kfree,
+                                void **olddatap, ldap_pvt_thread_pool_keyfree_t **oldkfreep) {
   if (olddatap)
     *olddatap = NULL;
   if (oldkfreep)
@@ -173,13 +151,9 @@ int ldap_pvt_thread_key_create(ldap_pvt_thread_key_t *key) { return (0); }
 
 int ldap_pvt_thread_key_destroy(ldap_pvt_thread_key_t key) { return (0); }
 
-int ldap_pvt_thread_key_setdata(ldap_pvt_thread_key_t key, void *data) {
-  return (0);
-}
+int ldap_pvt_thread_key_setdata(ldap_pvt_thread_key_t key, void *data) { return (0); }
 
-int ldap_pvt_thread_key_getdata(ldap_pvt_thread_key_t key, void **data) {
-  return (0);
-}
+int ldap_pvt_thread_key_getdata(ldap_pvt_thread_key_t key, void **data) { return (0); }
 
 ldap_pvt_thread_t ldap_pvt_thread_pool_tid(void *vctx) { return (0); }
 

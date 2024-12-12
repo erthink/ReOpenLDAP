@@ -115,12 +115,10 @@ static int rdnval_unique_check(Operation *op, BerVarray vals) {
 
   for (i = 0; !BER_BVISNULL(&vals[i]); i++) {
     ldap_bv2escaped_filter_value_x(&vals[i], &fvals[i], 1, op->o_tmpmemctx);
-    op2.ors_filterstr.bv_len +=
-        ad_rdnValue->ad_cname.bv_len + fvals[i].bv_len + STRLENOF("(=)");
+    op2.ors_filterstr.bv_len += ad_rdnValue->ad_cname.bv_len + fvals[i].bv_len + STRLENOF("(=)");
   }
 
-  op2.ors_filterstr.bv_val =
-      op->o_tmpalloc(op2.ors_filterstr.bv_len + 1, op->o_tmpmemctx);
+  op2.ors_filterstr.bv_val = op->o_tmpalloc(op2.ors_filterstr.bv_len + 1, op->o_tmpmemctx);
 
   ptr = op2.ors_filterstr.bv_val;
   if (i > 1) {
@@ -128,8 +126,7 @@ static int rdnval_unique_check(Operation *op, BerVarray vals) {
   }
   for (i = 0; !BER_BVISNULL(&vals[i]); i++) {
     *ptr++ = '(';
-    ptr = lutil_strncopy(ptr, ad_rdnValue->ad_cname.bv_val,
-                         ad_rdnValue->ad_cname.bv_len);
+    ptr = lutil_strncopy(ptr, ad_rdnValue->ad_cname.bv_val, ad_rdnValue->ad_cname.bv_len);
     *ptr++ = '=';
     ptr = lutil_strncopy(ptr, fvals[i].bv_val, fvals[i].bv_len);
     *ptr++ = ')';
@@ -162,8 +159,7 @@ static int rdnval_unique_check(Operation *op, BerVarray vals) {
   return LDAP_SUCCESS;
 }
 
-static int rdnval_rdn2vals(Operation *op, SlapReply *rs, struct berval *dn,
-                           struct berval *ndn, BerVarray *valsp,
+static int rdnval_rdn2vals(Operation *op, SlapReply *rs, struct berval *dn, struct berval *ndn, BerVarray *valsp,
                            BerVarray *nvalsp, int *numvalsp) {
   LDAPRDN rdn = NULL, nrdn = NULL;
   int nAVA, i;
@@ -173,8 +169,7 @@ static int rdnval_rdn2vals(Operation *op, SlapReply *rs, struct berval *dn,
 
   *numvalsp = 0;
 
-  if (ldap_bv2rdn_x(dn, &rdn, (char **)&rs->sr_text, LDAP_DN_FORMAT_LDAP,
-                    op->o_tmpmemctx)) {
+  if (ldap_bv2rdn_x(dn, &rdn, (char **)&rs->sr_text, LDAP_DN_FORMAT_LDAP, op->o_tmpmemctx)) {
     Debug(LDAP_DEBUG_TRACE,
           "%s rdnval: can't figure out "
           "type(s)/value(s) of rdn DN=\"%s\"\n",
@@ -185,8 +180,7 @@ static int rdnval_rdn2vals(Operation *op, SlapReply *rs, struct berval *dn,
     goto done;
   }
 
-  if (ldap_bv2rdn_x(ndn, &nrdn, (char **)&rs->sr_text, LDAP_DN_FORMAT_LDAP,
-                    op->o_tmpmemctx)) {
+  if (ldap_bv2rdn_x(ndn, &nrdn, (char **)&rs->sr_text, LDAP_DN_FORMAT_LDAP, op->o_tmpmemctx)) {
     Debug(LDAP_DEBUG_TRACE,
           "%s rdnval: can't figure out "
           "type(s)/value(s) of normalized rdn DN=\"%s\"\n",
@@ -212,8 +206,7 @@ static int rdnval_rdn2vals(Operation *op, SlapReply *rs, struct berval *dn,
     rs->sr_err = slap_bv2ad(&rdn[i]->la_attr, &desc, &rs->sr_text);
 
     if (rs->sr_err != LDAP_SUCCESS) {
-      Debug(LDAP_DEBUG_TRACE, "%s rdnval: %s: %s\n", op->o_log_prefix,
-            rs->sr_text, rdn[i]->la_attr.bv_val);
+      Debug(LDAP_DEBUG_TRACE, "%s rdnval: %s: %s\n", op->o_log_prefix, rs->sr_text, rdn[i]->la_attr.bv_val);
       goto done;
     }
 
@@ -225,11 +218,8 @@ static int rdnval_rdn2vals(Operation *op, SlapReply *rs, struct berval *dn,
       continue;
     }
 
-    if (value_find_ex(desc,
-                      SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH |
-                          SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH,
-                      *nvalsp, &nrdn[i]->la_value,
-                      op->o_tmpmemctx) == LDAP_NO_SUCH_ATTRIBUTE) {
+    if (value_find_ex(desc, SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH | SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH, *nvalsp,
+                      &nrdn[i]->la_value, op->o_tmpmemctx) == LDAP_NO_SUCH_ATTRIBUTE) {
       ber_dupbv(&(*valsp)[*numvalsp], &rdn[i]->la_value);
       ber_dupbv(&(*nvalsp)[*numvalsp], &nrdn[i]->la_value);
 
@@ -284,8 +274,7 @@ static int rdnval_op_add(Operation *op, SlapReply *rs) {
     return SLAP_CB_CONTINUE;
   }
 
-  rc = rdnval_rdn2vals(op, rs, &op->ora_e->e_name, &op->ora_e->e_nname, &vals,
-                       &nvals, &numvals);
+  rc = rdnval_rdn2vals(op, rs, &op->ora_e->e_name, &op->ora_e->e_nname, &vals, &nvals, &numvals);
   if (rc != LDAP_SUCCESS) {
     send_ldap_result(op, rs);
   }
@@ -316,8 +305,7 @@ static int rdnval_op_rename(Operation *op, SlapReply *rs) {
     return SLAP_CB_CONTINUE;
   }
 
-  rc = rdnval_rdn2vals(op, rs, &op->orr_newrdn, &op->orr_nnewrdn, &vals, &nvals,
-                       &numvals);
+  rc = rdnval_rdn2vals(op, rs, &op->orr_newrdn, &op->orr_nnewrdn, &vals, &nvals, &numvals);
   if (rc != LDAP_SUCCESS) {
     send_ldap_result(op, rs);
   }
@@ -343,20 +331,17 @@ static int rdnval_op_rename(Operation *op, SlapReply *rs) {
 
 static int rdnval_db_init(BackendDB *be, ConfigReply *cr) {
   if (SLAP_ISGLOBALOVERLAY(be)) {
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
-        "rdnval_db_init: rdnval cannot be used as global overlay.\n");
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "rdnval_db_init: rdnval cannot be used as global overlay.\n");
     return 1;
   }
 
   if (be->be_nsuffix == NULL) {
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
-        "rdnval_db_init: database must have suffix\n");
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "rdnval_db_init: database must have suffix\n");
     return 1;
   }
 
   if (BER_BVISNULL(&be->be_rootndn) || BER_BVISEMPTY(&be->be_rootndn)) {
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
-        "rdnval_db_init: missing rootdn for database DN=\"%s\", YMMV\n",
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "rdnval_db_init: missing rootdn for database DN=\"%s\", YMMV\n",
         be->be_suffix[0].bv_val);
   }
 
@@ -400,8 +385,7 @@ static int rdnval_repair_cb(Operation *op, SlapReply *rs) {
   assert(rs->sr_entry != NULL);
 
   op->o_bd = rcb->bd;
-  rc = rdnval_rdn2vals(op, rs, &rs->sr_entry->e_name, &rs->sr_entry->e_nname,
-                       &vals, &nvals, &numvals);
+  rc = rdnval_rdn2vals(op, rs, &rs->sr_entry->e_name, &rs->sr_entry->e_nname, &vals, &nvals, &numvals);
   op->o_bd = save_bd;
   if (rc != LDAP_SUCCESS) {
     return 0;
@@ -411,8 +395,7 @@ static int rdnval_repair_cb(Operation *op, SlapReply *rs) {
   mod = op->o_tmpalloc(len, op->o_tmpmemctx);
   mod->ndn.bv_len = rs->sr_entry->e_nname.bv_len;
   mod->ndn.bv_val = (char *)&mod[1];
-  lutil_strncopy(mod->ndn.bv_val, rs->sr_entry->e_nname.bv_val,
-                 rs->sr_entry->e_nname.bv_len);
+  lutil_strncopy(mod->ndn.bv_val, rs->sr_entry->e_nname.bv_val, rs->sr_entry->e_nname.bv_len);
   mod->vals = vals;
   mod->nvals = nvals;
   mod->numvals = numvals;
@@ -420,9 +403,8 @@ static int rdnval_repair_cb(Operation *op, SlapReply *rs) {
   mod->next = rcb->mods;
   rcb->mods = mod;
 
-  Debug(LDAP_DEBUG_TRACE,
-        "%s: rdnval_repair_cb: scheduling entry DN=\"%s\" for repair\n",
-        op->o_log_prefix, rs->sr_entry->e_name.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "%s: rdnval_repair_cb: scheduling entry DN=\"%s\" for repair\n", op->o_log_prefix,
+        rs->sr_entry->e_name.bv_val);
 
   return 0;
 }
@@ -464,10 +446,8 @@ static int rdnval_repair(BackendDB *be) {
   op->ors_attrs = slap_anlist_no_attrs;
 
   op->ors_filterstr.bv_len = STRLENOF("(!(=*))") + ad_rdnValue->ad_cname.bv_len;
-  op->ors_filterstr.bv_val =
-      op->o_tmpalloc(op->ors_filterstr.bv_len + 1, op->o_tmpmemctx);
-  snprintf(op->ors_filterstr.bv_val, op->ors_filterstr.bv_len + 1, "(!(%s=*))",
-           ad_rdnValue->ad_cname.bv_val);
+  op->ors_filterstr.bv_val = op->o_tmpalloc(op->ors_filterstr.bv_len + 1, op->o_tmpmemctx);
+  snprintf(op->ors_filterstr.bv_val, op->ors_filterstr.bv_len + 1, "(!(%s=*))", ad_rdnValue->ad_cname.bv_val);
 
   op->ors_filter = str2filter_x(op, op->ors_filterstr.bv_val);
   if (op->ors_filter == NULL) {
@@ -514,14 +494,12 @@ static int rdnval_repair(BackendDB *be) {
 
     slap_mods_free(op->orm_modlist, 1);
     if (rs2.sr_err == LDAP_SUCCESS) {
-      Debug(LDAP_DEBUG_TRACE, "%s: rdnval_repair: entry DN=\"%s\" repaired\n",
-            op->o_log_prefix, rmod->ndn.bv_val);
+      Debug(LDAP_DEBUG_TRACE, "%s: rdnval_repair: entry DN=\"%s\" repaired\n", op->o_log_prefix, rmod->ndn.bv_val);
       nrepaired++;
 
     } else {
-      Debug(LDAP_DEBUG_ANY,
-            "%s: rdnval_repair: entry DN=\"%s\" repair failed (%d)\n",
-            op->o_log_prefix, rmod->ndn.bv_val, rs2.sr_err);
+      Debug(LDAP_DEBUG_ANY, "%s: rdnval_repair: entry DN=\"%s\" repair failed (%d)\n", op->o_log_prefix,
+            rmod->ndn.bv_val, rs2.sr_err);
     }
 
     rnext = rmod->next;
@@ -541,9 +519,7 @@ done_search:;
 /* search all entries without parentUUID; "repair" them */
 static int rdnval_db_open(BackendDB *be, ConfigReply *cr) {
   if (SLAP_SINGLE_SHADOW(be)) {
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
-        "rdnval incompatible with shadow database \"%s\".\n",
-        be->be_suffix[0].bv_val);
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "rdnval incompatible with shadow database \"%s\".\n", be->be_suffix[0].bv_val);
     return 1;
   }
 
@@ -598,6 +574,4 @@ static int rdnval_initialize(void) {
   return overlay_register(&rdnval);
 }
 
-SLAP_MODULE_ENTRY(rdnval, modinit)(int argc, char *argv[]) {
-  return rdnval_initialize();
-}
+SLAP_MODULE_ENTRY(rdnval, modinit)(int argc, char *argv[]) { return rdnval_initialize(); }

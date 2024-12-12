@@ -30,25 +30,21 @@ typedef void(TI_tls_destroy)(void);
 typedef tls_ctx *(TI_ctx_new)(struct ldapoptions *lo);
 typedef void(TI_ctx_ref)(tls_ctx *ctx);
 typedef void(TI_ctx_free)(tls_ctx *ctx);
-typedef int(TI_ctx_init)(struct ldapoptions *lo, struct ldaptls *lt,
-                         int is_server);
+typedef int(TI_ctx_init)(struct ldapoptions *lo, struct ldaptls *lt, int is_server);
 
 typedef tls_session *(TI_session_new)(tls_ctx *ctx, int is_server);
 typedef int(TI_session_connect)(LDAP *ld, tls_session *s);
 typedef int(TI_session_accept)(tls_session *s);
 typedef int(TI_session_upflags)(Sockbuf *sb, tls_session *s, int rc);
-typedef char *(TI_session_errmsg)(tls_session *s, int rc, char *buf,
-                                  size_t len);
+typedef char *(TI_session_errmsg)(tls_session *s, int rc, char *buf, size_t len);
 typedef int(TI_session_dn)(tls_session *sess, struct berval *dn);
 typedef int(TI_session_chkhost)(LDAP *ld, tls_session *s, const char *name_in);
 typedef int(TI_session_strength)(tls_session *sess);
-typedef int(TI_session_unique)(tls_session *sess, struct berval *buf,
-                               int is_server);
+typedef int(TI_session_unique)(tls_session *sess, struct berval *buf, int is_server);
 typedef const char *(TI_session_name)(tls_session *s);
 typedef const char *(TI_session_cipher)(tls_session *s);
 typedef int(TI_session_peercert)(tls_session *s, struct berval *der);
-typedef int(TI_session_pinning)(LDAP *ld, tls_session *s, char *hashalg,
-                                struct berval *hash);
+typedef int(TI_session_pinning)(LDAP *ld, tls_session *s, char *hashalg, struct berval *hash);
 
 typedef void(TI_thr_init)(void);
 

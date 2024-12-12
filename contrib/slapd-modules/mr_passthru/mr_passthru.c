@@ -25,8 +25,7 @@
 #include "lutil.h"
 #include "ac/string.h"
 
-static int failMatch(int *matchp, slap_mask_t flags, Syntax *syntax,
-                     MatchingRule *mr, struct berval *value,
+static int failMatch(int *matchp, slap_mask_t flags, Syntax *syntax, MatchingRule *mr, struct berval *value,
                      void *assertedValue) {
   int match;
   struct berval *asserted __maybe_unused = (struct berval *)assertedValue;
@@ -69,6 +68,4 @@ static int mr_passthru_initialize(void) {
   return rc;
 }
 
-SLAP_MODULE_ENTRY(mr_passthru, modinit)(int argc, char *argv[]) {
-  return mr_passthru_initialize();
-}
+SLAP_MODULE_ENTRY(mr_passthru, modinit)(int argc, char *argv[]) { return mr_passthru_initialize(); }

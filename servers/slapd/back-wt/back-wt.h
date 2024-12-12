@@ -71,10 +71,8 @@ struct wt_info {
 #define WT_TABLE_IDLCACHE "table:idlcache"
 
 #define ITEMzero(item) (memset((item), 0, sizeof(WT_ITEM)))
-#define ITEM2bv(item, bv)                                                      \
-  ((bv)->bv_val = (item)->data, (bv)->bv_len = (item)->size)
-#define bv2ITEM(bv, item)                                                      \
-  ((item)->data = (bv)->bv_val, (item)->size = (bv)->bv_len)
+#define ITEM2bv(item, bv) ((bv)->bv_val = (item)->data, (bv)->bv_len = (item)->size)
+#define bv2ITEM(bv, item) ((item)->data = (bv)->bv_val, (item)->size = (bv)->bv_len)
 
 #define WT_INDEX_CACHE_SIZE 1024
 

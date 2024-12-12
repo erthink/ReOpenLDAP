@@ -227,8 +227,7 @@ int backsql_db_open(BackendDB *bd, ConfigReply *cr) {
                             "concat func not specified (use \"concat_pattern\" "
                             "directive in slapd.conf)\n");
 
-    if (backsql_split_pattern(backsql_def_concat_func, &bi->sql_concat_func,
-                              2)) {
+    if (backsql_split_pattern(backsql_def_concat_func, &bi->sql_concat_func, 2)) {
       Debug(LDAP_DEBUG_TRACE,
             "backsql_db_open(): "
             "unable to parse pattern \"%s\"",
@@ -241,13 +240,11 @@ int backsql_db_open(BackendDB *bd, ConfigReply *cr) {
    * see back-sql.h for default values
    */
   if (BER_BVISNULL(&bi->sql_aliasing)) {
-    ber_str2bv(BACKSQL_ALIASING, STRLENOF(BACKSQL_ALIASING), 1,
-               &bi->sql_aliasing);
+    ber_str2bv(BACKSQL_ALIASING, STRLENOF(BACKSQL_ALIASING), 1, &bi->sql_aliasing);
   }
 
   if (BER_BVISNULL(&bi->sql_aliasing_quote)) {
-    ber_str2bv(BACKSQL_ALIASING_QUOTE, STRLENOF(BACKSQL_ALIASING_QUOTE), 1,
-               &bi->sql_aliasing_quote);
+    ber_str2bv(BACKSQL_ALIASING_QUOTE, STRLENOF(BACKSQL_ALIASING_QUOTE), 1, &bi->sql_aliasing_quote);
   }
 
   /*
@@ -257,8 +254,7 @@ int backsql_db_open(BackendDB *bd, ConfigReply *cr) {
     char buf[1024];
 
     if (BACKSQL_UPPER_NEEDS_CAST(bi)) {
-      snprintf(buf, sizeof(buf), "%s(cast (" /* ? as varchar(%d))) */,
-               bi->sql_upper_func.bv_val);
+      snprintf(buf, sizeof(buf), "%s(cast (" /* ? as varchar(%d))) */, bi->sql_upper_func.bv_val);
       ber_str2bv(buf, 0, 1, &bi->sql_upper_func_open);
 
       snprintf(buf, sizeof(buf),
@@ -301,9 +297,8 @@ int backsql_db_open(BackendDB *bd, ConfigReply *cr) {
                             "preparing default\n");
 
     if (backsql_prepare_pattern(bi->sql_concat_func, values, &concat)) {
-      Debug(LDAP_DEBUG_TRACE,
-            "backsql_db_open(): "
-            "unable to prepare CONCAT pattern for subtree search");
+      Debug(LDAP_DEBUG_TRACE, "backsql_db_open(): "
+                              "unable to prepare CONCAT pattern for subtree search");
       return 1;
     }
 
@@ -313,10 +308,8 @@ int backsql_db_open(BackendDB *bd, ConfigReply *cr) {
        * UPPER(ldap_entries.dn) LIKE UPPER(CONCAT('%',?))
        */
 
-      backsql_strfcat_x(&bb, NULL, "blbbb", &bi->sql_upper_func,
-                        (ber_len_t)STRLENOF("(ldap_entries.dn) LIKE "),
-                        "(ldap_entries.dn) LIKE ", &bi->sql_upper_func_open,
-                        &concat, &bi->sql_upper_func_close);
+      backsql_strfcat_x(&bb, NULL, "blbbb", &bi->sql_upper_func, (ber_len_t)STRLENOF("(ldap_entries.dn) LIKE "),
+                        "(ldap_entries.dn) LIKE ", &bi->sql_upper_func_open, &concat, &bi->sql_upper_func_close);
 
     } else {
 
@@ -324,9 +317,8 @@ int backsql_db_open(BackendDB *bd, ConfigReply *cr) {
        * ldap_entries.dn LIKE CONCAT('%',?)
        */
 
-      backsql_strfcat_x(&bb, NULL, "lb",
-                        (ber_len_t)STRLENOF("ldap_entries.dn LIKE "),
-                        "ldap_entries.dn LIKE ", &concat);
+      backsql_strfcat_x(&bb, NULL, "lb", (ber_len_t)STRLENOF("ldap_entries.dn LIKE "), "ldap_entries.dn LIKE ",
+                        &concat);
     }
 
     ch_free(concat.bv_val);
@@ -353,9 +345,8 @@ int backsql_db_open(BackendDB *bd, ConfigReply *cr) {
                             "preparing default\n");
 
     if (backsql_prepare_pattern(bi->sql_concat_func, values, &concat)) {
-      Debug(LDAP_DEBUG_TRACE,
-            "backsql_db_open(): "
-            "unable to prepare CONCAT pattern for children search");
+      Debug(LDAP_DEBUG_TRACE, "backsql_db_open(): "
+                              "unable to prepare CONCAT pattern for children search");
       return 1;
     }
 
@@ -365,10 +356,8 @@ int backsql_db_open(BackendDB *bd, ConfigReply *cr) {
        * UPPER(ldap_entries.dn) LIKE UPPER(CONCAT('%,',?))
        */
 
-      backsql_strfcat_x(&bb, NULL, "blbbb", &bi->sql_upper_func,
-                        (ber_len_t)STRLENOF("(ldap_entries.dn) LIKE "),
-                        "(ldap_entries.dn) LIKE ", &bi->sql_upper_func_open,
-                        &concat, &bi->sql_upper_func_close);
+      backsql_strfcat_x(&bb, NULL, "blbbb", &bi->sql_upper_func, (ber_len_t)STRLENOF("(ldap_entries.dn) LIKE "),
+                        "(ldap_entries.dn) LIKE ", &bi->sql_upper_func_open, &concat, &bi->sql_upper_func_close);
 
     } else {
 
@@ -376,9 +365,8 @@ int backsql_db_open(BackendDB *bd, ConfigReply *cr) {
        * ldap_entries.dn LIKE CONCAT('%,',?)
        */
 
-      backsql_strfcat_x(&bb, NULL, "lb",
-                        (ber_len_t)STRLENOF("ldap_entries.dn LIKE "),
-                        "ldap_entries.dn LIKE ", &concat);
+      backsql_strfcat_x(&bb, NULL, "lb", (ber_len_t)STRLENOF("ldap_entries.dn LIKE "), "ldap_entries.dn LIKE ",
+                        &concat);
     }
 
     ch_free(concat.bv_val);
@@ -408,10 +396,8 @@ int backsql_db_open(BackendDB *bd, ConfigReply *cr) {
        * UPPER(ldap_entries.dn)=?
        */
 
-      backsql_strfcat_x(&bb, NULL, "blbcb", &bi->sql_upper_func,
-                        (ber_len_t)STRLENOF("(ldap_entries.dn)="),
-                        "(ldap_entries.dn)=", &bi->sql_upper_func_open, '?',
-                        &bi->sql_upper_func_close);
+      backsql_strfcat_x(&bb, NULL, "blbcb", &bi->sql_upper_func, (ber_len_t)STRLENOF("(ldap_entries.dn)="),
+                        "(ldap_entries.dn)=", &bi->sql_upper_func_open, '?', &bi->sql_upper_func_close);
 
     } else {
 
@@ -419,9 +405,7 @@ int backsql_db_open(BackendDB *bd, ConfigReply *cr) {
        * ldap_entries.dn=?
        */
 
-      backsql_strfcat_x(&bb, NULL, "l",
-                        (ber_len_t)STRLENOF("ldap_entries.dn=?"),
-                        "ldap_entries.dn=?");
+      backsql_strfcat_x(&bb, NULL, "l", (ber_len_t)STRLENOF("ldap_entries.dn=?"), "ldap_entries.dn=?");
     }
 
     bi->sql_dn_match_cond = bb.bb_val;
@@ -461,10 +445,9 @@ int backsql_db_open(BackendDB *bd, ConfigReply *cr) {
   }
 
   if (bi->sql_insentry_stmt == NULL) {
-    Debug(LDAP_DEBUG_TRACE,
-          "backsql_db_open(): "
-          "entry insertion SQL statement not specified "
-          "(use \"insentry_stmt\" directive in slapd.conf)\n");
+    Debug(LDAP_DEBUG_TRACE, "backsql_db_open(): "
+                            "entry insertion SQL statement not specified "
+                            "(use \"insentry_stmt\" directive in slapd.conf)\n");
     Debug(LDAP_DEBUG_TRACE,
           "backsql_db_open(): "
           "setting \"%s\" by default\n",
@@ -473,10 +456,9 @@ int backsql_db_open(BackendDB *bd, ConfigReply *cr) {
   }
 
   if (bi->sql_delentry_stmt == NULL) {
-    Debug(LDAP_DEBUG_TRACE,
-          "backsql_db_open(): "
-          "entry deletion SQL statement not specified "
-          "(use \"delentry_stmt\" directive in slapd.conf)\n");
+    Debug(LDAP_DEBUG_TRACE, "backsql_db_open(): "
+                            "entry deletion SQL statement not specified "
+                            "(use \"delentry_stmt\" directive in slapd.conf)\n");
     Debug(LDAP_DEBUG_TRACE,
           "backsql_db_open(): "
           "setting \"%s\" by default\n",
@@ -485,10 +467,9 @@ int backsql_db_open(BackendDB *bd, ConfigReply *cr) {
   }
 
   if (bi->sql_renentry_stmt == NULL) {
-    Debug(LDAP_DEBUG_TRACE,
-          "backsql_db_open(): "
-          "entry deletion SQL statement not specified "
-          "(use \"renentry_stmt\" directive in slapd.conf)\n");
+    Debug(LDAP_DEBUG_TRACE, "backsql_db_open(): "
+                            "entry deletion SQL statement not specified "
+                            "(use \"renentry_stmt\" directive in slapd.conf)\n");
     Debug(LDAP_DEBUG_TRACE,
           "backsql_db_open(): "
           "setting \"%s\" by default\n",
@@ -497,10 +478,9 @@ int backsql_db_open(BackendDB *bd, ConfigReply *cr) {
   }
 
   if (bi->sql_delobjclasses_stmt == NULL) {
-    Debug(LDAP_DEBUG_TRACE,
-          "backsql_db_open(): "
-          "objclasses deletion SQL statement not specified "
-          "(use \"delobjclasses_stmt\" directive in slapd.conf)\n");
+    Debug(LDAP_DEBUG_TRACE, "backsql_db_open(): "
+                            "objclasses deletion SQL statement not specified "
+                            "(use \"delobjclasses_stmt\" directive in slapd.conf)\n");
     Debug(LDAP_DEBUG_TRACE,
           "backsql_db_open(): "
           "setting \"%s\" by default\n",
@@ -545,14 +525,11 @@ int backsql_db_open(BackendDB *bd, ConfigReply *cr) {
         backsql_strcat_x(&bb, NULL, backsql_id_query, "dn_ru=?", NULL);
       } else {
         if (BACKSQL_USE_REVERSE_DN(bi)) {
-          backsql_strfcat_x(&bb, NULL, "sbl", backsql_id_query,
-                            &bi->sql_upper_func, (ber_len_t)STRLENOF("(dn)=?"),
+          backsql_strfcat_x(&bb, NULL, "sbl", backsql_id_query, &bi->sql_upper_func, (ber_len_t)STRLENOF("(dn)=?"),
                             "(dn)=?");
         } else {
-          backsql_strfcat_x(&bb, NULL, "sblbcb", backsql_id_query,
-                            &bi->sql_upper_func, (ber_len_t)STRLENOF("(dn)="),
-                            "(dn)=", &bi->sql_upper_func_open, '?',
-                            &bi->sql_upper_func_close);
+          backsql_strfcat_x(&bb, NULL, "sblbcb", backsql_id_query, &bi->sql_upper_func, (ber_len_t)STRLENOF("(dn)="),
+                            "(dn)=", &bi->sql_upper_func_open, '?', &bi->sql_upper_func_close);
         }
       }
     }
@@ -578,10 +555,8 @@ int backsql_db_open(BackendDB *bd, ConfigReply *cr) {
    */
   BER_BVZERO(&bb.bb_val);
   bb.bb_len = 0;
-  backsql_strfcat_x(&bb, NULL, "sbbsbsbbsb", " ", &bi->sql_aliasing,
-                    &bi->sql_aliasing_quote, "objectClass",
-                    &bi->sql_aliasing_quote, ",ldap_entries.dn ",
-                    &bi->sql_aliasing, &bi->sql_aliasing_quote, "dn",
+  backsql_strfcat_x(&bb, NULL, "sbbsbsbbsb", " ", &bi->sql_aliasing, &bi->sql_aliasing_quote, "objectClass",
+                    &bi->sql_aliasing_quote, ",ldap_entries.dn ", &bi->sql_aliasing, &bi->sql_aliasing_quote, "dn",
                     &bi->sql_aliasing_quote);
   bi->sql_dn_oc_aliasing = bb.bb_val;
 

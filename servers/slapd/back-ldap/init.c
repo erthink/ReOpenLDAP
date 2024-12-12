@@ -31,11 +31,9 @@
 #include "back-ldap.h"
 
 static const ldap_extra_t ldap_extra = {
-    ldap_back_proxy_authz_ctrl,    ldap_back_controls_free,
-    slap_idassert_authzfrom_parse, slap_idassert_passthru_parse_cf,
-    slap_idassert_parse,           slap_retry_info_destroy,
-    slap_retry_info_parse,         slap_retry_info_unparse,
-    ldap_back_connid2str};
+    ldap_back_proxy_authz_ctrl,      ldap_back_controls_free, slap_idassert_authzfrom_parse,
+    slap_idassert_passthru_parse_cf, slap_idassert_parse,     slap_retry_info_destroy,
+    slap_retry_info_parse,           slap_retry_info_unparse, ldap_back_connid2str};
 
 int ldap_back_open(BackendInfo *bi) {
   bi->bi_controls = slap_known_controls;
@@ -192,8 +190,7 @@ int ldap_back_db_open(BackendDB *be, ConfigReply *cr) {
   slap_bindconf sb = {BER_BVNULL};
   int rc = 0;
 
-  Debug(LDAP_DEBUG_TRACE, "ldap_back_db_open: URI=%s\n",
-        li->li_uri != NULL ? li->li_uri : "");
+  Debug(LDAP_DEBUG_TRACE, "ldap_back_db_open: URI=%s\n", li->li_uri != NULL ? li->li_uri : "");
 
   /* by default, use proxyAuthz control on each operation */
   switch (li->li_idassert_mode) {
@@ -214,18 +211,15 @@ int ldap_back_db_open(BackendDB *be, ConfigReply *cr) {
   BER_BVSTR(&sb.sb_binddn, "");
 
   if (LDAP_BACK_T_F_DISCOVER(li) && !LDAP_BACK_T_F(li)) {
-    rc = slap_discover_feature(
-        &sb, slap_schema.si_ad_supportedFeatures->ad_cname.bv_val,
-        LDAP_FEATURE_ABSOLUTE_FILTERS);
+    rc =
+        slap_discover_feature(&sb, slap_schema.si_ad_supportedFeatures->ad_cname.bv_val, LDAP_FEATURE_ABSOLUTE_FILTERS);
     if (rc == LDAP_COMPARE_TRUE) {
       li->li_flags |= LDAP_BACK_F_T_F;
     }
   }
 
   if (LDAP_BACK_CANCEL_DISCOVER(li) && !LDAP_BACK_CANCEL(li)) {
-    rc = slap_discover_feature(
-        &sb, slap_schema.si_ad_supportedExtension->ad_cname.bv_val,
-        LDAP_EXOP_CANCEL);
+    rc = slap_discover_feature(&sb, slap_schema.si_ad_supportedExtension->ad_cname.bv_val, LDAP_EXOP_CANCEL);
     if (rc == LDAP_COMPARE_TRUE) {
       li->li_flags |= LDAP_BACK_F_CANCEL_EXOP;
     }

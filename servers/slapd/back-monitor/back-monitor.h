@@ -61,12 +61,12 @@ typedef struct monitor_entry_t {
 #define MONITOR_F_NONE 0x0000U
 #define MONITOR_F_SUB 0x0001U        /* subentry of subsystem */
 #define MONITOR_F_PERSISTENT 0x0010U /* persistent entry */
-#define MONITOR_F_PERSISTENT_CH                                                \
-  0x0020U                          /* subsystem generates                      \
+#define MONITOR_F_PERSISTENT_CH                                                                                        \
+  0x0020U                          /* subsystem generates                                                              \
                                       persistent entries */
 #define MONITOR_F_VOLATILE 0x0040U /* volatile entry */
-#define MONITOR_F_VOLATILE_CH                                                  \
-  0x0080U                          /* subsystem generates                      \
+#define MONITOR_F_VOLATILE_CH                                                                                          \
+  0x0080U                          /* subsystem generates                                                              \
                                       volatile entries */
 #define MONITOR_F_EXTERNAL 0x0100U /* externally added - don't free */
   /* NOTE: flags with 0xF0000000U mask are reserved for subsystem internals */
@@ -166,8 +166,7 @@ enum {
 #define SLAPD_MONITOR_AT "cn"
 
 #define SLAPD_MONITOR_BACKEND_NAME "Backends"
-#define SLAPD_MONITOR_BACKEND_RDN                                              \
-  SLAPD_MONITOR_AT "=" SLAPD_MONITOR_BACKEND_NAME
+#define SLAPD_MONITOR_BACKEND_RDN SLAPD_MONITOR_AT "=" SLAPD_MONITOR_BACKEND_NAME
 #define SLAPD_MONITOR_BACKEND_DN SLAPD_MONITOR_BACKEND_RDN "," SLAPD_MONITOR_DN
 
 #define SLAPD_MONITOR_CONN_NAME "Connections"
@@ -175,16 +174,12 @@ enum {
 #define SLAPD_MONITOR_CONN_DN SLAPD_MONITOR_CONN_RDN "," SLAPD_MONITOR_DN
 
 #define SLAPD_MONITOR_DATABASE_NAME "Databases"
-#define SLAPD_MONITOR_DATABASE_RDN                                             \
-  SLAPD_MONITOR_AT "=" SLAPD_MONITOR_DATABASE_NAME
-#define SLAPD_MONITOR_DATABASE_DN                                              \
-  SLAPD_MONITOR_DATABASE_RDN "," SLAPD_MONITOR_DN
+#define SLAPD_MONITOR_DATABASE_RDN SLAPD_MONITOR_AT "=" SLAPD_MONITOR_DATABASE_NAME
+#define SLAPD_MONITOR_DATABASE_DN SLAPD_MONITOR_DATABASE_RDN "," SLAPD_MONITOR_DN
 
 #define SLAPD_MONITOR_LISTENER_NAME "Listeners"
-#define SLAPD_MONITOR_LISTENER_RDN                                             \
-  SLAPD_MONITOR_AT "=" SLAPD_MONITOR_LISTENER_NAME
-#define SLAPD_MONITOR_LISTENER_DN                                              \
-  SLAPD_MONITOR_LISTENER_RDN "," SLAPD_MONITOR_DN
+#define SLAPD_MONITOR_LISTENER_RDN SLAPD_MONITOR_AT "=" SLAPD_MONITOR_LISTENER_NAME
+#define SLAPD_MONITOR_LISTENER_DN SLAPD_MONITOR_LISTENER_RDN "," SLAPD_MONITOR_DN
 
 #define SLAPD_MONITOR_LOG_NAME "Log"
 #define SLAPD_MONITOR_LOG_RDN SLAPD_MONITOR_AT "=" SLAPD_MONITOR_LOG_NAME
@@ -195,8 +190,7 @@ enum {
 #define SLAPD_MONITOR_OPS_DN SLAPD_MONITOR_OPS_RDN "," SLAPD_MONITOR_DN
 
 #define SLAPD_MONITOR_OVERLAY_NAME "Overlays"
-#define SLAPD_MONITOR_OVERLAY_RDN                                              \
-  SLAPD_MONITOR_AT "=" SLAPD_MONITOR_OVERLAY_NAME
+#define SLAPD_MONITOR_OVERLAY_RDN SLAPD_MONITOR_AT "=" SLAPD_MONITOR_OVERLAY_NAME
 #define SLAPD_MONITOR_OVERLAY_DN SLAPD_MONITOR_OVERLAY_RDN "," SLAPD_MONITOR_DN
 
 #define SLAPD_MONITOR_SASL_NAME "SASL"
@@ -233,8 +227,7 @@ typedef struct monitor_subsys_t {
 #define MONITOR_F_OPENED 0x10000000U
 
 #define MONITOR_HAS_VOLATILE_CH(mp) ((mp)->mp_flags & MONITOR_F_VOLATILE_CH)
-#define MONITOR_HAS_CHILDREN(mp)                                               \
-  ((mp)->mp_children || MONITOR_HAS_VOLATILE_CH(mp))
+#define MONITOR_HAS_CHILDREN(mp) ((mp)->mp_children || MONITOR_HAS_VOLATILE_CH(mp))
 
   /* initialize entry and subentries */
   int (*mss_open)(BackendDB *, struct monitor_subsys_t *ms);
@@ -243,8 +236,7 @@ typedef struct monitor_subsys_t {
   /* update existing dynamic entry and subentries */
   int (*mss_update)(Operation *, SlapReply *, Entry *);
   /* create new dynamic subentries */
-  int (*mss_create)(Operation *, SlapReply *, struct berval *ndn, Entry *,
-                    Entry **);
+  int (*mss_create)(Operation *, SlapReply *, struct berval *ndn, Entry *, Entry **);
   /* modify entry and subentries */
   int (*mss_modify)(Operation *, SlapReply *, Entry *);
 
@@ -256,13 +248,11 @@ extern BackendDB *be_monitor;
 /* increase this bufsize if entries in string form get too big */
 #define BACKMONITOR_BUFSIZE 8192
 
-typedef int(monitor_cbfunc)(struct berval *ndn, monitor_callback_t *cb,
-                            struct berval *base, int scope,
+typedef int(monitor_cbfunc)(struct berval *ndn, monitor_callback_t *cb, struct berval *base, int scope,
                             struct berval *filter);
 
-typedef int(monitor_cbafunc)(struct berval *ndn, Attribute *a,
-                             monitor_callback_t *cb, struct berval *base,
-                             int scope, struct berval *filter);
+typedef int(monitor_cbafunc)(struct berval *ndn, Attribute *a, monitor_callback_t *cb, struct berval *base, int scope,
+                             struct berval *filter);
 
 typedef struct monitor_extra_t {
   int (*is_configured)(void);
@@ -273,14 +263,10 @@ typedef struct monitor_extra_t {
   int (*register_backend)(BackendInfo *bi);
   int (*register_database)(BackendDB *be, struct berval *ndn_out);
   int (*register_overlay_info)(slap_overinst *on);
-  int (*register_overlay)(BackendDB *be, slap_overinst *on,
-                          struct berval *ndn_out);
-  int (*register_entry)(Entry *e, monitor_callback_t *cb, monitor_subsys_t *ms,
-                        unsigned long flags);
-  int (*register_entry_parent)(Entry *e, monitor_callback_t *cb,
-                               monitor_subsys_t *ms, unsigned long flags,
-                               struct berval *base, int scope,
-                               struct berval *filter);
+  int (*register_overlay)(BackendDB *be, slap_overinst *on, struct berval *ndn_out);
+  int (*register_entry)(Entry *e, monitor_callback_t *cb, monitor_subsys_t *ms, unsigned long flags);
+  int (*register_entry_parent)(Entry *e, monitor_callback_t *cb, monitor_subsys_t *ms, unsigned long flags,
+                               struct berval *base, int scope, struct berval *filter);
   monitor_cbafunc *register_entry_attrs;
   monitor_cbfunc *register_entry_callback;
 
@@ -288,8 +274,7 @@ typedef struct monitor_extra_t {
   monitor_cbfunc *unregister_entry_parent;
   monitor_cbafunc *unregister_entry_attrs;
   monitor_cbfunc *unregister_entry_callback;
-  Entry *(*entry_stub)(struct berval *pdn, struct berval *pndn,
-                       struct berval *rdn, ObjectClass *oc,
+  Entry *(*entry_stub)(struct berval *pdn, struct berval *pndn, struct berval *rdn, ObjectClass *oc,
                        struct berval *create, struct berval *modify);
   monitor_entry_t *(*entrypriv_create)(void);
   int (*register_subsys_late)(monitor_subsys_t *ms);

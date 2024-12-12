@@ -17,8 +17,7 @@
 
 /* Need dynacl... */
 #if !SLAP_DYNACL
-#error                                                                         \
-    "Run-time loadable ACL support (--enable-dynacl) is required for acl-gssacl plugin!"
+#error "Run-time loadable ACL support (--enable-dynacl) is required for acl-gssacl plugin!"
 #endif
 
 #include <ac/string.h>
@@ -39,31 +38,26 @@ typedef struct gssattr_t {
 
 static int gssattr_dynacl_destroy(void *priv);
 
-static int regex_matches(
-    struct berval *pat,        /* pattern to expand and match against */
-    char *str,                 /* string to match against pattern */
-    struct berval *dn_matches, /* buffer with $N expansion variables from DN */
-    struct berval
-        *val_matches,        /* buffer with $N expansion variables from val */
-    AclRegexMatches *matches /* offsets in buffer for $N expansion variables */
+static int regex_matches(struct berval *pat,         /* pattern to expand and match against */
+                         char *str,                  /* string to match against pattern */
+                         struct berval *dn_matches,  /* buffer with $N expansion variables from DN */
+                         struct berval *val_matches, /* buffer with $N expansion variables from val */
+                         AclRegexMatches *matches    /* offsets in buffer for $N expansion variables */
 );
 
-static int gssattr_dynacl_parse(const char *fname, int lineno, const char *opts,
-                                slap_style_t style, const char *pattern,
-                                void **privp) {
+static int gssattr_dynacl_parse(const char *fname, int lineno, const char *opts, slap_style_t style,
+                                const char *pattern, void **privp) {
   gssattr_t *gssattr;
 
   gssattr = (gssattr_t *)ch_calloc(1, sizeof(gssattr_t));
 
   if (opts == NULL || opts[0] == '\0') {
-    fprintf(stderr, "%s line %d: GSS ACL: no attribute specified.\n", fname,
-            lineno);
+    fprintf(stderr, "%s line %d: GSS ACL: no attribute specified.\n", fname, lineno);
     goto cleanup;
   }
 
   if (pattern == NULL || pattern[0] == '\0') {
-    fprintf(stderr, "%s line %d: GSS ACL: no attribute value specified.\n",
-            fname, lineno);
+    fprintf(stderr, "%s line %d: GSS ACL: no attribute value specified.\n", fname, lineno);
     goto cleanup;
   }
 
@@ -75,8 +69,7 @@ static int gssattr_dynacl_parse(const char *fname, int lineno, const char *opts,
   case ACL_STYLE_EXPAND:
     break;
   default:
-    fprintf(stderr, "%s line %d: GSS ACL: unsupported style \"%s\".\n", fname,
-            lineno, style_strings[style]);
+    fprintf(stderr, "%s line %d: GSS ACL: unsupported style \"%s\".\n", fname, lineno, style_strings[style]);
     goto cleanup;
     break;
   }
@@ -97,13 +90,11 @@ static int gssattr_dynacl_unparse(void *priv, struct berval *bv) {
   gssattr_t *gssattr = (gssattr_t *)priv;
   char *ptr;
 
-  bv->bv_len = STRLENOF(" dynacl/gss/.expand=") + gssattr->gssattr_name.bv_len +
-               gssattr->gssattr_value.bv_len;
+  bv->bv_len = STRLENOF(" dynacl/gss/.expand=") + gssattr->gssattr_name.bv_len + gssattr->gssattr_value.bv_len;
   bv->bv_val = ch_malloc(bv->bv_len + 1);
 
   ptr = lutil_strcopy(bv->bv_val, " dynacl/gss/");
-  ptr = lutil_strncopy(ptr, gssattr->gssattr_name.bv_val,
-                       gssattr->gssattr_name.bv_len);
+  ptr = lutil_strncopy(ptr, gssattr->gssattr_name.bv_val, gssattr->gssattr_name.bv_len);
   switch (gssattr->gssattr_style) {
   case ACL_STYLE_BASE:
     ptr = lutil_strcopy(ptr, ".exact=");
@@ -119,8 +110,7 @@ static int gssattr_dynacl_unparse(void *priv, struct berval *bv) {
     break;
   }
 
-  ptr = lutil_strncopy(ptr, gssattr->gssattr_value.bv_val,
-                       gssattr->gssattr_value.bv_len);
+  ptr = lutil_strncopy(ptr, gssattr->gssattr_value.bv_val, gssattr->gssattr_value.bv_len);
 
   ptr[0] = '\0';
 
@@ -129,10 +119,8 @@ static int gssattr_dynacl_unparse(void *priv, struct berval *bv) {
   return 0;
 }
 
-static int gssattr_dynacl_mask(void *priv, Operation *op, Entry *target,
-                               AttributeDescription *desc, struct berval *val,
-                               int nmatch, regmatch_t *matches,
-                               slap_access_t *grant, slap_access_t *deny) {
+static int gssattr_dynacl_mask(void *priv, Operation *op, Entry *target, AttributeDescription *desc, struct berval *val,
+                               int nmatch, regmatch_t *matches, slap_access_t *grant, slap_access_t *deny) {
   gssattr_t *gssattr = (gssattr_t *)priv;
   sasl_conn_t *sasl_ctx = op->o_conn->c_sasl_authctx;
   gss_name_t gss_name = GSS_C_NO_NAME;
@@ -144,9 +132,7 @@ static int gssattr_dynacl_mask(void *priv, Operation *op, Entry *target,
 
   ACL_INVALIDATE(*deny);
 
-  if (sasl_ctx == NULL ||
-      sasl_getprop(sasl_ctx, SASL_GSS_PEER_NAME, (const void **)&gss_name) !=
-          0 ||
+  if (sasl_ctx == NULL || sasl_getprop(sasl_ctx, SASL_GSS_PEER_NAME, (const void **)&gss_name) != 0 ||
       gss_name == GSS_C_NO_NAME) {
     return 0;
   }
@@ -160,8 +146,7 @@ static int gssattr_dynacl_mask(void *priv, Operation *op, Entry *target,
     gss_buffer_desc gss_display_value = GSS_C_EMPTY_BUFFER;
     struct berval bv_value;
 
-    major = gss_get_name_attribute(&minor, gss_name, &attr, &authenticated,
-                                   &complete, &gss_value, &gss_display_value,
+    major = gss_get_name_attribute(&minor, gss_name, &attr, &authenticated, &complete, &gss_value, &gss_display_value,
                                    &more);
     if (GSS_ERROR(major)) {
       break;
@@ -183,8 +168,7 @@ static int gssattr_dynacl_mask(void *priv, Operation *op, Entry *target,
       switch (gssattr->gssattr_style) {
       case ACL_STYLE_REGEX:
         /* XXX assumes value NUL terminated */
-        granted = regex_matches(&gssattr->gssattr_value, bv_value.bv_val,
-                                &target->e_nname, val, &amatches);
+        granted = regex_matches(&gssattr->gssattr_value, bv_value.bv_val, &target->e_nname, val, &amatches);
         break;
       case ACL_STYLE_EXPAND: {
         struct berval bv;
@@ -193,8 +177,7 @@ static int gssattr_dynacl_mask(void *priv, Operation *op, Entry *target,
         bv.bv_len = sizeof(buf) - 1;
         bv.bv_val = buf;
 
-        granted = (acl_string_expand(&bv, &gssattr->gssattr_value,
-                                     &target->e_nname, val, &amatches) == 0) &&
+        granted = (acl_string_expand(&bv, &gssattr->gssattr_value, &target->e_nname, val, &amatches) == 0) &&
                   (ber_bvstrcmp(&bv, &bv_value) == 0);
         break;
       }
@@ -240,13 +223,11 @@ static int gssattr_dynacl_destroy(void *priv) {
   return 0;
 }
 
-static int regex_matches(
-    struct berval *pat,        /* pattern to expand and match against */
-    char *str,                 /* string to match against pattern */
-    struct berval *dn_matches, /* buffer with $N expansion variables from DN */
-    struct berval
-        *val_matches,        /* buffer with $N expansion variables from val */
-    AclRegexMatches *matches /* offsets in buffer for $N expansion variables */
+static int regex_matches(struct berval *pat,         /* pattern to expand and match against */
+                         char *str,                  /* string to match against pattern */
+                         struct berval *dn_matches,  /* buffer with $N expansion variables from DN */
+                         struct berval *val_matches, /* buffer with $N expansion variables from val */
+                         AclRegexMatches *matches    /* offsets in buffer for $N expansion variables */
 ) {
   regex_t re;
   char newbuf[ACL_BUF_SIZE];
@@ -266,8 +247,7 @@ static int regex_matches(
     char error[ACL_BUF_SIZE];
     regerror(rc, &re, error, sizeof(error));
 
-    Debug(LDAP_DEBUG_TRACE, "compile( \"%s\", \"%s\") failed %s\n", pat->bv_val,
-          str, error);
+    Debug(LDAP_DEBUG_TRACE, "compile( \"%s\", \"%s\") failed %s\n", pat->bv_val, str, error);
     return (0);
   }
 
@@ -275,15 +255,11 @@ static int regex_matches(
   regfree(&re);
 
   Debug(LDAP_DEBUG_TRACE, "=> regex_matches: string:	 %s\n", str);
-  Debug(LDAP_DEBUG_TRACE, "=> regex_matches: rc: %d %s\n", rc,
-        !rc ? "matches" : "no matches");
+  Debug(LDAP_DEBUG_TRACE, "=> regex_matches: rc: %d %s\n", rc, !rc ? "matches" : "no matches");
   return (!rc);
 }
 
-static struct slap_dynacl_t gssattr_dynacl = {
-    "gss", gssattr_dynacl_parse, gssattr_dynacl_unparse, gssattr_dynacl_mask,
-    gssattr_dynacl_destroy};
+static struct slap_dynacl_t gssattr_dynacl = {"gss", gssattr_dynacl_parse, gssattr_dynacl_unparse, gssattr_dynacl_mask,
+                                              gssattr_dynacl_destroy};
 
-SLAP_MODULE_ENTRY(gssacl, modinit)(int argc, char *argv[]) {
-  return slap_dynacl_register(&gssattr_dynacl);
-}
+SLAP_MODULE_ENTRY(gssacl, modinit)(int argc, char *argv[]) { return slap_dynacl_register(&gssattr_dynacl); }

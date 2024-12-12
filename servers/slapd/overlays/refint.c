@@ -106,22 +106,19 @@ enum { REFINT_ATTRS = 1, REFINT_NOTHING, REFINT_MODIFIERSNAME };
 static ConfigDriver refint_cf_gen;
 
 static ConfigTable refintcfg[] = {
-    {"refint_attributes", "attribute...", 2, 0, 0, ARG_MAGIC | REFINT_ATTRS,
-     refint_cf_gen,
+    {"refint_attributes", "attribute...", 2, 0, 0, ARG_MAGIC | REFINT_ATTRS, refint_cf_gen,
      "( OLcfgOvAt:11.1 NAME 'olcRefintAttribute' "
      "DESC 'Attributes for referential integrity' "
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString )",
      NULL, NULL},
-    {"refint_nothing", "string", 2, 2, 0, ARG_DN | ARG_MAGIC | REFINT_NOTHING,
-     refint_cf_gen,
+    {"refint_nothing", "string", 2, 2, 0, ARG_DN | ARG_MAGIC | REFINT_NOTHING, refint_cf_gen,
      "( OLcfgOvAt:11.2 NAME 'olcRefintNothing' "
      "DESC 'Replacement DN to supply when needed' "
      "EQUALITY distinguishedNameMatch "
      "SYNTAX OMsDN SINGLE-VALUE )",
      NULL, NULL},
-    {"refint_modifiersName", "DN", 2, 2, 0,
-     ARG_DN | ARG_MAGIC | REFINT_MODIFIERSNAME, refint_cf_gen,
+    {"refint_modifiersName", "DN", 2, 2, 0, ARG_DN | ARG_MAGIC | REFINT_MODIFIERSNAME, refint_cf_gen,
      "( OLcfgOvAt:11.3 NAME 'olcRefintModifiersName' "
      "DESC 'The DN to use as modifiersName' "
      "EQUALITY distinguishedNameMatch "
@@ -242,10 +239,8 @@ static int refint_cf_gen(ConfigArgs *c) {
           ip->next = dd->attrs;
           dd->attrs = ip;
         } else {
-          snprintf(c->cr_msg, sizeof(c->cr_msg), "%s <%s>: %s", c->argv[0],
-                   c->argv[i], text);
-          Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log,
-                c->cr_msg);
+          snprintf(c->cr_msg, sizeof(c->cr_msg), "%s <%s>: %s", c->argv[0], c->argv[i], text);
+          Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log, c->cr_msg);
           rc = ARG_BAD_CONF;
         }
       }
@@ -362,14 +357,12 @@ static int refint_open(BackendDB *be, ConfigReply *cr) {
       else
         bi = db->bd_info;
       if (!bi->bi_op_search || !bi->bi_op_modify) {
-        Debug(LDAP_DEBUG_CONFIG,
-              "refint_response: backend missing search and/or modify\n");
+        Debug(LDAP_DEBUG_CONFIG, "refint_response: backend missing search and/or modify\n");
         return -1;
       }
       id->db = db;
     } else {
-      Debug(LDAP_DEBUG_CONFIG,
-            "refint_response: no backend for our baseDN %s??\n", id->dn.bv_val);
+      Debug(LDAP_DEBUG_CONFIG, "refint_response: no backend for our baseDN %s??\n", id->dn.bv_val);
       return -1;
     }
   }
@@ -421,8 +414,7 @@ static int refint_search_cb(Operation *op, SlapReply *rs) {
   dependent_data *ip;
   unsigned i;
 
-  Debug(LDAP_DEBUG_TRACE, "refint_search_cb <%s>\n",
-        rs->sr_entry ? rs->sr_entry->e_name.bv_val : "NOTHING");
+  Debug(LDAP_DEBUG_TRACE, "refint_search_cb <%s>\n", rs->sr_entry ? rs->sr_entry->e_name.bv_val : "NOTHING");
 
   if (rs->sr_type != REP_SEARCH || !rs->sr_entry)
     return (0);
@@ -523,11 +515,9 @@ static int refint_search_cb(Operation *op, SlapReply *rs) {
         }
       } else {
         /* entry has no children, just equality matching */
-        is_exact = attr_valfind(a,
-                                SLAP_MR_EQUALITY |
-                                    SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH |
-                                    SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH,
-                                &rq->oldndn, &i, NULL);
+        is_exact = attr_valfind(
+            a, SLAP_MR_EQUALITY | SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH | SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH,
+            &rq->oldndn, &i, NULL);
         if (is_exact == LDAP_SUCCESS) {
           na = op->o_tmpcalloc(1, sizeof(refint_attrs), op->o_tmpmemctx);
           na->next = ip->attrs;
@@ -541,8 +531,7 @@ static int refint_search_cb(Operation *op, SlapReply *rs) {
       if (na && na->ra_numvals == a->a_numvals && !BER_BVISNULL(&dd->nothing))
         na->dont_empty = 1;
 
-      Debug(LDAP_DEBUG_TRACE, "refint_search_cb: %s: %s (#%d)\n",
-            a->a_desc->ad_cname.bv_val, rq->olddn.bv_val, i);
+      Debug(LDAP_DEBUG_TRACE, "refint_search_cb: %s: %s (#%d)\n", a->a_desc->ad_cname.bv_val, rq->olddn.bv_val, i);
     }
   }
 
@@ -608,8 +597,7 @@ static int refint_repair(Operation *op, refint_data *id, refint_q *rq) {
 
     op2.o_bd = select_backend(&dp->ndn, 1);
     if (!op2.o_bd) {
-      Debug(LDAP_DEBUG_TRACE, "refint_repair: no backend for DN %s!\n",
-            dp->dn.bv_val);
+      Debug(LDAP_DEBUG_TRACE, "refint_repair: no backend for DN %s!\n", dp->dn.bv_val);
       continue;
     }
     op2.o_tag = LDAP_REQ_MODIFY;
@@ -623,8 +611,7 @@ static int refint_repair(Operation *op, refint_data *id, refint_q *rq) {
 
     /* Set our ModifiersName */
     if (SLAP_LASTMOD(op->o_bd)) {
-      m = op2.o_tmpalloc(sizeof(Modifications) + 4 * sizeof(BerValue),
-                         op2.o_tmpmemctx);
+      m = op2.o_tmpalloc(sizeof(Modifications) + 4 * sizeof(BerValue), op2.o_tmpmemctx);
       m->sml_next = op2.orm_modlist;
       op2.orm_modlist = m;
       m->sml_op = LDAP_MOD_REPLACE;
@@ -709,8 +696,7 @@ static int refint_repair(Operation *op, refint_data *id, refint_q *rq) {
     op2.o_ndn = op2.o_bd->be_rootndn;
     rc = op2.o_bd->bd_info->bi_op_modify(&op2, &rs2);
     if (rc != LDAP_SUCCESS) {
-      Debug(LDAP_DEBUG_TRACE, "refint_repair: dependent modify failed: %d\n",
-            rs2.sr_err);
+      Debug(LDAP_DEBUG_TRACE, "refint_repair: dependent modify failed: %d\n", rs2.sr_err);
     }
 
     while ((m = op2.orm_modlist)) {
@@ -755,8 +741,7 @@ static void *refint_qtask(void *ctx, void *arg) {
   op->ors_filter = &ftop;
   for (ip = id->attrs; ip; ip = ip->next) {
     /* this filter can be either EQUALITY or EXT */
-    fptr = op->o_tmpcalloc(sizeof(Filter) + sizeof(MatchingRuleAssertion), 1,
-                           op->o_tmpmemctx);
+    fptr = op->o_tmpcalloc(sizeof(Filter) + sizeof(MatchingRuleAssertion), 1, op->o_tmpmemctx);
     fptr->f_mra = (MatchingRuleAssertion *)(fptr + 1);
     fptr->f_mr_rule = mr_dnSubtreeMatch;
     fptr->f_mr_rule_text = mr_dnSubtreeMatch->smr_bvoid;
@@ -908,8 +893,7 @@ static int refint_response(Operation *op, SlapReply *rs) {
   int ac;
 
   /* If the main op failed or is not a Delete or ModRdn, ignore it */
-  if ((op->o_tag != LDAP_REQ_DELETE && op->o_tag != LDAP_REQ_MODRDN) ||
-      rs->sr_err != LDAP_SUCCESS)
+  if ((op->o_tag != LDAP_REQ_DELETE && op->o_tag != LDAP_REQ_MODRDN) || rs->sr_err != LDAP_SUCCESS)
     return SLAP_CB_CONTINUE;
 
   rp = op->o_callback->sc_private;
@@ -950,13 +934,11 @@ static int refint_response(Operation *op, SlapReply *rs) {
   ac = 0;
   ldap_pvt_thread_mutex_lock(&slapd_rq.rq_mutex);
   if (!id->qtask) {
-    id->qtask =
-        ldap_pvt_runqueue_insert(&slapd_rq, RUNQ_INTERVAL, refint_qtask, id,
-                                 "refint_qtask", op->o_bd->be_suffix[0].bv_val);
+    id->qtask = ldap_pvt_runqueue_insert(&slapd_rq, RUNQ_INTERVAL, refint_qtask, id, "refint_qtask",
+                                         op->o_bd->be_suffix[0].bv_val);
     ac = 1;
   } else {
-    if (!ldap_pvt_runqueue_isrunning(&slapd_rq, id->qtask) &&
-        !id->qtask->next_sched.ns) {
+    if (!ldap_pvt_runqueue_isrunning(&slapd_rq, id->qtask) && !id->qtask->next_sched.ns) {
       id->qtask->interval.ns = 0;
       ldap_pvt_runqueue_resched(&slapd_rq, id->qtask, 0);
       id->qtask->interval = ldap_from_seconds(RUNQ_INTERVAL);
@@ -985,8 +967,7 @@ static int refint_preop(Operation *op, SlapReply *rs) {
 
   rc = overlay_entry_get_ov(op, &op->o_req_ndn, NULL, NULL, 0, &e, on);
   if (rc == LDAP_SUCCESS) {
-    slap_callback *sc = op->o_tmpcalloc(
-        1, sizeof(slap_callback) + sizeof(refint_pre), op->o_tmpmemctx);
+    slap_callback *sc = op->o_tmpcalloc(1, sizeof(slap_callback) + sizeof(refint_pre), op->o_tmpmemctx);
     refint_pre *rp = (refint_pre *)(sc + 1);
     rp->on = on;
     rp->do_sub = 1; /* assume there are children */

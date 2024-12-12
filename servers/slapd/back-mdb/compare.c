@@ -57,13 +57,11 @@ int mdb_compare(Operation *op, SlapReply *rs) {
   if (rs->sr_err == MDBX_NOTFOUND) {
     if (e != NULL) {
       /* return referral only if "disclose" is granted on the object */
-      if (access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE,
-                         NULL)) {
+      if (access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL)) {
         rs->sr_matched = ch_strdup(e->e_dn);
         if (is_entry_referral(e)) {
           BerVarray ref = get_entry_referrals(op, e);
-          rs->sr_ref = referral_rewrite(ref, &e->e_name, &op->o_req_dn,
-                                        LDAP_SCOPE_DEFAULT);
+          rs->sr_ref = referral_rewrite(ref, &e->e_name, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
           ber_bvarray_free(ref);
         } else {
           rs->sr_ref = NULL;
@@ -72,8 +70,7 @@ int mdb_compare(Operation *op, SlapReply *rs) {
       mdb_entry_return(op, e);
       e = NULL;
     } else {
-      rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn,
-                                    LDAP_SCOPE_DEFAULT);
+      rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
     }
 
     rs->sr_flags = REP_MATCHED_MUSTBEFREED | REP_REF_MUSTBEFREED;
@@ -83,8 +80,7 @@ int mdb_compare(Operation *op, SlapReply *rs) {
 
   if (!manageDSAit && is_entry_referral(e)) {
     /* return referral only if "disclose" is granted on the object */
-    if (access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE,
-                       NULL)) {
+    if (access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL)) {
       /* entry is a referral, don't allow compare */
       rs->sr_ref = get_entry_referrals(op, e);
       rs->sr_matched = e->e_name.bv_val;

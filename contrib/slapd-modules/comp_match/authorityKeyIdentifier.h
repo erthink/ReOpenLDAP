@@ -58,19 +58,14 @@ typedef struct OtherName /* SEQUENCE */
   ComponentAnyDefinedBy value; /* [0] EXPLICIT ANY DEFINED BY type-id */
 } ComponentOtherName;
 
-int MatchingComponentOtherName PROTO((char *oid, ComponentSyntaxInfo *,
-                                      ComponentSyntaxInfo *v2));
+int MatchingComponentOtherName PROTO((char *oid, ComponentSyntaxInfo *, ComponentSyntaxInfo *v2));
 
-void *ExtractingComponentOtherName PROTO((void *mem_op, ComponentReference *cr,
-                                          ComponentOtherName *comp));
+void *ExtractingComponentOtherName PROTO((void *mem_op, ComponentReference *cr, ComponentOtherName *comp));
 
-int BDecComponentOtherName PROTO((void *mem_op, GenBuf *b, AsnTag tagId0,
-                                  AsnLen elmtLen0, ComponentOtherName **v,
+int BDecComponentOtherName PROTO((void *mem_op, GenBuf *b, AsnTag tagId0, AsnLen elmtLen0, ComponentOtherName **v,
                                   AsnLen *bytesDecoded, int mode));
 
-int GDecComponentOtherName PROTO((void *mem_op, GenBuf *b,
-                                  ComponentOtherName **v, AsnLen *bytesDecoded,
-                                  int mode));
+int GDecComponentOtherName PROTO((void *mem_op, GenBuf *b, ComponentOtherName **v, AsnLen *bytesDecoded, int mode));
 
 typedef struct ORAddress /* SEQUENCE */
 {
@@ -83,19 +78,14 @@ typedef struct ORAddress /* SEQUENCE */
   ComponentOcts extension;     /* OCTET STRING OPTIONAL */
 } ComponentORAddress;
 
-int MatchingComponentORAddress PROTO((char *oid, ComponentSyntaxInfo *,
-                                      ComponentSyntaxInfo *v2));
+int MatchingComponentORAddress PROTO((char *oid, ComponentSyntaxInfo *, ComponentSyntaxInfo *v2));
 
-void *ExtractingComponentORAddress PROTO((void *mem_op, ComponentReference *cr,
-                                          ComponentORAddress *comp));
+void *ExtractingComponentORAddress PROTO((void *mem_op, ComponentReference *cr, ComponentORAddress *comp));
 
-int BDecComponentORAddress PROTO((void *mem_op, GenBuf *b, AsnTag tagId0,
-                                  AsnLen elmtLen0, ComponentORAddress **v,
+int BDecComponentORAddress PROTO((void *mem_op, GenBuf *b, AsnTag tagId0, AsnLen elmtLen0, ComponentORAddress **v,
                                   AsnLen *bytesDecoded, int mode));
 
-int GDecComponentORAddress PROTO((void *mem_op, GenBuf *b,
-                                  ComponentORAddress **v, AsnLen *bytesDecoded,
-                                  int mode));
+int GDecComponentORAddress PROTO((void *mem_op, GenBuf *b, ComponentORAddress **v, AsnLen *bytesDecoded, int mode));
 
 typedef struct AttributeTypeAndValue /* SEQUENCE */
 {
@@ -107,21 +97,16 @@ typedef struct AttributeTypeAndValue /* SEQUENCE */
   ComponentAnyDefinedBy value; /* ANY DEFINED BY type */
 } ComponentAttributeTypeAndValue;
 
-int MatchingComponentAttributeTypeAndValue PROTO((char *oid,
-                                                  ComponentSyntaxInfo *,
-                                                  ComponentSyntaxInfo *v2));
+int MatchingComponentAttributeTypeAndValue PROTO((char *oid, ComponentSyntaxInfo *, ComponentSyntaxInfo *v2));
 
-void *ExtractingComponentAttributeTypeAndValue
-    PROTO((void *mem_op, ComponentReference *cr,
-           ComponentAttributeTypeAndValue *comp));
+void *ExtractingComponentAttributeTypeAndValue PROTO((void *mem_op, ComponentReference *cr,
+                                                      ComponentAttributeTypeAndValue *comp));
 
-int BDecComponentAttributeTypeAndValue
-    PROTO((void *mem_op, GenBuf *b, AsnTag tagId0, AsnLen elmtLen0,
-           ComponentAttributeTypeAndValue **v, AsnLen *bytesDecoded, int mode));
+int BDecComponentAttributeTypeAndValue PROTO((void *mem_op, GenBuf *b, AsnTag tagId0, AsnLen elmtLen0,
+                                              ComponentAttributeTypeAndValue **v, AsnLen *bytesDecoded, int mode));
 
-int GDecComponentAttributeTypeAndValue
-    PROTO((void *mem_op, GenBuf *b, ComponentAttributeTypeAndValue **v,
-           AsnLen *bytesDecoded, int mode));
+int GDecComponentAttributeTypeAndValue PROTO((void *mem_op, GenBuf *b, ComponentAttributeTypeAndValue **v,
+                                              AsnLen *bytesDecoded, int mode));
 
 typedef struct DirectoryString /* CHOICE */
 {
@@ -145,20 +130,15 @@ typedef struct DirectoryString /* CHOICE */
   } a;
 } ComponentDirectoryString;
 
-int MatchingComponentDirectoryString PROTO((char *oid, ComponentSyntaxInfo *,
-                                            ComponentSyntaxInfo *v2));
+int MatchingComponentDirectoryString PROTO((char *oid, ComponentSyntaxInfo *, ComponentSyntaxInfo *v2));
 
-void *ExtractingComponentDirectoryString PROTO(
-    (void *mem_op, ComponentReference *cr, ComponentDirectoryString *comp));
+void *ExtractingComponentDirectoryString PROTO((void *mem_op, ComponentReference *cr, ComponentDirectoryString *comp));
 
-int BDecComponentDirectoryString PROTO((void *mem_op, GenBuf *b, AsnTag tagId0,
-                                        AsnLen elmtLen0,
-                                        ComponentDirectoryString **v,
-                                        AsnLen *bytesDecoded, int mode));
+int BDecComponentDirectoryString PROTO((void *mem_op, GenBuf *b, AsnTag tagId0, AsnLen elmtLen0,
+                                        ComponentDirectoryString **v, AsnLen *bytesDecoded, int mode));
 
-int GDecComponentDirectoryString PROTO((void *mem_op, GenBuf *b,
-                                        ComponentDirectoryString **v,
-                                        AsnLen *bytesDecoded, int mode));
+int GDecComponentDirectoryString PROTO((void *mem_op, GenBuf *b, ComponentDirectoryString **v, AsnLen *bytesDecoded,
+                                        int mode));
 
 typedef struct EDIPartyName /* SEQUENCE */
 {
@@ -170,57 +150,40 @@ typedef struct EDIPartyName /* SEQUENCE */
   ComponentDirectoryString *partyName;    /* [1] DirectoryString */
 } ComponentEDIPartyName;
 
-int MatchingComponentEDIPartyName PROTO((char *oid, ComponentSyntaxInfo *,
-                                         ComponentSyntaxInfo *v2));
+int MatchingComponentEDIPartyName PROTO((char *oid, ComponentSyntaxInfo *, ComponentSyntaxInfo *v2));
 
-void *ExtractingComponentEDIPartyName PROTO((void *mem_op,
-                                             ComponentReference *cr,
-                                             ComponentEDIPartyName *comp));
+void *ExtractingComponentEDIPartyName PROTO((void *mem_op, ComponentReference *cr, ComponentEDIPartyName *comp));
 
-int BDecComponentEDIPartyName PROTO((void *mem_op, GenBuf *b, AsnTag tagId0,
-                                     AsnLen elmtLen0, ComponentEDIPartyName **v,
+int BDecComponentEDIPartyName PROTO((void *mem_op, GenBuf *b, AsnTag tagId0, AsnLen elmtLen0, ComponentEDIPartyName **v,
                                      AsnLen *bytesDecoded, int mode));
 
-int GDecComponentEDIPartyName PROTO((void *mem_op, GenBuf *b,
-                                     ComponentEDIPartyName **v,
-                                     AsnLen *bytesDecoded, int mode));
+int GDecComponentEDIPartyName PROTO((void *mem_op, GenBuf *b, ComponentEDIPartyName **v, AsnLen *bytesDecoded,
+                                     int mode));
 
-typedef ComponentList
-    ComponentRelativeDistinguishedName; /* SET OF AttributeTypeAndValue */
+typedef ComponentList ComponentRelativeDistinguishedName; /* SET OF AttributeTypeAndValue */
 
-int MatchingComponentRelativeDistinguishedName PROTO((char *oid,
-                                                      ComponentSyntaxInfo *,
-                                                      ComponentSyntaxInfo *v2));
+int MatchingComponentRelativeDistinguishedName PROTO((char *oid, ComponentSyntaxInfo *, ComponentSyntaxInfo *v2));
 
-void *ExtractingComponentRelativeDistinguishedName
-    PROTO((void *mem_op, ComponentReference *cr,
-           ComponentRelativeDistinguishedName *comp));
+void *ExtractingComponentRelativeDistinguishedName PROTO((void *mem_op, ComponentReference *cr,
+                                                          ComponentRelativeDistinguishedName *comp));
 
-int BDecComponentRelativeDistinguishedName PROTO(
-    (void *mem_op, GenBuf *b, AsnTag tagId0, AsnLen elmtLen0,
-     ComponentRelativeDistinguishedName **v, AsnLen *bytesDecoded, int mode));
+int BDecComponentRelativeDistinguishedName PROTO((void *mem_op, GenBuf *b, AsnTag tagId0, AsnLen elmtLen0,
+                                                  ComponentRelativeDistinguishedName **v, AsnLen *bytesDecoded,
+                                                  int mode));
 
-int GDecComponentRelativeDistinguishedName
-    PROTO((void *mem_op, GenBuf *b, ComponentRelativeDistinguishedName **v,
-           AsnLen *bytesDecoded, int mode));
+int GDecComponentRelativeDistinguishedName PROTO((void *mem_op, GenBuf *b, ComponentRelativeDistinguishedName **v,
+                                                  AsnLen *bytesDecoded, int mode));
 
-typedef ComponentList
-    ComponentRDNSequence; /* SEQUENCE OF RelativeDistinguishedName */
+typedef ComponentList ComponentRDNSequence; /* SEQUENCE OF RelativeDistinguishedName */
 
-int MatchingComponentRDNSequence PROTO((char *oid, ComponentSyntaxInfo *,
-                                        ComponentSyntaxInfo *v2));
+int MatchingComponentRDNSequence PROTO((char *oid, ComponentSyntaxInfo *, ComponentSyntaxInfo *v2));
 
-void *ExtractingComponentRDNSequence PROTO((void *mem_op,
-                                            ComponentReference *cr,
-                                            ComponentRDNSequence *comp));
+void *ExtractingComponentRDNSequence PROTO((void *mem_op, ComponentReference *cr, ComponentRDNSequence *comp));
 
-int BDecComponentRDNSequence PROTO((void *mem_op, GenBuf *b, AsnTag tagId0,
-                                    AsnLen elmtLen0, ComponentRDNSequence **v,
+int BDecComponentRDNSequence PROTO((void *mem_op, GenBuf *b, AsnTag tagId0, AsnLen elmtLen0, ComponentRDNSequence **v,
                                     AsnLen *bytesDecoded, int mode));
 
-int GDecComponentRDNSequence PROTO((void *mem_op, GenBuf *b,
-                                    ComponentRDNSequence **v,
-                                    AsnLen *bytesDecoded, int mode));
+int GDecComponentRDNSequence PROTO((void *mem_op, GenBuf *b, ComponentRDNSequence **v, AsnLen *bytesDecoded, int mode));
 
 typedef struct Name /* CHOICE */
 {
@@ -234,18 +197,14 @@ typedef struct Name /* CHOICE */
   } a;
 } ComponentName;
 
-int MatchingComponentName PROTO((char *oid, ComponentSyntaxInfo *,
-                                 ComponentSyntaxInfo *v2));
+int MatchingComponentName PROTO((char *oid, ComponentSyntaxInfo *, ComponentSyntaxInfo *v2));
 
-void *ExtractingComponentName PROTO((void *mem_op, ComponentReference *cr,
-                                     ComponentName *comp));
+void *ExtractingComponentName PROTO((void *mem_op, ComponentReference *cr, ComponentName *comp));
 
-int BDecComponentName PROTO((void *mem_op, GenBuf *b, AsnTag tagId0,
-                             AsnLen elmtLen0, ComponentName **v,
+int BDecComponentName PROTO((void *mem_op, GenBuf *b, AsnTag tagId0, AsnLen elmtLen0, ComponentName **v,
                              AsnLen *bytesDecoded, int mode));
 
-int GDecComponentName PROTO((void *mem_op, GenBuf *b, ComponentName **v,
-                             AsnLen *bytesDecoded, int mode));
+int GDecComponentName PROTO((void *mem_op, GenBuf *b, ComponentName **v, AsnLen *bytesDecoded, int mode));
 
 typedef struct GeneralName /* CHOICE */
 {
@@ -277,38 +236,26 @@ typedef struct GeneralName /* CHOICE */
   } a;
 } ComponentGeneralName;
 
-int MatchingComponentGeneralName PROTO((char *oid, ComponentSyntaxInfo *,
-                                        ComponentSyntaxInfo *v2));
+int MatchingComponentGeneralName PROTO((char *oid, ComponentSyntaxInfo *, ComponentSyntaxInfo *v2));
 
-void *ExtractingComponentGeneralName PROTO((void *mem_op,
-                                            ComponentReference *cr,
-                                            ComponentGeneralName *comp));
+void *ExtractingComponentGeneralName PROTO((void *mem_op, ComponentReference *cr, ComponentGeneralName *comp));
 
-int BDecComponentGeneralName PROTO((void *mem_op, GenBuf *b, AsnTag tagId0,
-                                    AsnLen elmtLen0, ComponentGeneralName **v,
+int BDecComponentGeneralName PROTO((void *mem_op, GenBuf *b, AsnTag tagId0, AsnLen elmtLen0, ComponentGeneralName **v,
                                     AsnLen *bytesDecoded, int mode));
 
-int GDecComponentGeneralName PROTO((void *mem_op, GenBuf *b,
-                                    ComponentGeneralName **v,
-                                    AsnLen *bytesDecoded, int mode));
+int GDecComponentGeneralName PROTO((void *mem_op, GenBuf *b, ComponentGeneralName **v, AsnLen *bytesDecoded, int mode));
 
-typedef ComponentList
-    ComponentGeneralNames; /* SEQUENCE SIZE 1..MAX OF GeneralName */
+typedef ComponentList ComponentGeneralNames; /* SEQUENCE SIZE 1..MAX OF GeneralName */
 
-int MatchingComponentGeneralNames PROTO((char *oid, ComponentSyntaxInfo *,
-                                         ComponentSyntaxInfo *v2));
+int MatchingComponentGeneralNames PROTO((char *oid, ComponentSyntaxInfo *, ComponentSyntaxInfo *v2));
 
-void *ExtractingComponentGeneralNames PROTO((void *mem_op,
-                                             ComponentReference *cr,
-                                             ComponentGeneralNames *comp));
+void *ExtractingComponentGeneralNames PROTO((void *mem_op, ComponentReference *cr, ComponentGeneralNames *comp));
 
-int BDecComponentGeneralNames PROTO((void *mem_op, GenBuf *b, AsnTag tagId0,
-                                     AsnLen elmtLen0, ComponentGeneralNames **v,
+int BDecComponentGeneralNames PROTO((void *mem_op, GenBuf *b, AsnTag tagId0, AsnLen elmtLen0, ComponentGeneralNames **v,
                                      AsnLen *bytesDecoded, int mode));
 
-int GDecComponentGeneralNames PROTO((void *mem_op, GenBuf *b,
-                                     ComponentGeneralNames **v,
-                                     AsnLen *bytesDecoded, int mode));
+int GDecComponentGeneralNames PROTO((void *mem_op, GenBuf *b, ComponentGeneralNames **v, AsnLen *bytesDecoded,
+                                     int mode));
 
 typedef struct AuthorityKeyIdentifier /* SEQUENCE */
 {
@@ -316,27 +263,21 @@ typedef struct AuthorityKeyIdentifier /* SEQUENCE */
   ComponentDesc *comp_desc;
   struct berval identifier;
   char id_buf[MAX_IDENTIFIER_LEN];
-  ComponentKeyIdentifier keyIdentifier;       /* [0] KeyIdentifier OPTIONAL */
-  ComponentGeneralNames *authorityCertIssuer; /* [1] GeneralNames OPTIONAL */
-  ComponentCertificateSerialNumber
-      *authorityCertSerialNumber; /* [2] CertificateSerialNumber OPTIONAL */
+  ComponentKeyIdentifier keyIdentifier;                        /* [0] KeyIdentifier OPTIONAL */
+  ComponentGeneralNames *authorityCertIssuer;                  /* [1] GeneralNames OPTIONAL */
+  ComponentCertificateSerialNumber *authorityCertSerialNumber; /* [2] CertificateSerialNumber OPTIONAL */
 } ComponentAuthorityKeyIdentifier;
 
-int MatchingComponentAuthorityKeyIdentifier PROTO((char *oid,
-                                                   ComponentSyntaxInfo *,
-                                                   ComponentSyntaxInfo *v2));
+int MatchingComponentAuthorityKeyIdentifier PROTO((char *oid, ComponentSyntaxInfo *, ComponentSyntaxInfo *v2));
 
-void *ExtractingComponentAuthorityKeyIdentifier
-    PROTO((void *mem_op, ComponentReference *cr,
-           ComponentAuthorityKeyIdentifier *comp));
+void *ExtractingComponentAuthorityKeyIdentifier PROTO((void *mem_op, ComponentReference *cr,
+                                                       ComponentAuthorityKeyIdentifier *comp));
 
-int BDecComponentAuthorityKeyIdentifier PROTO(
-    (void *mem_op, GenBuf *b, AsnTag tagId0, AsnLen elmtLen0,
-     ComponentAuthorityKeyIdentifier **v, AsnLen *bytesDecoded, int mode));
+int BDecComponentAuthorityKeyIdentifier PROTO((void *mem_op, GenBuf *b, AsnTag tagId0, AsnLen elmtLen0,
+                                               ComponentAuthorityKeyIdentifier **v, AsnLen *bytesDecoded, int mode));
 
-int GDecComponentAuthorityKeyIdentifier
-    PROTO((void *mem_op, GenBuf *b, ComponentAuthorityKeyIdentifier **v,
-           AsnLen *bytesDecoded, int mode));
+int GDecComponentAuthorityKeyIdentifier PROTO((void *mem_op, GenBuf *b, ComponentAuthorityKeyIdentifier **v,
+                                               AsnLen *bytesDecoded, int mode));
 
 /* ========== Object Declarations ========== */
 

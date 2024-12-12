@@ -41,8 +41,7 @@
 #include "ldap-int.h"
 
 /* local functions */
-static const char *skip_url_prefix(const char *url, int *enclosedp,
-                                   const char **scheme);
+static const char *skip_url_prefix(const char *url, int *enclosedp, const char **scheme);
 
 int ldap_pvt_url_scheme2proto(const char *scheme) {
   assert(scheme != NULL);
@@ -172,8 +171,7 @@ int ldap_is_ldapc_url(const char *url) {
 }
 #endif
 
-static const char *skip_url_prefix(const char *url, int *enclosedp,
-                                   const char **scheme) {
+static const char *skip_url_prefix(const char *url, int *enclosedp, const char **scheme) {
   /*
    * return non-zero if this looks like a LDAP URL; zero if not
    * if non-zero returned, *urlp will be moved past "ldap://" part of URL
@@ -603,9 +601,8 @@ static int desc2str(LDAPURLDesc *u, char *s, int len) {
   }
 
   if (u->lud_port) {
-    sofar =
-        sprintf(s, "%s://%s%s%s:%d", u->lud_scheme, is_v6 ? "[" : "",
-                u->lud_host ? u->lud_host : "", is_v6 ? "]" : "", u->lud_port);
+    sofar = sprintf(s, "%s://%s%s%s:%d", u->lud_scheme, is_v6 ? "[" : "", u->lud_host ? u->lud_host : "",
+                    is_v6 ? "]" : "", u->lud_port);
     len -= sofar;
 
   } else {
@@ -741,8 +738,7 @@ char *ldap_url_desc2str(LDAPURLDesc *u) {
   return s;
 }
 
-int ldap_url_parse_ext(const char *url_in, LDAPURLDesc **ludpp,
-                       unsigned flags) {
+int ldap_url_parse_ext(const char *url_in, LDAPURLDesc **ludpp, unsigned flags) {
   /*
    *  Pick apart the pieces of an LDAP URL.
    */
@@ -807,9 +803,7 @@ int ldap_url_parse_ext(const char *url_in, LDAPURLDesc **ludpp,
   ludp->lud_port = 0;
   ludp->lud_dn = NULL;
   ludp->lud_attrs = NULL;
-  ludp->lud_scope = (flags & LDAP_PVT_URL_PARSE_NODEF_SCOPE)
-                        ? LDAP_SCOPE_BASE
-                        : LDAP_SCOPE_DEFAULT;
+  ludp->lud_scope = (flags & LDAP_PVT_URL_PARSE_NODEF_SCOPE) ? LDAP_SCOPE_BASE : LDAP_SCOPE_DEFAULT;
   ludp->lud_filter = NULL;
   ludp->lud_exts = NULL;
 
@@ -907,8 +901,7 @@ int ldap_url_parse_ext(const char *url_in, LDAPURLDesc **ludpp,
     return LDAP_URL_ERR_MEM;
   }
 
-  if ((flags & LDAP_PVT_URL_PARSE_NOEMPTY_HOST) && ludp->lud_host != NULL &&
-      *ludp->lud_host == '\0') {
+  if ((flags & LDAP_PVT_URL_PARSE_NOEMPTY_HOST) && ludp->lud_host != NULL && *ludp->lud_host == '\0') {
     LDAP_FREE(ludp->lud_host);
     ludp->lud_host = NULL;
   }
@@ -1212,8 +1205,7 @@ LDAPURLDesc *ldap_url_duplist(LDAPURLDesc *ludlist) {
   return dest;
 }
 
-static int ldap_url_parselist_int(LDAPURLDesc **ludlist, const char *url,
-                                  const char *sep, unsigned flags)
+static int ldap_url_parselist_int(LDAPURLDesc **ludlist, const char *url, const char *sep, unsigned flags)
 
 {
   int i, rc;
@@ -1253,12 +1245,10 @@ static int ldap_url_parselist_int(LDAPURLDesc **ludlist, const char *url,
 }
 
 int ldap_url_parselist(LDAPURLDesc **ludlist, const char *url) {
-  return ldap_url_parselist_int(ludlist, url, ", ",
-                                LDAP_PVT_URL_PARSE_HISTORIC);
+  return ldap_url_parselist_int(ludlist, url, ", ", LDAP_PVT_URL_PARSE_HISTORIC);
 }
 
-int ldap_url_parselist_ext(LDAPURLDesc **ludlist, const char *url,
-                           const char *sep, unsigned flags) {
+int ldap_url_parselist_ext(LDAPURLDesc **ludlist, const char *url, const char *sep, unsigned flags) {
   return ldap_url_parselist_int(ludlist, url, sep, flags);
 }
 
@@ -1501,9 +1491,7 @@ static int ldap_int_is_hexpair(char *s) {
 }
 
 static int ldap_int_unhex(int c) {
-  return (c >= '0' && c <= '9'   ? c - '0'
-          : c >= 'A' && c <= 'F' ? c - 'A' + 10
-                                 : c - 'a' + 10);
+  return (c >= '0' && c <= '9' ? c - '0' : c >= 'A' && c <= 'F' ? c - 'A' + 10 : c - 'a' + 10);
 }
 
 void ldap_pvt_hex_unescape(char *s) {

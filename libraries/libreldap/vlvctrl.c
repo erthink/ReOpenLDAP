@@ -66,8 +66,7 @@
 
  ---*/
 
-int ldap_create_vlv_control_value(LDAP *ld, LDAPVLVInfo *vlvinfop,
-                                  struct berval *value) {
+int ldap_create_vlv_control_value(LDAP *ld, LDAPVLVInfo *vlvinfop, struct berval *value) {
   ber_tag_t tag;
   BerElement *ber;
 
@@ -89,30 +88,26 @@ int ldap_create_vlv_control_value(LDAP *ld, LDAPVLVInfo *vlvinfop,
     return ld->ld_errno;
   }
 
-  tag = ber_printf(ber, "{ii" /*}*/, vlvinfop->ldvlv_before_count,
-                   vlvinfop->ldvlv_after_count);
+  tag = ber_printf(ber, "{ii" /*}*/, vlvinfop->ldvlv_before_count, vlvinfop->ldvlv_after_count);
   if (tag == LBER_ERROR) {
     goto error_return;
   }
 
   if (vlvinfop->ldvlv_attrvalue == NULL) {
-    tag = ber_printf(ber, "t{iiN}", LDAP_VLVBYINDEX_IDENTIFIER,
-                     vlvinfop->ldvlv_offset, vlvinfop->ldvlv_count);
+    tag = ber_printf(ber, "t{iiN}", LDAP_VLVBYINDEX_IDENTIFIER, vlvinfop->ldvlv_offset, vlvinfop->ldvlv_count);
     if (tag == LBER_ERROR) {
       goto error_return;
     }
 
   } else {
-    tag = ber_printf(ber, "tO", LDAP_VLVBYVALUE_IDENTIFIER,
-                     vlvinfop->ldvlv_attrvalue);
+    tag = ber_printf(ber, "tO", LDAP_VLVBYVALUE_IDENTIFIER, vlvinfop->ldvlv_attrvalue);
     if (tag == LBER_ERROR) {
       goto error_return;
     }
   }
 
   if (vlvinfop->ldvlv_context) {
-    tag = ber_printf(ber, "tO", LDAP_VLVCONTEXT_IDENTIFIER,
-                     vlvinfop->ldvlv_context);
+    tag = ber_printf(ber, "tO", LDAP_VLVCONTEXT_IDENTIFIER, vlvinfop->ldvlv_context);
     if (tag == LBER_ERROR) {
       goto error_return;
     }
@@ -178,8 +173,7 @@ int ldap_create_vlv_control_value(LDAP *ld, LDAPVLVInfo *vlvinfop,
 
  ---*/
 
-int ldap_create_vlv_control(LDAP *ld, LDAPVLVInfo *vlvinfop,
-                            LDAPControl **ctrlp) {
+int ldap_create_vlv_control(LDAP *ld, LDAPVLVInfo *vlvinfop, LDAPControl **ctrlp) {
   struct berval value;
 
   if (ctrlp == NULL) {
@@ -190,8 +184,7 @@ int ldap_create_vlv_control(LDAP *ld, LDAPVLVInfo *vlvinfop,
   ld->ld_errno = ldap_create_vlv_control_value(ld, vlvinfop, &value);
   if (ld->ld_errno == LDAP_SUCCESS) {
 
-    ld->ld_errno =
-        ldap_control_create(LDAP_CONTROL_VLVREQUEST, 1, &value, 0, ctrlp);
+    ld->ld_errno = ldap_control_create(LDAP_CONTROL_VLVREQUEST, 1, &value, 0, ctrlp);
     if (ld->ld_errno != LDAP_SUCCESS) {
       LDAP_FREE(value.bv_val);
     }
@@ -252,11 +245,8 @@ NULL, the result code is not returned.
 
 ---*/
 
-int ldap_parse_vlvresponse_control(LDAP *ld, LDAPControl *ctrl,
-                                   ber_int_t *target_posp,
-                                   ber_int_t *list_countp,
-                                   struct berval **contextp,
-                                   ber_int_t *errcodep) {
+int ldap_parse_vlvresponse_control(LDAP *ld, LDAPControl *ctrl, ber_int_t *target_posp, ber_int_t *list_countp,
+                                   struct berval **contextp, ber_int_t *errcodep) {
   BerElement *ber;
   ber_int_t pos, count, err;
   ber_tag_t tag, berTag;

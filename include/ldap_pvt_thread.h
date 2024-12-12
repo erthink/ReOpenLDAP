@@ -71,8 +71,7 @@ ldap_pvt_thread_set_concurrency(int);
 #endif /* !LDAP_PVT_THREAD_H_DONE */
 
 LDAP_F(int)
-ldap_pvt_thread_create(ldap_pvt_thread_t *thread, int detach,
-                       void *(*start_routine)(void *), void *arg);
+ldap_pvt_thread_create(ldap_pvt_thread_t *thread, int detach, void *(*start_routine)(void *), void *arg);
 
 LDAP_F(void)
 ldap_pvt_thread_exit(void *retval);
@@ -99,13 +98,10 @@ LDAP_F(int)
 ldap_pvt_thread_cond_broadcast(ldap_pvt_thread_cond_t *cond);
 
 LDAP_F(int)
-ldap_pvt_thread_cond_wait(ldap_pvt_thread_cond_t *cond,
-                          ldap_pvt_thread_mutex_t *mutex);
+ldap_pvt_thread_cond_wait(ldap_pvt_thread_cond_t *cond, ldap_pvt_thread_mutex_t *mutex);
 
 LDAP_F(int)
-ldap_pvt_thread_cond_timedwait(unsigned timeout_ms,
-                               ldap_pvt_thread_cond_t *cond,
-                               ldap_pvt_thread_mutex_t *mutex);
+ldap_pvt_thread_cond_timedwait(unsigned timeout_ms, ldap_pvt_thread_cond_t *cond, ldap_pvt_thread_mutex_t *mutex);
 
 LDAP_F(int)
 ldap_pvt_thread_mutex_init(ldap_pvt_thread_mutex_t *mutex);
@@ -188,35 +184,28 @@ ldap_pvt_thread_rdwr_active(ldap_pvt_thread_rdwr_t *rdwrp);
 typedef ldap_int_thread_pool_t ldap_pvt_thread_pool_t;
 
 typedef void *(ldap_pvt_thread_start_t)(void *ctx, void *arg);
-typedef int(ldap_pvt_thread_walk_t)(ldap_pvt_thread_start_t *start,
-                                    void *start_arg, void *arg);
+typedef int(ldap_pvt_thread_walk_t)(ldap_pvt_thread_start_t *start, void *start_arg, void *arg);
 typedef void(ldap_pvt_thread_pool_keyfree_t)(void *key, void *data);
 #endif /* !LDAP_PVT_THREAD_H_DONE */
 
 LDAP_F(int)
-ldap_pvt_thread_pool_init(ldap_pvt_thread_pool_t *pool_out, int max_threads,
-                          int max_pending);
+ldap_pvt_thread_pool_init(ldap_pvt_thread_pool_t *pool_out, int max_threads, int max_pending);
 
 LDAP_F(int)
-ldap_pvt_thread_pool_init_q(ldap_pvt_thread_pool_t *pool_out, int max_threads,
-                            int max_pending, int num_qs);
+ldap_pvt_thread_pool_init_q(ldap_pvt_thread_pool_t *pool_out, int max_threads, int max_pending, int num_qs);
 
 LDAP_F(int)
-ldap_pvt_thread_pool_submit(ldap_pvt_thread_pool_t *pool,
-                            ldap_pvt_thread_start_t *start, void *arg);
+ldap_pvt_thread_pool_submit(ldap_pvt_thread_pool_t *pool, ldap_pvt_thread_start_t *start, void *arg);
 
 LDAP_F(int)
-ldap_pvt_thread_pool_submit2(ldap_pvt_thread_pool_t *pool,
-                             ldap_pvt_thread_start_t *start, void *arg,
-                             void **cookie);
+ldap_pvt_thread_pool_submit2(ldap_pvt_thread_pool_t *pool, ldap_pvt_thread_start_t *start, void *arg, void **cookie);
 
 LDAP_F(int)
 ldap_pvt_thread_pool_retract(void *cookie);
 
 LDAP_F(int)
-ldap_pvt_thread_pool_walk(ldap_pvt_thread_pool_t *pool,
-                          ldap_pvt_thread_start_t *start,
-                          ldap_pvt_thread_walk_t *cb, void *arg);
+ldap_pvt_thread_pool_walk(ldap_pvt_thread_pool_t *pool, ldap_pvt_thread_start_t *start, ldap_pvt_thread_walk_t *cb,
+                          void *arg);
 LDAP_F(int)
 ldap_pvt_thread_pool_maxthreads(ldap_pvt_thread_pool_t *pool, int max_threads);
 
@@ -242,8 +231,7 @@ typedef enum {
 #endif /* !LDAP_PVT_THREAD_H_DONE */
 
 LDAP_F(int)
-ldap_pvt_thread_pool_query(ldap_pvt_thread_pool_t *pool,
-                           ldap_pvt_thread_pool_param_t param, void *value);
+ldap_pvt_thread_pool_query(ldap_pvt_thread_pool_t *pool, ldap_pvt_thread_pool_param_t param, void *value);
 
 LDAP_F(int)
 ldap_pvt_thread_pool_pausing(ldap_pvt_thread_pool_t *pool);
@@ -276,13 +264,10 @@ LDAP_F(int)
 ldap_pvt_thread_pool_free(ldap_pvt_thread_pool_t *pool);
 
 LDAP_F(int)
-ldap_pvt_thread_pool_getkey(void *ctx, void *key, void **data,
-                            ldap_pvt_thread_pool_keyfree_t **kfree);
+ldap_pvt_thread_pool_getkey(void *ctx, void *key, void **data, ldap_pvt_thread_pool_keyfree_t **kfree);
 
 LDAP_F(int)
-ldap_pvt_thread_pool_setkey(void *ctx, void *key, void *data,
-                            ldap_pvt_thread_pool_keyfree_t *kfree,
-                            void **olddatap,
+ldap_pvt_thread_pool_setkey(void *ctx, void *key, void *data, ldap_pvt_thread_pool_keyfree_t *kfree, void **olddatap,
                             ldap_pvt_thread_pool_keyfree_t **oldkfreep);
 
 LDAP_F(void)

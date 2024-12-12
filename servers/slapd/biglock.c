@@ -41,10 +41,7 @@ static void slap_biglock_free(slap_biglock_t *bl) {
   ch_free(bl);
 }
 
-static ATTRIBUTE_NO_SANITIZE_THREAD_INLINE ldap_pvt_thread_t
-get_owner(slap_biglock_t *bl) {
-  return bl->_bl_owner;
-}
+static ATTRIBUTE_NO_SANITIZE_THREAD_INLINE ldap_pvt_thread_t get_owner(slap_biglock_t *bl) { return bl->_bl_owner; }
 
 void slap_biglock_destroy(BackendDB *bd) {
   assert(bd->bd_self == bd);
@@ -64,7 +61,7 @@ void slap_biglock_destroy(BackendDB *bd) {
 static const ldap_pvt_thread_t thread_null;
 #if SLAPD_BIGLOCK_TRACELATENCY > 0
 static uint64_t biglock_max_latency_ns = 1e9 / 1000; /* LY: 1 ms */
-#endif /* SLAPD_BIGLOCK_TRACELATENCY */
+#endif                                               /* SLAPD_BIGLOCK_TRACELATENCY */
 
 slap_biglock_t *slap_biglock_get(BackendDB *bd) {
   bd = bd->bd_self;
@@ -110,8 +107,7 @@ void __noinline slap_biglock_acquire(slap_biglock_t *bl) {
     assert(bl->bl_recursion > 0);
     assert(bl->bl_recursion < 42);
     bl->bl_recursion += 1;
-    Debug(LDAP_DEBUG_TRACE, "biglock: recursion++ %p (%d)\n", bl,
-          bl->bl_recursion);
+    Debug(LDAP_DEBUG_TRACE, "biglock: recursion++ %p (%d)\n", bl, bl->bl_recursion);
   } else {
     ldap_pvt_thread_mutex_lock(&bl->bl_mutex);
     assert(bl->bl_recursion == 0);
@@ -123,11 +119,9 @@ void __noinline slap_biglock_acquire(slap_biglock_t *bl) {
 #if SLAPD_BIGLOCK_TRACELATENCY > 0
     bl->bl_timestamp_ns = ldap_now_steady_ns();
 #if SLAPD_BIGLOCK_TRACELATENCY == 1
-    bl->bl_backtrace[0] =
-        __builtin_extract_return_addr(__builtin_return_address(0));
+    bl->bl_backtrace[0] = __builtin_extract_return_addr(__builtin_return_address(0));
 #else
-    bl->bl_backtrace_deep =
-        backtrace(bl->bl_backtrace, SLAPD_BIGLOCK_TRACELATENCY);
+    bl->bl_backtrace_deep = backtrace(bl->bl_backtrace, SLAPD_BIGLOCK_TRACELATENCY);
 #endif
 #endif /* SLAPD_BIGLOCK_TRACELATENCY */
   }
@@ -149,31 +143,26 @@ void __noinline slap_biglock_release(slap_biglock_t *bl) {
     if (biglock_max_latency_ns < latency_ns) {
       biglock_max_latency_ns = latency_ns;
 
-      ldap_debug_print("*** Biglock new latency achievement: %'.6f seconds\n",
-                       latency_ns * 1e-9);
+      ldap_debug_print("*** Biglock new latency achievement: %'.6f seconds\n", latency_ns * 1e-9);
 
       slap_backtrace_log(bl->bl_backtrace,
 #if SLAPD_BIGLOCK_TRACELATENCY == 1
                          1, "Biglock acquirer"
 #else
-                         SLAPD_BIGLOCK_TRACELATENCY,
-                         "Biglock acquirer backtrace"
+                         SLAPD_BIGLOCK_TRACELATENCY, "Biglock acquirer backtrace"
 #endif
       );
 
 #if SLAPD_BIGLOCK_TRACELATENCY == 1
-      bl->bl_backtrace[0] =
-          __builtin_extract_return_addr(__builtin_return_address(0));
+      bl->bl_backtrace[0] = __builtin_extract_return_addr(__builtin_return_address(0));
 #else
-      bl->bl_backtrace_deep =
-          backtrace(bl->bl_backtrace, SLAPD_BIGLOCK_TRACELATENCY);
+      bl->bl_backtrace_deep = backtrace(bl->bl_backtrace, SLAPD_BIGLOCK_TRACELATENCY);
 #endif
       slap_backtrace_log(bl->bl_backtrace,
 #if SLAPD_BIGLOCK_TRACELATENCY == 1
                          1, "Biglock releaser"
 #else
-                         SLAPD_BIGLOCK_TRACELATENCY,
-                         "Biglock releaser backtrace"
+                         SLAPD_BIGLOCK_TRACELATENCY, "Biglock releaser backtrace"
 #endif
       );
     }
@@ -183,8 +172,7 @@ void __noinline slap_biglock_release(slap_biglock_t *bl) {
     if (bl->bl_free_on_release)
       slap_biglock_free(bl);
   } else
-    Debug(LDAP_DEBUG_TRACE, "biglock: recursion-- %p (%d)\n", bl,
-          bl->bl_recursion);
+    Debug(LDAP_DEBUG_TRACE, "biglock: recursion-- %p (%d)\n", bl, bl->bl_recursion);
 }
 
 int slap_biglock_call_be(slap_operation_t which, Operation *op, SlapReply *rs) {
@@ -232,9 +220,7 @@ int slap_biglock_pool_pause(BackendDB *bd) {
 
 int slap_biglock_pool_resume(BackendDB *bd) { return slap_unpause_server(); }
 
-int slap_biglock_pool_pausing(BackendDB *bd) {
-  return ldap_pvt_thread_pool_pausing(&connection_pool);
-}
+int slap_biglock_pool_pausing(BackendDB *bd) { return ldap_pvt_thread_pool_pausing(&connection_pool); }
 
 int slap_biglock_pool_pausecheck(BackendDB *bd) {
   int res;

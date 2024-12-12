@@ -101,14 +101,12 @@ static inline int tio_time_remaining(struct timespec *deadline, int timeout) {
   if (clock_gettime(CLOCK_MONOTONIC, &tv))
     return timeout;
   /* calculate time remaining in milliseconds */
-  return (deadline->tv_sec - tv.tv_sec) * 1000 +
-         (deadline->tv_nsec - tv.tv_nsec) / 1000000;
+  return (deadline->tv_sec - tv.tv_sec) * 1000 + (deadline->tv_nsec - tv.tv_nsec) / 1000000;
 }
 
 /* open a new TFILE based on the file descriptor */
-TFILE *tio_fdopen(int fd, int readtimeout, int writetimeout,
-                  size_t initreadsize, size_t maxreadsize, size_t initwritesize,
-                  size_t maxwritesize) {
+TFILE *tio_fdopen(int fd, int readtimeout, int writetimeout, size_t initreadsize, size_t maxreadsize,
+                  size_t initwritesize, size_t maxwritesize) {
   struct tio_fileinfo *fp;
   fp = (struct tio_fileinfo *)malloc(sizeof(struct tio_fileinfo));
   if (fp == NULL)
@@ -148,8 +146,7 @@ TFILE *tio_fdopen(int fd, int readtimeout, int writetimeout,
 
 /* wait for any activity on the specified file descriptor using
    the specified deadline */
-static int tio_wait(int fd, short events, int timeout,
-                    struct timespec *deadline) {
+static int tio_wait(int fd, short events, int timeout, struct timespec *deadline) {
   int t;
   struct pollfd fds[1];
   int rv;
@@ -205,8 +202,7 @@ int tio_read(TFILE *fp, void *buf, size_t count) {
     /* empty what we have and continue from there */
     if (fp->readbuffer.len > 0) {
       if (ptr != NULL) {
-        memcpy(ptr, fp->readbuffer.buffer + fp->readbuffer.start,
-               fp->readbuffer.len);
+        memcpy(ptr, fp->readbuffer.buffer + fp->readbuffer.start, fp->readbuffer.len);
         ptr += fp->readbuffer.len;
       }
       count -= fp->readbuffer.len;
@@ -298,8 +294,7 @@ static int tio_writebuf(TFILE *fp) {
   int rv;
   /* write the buffer */
 #ifdef MSG_NOSIGNAL
-  rv = send(fp->fd, fp->writebuffer.buffer + fp->writebuffer.start,
-            fp->writebuffer.len, MSG_NOSIGNAL);
+  rv = send(fp->fd, fp->writebuffer.buffer + fp->writebuffer.start, fp->writebuffer.len, MSG_NOSIGNAL);
 #else /* not MSG_NOSIGNAL */
   /* on platforms that cannot use send() with masked signals, we change the
      signal mask and change it back after the write (note that there is a
@@ -315,8 +310,7 @@ static int tio_writebuf(TFILE *fp) {
   if (sigaction(SIGPIPE, &act, &oldact) != 0)
     return -1; /* error setting signal handler */
   /* write the buffer */
-  rv = write(fp->fd, fp->writebuffer.buffer + fp->writebuffer.start,
-             fp->writebuffer.len);
+  rv = write(fp->fd, fp->writebuffer.buffer + fp->writebuffer.start, fp->writebuffer.len);
   /* restore the old handler for SIGPIPE */
   if (sigaction(SIGPIPE, &oldact, NULL) != 0)
     return -1; /* error restoring signal handler */
@@ -336,9 +330,7 @@ static int tio_writebuf(TFILE *fp) {
       fp->writebuffer.start = 0;
     /* move contents of the buffer to the front if it will save enough room */
     if (fp->writebuffer.start >= (fp->writebuffer.size / 4)) {
-      memmove(fp->writebuffer.buffer,
-              fp->writebuffer.buffer + fp->writebuffer.start,
-              fp->writebuffer.len);
+      memmove(fp->writebuffer.buffer, fp->writebuffer.buffer + fp->writebuffer.start, fp->writebuffer.len);
       fp->writebuffer.start = 0;
     }
   }
@@ -391,16 +383,12 @@ int tio_write(TFILE *fp, const void *buf, size_t count) {
     fr = fp->writebuffer.size - (fp->writebuffer.start + fp->writebuffer.len);
     if (count <= fr) {
       /* the data fits in the buffer */
-      memcpy(fp->writebuffer.buffer + fp->writebuffer.start +
-                 fp->writebuffer.len,
-             ptr, count);
+      memcpy(fp->writebuffer.buffer + fp->writebuffer.start + fp->writebuffer.len, ptr, count);
       fp->writebuffer.len += count;
       return 0;
     } else if (fr > 0) {
       /* fill the buffer with data that will fit */
-      memcpy(fp->writebuffer.buffer + fp->writebuffer.start +
-                 fp->writebuffer.len,
-             ptr, fr);
+      memcpy(fp->writebuffer.buffer + fp->writebuffer.start + fp->writebuffer.len, ptr, fr);
       fp->writebuffer.len += fr;
       ptr += fr;
       count -= fr;
@@ -436,8 +424,7 @@ int tio_close(TFILE *fp) {
   retv = tio_flush(fp);
 #ifdef DEBUG_TIO_STATS
   /* dump statistics to stderr */
-  fprintf(stderr, "DEBUG_TIO_STATS READ=%d WRITTEN=%d\n", fp->bytesread,
-          fp->byteswritten);
+  fprintf(stderr, "DEBUG_TIO_STATS READ=%d WRITTEN=%d\n", fp->bytesread, fp->byteswritten);
 #endif /* DEBUG_TIO_STATS */
   /* close file descriptor */
   if (close(fp->fd))
@@ -456,8 +443,7 @@ int tio_close(TFILE *fp) {
 void tio_mark(TFILE *fp) {
   /* move any data in the buffer to the start of the buffer */
   if ((fp->readbuffer.start > 0) && (fp->readbuffer.len > 0)) {
-    memmove(fp->readbuffer.buffer, fp->readbuffer.buffer + fp->readbuffer.start,
-            fp->readbuffer.len);
+    memmove(fp->readbuffer.buffer, fp->readbuffer.buffer + fp->readbuffer.start, fp->readbuffer.len);
     fp->readbuffer.start = 0;
   }
   /* mark the stream as resettable */

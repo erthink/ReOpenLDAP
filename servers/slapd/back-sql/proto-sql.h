@@ -78,19 +78,16 @@
 /*
  * add.c
  */
-int backsql_modify_delete_all_values(Operation *op, SlapReply *rs, SQLHDBC dbh,
-                                     backsql_entryID *e_id,
+int backsql_modify_delete_all_values(Operation *op, SlapReply *rs, SQLHDBC dbh, backsql_entryID *e_id,
                                      backsql_at_map_rec *at);
 
-int backsql_modify_internal(Operation *op, SlapReply *rs, SQLHDBC dbh,
-                            backsql_oc_map_rec *oc, backsql_entryID *e_id,
+int backsql_modify_internal(Operation *op, SlapReply *rs, SQLHDBC dbh, backsql_oc_map_rec *oc, backsql_entryID *e_id,
                             Modifications *modlist);
 
 /*
  * api.c
  */
-int backsql_api_config(backsql_info *bi, const char *name, int argc,
-                       char *argv[]);
+int backsql_api_config(backsql_info *bi, const char *name, int argc, char *argv[]);
 int backsql_api_destroy(backsql_info *bi);
 int backsql_api_register(backsql_api *ba);
 int backsql_api_dn2odbc(Operation *op, SlapReply *rs, struct berval *dn);
@@ -104,21 +101,18 @@ extern struct berval backsql_baseObject_bv;
 #endif /* BACKSQL_ARBITRARY_KEY */
 
 /* stores in *id the ID in table ldap_entries corresponding to DN, if any */
-extern int backsql_dn2id(Operation *op, SlapReply *rs, SQLHDBC dbh,
-                         struct berval *ndn, backsql_entryID *id, int matched,
-                         int muck);
+extern int backsql_dn2id(Operation *op, SlapReply *rs, SQLHDBC dbh, struct berval *ndn, backsql_entryID *id,
+                         int matched, int muck);
 
 /* stores in *nchildren the count of children for an entry */
-extern int backsql_count_children(Operation *op, SQLHDBC dbh, struct berval *dn,
-                                  unsigned long *nchildren);
+extern int backsql_count_children(Operation *op, SQLHDBC dbh, struct berval *dn, unsigned long *nchildren);
 
 /* returns LDAP_COMPARE_TRUE/LDAP_COMPARE_FALSE if the entry corresponding
  * to DN has/has not children */
 extern int backsql_has_children(Operation *op, SQLHDBC dbh, struct berval *dn);
 
 /* free *id and return next in list */
-extern backsql_entryID *backsql_free_entryID(backsql_entryID *id, int freeit,
-                                             void *ctx);
+extern backsql_entryID *backsql_free_entryID(backsql_entryID *id, int freeit, void *ctx);
 
 /* turn an ID into an entry */
 extern int backsql_id2entry(backsql_srch_info *bsi, backsql_entryID *id);
@@ -146,11 +140,9 @@ backsql_oc_map_rec *backsql_id2oc(backsql_info *si, unsigned long id);
 
 backsql_oc_map_rec *backsql_name2oc(backsql_info *si, struct berval *oc_name);
 
-backsql_at_map_rec *backsql_ad2at(backsql_oc_map_rec *objclass,
-                                  AttributeDescription *ad);
+backsql_at_map_rec *backsql_ad2at(backsql_oc_map_rec *objclass, AttributeDescription *ad);
 
-int backsql_supad2at(backsql_oc_map_rec *objclass, AttributeDescription *supad,
-                     backsql_at_map_rec ***pret);
+int backsql_supad2at(backsql_oc_map_rec *objclass, AttributeDescription *supad, backsql_at_map_rec ***pret);
 
 int backsql_destroy_schema_map(backsql_info *si);
 
@@ -158,10 +150,8 @@ int backsql_destroy_schema_map(backsql_info *si);
  * search.c
  */
 
-int backsql_init_search(backsql_srch_info *bsi, struct berval *nbase, int scope,
-                        time_t stoptime, Filter *filter, SQLHDBC dbh,
-                        Operation *op, SlapReply *rs, AttributeName *attrs,
-                        unsigned flags);
+int backsql_init_search(backsql_srch_info *bsi, struct berval *nbase, int scope, time_t stoptime, Filter *filter,
+                        SQLHDBC dbh, Operation *op, SlapReply *rs, AttributeName *attrs, unsigned flags);
 
 void backsql_entry_clean(Operation *op, Entry *e);
 
@@ -169,37 +159,31 @@ void backsql_entry_clean(Operation *op, Entry *e);
  * sql-wrap.h
  */
 
-RETCODE backsql_Prepare(SQLHDBC dbh, SQLHSTMT *sth, const char *query,
-                        int timeout);
+RETCODE backsql_Prepare(SQLHDBC dbh, SQLHSTMT *sth, const char *query, int timeout);
 
-#define backsql_BindParamStr(sth, par_ind, io, str, maxlen)                    \
-  SQLBindParameter((sth), (SQLUSMALLINT)(par_ind), (io), SQL_C_CHAR,           \
-                   SQL_VARCHAR, (SQLULEN)(maxlen), 0, (SQLPOINTER)(str),       \
-                   (SQLLEN)(maxlen), NULL)
+#define backsql_BindParamStr(sth, par_ind, io, str, maxlen)                                                            \
+  SQLBindParameter((sth), (SQLUSMALLINT)(par_ind), (io), SQL_C_CHAR, SQL_VARCHAR, (SQLULEN)(maxlen), 0,                \
+                   (SQLPOINTER)(str), (SQLLEN)(maxlen), NULL)
 
-#define backsql_BindParamBerVal(sth, par_ind, io, bv)                          \
-  SQLBindParameter((sth), (SQLUSMALLINT)(par_ind), (io), SQL_C_CHAR,           \
-                   SQL_VARCHAR, (SQLULEN)(bv)->bv_len, 0,                      \
+#define backsql_BindParamBerVal(sth, par_ind, io, bv)                                                                  \
+  SQLBindParameter((sth), (SQLUSMALLINT)(par_ind), (io), SQL_C_CHAR, SQL_VARCHAR, (SQLULEN)(bv)->bv_len, 0,            \
                    (SQLPOINTER)(bv)->bv_val, (SQLLEN)(bv)->bv_len, NULL)
 
-#define backsql_BindParamInt(sth, par_ind, io, val)                            \
-  SQLBindParameter((sth), (SQLUSMALLINT)(par_ind), (io), SQL_C_ULONG,          \
-                   SQL_INTEGER, 0, 0, (SQLPOINTER)(val), 0, (SQLLEN *)NULL)
+#define backsql_BindParamInt(sth, par_ind, io, val)                                                                    \
+  SQLBindParameter((sth), (SQLUSMALLINT)(par_ind), (io), SQL_C_ULONG, SQL_INTEGER, 0, 0, (SQLPOINTER)(val), 0,         \
+                   (SQLLEN *)NULL)
 
-#define backsql_BindParamNumID(sth, par_ind, io, val)                          \
-  SQLBindParameter((sth), (SQLUSMALLINT)(par_ind), (io), BACKSQL_C_NUMID,      \
-                   SQL_INTEGER, 0, 0, (SQLPOINTER)(val), 0, (SQLLEN *)NULL)
+#define backsql_BindParamNumID(sth, par_ind, io, val)                                                                  \
+  SQLBindParameter((sth), (SQLUSMALLINT)(par_ind), (io), BACKSQL_C_NUMID, SQL_INTEGER, 0, 0, (SQLPOINTER)(val), 0,     \
+                   (SQLLEN *)NULL)
 
 #ifdef BACKSQL_ARBITRARY_KEY
-#define backsql_BindParamID(sth, par_ind, io, id)                              \
-  backsql_BindParamBerVal((sth), (par_ind), (io), (id))
+#define backsql_BindParamID(sth, par_ind, io, id) backsql_BindParamBerVal((sth), (par_ind), (io), (id))
 #else /* ! BACKSQL_ARBITRARY_KEY */
-#define backsql_BindParamID(sth, par_ind, io, id)                              \
-  backsql_BindParamNumID((sth), (par_ind), (io), (id))
+#define backsql_BindParamID(sth, par_ind, io, id) backsql_BindParamNumID((sth), (par_ind), (io), (id))
 #endif /* ! BACKSQL_ARBITRARY_KEY */
 
-RETCODE backsql_BindRowAsStrings_x(SQLHSTMT sth, BACKSQL_ROW_NTS *row,
-                                   void *ctx);
+RETCODE backsql_BindRowAsStrings_x(SQLHSTMT sth, BACKSQL_ROW_NTS *row, void *ctx);
 
 RETCODE backsql_BindRowAsStrings(SQLHSTMT sth, BACKSQL_ROW_NTS *row);
 
@@ -223,31 +207,23 @@ int backsql_free_db_conn(Operation *op, SQLHDBC dbh);
  * util.c
  */
 
-extern const char backsql_def_oc_query[], backsql_def_needs_select_oc_query[],
-    backsql_def_at_query[], backsql_def_delentry_stmt[],
-    backsql_def_renentry_stmt[], backsql_def_insentry_stmt[],
-    backsql_def_delobjclasses_stmt[], backsql_def_subtree_cond[],
-    backsql_def_upper_subtree_cond[], backsql_id_query[],
+extern const char backsql_def_oc_query[], backsql_def_needs_select_oc_query[], backsql_def_at_query[],
+    backsql_def_delentry_stmt[], backsql_def_renentry_stmt[], backsql_def_insentry_stmt[],
+    backsql_def_delobjclasses_stmt[], backsql_def_subtree_cond[], backsql_def_upper_subtree_cond[], backsql_id_query[],
     backsql_def_concat_func[], backsql_check_dn_ru_query[];
 
 struct berbuf *backsql_strcat_x(struct berbuf *dest, void *memctx, ...);
-struct berbuf *backsql_strfcat_x(struct berbuf *dest, void *memctx,
-                                 const char *fmt, ...);
+struct berbuf *backsql_strfcat_x(struct berbuf *dest, void *memctx, const char *fmt, ...);
 
-int backsql_entry_addattr(Entry *e, AttributeDescription *ad,
-                          struct berval *at_val, void *memctx);
+int backsql_entry_addattr(Entry *e, AttributeDescription *ad, struct berval *at_val, void *memctx);
 
-int backsql_merge_from_clause(backsql_info *bi, struct berbuf *dest_from,
-                              struct berval *src_from);
+int backsql_merge_from_clause(backsql_info *bi, struct berbuf *dest_from, struct berval *src_from);
 
-int backsql_split_pattern(const char *pattern, BerVarray *split_pattern,
-                          int expected);
+int backsql_split_pattern(const char *pattern, BerVarray *split_pattern, int expected);
 
-int backsql_prepare_pattern(BerVarray split_pattern, BerVarray values,
-                            struct berval *res);
+int backsql_prepare_pattern(BerVarray split_pattern, BerVarray values, struct berval *res);
 
-int backsql_entryUUID(backsql_info *bi, backsql_entryID *id,
-                      struct berval *entryUUID, void *memctx);
+int backsql_entryUUID(backsql_info *bi, backsql_entryID *id, struct berval *entryUUID, void *memctx);
 int backsql_entryUUID_decode(struct berval *entryUUID, unsigned long *oc_id,
 #ifdef BACKSQL_ARBITRARY_KEY
                              struct berval *keyval

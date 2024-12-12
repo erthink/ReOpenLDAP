@@ -33,9 +33,7 @@ static int num_mappers;
 static const rewrite_mapper **mappers;
 #define MAPPER_ALLOC 8
 
-struct rewrite_map *rewrite_map_parse(struct rewrite_info *info,
-                                      const char *string,
-                                      const char **currpos) {
+struct rewrite_map *rewrite_map_parse(struct rewrite_info *info, const char *string, const char **currpos) {
   struct rewrite_map *map = NULL;
   struct rewrite_subst *subst = NULL;
   char *s, *begin = NULL, *end;
@@ -351,8 +349,7 @@ cleanup:
 /*
  * Applies the new map type
  */
-int rewrite_map_apply(struct rewrite_info *info, struct rewrite_op *op,
-                      struct rewrite_map *map, struct berval *key,
+int rewrite_map_apply(struct rewrite_info *info, struct rewrite_op *op, struct rewrite_map *map, struct berval *key,
                       struct berval *val) {
   int rc = REWRITE_SUCCESS;
 
@@ -367,8 +364,7 @@ int rewrite_map_apply(struct rewrite_info *info, struct rewrite_op *op,
 
   switch (map->lm_type) {
   case REWRITE_MAP_SUBCONTEXT:
-    rc = rewrite_context_apply(info, op, (struct rewrite_context *)map->lm_data,
-                               key->bv_val, &val->bv_val);
+    rc = rewrite_context_apply(info, op, (struct rewrite_context *)map->lm_data, key->bv_val, &val->bv_val);
     if (val->bv_val != NULL) {
       if (val->bv_val == key->bv_val) {
         val->bv_len = key->bv_len;
@@ -381,9 +377,7 @@ int rewrite_map_apply(struct rewrite_info *info, struct rewrite_op *op,
 
   case REWRITE_MAP_SET_OP_VAR:
   case REWRITE_MAP_SETW_OP_VAR:
-    rc = rewrite_var_set(&op->lo_vars, map->lm_name, key->bv_val, 1)
-             ? REWRITE_SUCCESS
-             : REWRITE_ERR;
+    rc = rewrite_var_set(&op->lo_vars, map->lm_name, key->bv_val, 1) ? REWRITE_SUCCESS : REWRITE_ERR;
     if (rc == REWRITE_SUCCESS) {
       if (map->lm_type == REWRITE_MAP_SET_OP_VAR) {
         val->bv_val = strdup("");
@@ -419,8 +413,7 @@ int rewrite_map_apply(struct rewrite_info *info, struct rewrite_op *op,
       rc = REWRITE_ERR;
       break;
     }
-    rc =
-        rewrite_session_var_set(info, op->lo_cookie, map->lm_name, key->bv_val);
+    rc = rewrite_session_var_set(info, op->lo_cookie, map->lm_name, key->bv_val);
     if (rc == REWRITE_SUCCESS) {
       if (map->lm_type == REWRITE_MAP_SET_SESN_VAR) {
         val->bv_val = strdup("");
@@ -522,8 +515,7 @@ const rewrite_mapper *rewrite_mapper_find(const char *name) {
 int rewrite_mapper_register(const rewrite_mapper *map) {
   if (num_mappers % MAPPER_ALLOC == 0) {
     const rewrite_mapper **mnew;
-    mnew = realloc(mappers,
-                   (num_mappers + MAPPER_ALLOC) * sizeof(rewrite_mapper *));
+    mnew = realloc(mappers, (num_mappers + MAPPER_ALLOC) * sizeof(rewrite_mapper *));
     if (mnew)
       mappers = mnew;
     else

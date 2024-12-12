@@ -46,13 +46,10 @@
 #define LOG_OP_EXTENDED 0x200
 #define LOG_OP_UNKNOWN 0x400
 
-#define LOG_OP_WRITES                                                          \
-  (LOG_OP_ADD | LOG_OP_DELETE | LOG_OP_MODIFY | LOG_OP_MODRDN)
+#define LOG_OP_WRITES (LOG_OP_ADD | LOG_OP_DELETE | LOG_OP_MODIFY | LOG_OP_MODRDN)
 #define LOG_OP_READS (LOG_OP_COMPARE | LOG_OP_SEARCH)
 #define LOG_OP_SESSION (LOG_OP_BIND | LOG_OP_UNBIND | LOG_OP_ABANDON)
-#define LOG_OP_ALL                                                             \
-  (LOG_OP_READS | LOG_OP_WRITES | LOG_OP_SESSION | LOG_OP_EXTENDED |           \
-   LOG_OP_UNKNOWN)
+#define LOG_OP_ALL (LOG_OP_READS | LOG_OP_WRITES | LOG_OP_SESSION | LOG_OP_EXTENDED | LOG_OP_UNKNOWN)
 
 typedef struct log_attr {
   struct log_attr *next;
@@ -85,91 +82,71 @@ typedef struct log_info {
 
 static ConfigDriver log_cf_gen;
 
-enum {
-  LOG_DB = 1,
-  LOG_OPS,
-  LOG_PURGE,
-  LOG_SUCCESS,
-  LOG_OLD,
-  LOG_OLDATTR,
-  LOG_BASE
-};
+enum { LOG_DB = 1, LOG_OPS, LOG_PURGE, LOG_SUCCESS, LOG_OLD, LOG_OLDATTR, LOG_BASE };
 
-static ConfigTable log_cfats[] = {
-    {"logdb", "suffix", 2, 2, 0, ARG_DN | ARG_MAGIC | LOG_DB, log_cf_gen,
-     "( OLcfgOvAt:4.1 NAME 'olcAccessLogDB' "
-     "DESC 'Suffix of database for log content' "
-     "EQUALITY distinguishedNameMatch "
-     "SUP distinguishedName SINGLE-VALUE )",
-     NULL, NULL},
-    {"logops", "op|writes|reads|session|all", 2, 0, 0, ARG_MAGIC | LOG_OPS,
-     log_cf_gen,
-     "( OLcfgOvAt:4.2 NAME 'olcAccessLogOps' "
-     "DESC 'Operation types to log' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString )",
-     NULL, NULL},
-    {"logpurge", "age> <interval", 3, 3, 0, ARG_MAGIC | LOG_PURGE, log_cf_gen,
-     "( OLcfgOvAt:4.3 NAME 'olcAccessLogPurge' "
-     "DESC 'Log cleanup parameters' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString SINGLE-VALUE )",
-     NULL, NULL},
-    {"logsuccess", NULL, 2, 2, 0, ARG_MAGIC | ARG_ON_OFF | LOG_SUCCESS,
-     log_cf_gen,
-     "( OLcfgOvAt:4.4 NAME 'olcAccessLogSuccess' "
-     "DESC 'Log successful ops only' "
-     "EQUALITY booleanMatch "
-     "SYNTAX OMsBoolean SINGLE-VALUE )",
-     NULL, NULL},
-    {"logold", "filter", 2, 2, 0, ARG_MAGIC | LOG_OLD, log_cf_gen,
-     "( OLcfgOvAt:4.5 NAME 'olcAccessLogOld' "
-     "DESC 'Log old values when modifying entries matching the filter' "
-     "EQUALITY caseExactMatch "
-     "SYNTAX OMsDirectoryString SINGLE-VALUE )",
-     NULL, NULL},
-    {"logoldattr", "attrs", 2, 0, 0, ARG_MAGIC | LOG_OLDATTR, log_cf_gen,
-     "( OLcfgOvAt:4.6 NAME 'olcAccessLogOldAttr' "
-     "DESC 'Log old values of these attributes even if unmodified' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString )",
-     NULL, NULL},
-    {"logbase", "op|writes|reads|session|all< <baseDN", 3, 3, 0,
-     ARG_MAGIC | LOG_BASE, log_cf_gen,
-     "( OLcfgOvAt:4.7 NAME 'olcAccessLogBase' "
-     "DESC 'Operation types to log under a specific branch' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString )",
-     NULL, NULL},
-    {NULL}};
+static ConfigTable log_cfats[] = {{"logdb", "suffix", 2, 2, 0, ARG_DN | ARG_MAGIC | LOG_DB, log_cf_gen,
+                                   "( OLcfgOvAt:4.1 NAME 'olcAccessLogDB' "
+                                   "DESC 'Suffix of database for log content' "
+                                   "EQUALITY distinguishedNameMatch "
+                                   "SUP distinguishedName SINGLE-VALUE )",
+                                   NULL, NULL},
+                                  {"logops", "op|writes|reads|session|all", 2, 0, 0, ARG_MAGIC | LOG_OPS, log_cf_gen,
+                                   "( OLcfgOvAt:4.2 NAME 'olcAccessLogOps' "
+                                   "DESC 'Operation types to log' "
+                                   "EQUALITY caseIgnoreMatch "
+                                   "SYNTAX OMsDirectoryString )",
+                                   NULL, NULL},
+                                  {"logpurge", "age> <interval", 3, 3, 0, ARG_MAGIC | LOG_PURGE, log_cf_gen,
+                                   "( OLcfgOvAt:4.3 NAME 'olcAccessLogPurge' "
+                                   "DESC 'Log cleanup parameters' "
+                                   "EQUALITY caseIgnoreMatch "
+                                   "SYNTAX OMsDirectoryString SINGLE-VALUE )",
+                                   NULL, NULL},
+                                  {"logsuccess", NULL, 2, 2, 0, ARG_MAGIC | ARG_ON_OFF | LOG_SUCCESS, log_cf_gen,
+                                   "( OLcfgOvAt:4.4 NAME 'olcAccessLogSuccess' "
+                                   "DESC 'Log successful ops only' "
+                                   "EQUALITY booleanMatch "
+                                   "SYNTAX OMsBoolean SINGLE-VALUE )",
+                                   NULL, NULL},
+                                  {"logold", "filter", 2, 2, 0, ARG_MAGIC | LOG_OLD, log_cf_gen,
+                                   "( OLcfgOvAt:4.5 NAME 'olcAccessLogOld' "
+                                   "DESC 'Log old values when modifying entries matching the filter' "
+                                   "EQUALITY caseExactMatch "
+                                   "SYNTAX OMsDirectoryString SINGLE-VALUE )",
+                                   NULL, NULL},
+                                  {"logoldattr", "attrs", 2, 0, 0, ARG_MAGIC | LOG_OLDATTR, log_cf_gen,
+                                   "( OLcfgOvAt:4.6 NAME 'olcAccessLogOldAttr' "
+                                   "DESC 'Log old values of these attributes even if unmodified' "
+                                   "EQUALITY caseIgnoreMatch "
+                                   "SYNTAX OMsDirectoryString )",
+                                   NULL, NULL},
+                                  {"logbase", "op|writes|reads|session|all< <baseDN", 3, 3, 0, ARG_MAGIC | LOG_BASE,
+                                   log_cf_gen,
+                                   "( OLcfgOvAt:4.7 NAME 'olcAccessLogBase' "
+                                   "DESC 'Operation types to log under a specific branch' "
+                                   "EQUALITY caseIgnoreMatch "
+                                   "SYNTAX OMsDirectoryString )",
+                                   NULL, NULL},
+                                  {NULL}};
 
-static ConfigOCs log_cfocs[] = {
-    {"( OLcfgOvOc:4.1 "
-     "NAME 'olcAccessLogConfig' "
-     "DESC 'Access log configuration' "
-     "SUP olcOverlayConfig "
-     "MUST olcAccessLogDB "
-     "MAY ( olcAccessLogOps $ olcAccessLogPurge $ olcAccessLogSuccess $ "
-     "olcAccessLogOld $ olcAccessLogOldAttr $ olcAccessLogBase ) )",
-     Cft_Overlay, log_cfats},
-    {NULL}};
+static ConfigOCs log_cfocs[] = {{"( OLcfgOvOc:4.1 "
+                                 "NAME 'olcAccessLogConfig' "
+                                 "DESC 'Access log configuration' "
+                                 "SUP olcOverlayConfig "
+                                 "MUST olcAccessLogDB "
+                                 "MAY ( olcAccessLogOps $ olcAccessLogPurge $ olcAccessLogSuccess $ "
+                                 "olcAccessLogOld $ olcAccessLogOldAttr $ olcAccessLogBase ) )",
+                                 Cft_Overlay, log_cfats},
+                                {NULL}};
 
-static slap_verbmasks logops[] = {{BER_BVC("all"), LOG_OP_ALL},
-                                  {BER_BVC("writes"), LOG_OP_WRITES},
-                                  {BER_BVC("session"), LOG_OP_SESSION},
-                                  {BER_BVC("reads"), LOG_OP_READS},
-                                  {BER_BVC("add"), LOG_OP_ADD},
-                                  {BER_BVC("delete"), LOG_OP_DELETE},
-                                  {BER_BVC("modify"), LOG_OP_MODIFY},
-                                  {BER_BVC("modrdn"), LOG_OP_MODRDN},
-                                  {BER_BVC("compare"), LOG_OP_COMPARE},
-                                  {BER_BVC("search"), LOG_OP_SEARCH},
-                                  {BER_BVC("bind"), LOG_OP_BIND},
-                                  {BER_BVC("unbind"), LOG_OP_UNBIND},
-                                  {BER_BVC("abandon"), LOG_OP_ABANDON},
-                                  {BER_BVC("extended"), LOG_OP_EXTENDED},
-                                  {BER_BVC("unknown"), LOG_OP_UNKNOWN},
-                                  {BER_BVNULL, 0}};
+static slap_verbmasks logops[] = {{BER_BVC("all"), LOG_OP_ALL},         {BER_BVC("writes"), LOG_OP_WRITES},
+                                  {BER_BVC("session"), LOG_OP_SESSION}, {BER_BVC("reads"), LOG_OP_READS},
+                                  {BER_BVC("add"), LOG_OP_ADD},         {BER_BVC("delete"), LOG_OP_DELETE},
+                                  {BER_BVC("modify"), LOG_OP_MODIFY},   {BER_BVC("modrdn"), LOG_OP_MODRDN},
+                                  {BER_BVC("compare"), LOG_OP_COMPARE}, {BER_BVC("search"), LOG_OP_SEARCH},
+                                  {BER_BVC("bind"), LOG_OP_BIND},       {BER_BVC("unbind"), LOG_OP_UNBIND},
+                                  {BER_BVC("abandon"), LOG_OP_ABANDON}, {BER_BVC("extended"), LOG_OP_EXTENDED},
+                                  {BER_BVC("unknown"), LOG_OP_UNKNOWN}, {BER_BVNULL, 0}};
 
 /* Start with "add" in logops */
 #define EN_OFFSET 4
@@ -189,8 +166,7 @@ enum {
   LOG_EN__COUNT
 };
 
-static ObjectClass *log_ocs[LOG_EN__COUNT], *log_container, *log_oc_read,
-    *log_oc_write;
+static ObjectClass *log_ocs[LOG_EN__COUNT], *log_container, *log_oc_read, *log_oc_write;
 
 #define LOG_SCHEMA_ROOT "1.3.6.1.4.1.4203.666.11.5"
 
@@ -198,14 +174,11 @@ static ObjectClass *log_ocs[LOG_EN__COUNT], *log_container, *log_oc_read,
 #define LOG_SCHEMA_OC LOG_SCHEMA_ROOT ".2"
 #define LOG_SCHEMA_SYN LOG_SCHEMA_ROOT ".3"
 
-static AttributeDescription *ad_reqDN, *ad_reqStart, *ad_reqEnd, *ad_reqType,
-    *ad_reqSession, *ad_reqResult, *ad_reqAuthzID, *ad_reqControls,
-    *ad_reqRespControls, *ad_reqMethod, *ad_reqAssertion, *ad_reqNewRDN,
-    *ad_reqNewSuperior, *ad_reqDeleteOldRDN, *ad_reqMod, *ad_reqScope,
-    *ad_reqFilter, *ad_reqAttr, *ad_reqEntries, *ad_reqSizeLimit,
-    *ad_reqTimeLimit, *ad_reqAttrsOnly, *ad_reqData, *ad_reqId, *ad_reqMessage,
-    *ad_reqVersion, *ad_reqDerefAliases, *ad_reqReferral, *ad_reqOld,
-    *ad_auditContext, *ad_reqEntryUUID;
+static AttributeDescription *ad_reqDN, *ad_reqStart, *ad_reqEnd, *ad_reqType, *ad_reqSession, *ad_reqResult,
+    *ad_reqAuthzID, *ad_reqControls, *ad_reqRespControls, *ad_reqMethod, *ad_reqAssertion, *ad_reqNewRDN,
+    *ad_reqNewSuperior, *ad_reqDeleteOldRDN, *ad_reqMod, *ad_reqScope, *ad_reqFilter, *ad_reqAttr, *ad_reqEntries,
+    *ad_reqSizeLimit, *ad_reqTimeLimit, *ad_reqAttrsOnly, *ad_reqData, *ad_reqId, *ad_reqMessage, *ad_reqVersion,
+    *ad_reqDerefAliases, *ad_reqReferral, *ad_reqOld, *ad_auditContext, *ad_reqEntryUUID;
 
 static int logSchemaControlValidate(Syntax *syntax, struct berval *val);
 
@@ -216,8 +189,7 @@ static struct {
   slap_syntax_defs_rec syn;
   char **mrs;
 } lsyntaxes[] = {{LOG_SCHEMA_SYN ".1",
-                  {"( " LOG_SCHEMA_SYN ".1 DESC 'Control' )", SLAP_SYNTAX_HIDE,
-                   NULL, logSchemaControlValidate, NULL},
+                  {"( " LOG_SCHEMA_SYN ".1 DESC 'Control' )", SLAP_SYNTAX_HIDE, NULL, logSchemaControlValidate, NULL},
                   mrControl},
                  {NULL}};
 
@@ -442,76 +414,75 @@ static struct {
 static struct {
   char *ot;
   ObjectClass **oc;
-} locs[] = {
-    {"( " LOG_SCHEMA_OC ".0 NAME 'auditContainer' "
-     "DESC 'AuditLog container' "
-     "SUP top STRUCTURAL "
-     "MAY ( cn $ reqStart $ reqEnd ) )",
-     &log_container},
-    {"( " LOG_SCHEMA_OC ".1 NAME 'auditObject' "
-     "DESC 'OpenLDAP request auditing' "
-     "SUP top STRUCTURAL "
-     "MUST ( reqStart $ reqType $ reqSession ) "
-     "MAY ( reqDN $ reqAuthzID $ reqControls $ reqRespControls $ reqEnd $ "
-     "reqResult $ reqMessage $ reqReferral $ reqEntryUUID ) )",
-     &log_ocs[LOG_EN_UNBIND]},
-    {"( " LOG_SCHEMA_OC ".2 NAME 'auditReadObject' "
-     "DESC 'OpenLDAP read request record' "
-     "SUP auditObject STRUCTURAL )",
-     &log_oc_read},
-    {"( " LOG_SCHEMA_OC ".3 NAME 'auditWriteObject' "
-     "DESC 'OpenLDAP write request record' "
-     "SUP auditObject STRUCTURAL )",
-     &log_oc_write},
-    {"( " LOG_SCHEMA_OC ".4 NAME 'auditAbandon' "
-     "DESC 'Abandon operation' "
-     "SUP auditObject STRUCTURAL "
-     "MUST reqId )",
-     &log_ocs[LOG_EN_ABANDON]},
-    {"( " LOG_SCHEMA_OC ".5 NAME 'auditAdd' "
-     "DESC 'Add operation' "
-     "SUP auditWriteObject STRUCTURAL "
-     "MUST reqMod )",
-     &log_ocs[LOG_EN_ADD]},
-    {"( " LOG_SCHEMA_OC ".6 NAME 'auditBind' "
-     "DESC 'Bind operation' "
-     "SUP auditObject STRUCTURAL "
-     "MUST ( reqVersion $ reqMethod ) )",
-     &log_ocs[LOG_EN_BIND]},
-    {"( " LOG_SCHEMA_OC ".7 NAME 'auditCompare' "
-     "DESC 'Compare operation' "
-     "SUP auditReadObject STRUCTURAL "
-     "MUST reqAssertion )",
-     &log_ocs[LOG_EN_COMPARE]},
-    {"( " LOG_SCHEMA_OC ".8 NAME 'auditDelete' "
-     "DESC 'Delete operation' "
-     "SUP auditWriteObject STRUCTURAL "
-     "MAY reqOld )",
-     &log_ocs[LOG_EN_DELETE]},
-    {"( " LOG_SCHEMA_OC ".9 NAME 'auditModify' "
-     "DESC 'Modify operation' "
-     "SUP auditWriteObject STRUCTURAL "
-     "MAY reqOld MUST reqMod )",
-     &log_ocs[LOG_EN_MODIFY]},
-    {"( " LOG_SCHEMA_OC ".10 NAME 'auditModRDN' "
-     "DESC 'ModRDN operation' "
-     "SUP auditWriteObject STRUCTURAL "
-     "MUST ( reqNewRDN $ reqDeleteOldRDN ) "
-     "MAY ( reqNewSuperior $ reqMod $ reqOld ) )",
-     &log_ocs[LOG_EN_MODRDN]},
-    {"( " LOG_SCHEMA_OC ".11 NAME 'auditSearch' "
-     "DESC 'Search operation' "
-     "SUP auditReadObject STRUCTURAL "
-     "MUST ( reqScope $ reqDerefAliases $ reqAttrsonly ) "
-     "MAY ( reqFilter $ reqAttr $ reqEntries $ reqSizeLimit $ "
-     "reqTimeLimit ) )",
-     &log_ocs[LOG_EN_SEARCH]},
-    {"( " LOG_SCHEMA_OC ".12 NAME 'auditExtended' "
-     "DESC 'Extended operation' "
-     "SUP auditObject STRUCTURAL "
-     "MAY reqData )",
-     &log_ocs[LOG_EN_EXTENDED]},
-    {NULL, NULL}};
+} locs[] = {{"( " LOG_SCHEMA_OC ".0 NAME 'auditContainer' "
+             "DESC 'AuditLog container' "
+             "SUP top STRUCTURAL "
+             "MAY ( cn $ reqStart $ reqEnd ) )",
+             &log_container},
+            {"( " LOG_SCHEMA_OC ".1 NAME 'auditObject' "
+             "DESC 'OpenLDAP request auditing' "
+             "SUP top STRUCTURAL "
+             "MUST ( reqStart $ reqType $ reqSession ) "
+             "MAY ( reqDN $ reqAuthzID $ reqControls $ reqRespControls $ reqEnd $ "
+             "reqResult $ reqMessage $ reqReferral $ reqEntryUUID ) )",
+             &log_ocs[LOG_EN_UNBIND]},
+            {"( " LOG_SCHEMA_OC ".2 NAME 'auditReadObject' "
+             "DESC 'OpenLDAP read request record' "
+             "SUP auditObject STRUCTURAL )",
+             &log_oc_read},
+            {"( " LOG_SCHEMA_OC ".3 NAME 'auditWriteObject' "
+             "DESC 'OpenLDAP write request record' "
+             "SUP auditObject STRUCTURAL )",
+             &log_oc_write},
+            {"( " LOG_SCHEMA_OC ".4 NAME 'auditAbandon' "
+             "DESC 'Abandon operation' "
+             "SUP auditObject STRUCTURAL "
+             "MUST reqId )",
+             &log_ocs[LOG_EN_ABANDON]},
+            {"( " LOG_SCHEMA_OC ".5 NAME 'auditAdd' "
+             "DESC 'Add operation' "
+             "SUP auditWriteObject STRUCTURAL "
+             "MUST reqMod )",
+             &log_ocs[LOG_EN_ADD]},
+            {"( " LOG_SCHEMA_OC ".6 NAME 'auditBind' "
+             "DESC 'Bind operation' "
+             "SUP auditObject STRUCTURAL "
+             "MUST ( reqVersion $ reqMethod ) )",
+             &log_ocs[LOG_EN_BIND]},
+            {"( " LOG_SCHEMA_OC ".7 NAME 'auditCompare' "
+             "DESC 'Compare operation' "
+             "SUP auditReadObject STRUCTURAL "
+             "MUST reqAssertion )",
+             &log_ocs[LOG_EN_COMPARE]},
+            {"( " LOG_SCHEMA_OC ".8 NAME 'auditDelete' "
+             "DESC 'Delete operation' "
+             "SUP auditWriteObject STRUCTURAL "
+             "MAY reqOld )",
+             &log_ocs[LOG_EN_DELETE]},
+            {"( " LOG_SCHEMA_OC ".9 NAME 'auditModify' "
+             "DESC 'Modify operation' "
+             "SUP auditWriteObject STRUCTURAL "
+             "MAY reqOld MUST reqMod )",
+             &log_ocs[LOG_EN_MODIFY]},
+            {"( " LOG_SCHEMA_OC ".10 NAME 'auditModRDN' "
+             "DESC 'ModRDN operation' "
+             "SUP auditWriteObject STRUCTURAL "
+             "MUST ( reqNewRDN $ reqDeleteOldRDN ) "
+             "MAY ( reqNewSuperior $ reqMod $ reqOld ) )",
+             &log_ocs[LOG_EN_MODRDN]},
+            {"( " LOG_SCHEMA_OC ".11 NAME 'auditSearch' "
+             "DESC 'Search operation' "
+             "SUP auditReadObject STRUCTURAL "
+             "MUST ( reqScope $ reqDerefAliases $ reqAttrsonly ) "
+             "MAY ( reqFilter $ reqAttr $ reqEntries $ reqSizeLimit $ "
+             "reqTimeLimit ) )",
+             &log_ocs[LOG_EN_SEARCH]},
+            {"( " LOG_SCHEMA_OC ".12 NAME 'auditExtended' "
+             "DESC 'Extended operation' "
+             "SUP auditObject STRUCTURAL "
+             "MAY reqData )",
+             &log_ocs[LOG_EN_EXTENDED]},
+            {NULL, NULL}};
 
 #define RDNEQ "reqStart="
 
@@ -800,10 +771,8 @@ static int log_cf_gen(ConfigArgs *c) {
         value_add_one(&c->rvalue_vals, li->li_db->be_suffix);
         value_add_one(&c->rvalue_nvals, li->li_db->be_nsuffix);
       } else {
-        snprintf(c->cr_msg, sizeof(c->cr_msg),
-                 "accesslog: \"logdb <suffix>\" must be specified");
-        Debug(LDAP_DEBUG_ANY, "%s: %s \"%s\"\n", c->log, c->cr_msg,
-              c->value_dn.bv_val);
+        snprintf(c->cr_msg, sizeof(c->cr_msg), "accesslog: \"logdb <suffix>\" must be specified");
+        Debug(LDAP_DEBUG_ANY, "%s: %s \"%s\"\n", c->log, c->cr_msg, c->value_dn.bv_val);
         rc = 1;
         break;
       }
@@ -942,10 +911,8 @@ static int log_cf_gen(ConfigArgs *c) {
       if (CONFIG_ONLINE_ADD(c)) {
         li->li_db = select_backend(&c->value_ndn, 0);
         if (!li->li_db) {
-          snprintf(c->cr_msg, sizeof(c->cr_msg),
-                   "<%s> no matching backend found for suffix", c->argv[0]);
-          Debug(LDAP_DEBUG_ANY, "%s: %s \"%s\"\n", c->log, c->cr_msg,
-                c->value_dn.bv_val);
+          snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> no matching backend found for suffix", c->argv[0]);
+          Debug(LDAP_DEBUG_ANY, "%s: %s \"%s\"\n", c->log, c->cr_msg, c->value_dn.bv_val);
           rc = 1;
         }
         ch_free(c->value_ndn.bv_val);
@@ -976,10 +943,9 @@ static int log_cf_gen(ConfigArgs *c) {
             re->interval = ldap_from_seconds(li->li_cycle);
           else {
             ldap_pvt_thread_mutex_lock(&slapd_rq.rq_mutex);
-            li->li_task = ldap_pvt_runqueue_insert(
-                &slapd_rq, li->li_cycle, accesslog_purge, li, "accesslog_purge",
-                li->li_db ? li->li_db->be_suffix[0].bv_val
-                          : c->be->be_suffix[0].bv_val);
+            li->li_task =
+                ldap_pvt_runqueue_insert(&slapd_rq, li->li_cycle, accesslog_purge, li, "accesslog_purge",
+                                         li->li_db ? li->li_db->be_suffix[0].bv_val : c->be->be_suffix[0].bv_val);
             ldap_pvt_thread_mutex_unlock(&slapd_rq.rq_mutex);
           }
         }
@@ -1008,10 +974,8 @@ static int log_cf_gen(ConfigArgs *c) {
           la->next = li->li_oldattrs;
           li->li_oldattrs = la;
         } else {
-          snprintf(c->cr_msg, sizeof(c->cr_msg), "%s <%s>: %s", c->argv[0],
-                   c->argv[i], text);
-          Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log,
-                c->cr_msg);
+          snprintf(c->cr_msg, sizeof(c->cr_msg), "%s <%s>: %s", c->argv[0], c->argv[i], text);
+          Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log, c->cr_msg);
           rc = ARG_BAD_CONF;
           break;
         }
@@ -1044,17 +1008,13 @@ static int log_cf_gen(ConfigArgs *c) {
           lb->lb_next = li->li_bases;
           li->li_bases = lb;
         } else {
-          snprintf(c->cr_msg, sizeof(c->cr_msg), "%s invalid DN: %s",
-                   c->argv[0], c->argv[2]);
-          Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log,
-                c->cr_msg);
+          snprintf(c->cr_msg, sizeof(c->cr_msg), "%s invalid DN: %s", c->argv[0], c->argv[2]);
+          Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log, c->cr_msg);
           rc = ARG_BAD_CONF;
         }
       } else {
-        snprintf(c->cr_msg, sizeof(c->cr_msg), "%s invalid ops: %s", c->argv[0],
-                 c->argv[1]);
-        Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log,
-              c->cr_msg);
+        snprintf(c->cr_msg, sizeof(c->cr_msg), "%s invalid ops: %s", c->argv[0], c->argv[1]);
+        Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log, c->cr_msg);
         rc = ARG_BAD_CONF;
       }
     } break;
@@ -1126,8 +1086,7 @@ static int logSchemaControlValidate(Syntax *syntax, struct berval *valp) {
   }
 
   /* extract and check criticality */
-  if (strncasecmp(&val.bv_val[i], "criticality ", STRLENOF("criticality ")) ==
-      0) {
+  if (strncasecmp(&val.bv_val[i], "criticality ", STRLENOF("criticality ")) == 0) {
     i += STRLENOF("criticality ");
     for (; i < val.bv_len; i++) {
       if (!ASCII_SPACE(val.bv_val[i])) {
@@ -1173,8 +1132,7 @@ static int logSchemaControlValidate(Syntax *syntax, struct berval *valp) {
   }
 
   /* extract and check controlValue */
-  if (strncasecmp(&val.bv_val[i], "controlValue ", STRLENOF("controlValue ")) ==
-      0) {
+  if (strncasecmp(&val.bv_val[i], "controlValue ", STRLENOF("controlValue ")) == 0) {
     ber_len_t valueStart, valueLen;
 
     i += STRLENOF("controlValue ");
@@ -1228,8 +1186,7 @@ static int logSchemaControlValidate(Syntax *syntax, struct berval *valp) {
   return LDAP_INVALID_SYNTAX;
 }
 
-static int accesslog_ctrls(LDAPControl **ctrls, BerVarray *valsp,
-                           BerVarray *nvalsp, void *memctx) {
+static int accesslog_ctrls(LDAPControl **ctrls, BerVarray *valsp, BerVarray *nvalsp, void *memctx) {
   long i, rc = 0;
 
   assert(valsp != NULL);
@@ -1262,8 +1219,7 @@ static int accesslog_ctrls(LDAPControl **ctrls, BerVarray *valsp,
     }
 
     if (!BER_BVISNULL(&ctrls[i]->ldctl_value)) {
-      bv.bv_len +=
-          STRLENOF(" controlValue \"\"") + 2 * ctrls[i]->ldctl_value.bv_len;
+      bv.bv_len += STRLENOF(" controlValue \"\"") + 2 * ctrls[i]->ldctl_value.bv_len;
     }
 
     ptr = bv.bv_val = ber_memalloc_x(bv.bv_len + 1, memctx);
@@ -1306,8 +1262,7 @@ static int accesslog_ctrls(LDAPControl **ctrls, BerVarray *valsp,
   return rc;
 }
 
-static Entry *accesslog_entry(Operation *op, SlapReply *rs, log_info *li,
-                              int logop, Operation *op2) {
+static Entry *accesslog_entry(Operation *op, SlapReply *rs, log_info *li, int logop, Operation *op2) {
 
   char rdnbuf[STRLENOF(RDNEQ) + LDAP_LUTIL_GENTIME_BUFSIZE + 8];
   char nrdnbuf[STRLENOF(RDNEQ) + LDAP_LUTIL_GENTIME_BUFSIZE + 8];
@@ -1325,25 +1280,21 @@ static Entry *accesslog_entry(Operation *op, SlapReply *rs, log_info *li,
   timestamp.bv_val = rdnbuf + STRLENOF(RDNEQ);
   timestamp.bv_len = sizeof(rdnbuf) - STRLENOF(RDNEQ);
   slap_timestamp(op->o_time, &timestamp);
-  snprintf(timestamp.bv_val + timestamp.bv_len - 1, sizeof(".123456Z"),
-           ".%06dZ", op->o_tincr);
+  snprintf(timestamp.bv_val + timestamp.bv_len - 1, sizeof(".123456Z"), ".%06dZ", op->o_tincr);
   timestamp.bv_len += STRLENOF(".123456");
 
   rdn.bv_len = STRLENOF(RDNEQ) + timestamp.bv_len;
-  ad_reqStart->ad_type->sat_equality->smr_normalize(
-      SLAP_MR_VALUE_OF_ASSERTION_SYNTAX, ad_reqStart->ad_type->sat_syntax,
-      ad_reqStart->ad_type->sat_equality, &timestamp, &ntimestamp,
-      op->o_tmpmemctx);
+  ad_reqStart->ad_type->sat_equality->smr_normalize(SLAP_MR_VALUE_OF_ASSERTION_SYNTAX, ad_reqStart->ad_type->sat_syntax,
+                                                    ad_reqStart->ad_type->sat_equality, &timestamp, &ntimestamp,
+                                                    op->o_tmpmemctx);
 
   strcpy(nrdn.bv_val + STRLENOF(RDNEQ), ntimestamp.bv_val);
   nrdn.bv_len = STRLENOF(RDNEQ) + ntimestamp.bv_len;
   build_new_dn(&e->e_name, li->li_db->be_suffix, &rdn, NULL);
   build_new_dn(&e->e_nname, li->li_db->be_nsuffix, &nrdn, NULL);
 
-  attr_merge_one(e, slap_schema.si_ad_objectClass, &log_ocs[logop]->soc_cname,
-                 NULL);
-  attr_merge_one(e, slap_schema.si_ad_structuralObjectClass,
-                 &log_ocs[logop]->soc_cname, NULL);
+  attr_merge_one(e, slap_schema.si_ad_objectClass, &log_ocs[logop]->soc_cname, NULL);
+  attr_merge_one(e, slap_schema.si_ad_structuralObjectClass, &log_ocs[logop]->soc_cname, NULL);
   attr_merge_one(e, ad_reqStart, &timestamp, &ntimestamp);
   op->o_tmpfree(ntimestamp.bv_val, op->o_tmpmemctx);
 
@@ -1351,8 +1302,7 @@ static Entry *accesslog_entry(Operation *op, SlapReply *rs, log_info *li,
 
   timestamp.bv_len = sizeof(rdnbuf) - STRLENOF(RDNEQ);
   slap_timestamp(op2->o_time, &timestamp);
-  snprintf(timestamp.bv_val + timestamp.bv_len - 1, sizeof(".123456Z"),
-           ".%06dZ", op2->o_tincr);
+  snprintf(timestamp.bv_val + timestamp.bv_len - 1, sizeof(".123456Z"), ".%06dZ", op2->o_tincr);
   timestamp.bv_len += STRLENOF(".123456");
 
   attr_merge_normalize_one(e, ad_reqEnd, &timestamp, op->o_tmpmemctx);
@@ -1363,8 +1313,7 @@ static Entry *accesslog_entry(Operation *op, SlapReply *rs, log_info *li,
     bv.bv_val = ch_malloc(bv.bv_len + 1);
     memcpy(bv.bv_val, lo->word.bv_val, lo->word.bv_len);
     bv.bv_val[lo->word.bv_len] = '{';
-    memcpy(bv.bv_val + lo->word.bv_len + 1, op->ore_reqoid.bv_val,
-           op->ore_reqoid.bv_len);
+    memcpy(bv.bv_val + lo->word.bv_len + 1, op->ore_reqoid.bv_val, op->ore_reqoid.bv_len);
     bv.bv_val[bv.bv_len - 1] = '}';
     bv.bv_val[bv.bv_len] = '\0';
     attr_merge_one(e, ad_reqType, &bv, NULL);
@@ -1378,8 +1327,7 @@ static Entry *accesslog_entry(Operation *op, SlapReply *rs, log_info *li,
   } /* else? */
 
   if (BER_BVISNULL(&op->o_dn)) {
-    attr_merge_one(e, ad_reqAuthzID, (struct berval *)&slap_empty_bv,
-                   (struct berval *)&slap_empty_bv);
+    attr_merge_one(e, ad_reqAuthzID, (struct berval *)&slap_empty_bv, (struct berval *)&slap_empty_bv);
   } else {
     attr_merge_one(e, ad_reqAuthzID, &op->o_dn, &op->o_ndn);
   }
@@ -1388,9 +1336,7 @@ static Entry *accesslog_entry(Operation *op, SlapReply *rs, log_info *li,
   if (op->o_ctrls) {
     BerVarray vals = NULL, nvals = NULL;
 
-    if (accesslog_ctrls(op->o_ctrls, &vals, &nvals, op->o_tmpmemctx) ==
-            LDAP_SUCCESS &&
-        vals) {
+    if (accesslog_ctrls(op->o_ctrls, &vals, &nvals, op->o_tmpmemctx) == LDAP_SUCCESS && vals) {
       attr_merge(e, ad_reqControls, vals, nvals);
       ber_bvarray_free_x(vals, op->o_tmpmemctx);
       ber_bvarray_free_x(nvals, op->o_tmpmemctx);
@@ -1400,9 +1346,7 @@ static Entry *accesslog_entry(Operation *op, SlapReply *rs, log_info *li,
   if (rs->sr_ctrls) {
     BerVarray vals = NULL, nvals = NULL;
 
-    if (accesslog_ctrls(rs->sr_ctrls, &vals, &nvals, op->o_tmpmemctx) ==
-            LDAP_SUCCESS &&
-        vals) {
+    if (accesslog_ctrls(rs->sr_ctrls, &vals, &nvals, op->o_tmpmemctx) == LDAP_SUCCESS && vals) {
       attr_merge(e, ad_reqRespControls, vals, nvals);
       ber_bvarray_free_x(vals, op->o_tmpmemctx);
       ber_bvarray_free_x(nvals, op->o_tmpmemctx);
@@ -1412,16 +1356,13 @@ static Entry *accesslog_entry(Operation *op, SlapReply *rs, log_info *li,
   return e;
 }
 
-static struct berval scopes[] = {BER_BVC("base"), BER_BVC("one"),
-                                 BER_BVC("sub"), BER_BVC("subord")};
+static struct berval scopes[] = {BER_BVC("base"), BER_BVC("one"), BER_BVC("sub"), BER_BVC("subord")};
 
-static struct berval derefs[] = {BER_BVC("never"), BER_BVC("searching"),
-                                 BER_BVC("finding"), BER_BVC("always")};
+static struct berval derefs[] = {BER_BVC("never"), BER_BVC("searching"), BER_BVC("finding"), BER_BVC("always")};
 
 static struct berval simple = BER_BVC("SIMPLE");
 
-static void accesslog_val2val(AttributeDescription *ad, struct berval *val,
-                              char c_op, struct berval *dst) {
+static void accesslog_val2val(AttributeDescription *ad, struct berval *val, char c_op, struct berval *dst) {
   char *ptr;
 
   dst->bv_len = ad->ad_cname.bv_len + val->bv_len + 2;
@@ -1463,8 +1404,7 @@ static int accesslog_op2logop(Operation *op) {
   return LOG_EN_UNKNOWN;
 }
 
-static int do_accesslog_response(Operation *op, SlapReply *rs,
-                                 int need_unlock) {
+static int do_accesslog_response(Operation *op, SlapReply *rs, int need_unlock) {
   slap_overinst *on = (slap_overinst *)op->o_callback->sc_private;
   log_info *li = on->on_bi.bi_private;
   Attribute *a, *last_attr;
@@ -1515,8 +1455,7 @@ static int do_accesslog_response(Operation *op, SlapReply *rs,
     BER_BVZERO(&li->li_uuid);
     if (need_unlock) {
 #ifdef RMUTEX_DEBUG
-      Debug(LDAP_DEBUG_SYNC, "%s.%d: unlocking rmutex for tid %x\n",
-            __FUNCTION__, __LINE__, op->o_tid);
+      Debug(LDAP_DEBUG_SYNC, "%s.%d: unlocking rmutex for tid %x\n", __FUNCTION__, __LINE__, op->o_tid);
 #endif
       ldap_pvt_thread_mutex_unlock(&li->li_op_rmutex);
       need_unlock = 0;
@@ -1595,8 +1534,7 @@ static int do_accesslog_response(Operation *op, SlapReply *rs,
     for (m = op->orm_modlist; m; m = m->sml_next) {
       if (m->sml_values) {
         i += m->sml_numvals;
-      } else if (m->sml_op == LDAP_MOD_DELETE ||
-                 m->sml_op == LDAP_MOD_REPLACE) {
+      } else if (m->sml_op == LDAP_MOD_DELETE || m->sml_op == LDAP_MOD_REPLACE) {
         i++;
       }
       if (m->sml_next && m->sml_desc == m->sml_next->sml_desc) {
@@ -1631,8 +1569,7 @@ static int do_accesslog_response(Operation *op, SlapReply *rs,
       }
 
       /* don't log the RDN mods; they're explicitly logged later */
-      if (logop == LOG_EN_MODRDN &&
-          (m->sml_op == SLAP_MOD_SOFTADD || m->sml_op == LDAP_MOD_DELETE)) {
+      if (logop == LOG_EN_MODRDN && (m->sml_op == SLAP_MOD_SOFTADD || m->sml_op == LDAP_MOD_DELETE)) {
         continue;
       }
 
@@ -1664,8 +1601,7 @@ static int do_accesslog_response(Operation *op, SlapReply *rs,
           }
           accesslog_val2val(m->sml_desc, b, c_op, &vals[i]);
         }
-      } else if (m->sml_op == LDAP_MOD_DELETE ||
-                 m->sml_op == LDAP_MOD_REPLACE) {
+      } else if (m->sml_op == LDAP_MOD_DELETE || m->sml_op == LDAP_MOD_REPLACE) {
         vals[i].bv_len = m->sml_desc->ad_cname.bv_len + 2;
         vals[i].bv_val = ch_malloc(vals[i].bv_len + 1);
         ptr = lutil_strcopy(vals[i].bv_val, m->sml_desc->ad_cname.bv_val);
@@ -1680,8 +1616,7 @@ static int do_accesslog_response(Operation *op, SlapReply *rs,
       }
       /* ITS#6545: when the same attribute is edited multiple times,
        * record the transition */
-      if (m->sml_next && m->sml_desc == m->sml_next->sml_desc &&
-          m->sml_op == m->sml_next->sml_op) {
+      if (m->sml_next && m->sml_desc == m->sml_next->sml_desc && m->sml_op == m->sml_next->sml_op) {
         ber_str2bv(":", STRLENOF(":"), 1, &vals[i]);
         i++;
       }
@@ -1734,17 +1669,14 @@ static int do_accesslog_response(Operation *op, SlapReply *rs,
     /* Now log the actual modRDN info */
     attr_merge_one(e, ad_reqNewRDN, &op->orr_newrdn, &op->orr_nnewrdn);
     attr_merge_one(e, ad_reqDeleteOldRDN,
-                   op->orr_deleteoldrdn ? (struct berval *)&slap_true_bv
-                                        : (struct berval *)&slap_false_bv,
-                   NULL);
+                   op->orr_deleteoldrdn ? (struct berval *)&slap_true_bv : (struct berval *)&slap_false_bv, NULL);
     if (op->orr_newSup) {
       attr_merge_one(e, ad_reqNewSuperior, op->orr_newSup, op->orr_nnewSup);
     }
     break;
 
   case LOG_EN_COMPARE:
-    bv.bv_len = op->orc_ava->aa_desc->ad_cname.bv_len + 1 +
-                op->orc_ava->aa_value.bv_len;
+    bv.bv_len = op->orc_ava->aa_desc->ad_cname.bv_len + 1 + op->orc_ava->aa_value.bv_len;
     bv.bv_val = op->o_tmpalloc(bv.bv_len + 1, op->o_tmpmemctx);
     ptr = lutil_strcopy(bv.bv_val, op->orc_ava->aa_desc->ad_cname.bv_val);
     *ptr++ = '=';
@@ -1758,12 +1690,9 @@ static int do_accesslog_response(Operation *op, SlapReply *rs,
     attr_merge_one(e, ad_reqScope, &scopes[op->ors_scope], NULL);
     attr_merge_one(e, ad_reqDerefAliases, &derefs[op->ors_deref], NULL);
     attr_merge_one(e, ad_reqAttrsOnly,
-                   op->ors_attrsonly ? (struct berval *)&slap_true_bv
-                                     : (struct berval *)&slap_false_bv,
-                   NULL);
+                   op->ors_attrsonly ? (struct berval *)&slap_true_bv : (struct berval *)&slap_false_bv, NULL);
     if (!BER_BVISEMPTY(&op->ors_filterstr))
-      attr_merge_normalize_one(e, ad_reqFilter, &op->ors_filterstr,
-                               op->o_tmpmemctx);
+      attr_merge_normalize_one(e, ad_reqFilter, &op->ors_filterstr, op->o_tmpmemctx);
     if (op->ors_attrs) {
       int j;
       /* count them */
@@ -1879,16 +1808,14 @@ static int do_accesslog_response(Operation *op, SlapReply *rs,
       BER_BVZERO(&op2.o_csn);
       slap_queue_csn(&op2, &op->o_csn);
     } else {
-      attr_merge_normalize_one(e, slap_schema.si_ad_entryCSN, &op->o_csn,
-                               op->o_tmpmemctx);
+      attr_merge_normalize_one(e, slap_schema.si_ad_entryCSN, &op->o_csn, op->o_tmpmemctx);
     }
   }
 
   slap_biglock_call_be(op_add, &op2, &rs2);
   if (rs2.sr_err != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_SYNC,
-          "accesslog_response: got result 0x%x adding log entry %s\n",
-          rs2.sr_err, op2.o_req_dn.bv_val);
+    Debug(LDAP_DEBUG_SYNC, "accesslog_response: got result 0x%x adding log entry %s\n", rs2.sr_err,
+          op2.o_req_dn.bv_val);
   }
   if (e == op2.ora_e)
     entry_free(e);
@@ -1903,21 +1830,16 @@ done:
 exit_continue:
   if (need_unlock) {
 #ifdef RMUTEX_DEBUG
-    Debug(LDAP_DEBUG_SYNC, "%s.%d: unlocking rmutex for tid %x\n", __FUNCTION__,
-          __LINE__, op->o_tid);
+    Debug(LDAP_DEBUG_SYNC, "%s.%d: unlocking rmutex for tid %x\n", __FUNCTION__, __LINE__, op->o_tid);
 #endif
     ldap_pvt_thread_mutex_unlock(&li->li_op_rmutex);
   }
   return SLAP_CB_CONTINUE;
 }
 
-static int accesslog_response_and_unlock(Operation *op, SlapReply *rs) {
-  return do_accesslog_response(op, rs, 1);
-}
+static int accesslog_response_and_unlock(Operation *op, SlapReply *rs) { return do_accesslog_response(op, rs, 1); }
 
-static int accesslog_response_dont_unlock(Operation *op, SlapReply *rs) {
-  return do_accesslog_response(op, rs, 0);
-}
+static int accesslog_response_dont_unlock(Operation *op, SlapReply *rs) { return do_accesslog_response(op, rs, 0); }
 
 static int accesslog_op_misc(Operation *op, SlapReply *rs) {
   slap_callback *sc;
@@ -1961,8 +1883,7 @@ static int accesslog_op_mod(Operation *op, SlapReply *rs) {
   }
 
   if (doit) {
-    slap_callback *cb =
-        op->o_tmpcalloc(1, sizeof(slap_callback), op->o_tmpmemctx);
+    slap_callback *cb = op->o_tmpcalloc(1, sizeof(slap_callback), op->o_tmpmemctx);
     cb->sc_cleanup = accesslog_response_and_unlock;
     cb->sc_response = accesslog_response_and_unlock;
     cb->sc_private = on;
@@ -1970,17 +1891,14 @@ static int accesslog_op_mod(Operation *op, SlapReply *rs) {
     op->o_callback = cb;
 
 #ifdef RMUTEX_DEBUG
-    Debug(LDAP_DEBUG_SYNC, "accesslog_op_mod: locking rmutex for tid %x\n",
-          op->o_tid);
+    Debug(LDAP_DEBUG_SYNC, "accesslog_op_mod: locking rmutex for tid %x\n", op->o_tid);
 #endif
     ldap_pvt_thread_mutex_lock(&li->li_op_rmutex);
 #ifdef RMUTEX_DEBUG
-    Debug(LDAP_DEBUG_STATS, "accesslog_op_mod: locked rmutex for tid %x\n",
-          op->o_tid);
+    Debug(LDAP_DEBUG_STATS, "accesslog_op_mod: locked rmutex for tid %x\n", op->o_tid);
 #endif
-    if (li->li_oldf &&
-        (op->o_tag == LDAP_REQ_DELETE || op->o_tag == LDAP_REQ_MODIFY ||
-         (op->o_tag == LDAP_REQ_MODRDN && li->li_oldattrs))) {
+    if (li->li_oldf && (op->o_tag == LDAP_REQ_DELETE || op->o_tag == LDAP_REQ_MODIFY ||
+                        (op->o_tag == LDAP_REQ_MODRDN && li->li_oldattrs))) {
       int rc;
       Entry *e;
 
@@ -2029,8 +1947,7 @@ static int accesslog_unbind(Operation *op, SlapReply *rs) {
       int i = 0;
 
       for (lb = li->li_bases; lb; lb = lb->lb_next)
-        if ((lb->lb_ops & LOG_OP_UNBIND) &&
-            dnIsSuffix(&op->o_ndn, &lb->lb_base)) {
+        if ((lb->lb_ops & LOG_OP_UNBIND) && dnIsSuffix(&op->o_ndn, &lb->lb_base)) {
           i = 1;
           break;
         }
@@ -2076,8 +1993,7 @@ static int accesslog_abandon(Operation *op, SlapReply *rs) {
     int i = 0;
 
     for (lb = li->li_bases; lb; lb = lb->lb_next)
-      if ((lb->lb_ops & LOG_OP_ABANDON) &&
-          dnIsSuffix(&op->o_ndn, &lb->lb_base)) {
+      if ((lb->lb_ops & LOG_OP_ABANDON) && dnIsSuffix(&op->o_ndn, &lb->lb_base)) {
         i = 1;
         break;
       }
@@ -2118,15 +2034,13 @@ static int accesslog_operational(Operation *op, SlapReply *rs) {
   if (op->o_sync != SLAP_CONTROL_NONE)
     return SLAP_CB_CONTINUE;
 
-  if (rs->sr_entry != NULL &&
-      dn_match(&op->o_bd->be_nsuffix[0], &rs->sr_entry->e_nname)) {
+  if (rs->sr_entry != NULL && dn_match(&op->o_bd->be_nsuffix[0], &rs->sr_entry->e_nname)) {
     Attribute **ap;
 
     for (ap = &rs->sr_operational_attrs; *ap; ap = &(*ap)->a_next)
       /* just count */;
 
-    if (SLAP_OPATTRS(rs->sr_attr_flags) ||
-        ad_inlist(ad_auditContext, rs->sr_attrs)) {
+    if (SLAP_OPATTRS(rs->sr_attr_flags) || ad_inlist(ad_auditContext, rs->sr_attrs)) {
       *ap = attr_alloc(ad_auditContext);
       attr_valadd(*ap, &li->li_db->be_suffix[0], &li->li_db->be_nsuffix[0], 1);
     }
@@ -2203,8 +2117,7 @@ static void *accesslog_db_root(void *ctx, void *arg) {
     ber_dupbv(&e->e_name, li->li_db->be_suffix);
     ber_dupbv(&e->e_nname, li->li_db->be_nsuffix);
 
-    attr_merge_one(e, slap_schema.si_ad_objectClass, &log_container->soc_cname,
-                   NULL);
+    attr_merge_one(e, slap_schema.si_ad_objectClass, &log_container->soc_cname, NULL);
 
     dnRdn(&e->e_name, &rdn);
     dnRdn(&e->e_nname, &nrdn);
@@ -2226,8 +2139,7 @@ static void *accesslog_db_root(void *ctx, void *arg) {
 
     /* Get contextCSN from main DB */
     op->o_bd = on->on_info->oi_origdb;
-    rc = be_entry_get_rw(op, op->o_bd->be_nsuffix, NULL,
-                         slap_schema.si_ad_contextCSN, 0, &e_ctx);
+    rc = be_entry_get_rw(op, op->o_bd->be_nsuffix, NULL, slap_schema.si_ad_contextCSN, 0, &e_ctx);
 
     if (e_ctx) {
       Attribute *a;
@@ -2238,8 +2150,7 @@ static void *accesslog_db_root(void *ctx, void *arg) {
         while (--i > 0)
           if (slap_serverID == slap_csn_get_sid(a->a_vals + 1))
             break;
-        attr_merge_one(e, slap_schema.si_ad_entryCSN, &a->a_vals[i],
-                       &a->a_nvals[i]);
+        attr_merge_one(e, slap_schema.si_ad_entryCSN, &a->a_vals[i], &a->a_nvals[i]);
         attr_merge(e, a->a_desc, a->a_vals, a->a_nvals);
       }
       be_entry_release_rw(op, e_ctx, 0);
@@ -2273,8 +2184,7 @@ static int accesslog_db_open(BackendDB *be, ConfigReply *cr) {
     li->li_db = select_backend(&li->li_db_suffix, 0);
   }
   if (li->li_db == NULL) {
-    Debug(LDAP_DEBUG_ANY,
-          "accesslog: \"logdb <suffix>\" missing or invalid.\n");
+    Debug(LDAP_DEBUG_ANY, "accesslog: \"logdb <suffix>\" missing or invalid.\n");
     return 1;
   }
 
@@ -2287,8 +2197,7 @@ static int accesslog_db_open(BackendDB *be, ConfigReply *cr) {
   }
 
   ldap_pvt_thread_mutex_lock(&slapd_rq.rq_mutex);
-  ldap_pvt_runqueue_insert(&slapd_rq, 3600, accesslog_db_root, on,
-                           "accesslog_db_root", li->li_db->be_suffix[0].bv_val);
+  ldap_pvt_runqueue_insert(&slapd_rq, 3600, accesslog_db_root, on, "accesslog_db_root", li->li_db->be_suffix[0].bv_val);
   ldap_pvt_thread_mutex_unlock(&slapd_rq.rq_mutex);
 
   return 0;

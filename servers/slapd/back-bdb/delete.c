@@ -48,8 +48,7 @@ int bdb_delete(Operation *op, SlapReply *rs) {
   int parent_is_glue = 0;
   int parent_is_leaf = 0;
 
-  Debug(LDAP_DEBUG_ARGS, "==> " LDAP_XSTRING(bdb_delete) ": %s\n",
-        op->o_req_dn.bv_val);
+  Debug(LDAP_DEBUG_ARGS, "==> " LDAP_XSTRING(bdb_delete) ": %s\n", op->o_req_dn.bv_val);
 
 #ifdef LDAP_X_TXN
   if (op->o_txnSpec && txn_preop(op, rs))
@@ -107,8 +106,7 @@ int bdb_delete(Operation *op, SlapReply *rs) {
 #endif /* #ifdef SLAP_CONTROL_X_LAZY_COMMIT */
     rs->sr_err = TXN_BEGIN(bdb->bi_dbenv, NULL, &ltid, tflags);
   }
-  Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_delete) ": txn1 id: %x\n",
-        ltid->id(ltid));
+  Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_delete) ": txn1 id: %x\n", ltid->id(ltid));
   rs->sr_text = NULL;
   if (rs->sr_err != 0) {
     Debug(LDAP_DEBUG_TRACE,
@@ -158,19 +156,15 @@ int bdb_delete(Operation *op, SlapReply *rs) {
 
   /* FIXME : dn2entry() should return non-glue entry */
   if (e == NULL || (!manageDSAit && is_entry_glue(e))) {
-    Debug(LDAP_DEBUG_ARGS,
-          "<=- " LDAP_XSTRING(bdb_delete) ": no such object %s\n",
-          op->o_req_dn.bv_val);
+    Debug(LDAP_DEBUG_ARGS, "<=- " LDAP_XSTRING(bdb_delete) ": no such object %s\n", op->o_req_dn.bv_val);
 
     if (matched != NULL) {
       rs->sr_matched = ch_strdup(matched->e_dn);
-      rs->sr_ref =
-          is_entry_referral(matched) ? get_entry_referrals(op, matched) : NULL;
+      rs->sr_ref = is_entry_referral(matched) ? get_entry_referrals(op, matched) : NULL;
       bdb_unlocked_cache_return_entry_r(&bdb->bi_cache, matched);
       matched = NULL;
     } else {
-      rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn,
-                                    LDAP_SCOPE_DEFAULT);
+      rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
     }
 
     rs->sr_err = LDAP_REFERRAL;
@@ -196,9 +190,8 @@ int bdb_delete(Operation *op, SlapReply *rs) {
 
   if (pdn.bv_len != 0) {
     if (p == NULL || !bvmatch(&pdn, &p->e_nname)) {
-      Debug(LDAP_DEBUG_TRACE,
-            "<=- " LDAP_XSTRING(bdb_delete) ": parent "
-                                            "does not exist\n");
+      Debug(LDAP_DEBUG_TRACE, "<=- " LDAP_XSTRING(bdb_delete) ": parent "
+                                                              "does not exist\n");
       rs->sr_err = LDAP_OTHER;
       rs->sr_text = "could not locate parent of entry";
       goto return_results;
@@ -214,9 +207,8 @@ int bdb_delete(Operation *op, SlapReply *rs) {
         goto retry;
       }
 
-      Debug(LDAP_DEBUG_TRACE,
-            "<=- " LDAP_XSTRING(bdb_delete) ": no write "
-                                            "access to parent\n");
+      Debug(LDAP_DEBUG_TRACE, "<=- " LDAP_XSTRING(bdb_delete) ": no write "
+                                                              "access to parent\n");
       rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
       rs->sr_text = "no write access to parent";
       goto return_results;
@@ -225,8 +217,7 @@ int bdb_delete(Operation *op, SlapReply *rs) {
   } else {
     /* no parent, must be root to delete */
     if (!be_isroot(op)) {
-      if (be_issuffix(op->o_bd, (struct berval *)&slap_empty_bv) ||
-          be_shadow_update(op)) {
+      if (be_issuffix(op->o_bd, (struct berval *)&slap_empty_bv) || be_shadow_update(op)) {
         p = (Entry *)&slap_entry_root;
 
         /* check parent for "children" acl */
@@ -241,24 +232,21 @@ int bdb_delete(Operation *op, SlapReply *rs) {
             goto retry;
           }
 
-          Debug(LDAP_DEBUG_TRACE,
-                "<=- " LDAP_XSTRING(bdb_delete) ": no access to parent\n");
+          Debug(LDAP_DEBUG_TRACE, "<=- " LDAP_XSTRING(bdb_delete) ": no access to parent\n");
           rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
           rs->sr_text = "no write access to parent";
           goto return_results;
         }
 
       } else {
-        Debug(LDAP_DEBUG_TRACE,
-              "<=- " LDAP_XSTRING(bdb_delete) ": no parent and not root\n");
+        Debug(LDAP_DEBUG_TRACE, "<=- " LDAP_XSTRING(bdb_delete) ": no parent and not root\n");
         rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
         goto return_results;
       }
     }
   }
 
-  if (get_assert(op) &&
-      (test_filter(op, e, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
+  if (get_assert(op) && (test_filter(op, e, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
     rs->sr_err = LDAP_ASSERTION_FAILED;
     goto return_results;
   }
@@ -320,11 +308,9 @@ int bdb_delete(Operation *op, SlapReply *rs) {
     rs->sr_text = "internal error";
     goto return_results;
   }
-  Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_delete) ": txn2 id: %x\n",
-        lt2->id(lt2));
+  Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_delete) ": txn2 id: %x\n", lt2->id(lt2));
 
-  BDB_LOG_PRINTF(bdb->bi_dbenv, lt2, "slapd Starting delete %s(%d)",
-                 e->e_nname.bv_val, e->e_id);
+  BDB_LOG_PRINTF(bdb->bi_dbenv, lt2, "slapd Starting delete %s(%d)", e->e_nname.bv_val, e->e_id);
 
   /* Can't do it if we have kids */
   rs->sr_err = bdb_cache_children(op, lt2, e);
@@ -334,14 +320,12 @@ int bdb_delete(Operation *op, SlapReply *rs) {
     case DB_LOCK_NOTGRANTED:
       goto retry;
     case 0:
-      Debug(LDAP_DEBUG_ARGS, "<=- " LDAP_XSTRING(bdb_delete) ": non-leaf %s\n",
-            op->o_req_dn.bv_val);
+      Debug(LDAP_DEBUG_ARGS, "<=- " LDAP_XSTRING(bdb_delete) ": non-leaf %s\n", op->o_req_dn.bv_val);
       rs->sr_err = LDAP_NOT_ALLOWED_ON_NONLEAF;
       rs->sr_text = "subordinate objects must be deleted first";
       break;
     default:
-      Debug(LDAP_DEBUG_ARGS,
-            "<=- " LDAP_XSTRING(bdb_delete) ": has_children failed: %s (%d)\n",
+      Debug(LDAP_DEBUG_ARGS, "<=- " LDAP_XSTRING(bdb_delete) ": has_children failed: %s (%d)\n",
             db_strerror(rs->sr_err), rs->sr_err);
       rs->sr_err = LDAP_OTHER;
       rs->sr_text = "internal error";
@@ -390,8 +374,7 @@ int bdb_delete(Operation *op, SlapReply *rs) {
     assert(!BER_BVISEMPTY(&op->o_csn));
     vals[0] = op->o_csn;
     BER_BVZERO(&vals[1]);
-    rs->sr_err = bdb_index_values(op, lt2, slap_schema.si_ad_entryCSN, vals, 0,
-                                  SLAP_INDEX_ADD_OP);
+    rs->sr_err = bdb_index_values(op, lt2, slap_schema.si_ad_entryCSN, vals, 0, SLAP_INDEX_ADD_OP);
     if (rs->sr_err != LDAP_SUCCESS) {
       switch (rs->sr_err) {
       case DB_LOCK_DEADLOCK:
@@ -432,10 +415,8 @@ int bdb_delete(Operation *op, SlapReply *rs) {
       case 0:
         break;
       default:
-        Debug(
-            LDAP_DEBUG_ARGS,
-            "<=- " LDAP_XSTRING(bdb_delete) ": has_children failed: %s (%d)\n",
-            db_strerror(rs->sr_err), rs->sr_err);
+        Debug(LDAP_DEBUG_ARGS, "<=- " LDAP_XSTRING(bdb_delete) ": has_children failed: %s (%d)\n",
+              db_strerror(rs->sr_err), rs->sr_err);
         rs->sr_err = LDAP_OTHER;
         rs->sr_text = "internal error";
         goto return_results;
@@ -446,8 +427,7 @@ int bdb_delete(Operation *op, SlapReply *rs) {
     p = NULL;
   }
 
-  BDB_LOG_PRINTF(bdb->bi_dbenv, lt2, "slapd Commit1 delete %s(%d)",
-                 e->e_nname.bv_val, e->e_id);
+  BDB_LOG_PRINTF(bdb->bi_dbenv, lt2, "slapd Commit1 delete %s(%d)", e->e_nname.bv_val, e->e_id);
 
   if (TXN_COMMIT(lt2, 0) != 0) {
     rs->sr_err = LDAP_OTHER;
@@ -475,8 +455,7 @@ int bdb_delete(Operation *op, SlapReply *rs) {
     }
   } else {
 
-    BDB_LOG_PRINTF(bdb->bi_dbenv, ltid, "slapd Cache delete %s(%d)",
-                   e->e_nname.bv_val, e->e_id);
+    BDB_LOG_PRINTF(bdb->bi_dbenv, ltid, "slapd Cache delete %s(%d)", e->e_nname.bv_val, e->e_id);
 
     rc = bdb_cache_delete(bdb, e, ltid, &lock);
     switch (rc) {
@@ -491,23 +470,19 @@ int bdb_delete(Operation *op, SlapReply *rs) {
   LDAP_SLIST_REMOVE(&op->o_extra, &opinfo.boi_oe, OpExtra, oe_next);
   opinfo.boi_oe.oe_key = NULL;
 
-  BDB_LOG_PRINTF(bdb->bi_dbenv, NULL, "slapd Committed delete %s(%d)",
-                 e->e_nname.bv_val, e->e_id);
+  BDB_LOG_PRINTF(bdb->bi_dbenv, NULL, "slapd Committed delete %s(%d)", e->e_nname.bv_val, e->e_id);
 
   if (rs->sr_err != 0) {
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(bdb_delete) ": txn_%s failed: %s (%d)\n",
-          op->o_noop ? "abort (no-op)" : "commit", db_strerror(rs->sr_err),
-          rs->sr_err);
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_delete) ": txn_%s failed: %s (%d)\n",
+          op->o_noop ? "abort (no-op)" : "commit", db_strerror(rs->sr_err), rs->sr_err);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "commit failed";
 
     goto return_results;
   }
 
-  Debug(LDAP_DEBUG_TRACE,
-        LDAP_XSTRING(bdb_delete) ": deleted%s id=%08lx dn=\"%s\"\n",
-        op->o_noop ? " (no-op)" : "", eid, op->o_req_dn.bv_val);
+  Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_delete) ": deleted%s id=%08lx dn=\"%s\"\n", op->o_noop ? " (no-op)" : "",
+        eid, op->o_req_dn.bv_val);
   rs->sr_err = LDAP_SUCCESS;
   rs->sr_text = NULL;
   if (num_ctrls)

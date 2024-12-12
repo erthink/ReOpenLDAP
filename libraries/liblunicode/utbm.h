@@ -80,12 +80,11 @@ LDAP_LUNICODE_F(utbm_pattern_t) utbm_create_pattern(void);
 LDAP_LUNICODE_F(void) utbm_free_pattern(utbm_pattern_t pattern);
 
 LDAP_LUNICODE_F(void)
-utbm_compile(ucs2_t *pat, unsigned long patlen, unsigned long flags,
-             utbm_pattern_t pattern);
+utbm_compile(ucs2_t *pat, unsigned long patlen, unsigned long flags, utbm_pattern_t pattern);
 
 LDAP_LUNICODE_F(int)
-utbm_exec(utbm_pattern_t pat, ucs2_t *text, unsigned long textlen,
-          unsigned long *match_start, unsigned long *match_end);
+utbm_exec(utbm_pattern_t pat, ucs2_t *text, unsigned long textlen, unsigned long *match_start,
+          unsigned long *match_end);
 
 /*************************************************************************
  *

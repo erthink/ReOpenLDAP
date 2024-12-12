@@ -31,11 +31,9 @@
 static int test_filter_and(Operation *op, Entry *e, Filter *flist);
 static int test_filter_or(Operation *op, Entry *e, Filter *flist);
 static int test_substrings_filter(Operation *op, Entry *e, Filter *f);
-static int test_ava_filter(Operation *op, Entry *e, AttributeAssertion *ava,
-                           int type);
+static int test_ava_filter(Operation *op, Entry *e, AttributeAssertion *ava, int type);
 static int test_mra_filter(Operation *op, Entry *e, MatchingRuleAssertion *mra);
-static int test_presence_filter(Operation *op, Entry *e,
-                                AttributeDescription *desc);
+static int test_presence_filter(Operation *op, Entry *e, AttributeDescription *desc);
 
 /*
  * test_filter - test a filter against a single entry.
@@ -139,8 +137,7 @@ out:
   return (rc);
 }
 
-static int test_mra_filter(Operation *op, Entry *e,
-                           MatchingRuleAssertion *mra) {
+static int test_mra_filter(Operation *op, Entry *e, MatchingRuleAssertion *mra) {
   Attribute *a;
   void *memctx;
   BER_MEMFREE_FN *memfree;
@@ -162,8 +159,7 @@ static int test_mra_filter(Operation *op, Entry *e,
      * one attribute, and SEARCH permissions can be checked
      * directly.
      */
-    if (!access_allowed(op, e, mra->ma_desc, &mra->ma_value, ACL_SEARCH,
-                        NULL)) {
+    if (!access_allowed(op, e, mra->ma_desc, &mra->ma_value, ACL_SEARCH, NULL)) {
       return LDAP_INSUFFICIENT_ACCESS;
     }
 
@@ -171,8 +167,7 @@ static int test_mra_filter(Operation *op, Entry *e,
       int ret, rc;
       const char *text;
 
-      rc = value_match(&ret, slap_schema.si_ad_entryDN, mra->ma_rule,
-                       SLAP_MR_EXT, &e->e_nname, &mra->ma_value, &text);
+      rc = value_match(&ret, slap_schema.si_ad_entryDN, mra->ma_rule, SLAP_MR_EXT, &e->e_nname, &mra->ma_value, &text);
 
       if (rc != LDAP_SUCCESS)
         return rc;
@@ -181,8 +176,7 @@ static int test_mra_filter(Operation *op, Entry *e,
       return LDAP_COMPARE_FALSE;
     }
 
-    for (a = attrs_find(e->e_attrs, mra->ma_desc); a != NULL;
-         a = attrs_find(a->a_next, mra->ma_desc)) {
+    for (a = attrs_find(e->e_attrs, mra->ma_desc); a != NULL; a = attrs_find(a->a_next, mra->ma_desc)) {
       struct berval *bv;
       int normalize_attribute = 0;
 
@@ -199,17 +193,12 @@ static int test_mra_filter(Operation *op, Entry *e,
           num_attr_vals++;
 
           /* following malloced will be freed by comp_tree_free () */
-          a->a_comp_data =
-              SLAP_MALLOC(sizeof(ComponentData) +
-                          sizeof(ComponentSyntaxInfo *) * num_attr_vals);
+          a->a_comp_data = SLAP_MALLOC(sizeof(ComponentData) + sizeof(ComponentSyntaxInfo *) * num_attr_vals);
 
           if (!a->a_comp_data)
             return LDAP_NO_MEMORY;
-          a->a_comp_data->cd_tree =
-              (ComponentSyntaxInfo **)((char *)a->a_comp_data +
-                                       sizeof(ComponentData));
-          a->a_comp_data->cd_tree[num_attr_vals - 1] =
-              (ComponentSyntaxInfo *)NULL;
+          a->a_comp_data->cd_tree = (ComponentSyntaxInfo **)((char *)a->a_comp_data + sizeof(ComponentData));
+          a->a_comp_data->cd_tree[num_attr_vals - 1] = (ComponentSyntaxInfo *)NULL;
           a->a_comp_data->cd_mem_op = nibble_mem_allocator(1024 * 16, 1024);
         }
       }
@@ -237,16 +226,14 @@ static int test_mra_filter(Operation *op, Entry *e,
         if (mra->ma_cf && mra->ma_rule->smr_usage & SLAP_MR_COMPONENT) {
           /* Check if decoded component trees are already linked */
           if (num_attr_vals) {
-            a->a_comp_data->cd_tree[i] =
-                attr_converter(a, a->a_desc->ad_type->sat_syntax, bv);
+            a->a_comp_data->cd_tree[i] = attr_converter(a, a->a_desc->ad_type->sat_syntax, bv);
           }
           /* decoding error */
           if (!a->a_comp_data->cd_tree[i]) {
             return LDAP_OPERATIONS_ERROR;
           }
           rc = value_match(&ret, a->a_desc, mra->ma_rule, SLAP_MR_COMPONENT,
-                           (struct berval *)a->a_comp_data->cd_tree[i++],
-                           (void *)mra, &text);
+                           (struct berval *)a->a_comp_data->cd_tree[i++], (void *)mra, &text);
         } else
 #endif
         {
@@ -274,9 +261,8 @@ This should likely be done inside value_match(), by passing
 the appropriate flags, but this is not done at present.
 See ITS#3406.
              */
-            if (mra->ma_rule->smr_normalize(
-                    SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, mra->ma_rule->smr_syntax,
-                    mra->ma_rule, bv, &nbv, memctx) != LDAP_SUCCESS) {
+            if (mra->ma_rule->smr_normalize(SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, mra->ma_rule->smr_syntax, mra->ma_rule,
+                                            bv, &nbv, memctx) != LDAP_SUCCESS) {
               /* FIXME: stop processing? */
               continue;
             }
@@ -285,8 +271,7 @@ See ITS#3406.
             nbv = *bv;
           }
 
-          rc = value_match(&ret, a->a_desc, mra->ma_rule, SLAP_MR_EXT, &nbv,
-                           &mra->ma_value, &text);
+          rc = value_match(&ret, a->a_desc, mra->ma_rule, SLAP_MR_EXT, &nbv, &mra->ma_value, &text);
 
           if (nbv.bv_val != bv->bv_val) {
             memfree(nbv.bv_val, memctx);
@@ -316,10 +301,8 @@ See ITS#3406.
       }
 
       /* normalize for equality */
-      rc = asserted_value_validate_normalize(
-          a->a_desc, mra->ma_rule,
-          SLAP_MR_EXT | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX, &mra->ma_value,
-          &value, &text, memctx);
+      rc = asserted_value_validate_normalize(a->a_desc, mra->ma_rule, SLAP_MR_EXT | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX,
+                                             &mra->ma_value, &value, &text, memctx);
       if (rc != LDAP_SUCCESS)
         continue;
 
@@ -333,8 +316,7 @@ See ITS#3406.
       if (mra->ma_cf && mra->ma_rule->smr_usage & SLAP_MR_COMPONENT) {
         int ret;
 
-        rc = value_match(&ret, a->a_desc, mra->ma_rule, SLAP_MR_COMPONENT,
-                         (struct berval *)a, (void *)mra, &text);
+        rc = value_match(&ret, a->a_desc, mra->ma_rule, SLAP_MR_COMPONENT, (struct berval *)a, (void *)mra, &text);
         if (rc != LDAP_SUCCESS)
           break;
 
@@ -360,9 +342,8 @@ See ITS#3406.
 
         if (normalize_attribute && mra->ma_rule->smr_normalize) {
           /* see comment above */
-          if (mra->ma_rule->smr_normalize(
-                  SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, mra->ma_rule->smr_syntax,
-                  mra->ma_rule, bv, &nbv, memctx) != LDAP_SUCCESS) {
+          if (mra->ma_rule->smr_normalize(SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, mra->ma_rule->smr_syntax, mra->ma_rule, bv,
+                                          &nbv, memctx) != LDAP_SUCCESS) {
             /* FIXME: stop processing? */
             continue;
           }
@@ -371,8 +352,7 @@ See ITS#3406.
           nbv = *bv;
         }
 
-        rc = value_match(&ret, a->a_desc, mra->ma_rule, SLAP_MR_EXT, &nbv,
-                         &value, &text);
+        rc = value_match(&ret, a->a_desc, mra->ma_rule, SLAP_MR_EXT, &nbv, &value, &text);
 
         if (nbv.bv_val != bv->bv_val) {
           memfree(nbv.bv_val, memctx);
@@ -410,8 +390,7 @@ See ITS#3406.
 
       for (iAVA = 0; rdn[iAVA]; iAVA++) {
         LDAPAVA *ava = rdn[iAVA];
-        struct berval *bv = &ava->la_value, value = BER_BVNULL,
-                      nbv = BER_BVNULL;
+        struct berval *bv = &ava->la_value, value = BER_BVNULL, nbv = BER_BVNULL;
         AttributeDescription *ad = (AttributeDescription *)ava->la_private;
         int ret;
         const char *text;
@@ -434,9 +413,8 @@ See ITS#3406.
           }
 
           /* normalize for equality */
-          rc = asserted_value_validate_normalize(
-              ad, mra->ma_rule, SLAP_MR_EXT | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX,
-              &mra->ma_value, &value, &text, memctx);
+          rc = asserted_value_validate_normalize(ad, mra->ma_rule, SLAP_MR_EXT | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX,
+                                                 &mra->ma_value, &value, &text, memctx);
           if (rc != LDAP_SUCCESS)
             continue;
 
@@ -449,9 +427,8 @@ See ITS#3406.
 
         if (mra->ma_rule->smr_normalize) {
           /* see comment above */
-          if (mra->ma_rule->smr_normalize(
-                  SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, mra->ma_rule->smr_syntax,
-                  mra->ma_rule, bv, &nbv, memctx) != LDAP_SUCCESS) {
+          if (mra->ma_rule->smr_normalize(SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, mra->ma_rule->smr_syntax, mra->ma_rule, bv,
+                                          &nbv, memctx) != LDAP_SUCCESS) {
             /* FIXME: stop processing? */
             rc = LDAP_SUCCESS;
             ret = -1;
@@ -463,8 +440,7 @@ See ITS#3406.
         }
 
         /* check match */
-        rc = value_match(&ret, ad, mra->ma_rule, SLAP_MR_EXT, &nbv, &value,
-                         &text);
+        rc = value_match(&ret, ad, mra->ma_rule, SLAP_MR_EXT, &nbv, &value, &text);
 
       cleanup:;
         if (!BER_BVISNULL(&value) && value.bv_val != mra->ma_value.bv_val) {
@@ -490,8 +466,7 @@ See ITS#3406.
   return LDAP_COMPARE_FALSE;
 }
 
-static int test_ava_filter(Operation *op, Entry *e, AttributeAssertion *ava,
-                           int type) {
+static int test_ava_filter(Operation *op, Entry *e, AttributeAssertion *ava, int type) {
   int rc;
   Attribute *a;
 #ifdef LDAP_COMP_MATCH
@@ -503,8 +478,7 @@ static int test_ava_filter(Operation *op, Entry *e, AttributeAssertion *ava,
     return LDAP_INSUFFICIENT_ACCESS;
   }
 
-  if (ava->aa_desc == slap_schema.si_ad_hasSubordinates && op && op->o_bd &&
-      op->o_bd->be_has_subordinates) {
+  if (ava->aa_desc == slap_schema.si_ad_hasSubordinates && op && op->o_bd && op->o_bd->be_has_subordinates) {
     int hasSubordinates = 0;
     struct berval hs;
 
@@ -513,8 +487,7 @@ static int test_ava_filter(Operation *op, Entry *e, AttributeAssertion *ava,
       return LDAP_INAPPROPRIATE_MATCHING;
     }
 
-    if (op->o_bd->be_has_subordinates(op, e, &hasSubordinates) !=
-        LDAP_SUCCESS) {
+    if (op->o_bd->be_has_subordinates(op, e, &hasSubordinates) != LDAP_SUCCESS) {
       return LDAP_OTHER;
     }
 
@@ -546,8 +519,7 @@ static int test_ava_filter(Operation *op, Entry *e, AttributeAssertion *ava,
     mr = slap_schema.si_ad_entryDN->ad_type->sat_equality;
     assert(mr != NULL);
 
-    rc = value_match(&match, slap_schema.si_ad_entryDN, mr, SLAP_MR_EXT,
-                     &e->e_nname, &ava->aa_value, &text);
+    rc = value_match(&match, slap_schema.si_ad_entryDN, mr, SLAP_MR_EXT, &e->e_nname, &ava->aa_value, &text);
 
     if (rc != LDAP_SUCCESS)
       return rc;
@@ -568,14 +540,12 @@ static int test_ava_filter(Operation *op, Entry *e, AttributeAssertion *ava,
   }
 #endif
 
-  for (a = attrs_find(e->e_attrs, ava->aa_desc); a != NULL;
-       a = attrs_find(a->a_next, ava->aa_desc)) {
+  for (a = attrs_find(e->e_attrs, ava->aa_desc); a != NULL; a = attrs_find(a->a_next, ava->aa_desc)) {
     int use;
     MatchingRule *mr;
     struct berval *bv;
 
-    if ((ava->aa_desc != a->a_desc) &&
-        !access_allowed(op, e, a->a_desc, &ava->aa_value, ACL_SEARCH, NULL)) {
+    if ((ava->aa_desc != a->a_desc) && !access_allowed(op, e, a->a_desc, &ava->aa_value, ACL_SEARCH, NULL)) {
       rc = LDAP_INSUFFICIENT_ACCESS;
       continue;
     }
@@ -623,19 +593,15 @@ static int test_ava_filter(Operation *op, Entry *e, AttributeAssertion *ava,
         const char *text;
         int match, which;
         which = (type == LDAP_FILTER_LE) ? 0 : a->a_numvals - 1;
-        ret = value_match(&match, a->a_desc, mr, use, &a->a_nvals[which],
-                          &ava->aa_value, &text);
+        ret = value_match(&match, a->a_desc, mr, use, &a->a_nvals[which], &ava->aa_value, &text);
         if (ret != LDAP_SUCCESS)
           return ret;
-        if ((type == LDAP_FILTER_LE && match <= 0) ||
-            (type == LDAP_FILTER_GE && match >= 0))
+        if ((type == LDAP_FILTER_LE && match <= 0) || (type == LDAP_FILTER_GE && match >= 0))
           return LDAP_COMPARE_TRUE;
         continue;
       }
       /* Only Equality will get here */
-      ret = attr_valfind(a,
-                         use | SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH |
-                             SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH,
+      ret = attr_valfind(a, use | SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH | SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH,
                          &ava->aa_value, &slot, NULL);
       if (ret == LDAP_SUCCESS)
         return LDAP_COMPARE_TRUE;
@@ -666,32 +632,26 @@ static int test_ava_filter(Operation *op, Entry *e, AttributeAssertion *ava,
 #ifdef LDAP_COMP_MATCH
     if (nibble_mem_allocator && ava->aa_cf && !a->a_comp_data) {
       /* Component Matching */
-      for (num_attr_vals = 0; a->a_vals[num_attr_vals].bv_val != NULL;
-           num_attr_vals++)
+      for (num_attr_vals = 0; a->a_vals[num_attr_vals].bv_val != NULL; num_attr_vals++)
         ;
       if (num_attr_vals <= 0) /* no attribute value */
         return LDAP_INAPPROPRIATE_MATCHING;
       num_attr_vals++; /* for NULL termination */
 
       /* following malloced will be freed by comp_tree_free () */
-      a->a_comp_data =
-          SLAP_MALLOC(sizeof(ComponentData) +
-                      sizeof(ComponentSyntaxInfo *) * num_attr_vals);
+      a->a_comp_data = SLAP_MALLOC(sizeof(ComponentData) + sizeof(ComponentSyntaxInfo *) * num_attr_vals);
 
       if (!a->a_comp_data) {
         return LDAP_NO_MEMORY;
       }
 
-      a->a_comp_data->cd_tree =
-          (ComponentSyntaxInfo **)((char *)a->a_comp_data +
-                                   sizeof(ComponentData));
+      a->a_comp_data->cd_tree = (ComponentSyntaxInfo **)((char *)a->a_comp_data + sizeof(ComponentData));
       i = num_attr_vals;
       for (; i; i--) {
         a->a_comp_data->cd_tree[i - 1] = (ComponentSyntaxInfo *)NULL;
       }
 
-      a->a_comp_data->cd_mem_op =
-          nibble_mem_allocator(1024 * 10 * (num_attr_vals - 1), 1024);
+      a->a_comp_data->cd_mem_op = nibble_mem_allocator(1024 * 10 * (num_attr_vals - 1), 1024);
       if (a->a_comp_data->cd_mem_op == NULL) {
         free(a->a_comp_data);
         a->a_comp_data = NULL;
@@ -715,16 +675,14 @@ static int test_ava_filter(Operation *op, Entry *e, AttributeAssertion *ava,
         mra.ma_cf = ava->aa_cf;
 
         if (a->a_comp_data->cd_tree[i] == NULL)
-          a->a_comp_data->cd_tree[i] = attr_converter(
-              a, a->a_desc->ad_type->sat_syntax, (a->a_vals + i));
+          a->a_comp_data->cd_tree[i] = attr_converter(a, a->a_desc->ad_type->sat_syntax, (a->a_vals + i));
         /* decoding error */
         if (!a->a_comp_data->cd_tree[i]) {
           free_ComponentData(a);
           return LDAP_OPERATIONS_ERROR;
         }
 
-        ret = value_match(&match, a->a_desc, cf_mr, SLAP_MR_COMPONENT,
-                          (struct berval *)a->a_comp_data->cd_tree[i++],
+        ret = value_match(&match, a->a_desc, cf_mr, SLAP_MR_COMPONENT, (struct berval *)a->a_comp_data->cd_tree[i++],
                           (void *)&mra, &text);
         if (ret == LDAP_INAPPROPRIATE_MATCHING) {
           /* cached component tree is broken, just remove it */
@@ -737,8 +695,7 @@ static int test_ava_filter(Operation *op, Entry *e, AttributeAssertion *ava,
       } else
 #endif
       {
-        ret = ordered_value_match(&match, a->a_desc, mr, use, bv,
-                                  &ava->aa_value, &text);
+        ret = ordered_value_match(&match, a->a_desc, mr, use, bv, &ava->aa_value, &text);
       }
 
       if (ret != LDAP_SUCCESS) {
@@ -774,8 +731,7 @@ static int test_ava_filter(Operation *op, Entry *e, AttributeAssertion *ava,
   return rc;
 }
 
-static int test_presence_filter(Operation *op, Entry *e,
-                                AttributeDescription *desc) {
+static int test_presence_filter(Operation *op, Entry *e, AttributeDescription *desc) {
   Attribute *a;
   int rc;
 
@@ -797,18 +753,15 @@ static int test_presence_filter(Operation *op, Entry *e,
     return LDAP_COMPARE_FALSE;
   }
 
-  if (desc == slap_schema.si_ad_entryDN ||
-      desc == slap_schema.si_ad_subschemaSubentry) {
+  if (desc == slap_schema.si_ad_entryDN || desc == slap_schema.si_ad_subschemaSubentry) {
     /* entryDN and subschemaSubentry are always present */
     return LDAP_COMPARE_TRUE;
   }
 
   rc = LDAP_COMPARE_FALSE;
 
-  for (a = attrs_find(e->e_attrs, desc); a != NULL;
-       a = attrs_find(a->a_next, desc)) {
-    if ((desc != a->a_desc) &&
-        !access_allowed(op, e, a->a_desc, NULL, ACL_SEARCH, NULL)) {
+  for (a = attrs_find(e->e_attrs, desc); a != NULL; a = attrs_find(a->a_next, desc)) {
+    if ((desc != a->a_desc) && !access_allowed(op, e, a->a_desc, NULL, ACL_SEARCH, NULL)) {
       rc = LDAP_INSUFFICIENT_ACCESS;
       continue;
     }
@@ -883,13 +836,11 @@ static int test_substrings_filter(Operation *op, Entry *e, Filter *f) {
 
   rc = LDAP_COMPARE_FALSE;
 
-  for (a = attrs_find(e->e_attrs, f->f_sub_desc); a != NULL;
-       a = attrs_find(a->a_next, f->f_sub_desc)) {
+  for (a = attrs_find(e->e_attrs, f->f_sub_desc); a != NULL; a = attrs_find(a->a_next, f->f_sub_desc)) {
     MatchingRule *mr;
     struct berval *bv;
 
-    if ((f->f_sub_desc != a->a_desc) &&
-        !access_allowed(op, e, a->a_desc, NULL, ACL_SEARCH, NULL)) {
+    if ((f->f_sub_desc != a->a_desc) && !access_allowed(op, e, a->a_desc, NULL, ACL_SEARCH, NULL)) {
       rc = LDAP_INSUFFICIENT_ACCESS;
       continue;
     }
@@ -904,8 +855,7 @@ static int test_substrings_filter(Operation *op, Entry *e, Filter *f) {
       int ret, match;
       const char *text;
 
-      ret = value_match(&match, a->a_desc, mr, SLAP_MR_SUBSTR, bv, f->f_sub,
-                        &text);
+      ret = value_match(&match, a->a_desc, mr, SLAP_MR_SUBSTR, bv, f->f_sub, &text);
 
       if (ret != LDAP_SUCCESS) {
         rc = ret;

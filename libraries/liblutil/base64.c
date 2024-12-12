@@ -29,8 +29,7 @@
 
 #include "lutil.h"
 
-static const char Base64[] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static const char Base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 static const char Pad64 = '=';
 
 /* (From RFC1521 and draft-ietf-dnssec-secext-03.txt)
@@ -96,8 +95,7 @@ static const char Pad64 = '=';
            characters followed by one "=" padding character.
    */
 
-int lutil_b64_ntop(u_char const *src, size_t srclength, char *target,
-                   size_t targsize) {
+int lutil_b64_ntop(u_char const *src, size_t srclength, char *target, size_t targsize) {
   size_t datalength = 0;
   u_char output[4];
   size_t i;

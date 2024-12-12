@@ -34,8 +34,7 @@
 static struct berval network_filter = BER_BVC("(objectClass=ipNetwork)");
 
 /* the attributes used in searches */
-static struct berval network_keys[] = {BER_BVC("cn"),
-                                       BER_BVC("ipNetworkNumber"), BER_BVNULL};
+static struct berval network_keys[] = {BER_BVC("cn"), BER_BVC("ipNetworkNumber"), BER_BVNULL};
 
 NSSOV_INIT(network)
 
@@ -53,8 +52,8 @@ static int write_network(nssov_network_cbp *cbp, Entry *entry) {
   /* get the other names for the network */
   a = attr_find(entry->e_attrs, cbp->mi->mi_attrs[0].an_desc);
   if (!a || !a->a_vals) {
-    Debug(LDAP_DEBUG_ANY, "network entry %s does not contain %s value\n",
-          entry->e_name.bv_val, cbp->mi->mi_attrs[0].an_desc->ad_cname.bv_val);
+    Debug(LDAP_DEBUG_ANY, "network entry %s does not contain %s value\n", entry->e_name.bv_val,
+          cbp->mi->mi_attrs[0].an_desc->ad_cname.bv_val);
     return 0;
   }
   names = a->a_vals;
@@ -75,8 +74,8 @@ static int write_network(nssov_network_cbp *cbp, Entry *entry) {
   /* get the addresses */
   a = attr_find(entry->e_attrs, cbp->mi->mi_attrs[1].an_desc);
   if (!a || !a->a_vals) {
-    Debug(LDAP_DEBUG_ANY, "network entry %s does not contain %s value\n",
-          entry->e_name.bv_val, cbp->mi->mi_attrs[1].an_desc->ad_cname.bv_val);
+    Debug(LDAP_DEBUG_ANY, "network entry %s does not contain %s value\n", entry->e_name.bv_val,
+          cbp->mi->mi_attrs[1].an_desc->ad_cname.bv_val);
     return 0;
   }
   addrs = a->a_vals;
@@ -103,32 +102,23 @@ static int write_network(nssov_network_cbp *cbp, Entry *entry) {
 
 NSSOV_CB(network)
 
-NSSOV_HANDLE(network, byname, char fbuf[1024];
-             struct berval filter = {sizeof(fbuf)}; filter.bv_val = fbuf;
-             BER_BVZERO(&cbp.addr); READ_STRING(fp, cbp.buf);
-             cbp.name.bv_len = tmpint32; cbp.name.bv_val = cbp.buf;
-             , Debug(LDAP_DEBUG_TRACE, "nssov_network_byname(%s)\n",
-                     cbp.name.bv_val);
-             , NSLCD_ACTION_NETWORK_BYNAME,
-             nssov_filter_byname(cbp.mi, 0, &cbp.name, &filter))
+NSSOV_HANDLE(network, byname, char fbuf[1024]; struct berval filter = {sizeof(fbuf)}; filter.bv_val = fbuf;
+             BER_BVZERO(&cbp.addr); READ_STRING(fp, cbp.buf); cbp.name.bv_len = tmpint32; cbp.name.bv_val = cbp.buf;
+             , Debug(LDAP_DEBUG_TRACE, "nssov_network_byname(%s)\n", cbp.name.bv_val);
+             , NSLCD_ACTION_NETWORK_BYNAME, nssov_filter_byname(cbp.mi, 0, &cbp.name, &filter))
 
 NSSOV_HANDLE(
-    network, byaddr, int af; char addr[64]; int len = sizeof(addr);
-    char fbuf[1024]; struct berval filter = {sizeof(fbuf)};
-    filter.bv_val = fbuf; BER_BVZERO(&cbp.name);
-    READ_ADDRESS(fp, addr, len, af);
+    network, byaddr, int af; char addr[64]; int len = sizeof(addr); char fbuf[1024];
+    struct berval filter = {sizeof(fbuf)}; filter.bv_val = fbuf; BER_BVZERO(&cbp.name); READ_ADDRESS(fp, addr, len, af);
     /* translate the address to a string */
     if (inet_ntop(af, addr, cbp.buf, sizeof(cbp.buf)) == NULL) {
       Debug(LDAP_DEBUG_ANY, "nssov: unable to convert address to string\n");
       return -1;
     } cbp.addr.bv_val = cbp.buf;
-    cbp.addr.bv_len = strlen(cbp.buf);
-    , Debug(LDAP_DEBUG_TRACE, "nslcd_network_byaddr(%s)\n", cbp.addr.bv_val);
-    , NSLCD_ACTION_NETWORK_BYADDR,
-    nssov_filter_byid(cbp.mi, 1, &cbp.addr, &filter))
+    cbp.addr.bv_len = strlen(cbp.buf);, Debug(LDAP_DEBUG_TRACE, "nslcd_network_byaddr(%s)\n", cbp.addr.bv_val);
+    , NSLCD_ACTION_NETWORK_BYADDR, nssov_filter_byid(cbp.mi, 1, &cbp.addr, &filter))
 
 NSSOV_HANDLE(network, all, struct berval filter;
              /* no parameters to read */
-             BER_BVZERO(&cbp.name); BER_BVZERO(&cbp.addr);
-             , Debug(LDAP_DEBUG_TRACE, "nssov_network_all()\n");
+             BER_BVZERO(&cbp.name); BER_BVZERO(&cbp.addr);, Debug(LDAP_DEBUG_TRACE, "nssov_network_all()\n");
              , NSLCD_ACTION_NETWORK_ALL, (filter = cbp.mi->mi_filter, 0))

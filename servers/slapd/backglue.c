@@ -104,13 +104,10 @@ static int glue_op_response(Operation *op, SlapReply *rs) {
     return SLAP_CB_CONTINUE;
 
   default:
-    if (rs->sr_err == LDAP_SUCCESS || rs->sr_err == LDAP_SIZELIMIT_EXCEEDED ||
-        rs->sr_err == LDAP_TIMELIMIT_EXCEEDED ||
-        rs->sr_err == LDAP_ADMINLIMIT_EXCEEDED ||
-        rs->sr_err == LDAP_NO_SUCH_OBJECT || rs->sr_err == SLAPD_ABANDON ||
-        rs->sr_err == LDAP_CANCELLED || rs->sr_err == LDAP_UNAVAILABLE ||
-        rs->sr_err == LDAP_OTHER || rs->sr_err == LDAP_BUSY ||
-        gs->err != LDAP_SUCCESS)
+    if (rs->sr_err == LDAP_SUCCESS || rs->sr_err == LDAP_SIZELIMIT_EXCEEDED || rs->sr_err == LDAP_TIMELIMIT_EXCEEDED ||
+        rs->sr_err == LDAP_ADMINLIMIT_EXCEEDED || rs->sr_err == LDAP_NO_SUCH_OBJECT || rs->sr_err == SLAPD_ABANDON ||
+        rs->sr_err == LDAP_CANCELLED || rs->sr_err == LDAP_UNAVAILABLE || rs->sr_err == LDAP_OTHER ||
+        rs->sr_err == LDAP_BUSY || gs->err != LDAP_SUCCESS)
       gs->err = rs->sr_err;
     if (gs->err == LDAP_SUCCESS && gs->matched) {
       ch_free(gs->matched);
@@ -156,8 +153,7 @@ static int glue_op_response(Operation *op, SlapReply *rs) {
 
       j = gs->nctrls;
       if (!j) {
-        newctrls =
-            op->o_tmpalloc((i + 1) * sizeof(LDAPControl *), op->o_tmpmemctx);
+        newctrls = op->o_tmpalloc((i + 1) * sizeof(LDAPControl *), op->o_tmpmemctx);
       } else {
         /* Forget old pagedResults response if we're sending
          * a new one now
@@ -165,8 +161,7 @@ static int glue_op_response(Operation *op, SlapReply *rs) {
         if (get_pagedresults(op) > SLAP_CONTROL_IGNORED) {
           int newpage = 0;
           for (k = 0; k < i; k++) {
-            if (!strcmp(rs->sr_ctrls[k]->ldctl_oid,
-                        LDAP_CONTROL_PAGEDRESULTS)) {
+            if (!strcmp(rs->sr_ctrls[k]->ldctl_oid, LDAP_CONTROL_PAGEDRESULTS)) {
               newpage = 1;
               break;
             }
@@ -182,23 +177,19 @@ static int glue_op_response(Operation *op, SlapReply *rs) {
             }
           }
         }
-        newctrls = op->o_tmprealloc(
-            gs->ctrls, (j + i + 1) * sizeof(LDAPControl *), op->o_tmpmemctx);
+        newctrls = op->o_tmprealloc(gs->ctrls, (j + i + 1) * sizeof(LDAPControl *), op->o_tmpmemctx);
       }
       for (k = 0; k < i; j++, k++) {
         ber_len_t oidlen = strlen(rs->sr_ctrls[k]->ldctl_oid);
         newctrls[j] =
-            op->o_tmpalloc(sizeof(LDAPControl) + oidlen + 1 +
-                               rs->sr_ctrls[k]->ldctl_value.bv_len + 1,
-                           op->o_tmpmemctx);
+            op->o_tmpalloc(sizeof(LDAPControl) + oidlen + 1 + rs->sr_ctrls[k]->ldctl_value.bv_len + 1, op->o_tmpmemctx);
         newctrls[j]->ldctl_iscritical = rs->sr_ctrls[k]->ldctl_iscritical;
         newctrls[j]->ldctl_oid = (char *)&newctrls[j][1];
         lutil_strcopy(newctrls[j]->ldctl_oid, rs->sr_ctrls[k]->ldctl_oid);
         if (!BER_BVISNULL(&rs->sr_ctrls[k]->ldctl_value)) {
           newctrls[j]->ldctl_value.bv_val = &newctrls[j]->ldctl_oid[oidlen + 1];
           newctrls[j]->ldctl_value.bv_len = rs->sr_ctrls[k]->ldctl_value.bv_len;
-          lutil_memcopy(newctrls[j]->ldctl_value.bv_val,
-                        rs->sr_ctrls[k]->ldctl_value.bv_val,
+          lutil_memcopy(newctrls[j]->ldctl_value.bv_val, rs->sr_ctrls[k]->ldctl_value.bv_val,
                         rs->sr_ctrls[k]->ldctl_value.bv_len + 1);
         } else {
           BER_BVZERO(&newctrls[j]->ldctl_value);
@@ -249,8 +240,7 @@ static int glue_op_func(Operation *op, SlapReply *rs) {
   }
 
   bi1 = op->o_bd->bd_info;
-  rc = (&bi1->bi_op_bind)[which] ? (&bi1->bi_op_bind)[which](op, rs)
-                                 : SLAP_CB_BYPASS;
+  rc = (&bi1->bi_op_bind)[which] ? (&bi1->bi_op_bind)[which](op, rs) : SLAP_CB_BYPASS;
 
   op->o_bd = b0;
   op->o_bd->bd_info = bi0;
@@ -347,8 +337,7 @@ static int glue_chk_controls(Operation *op, SlapReply *rs) {
  * current overlay chain to stop processing, without stopping the
  * overall callback flow.
  */
-static int glue_sub_search(Operation *op, SlapReply *rs, BackendDB *b0,
-                           slap_overinst *on) {
+static int glue_sub_search(Operation *op, SlapReply *rs, BackendDB *b0, slap_overinst *on) {
   /* Process any overlays on the master backend */
   if (op->o_bd == b0 && on->on_next) {
     BackendInfo *bi = op->o_bd->bd_info;
@@ -391,8 +380,7 @@ static int glue_op_search(Operation *op, SlapReply *rs) {
 
   /* reset dummy cookie used to keep paged results going across databases */
   if (get_pagedresults(op) > SLAP_CONTROL_IGNORED &&
-      bvmatch(&((PagedResultsState *)op->o_pagedresults_state)->ps_cookieval,
-              &gluecookie)) {
+      bvmatch(&((PagedResultsState *)op->o_pagedresults_state)->ps_cookieval, &gluecookie)) {
     PagedResultsState *ps = op->o_pagedresults_state;
     BerElementBuffer berbuf;
     BerElement *ber = (BerElement *)&berbuf;
@@ -411,8 +399,7 @@ static int glue_op_search(Operation *op, SlapReply *rs) {
     ber_flatten2(ber, &value, 0);
     assert(op->o_ctrls[c]->ldctl_value.bv_len >= value.bv_len);
     op->o_ctrls[c]->ldctl_value.bv_len = value.bv_len;
-    lutil_memcopy(op->o_ctrls[c]->ldctl_value.bv_val, value.bv_val,
-                  value.bv_len);
+    lutil_memcopy(op->o_ctrls[c]->ldctl_value.bv_val, value.bv_val, value.bv_len);
     ber_free_buf(ber);
 
     ps->ps_cookie = (PagedResultsCookie)0;
@@ -468,8 +455,7 @@ static int glue_op_search(Operation *op, SlapReply *rs) {
       /* If we remembered which backend we were on before,
        * skip down to it now
        */
-      if (get_pagedresults(op) > SLAP_CONTROL_IGNORED &&
-          op->o_conn->c_pagedresults_state.ps_be &&
+      if (get_pagedresults(op) > SLAP_CONTROL_IGNORED && op->o_conn->c_pagedresults_state.ps_be &&
           op->o_conn->c_pagedresults_state.ps_be != btmp)
         continue;
 
@@ -508,11 +494,9 @@ static int glue_op_search(Operation *op, SlapReply *rs) {
         if (op->o_req_ndn.bv_val == mndn.bv_val)
           op->o_req_ndn = ndn;
 
-      } else if (scope0 == LDAP_SCOPE_SUBTREE &&
-                 dn_match(&op->o_bd->be_nsuffix[0], &ndn)) {
+      } else if (scope0 == LDAP_SCOPE_SUBTREE && dn_match(&op->o_bd->be_nsuffix[0], &ndn)) {
         rs->sr_err = glue_sub_search(op, rs, b0, on);
-      } else if (scope0 == LDAP_SCOPE_SUBTREE &&
-                 dnIsSuffix(&op->o_bd->be_nsuffix[0], &ndn)) {
+      } else if (scope0 == LDAP_SCOPE_SUBTREE && dnIsSuffix(&op->o_bd->be_nsuffix[0], &ndn)) {
         struct berval mdn, mndn;
         mdn = op->o_req_dn = op->o_bd->be_suffix[0];
         mndn = op->o_req_ndn = op->o_bd->be_nsuffix[0];
@@ -567,8 +551,7 @@ static int glue_op_search(Operation *op, SlapReply *rs) {
              * Only remember the last one if there's more state left.
              */
             if (op->o_bd != b0 &&
-                (cps->ps_cookie != NOID || !BER_BVISNULL(&cps->ps_cookieval) ||
-                 op->o_bd != gi->gi_n[0].gn_be)) {
+                (cps->ps_cookie != NOID || !BER_BVISNULL(&cps->ps_cookieval) || op->o_bd != gi->gi_n[0].gn_be)) {
               op->o_conn->c_pagedresults_state.ps_be = op->o_bd;
             }
 
@@ -579,8 +562,7 @@ static int glue_op_search(Operation *op, SlapReply *rs) {
               int c;
 
               for (c = 0; gs.ctrls[c] != NULL; c++) {
-                if (strcmp(gs.ctrls[c]->ldctl_oid, LDAP_CONTROL_PAGEDRESULTS) ==
-                    0) {
+                if (strcmp(gs.ctrls[c]->ldctl_oid, LDAP_CONTROL_PAGEDRESULTS) == 0) {
                   break;
                 }
               }
@@ -605,12 +587,10 @@ static int glue_op_search(Operation *op, SlapReply *rs) {
 
                   /* it's next database's turn */
                   if (btmp == b0) {
-                    op->o_conn->c_pagedresults_state.ps_be =
-                        gi->gi_n[gi->gi_nodes - 1].gn_be;
+                    op->o_conn->c_pagedresults_state.ps_be = gi->gi_n[gi->gi_nodes - 1].gn_be;
 
                   } else {
-                    op->o_conn->c_pagedresults_state.ps_be =
-                        gi->gi_n[(i > 0 ? i - 1 : 0)].gn_be;
+                    op->o_conn->c_pagedresults_state.ps_be = gi->gi_n[(i > 0 ? i - 1 : 0)].gn_be;
                   }
 
                   cookie.bv_val = (char *)&respcookie;
@@ -620,16 +600,13 @@ static int glue_op_search(Operation *op, SlapReply *rs) {
                   ber_printf(ber, "{iO}", 0, &cookie);
                   ber_flatten2(ber, &value, 0);
 
-                  newctrl = op->o_tmprealloc(gs.ctrls[c],
-                                             sizeof(LDAPControl) + oidlen + 1 +
-                                                 value.bv_len + 1,
+                  newctrl = op->o_tmprealloc(gs.ctrls[c], sizeof(LDAPControl) + oidlen + 1 + value.bv_len + 1,
                                              op->o_tmpmemctx);
                   newctrl->ldctl_iscritical = gs.ctrls[c]->ldctl_iscritical;
                   newctrl->ldctl_oid = (char *)&newctrl[1];
                   lutil_strcopy(newctrl->ldctl_oid, gs.ctrls[c]->ldctl_oid);
                   newctrl->ldctl_value.bv_len = value.bv_len;
-                  lutil_memcopy(newctrl->ldctl_value.bv_val, value.bv_val,
-                                value.bv_len);
+                  lutil_memcopy(newctrl->ldctl_value.bv_val, value.bv_val, value.bv_len);
 
                   gs.ctrls[c] = newctrl;
 
@@ -663,8 +640,7 @@ static int glue_op_search(Operation *op, SlapReply *rs) {
             int c;
 
             for (c = 0; op->o_ctrls[c] != NULL; c++) {
-              if (strcmp(op->o_ctrls[c]->ldctl_oid,
-                         LDAP_CONTROL_PAGEDRESULTS) == 0)
+              if (strcmp(op->o_ctrls[c]->ldctl_oid, LDAP_CONTROL_PAGEDRESULTS) == 0)
                 break;
             }
 
@@ -675,16 +651,13 @@ static int glue_op_search(Operation *op, SlapReply *rs) {
             ber_flatten2(ber, &value, 0);
             assert(op->o_ctrls[c]->ldctl_value.bv_len >= value.bv_len);
             op->o_ctrls[c]->ldctl_value.bv_len = value.bv_len;
-            lutil_memcopy(op->o_ctrls[c]->ldctl_value.bv_val, value.bv_val,
-                          value.bv_len);
+            lutil_memcopy(op->o_ctrls[c]->ldctl_value.bv_val, value.bv_val, value.bv_len);
             ber_free_buf(ber);
           }
         }
 
       default:
-        Debug(LDAP_DEBUG_NONE,
-              "glue_op_search: sub-search gs.err %d, rs->sr_err %d\n", gs.err,
-              rs->sr_err);
+        Debug(LDAP_DEBUG_NONE, "glue_op_search: sub-search gs.err %d, rs->sr_err %d\n", gs.err, rs->sr_err);
         assert(rs->sr_entry == NULL);
         break;
       }
@@ -762,23 +735,19 @@ static int glue_tool_entry_open(BackendDB *b0, int mode) {
           bd = &db;
         }
 
-        if (!bd->bd_info->bi_tool_dn2id_get ||
-            !bd->bd_info->bi_tool_entry_open ||
-            !bd->bd_info->bi_tool_entry_close) {
+        if (!bd->bd_info->bi_tool_dn2id_get || !bd->bd_info->bi_tool_entry_open || !bd->bd_info->bi_tool_entry_close) {
           continue;
         }
 
         bd->bd_info->bi_tool_entry_open(bd, 0);
-        id = bd->bd_info->bi_tool_dn2id_get(bd,
-                                            &gi->gi_n[i].gn_be->be_nsuffix[0]);
+        id = bd->bd_info->bi_tool_dn2id_get(bd, &gi->gi_n[i].gn_be->be_nsuffix[0]);
         bd->bd_info->bi_tool_entry_close(bd);
         if (id != NOID) {
           Debug(LDAP_DEBUG_ANY,
                 "glue_tool_entry_open: subordinate database suffix entry "
                 "DN=\"%s\" also present in superior database rooted at "
                 "DN=\"%s\"\n",
-                gi->gi_n[i].gn_be->be_suffix[0].bv_val,
-                bd->be_suffix[0].bv_val);
+                gi->gi_n[i].gn_be->be_suffix[0].bv_val, bd->be_suffix[0].bv_val);
           return LDAP_OTHER;
         }
       }
@@ -835,8 +804,7 @@ static int glue_open(BackendInfo *bi) {
        * invoke their bi_open functions once each.
        */
       for (j = 0; j < i; j++) {
-        if (gi->gi_n[i].gn_be->bd_info->bi_open ==
-            gi->gi_n[j].gn_be->bd_info->bi_open) {
+        if (gi->gi_n[i].gn_be->bd_info->bi_open == gi->gi_n[j].gn_be->bd_info->bi_open) {
           same = 1;
           break;
         }
@@ -873,8 +841,8 @@ static int glue_close(BackendInfo *bi) {
   return rc;
 }
 
-static int glue_entry_get_rw(Operation *op, struct berval *dn, ObjectClass *oc,
-                             AttributeDescription *ad, int rw, Entry **e) {
+static int glue_entry_get_rw(Operation *op, struct berval *dn, ObjectClass *oc, AttributeDescription *ad, int rw,
+                             Entry **e) {
   int rc;
   BackendDB *b0 = op->o_bd;
   op->o_bd = glue_back_select(b0, dn);
@@ -924,8 +892,7 @@ static ID glue_tool_entry_first(BackendDB *b0) {
       glueBack = &toolDB;
     } else {
       for (i = gi->gi_nodes - 1; i >= 0; i--) {
-        if (gi->gi_n[i].gn_be->be_entry_open &&
-            gi->gi_n[i].gn_be->be_entry_first) {
+        if (gi->gi_n[i].gn_be->be_entry_open && gi->gi_n[i].gn_be->be_entry_first) {
           glueBack = gi->gi_n[i].gn_be;
           break;
         }
@@ -958,8 +925,7 @@ static ID glue_tool_entry_first(BackendDB *b0) {
   return rc;
 }
 
-static ID glue_tool_entry_first_x(BackendDB *b0, struct berval *base, int scope,
-                                  Filter *f) {
+static ID glue_tool_entry_first_x(BackendDB *b0, struct berval *base, int scope, Filter *f) {
   slap_overinst *on = glue_tool_inst(b0->bd_info);
   glueinfo *gi = on->on_bi.bi_private;
   int i;
@@ -975,8 +941,7 @@ static ID glue_tool_entry_first_x(BackendDB *b0, struct berval *base, int scope,
       glueBack = &toolDB;
     } else {
       for (i = gi->gi_nodes - 1; i >= 0; i--) {
-        if (gi->gi_n[i].gn_be->be_entry_open &&
-            gi->gi_n[i].gn_be->be_entry_first_x) {
+        if (gi->gi_n[i].gn_be->be_entry_open && gi->gi_n[i].gn_be->be_entry_first_x) {
           glueBack = gi->gi_n[i].gn_be;
           break;
         }
@@ -1141,8 +1106,7 @@ static ID glue_tool_entry_modify(BackendDB *b0, Entry *e, struct berval *text) {
   return glueBack->be_entry_modify(glueBack, e, text);
 }
 
-static int glue_tool_entry_reindex(BackendDB *b0, ID id,
-                                   AttributeDescription **adv) {
+static int glue_tool_entry_reindex(BackendDB *b0, ID id, AttributeDescription **adv) {
   if (!glueBack || !glueBack->be_entry_reindex)
     return -1;
 
@@ -1335,8 +1299,7 @@ int glue_sub_attach(int online) {
       }
       assert(on != NULL);
       gi = on->on_bi.bi_private;
-      gi = (glueinfo *)ch_realloc(gi, sizeof(glueinfo) +
-                                          gi->gi_nodes * sizeof(gluenode));
+      gi = (glueinfo *)ch_realloc(gi, sizeof(glueinfo) + gi->gi_nodes * sizeof(gluenode));
       gi->gi_n[gi->gi_nodes].gn_be = ga->ga_be;
       dnParent(&ga->ga_be->be_nsuffix[0], &gi->gi_n[gi->gi_nodes].gn_pdn);
       gi->gi_nodes++;
@@ -1345,8 +1308,7 @@ int glue_sub_attach(int online) {
       break;
     }
     if (!be) {
-      Debug(LDAP_DEBUG_ANY, "glue: no superior found for sub %s!\n",
-            ga->ga_be->be_suffix[0].bv_val);
+      Debug(LDAP_DEBUG_ANY, "glue: no superior found for sub %s!\n", ga->ga_be->be_suffix[0].bv_val);
       /* allow this for now, assume a superior will
        * be added later
        */
@@ -1395,10 +1357,8 @@ int glue_sub_add(BackendDB *be, int advert, int online) {
   return rc;
 }
 
-static int glue_access_allowed(Operation *op, Entry *e,
-                               AttributeDescription *desc, struct berval *val,
-                               slap_access_t access, AccessControlState *state,
-                               slap_mask_t *maskp) {
+static int glue_access_allowed(Operation *op, Entry *e, AttributeDescription *desc, struct berval *val,
+                               slap_access_t access, AccessControlState *state, slap_mask_t *maskp) {
   BackendDB *b0, *be = glue_back_select(op->o_bd, &e->e_nname);
   int rc;
 

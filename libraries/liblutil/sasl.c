@@ -64,8 +64,7 @@ void lutil_sasl_freedefs(void *defaults) {
   ber_memfree(defs);
 }
 
-void *lutil_sasl_defaults(LDAP *ld, char *mech, char *realm, char *authcid,
-                          char *passwd, char *authzid) {
+void *lutil_sasl_defaults(LDAP *ld, char *mech, char *realm, char *authcid, char *passwd, char *authzid) {
   lutilSASLdefaults *defaults;
 
   defaults = ber_memalloc(sizeof(lutilSASLdefaults));
@@ -97,8 +96,7 @@ void *lutil_sasl_defaults(LDAP *ld, char *mech, char *realm, char *authcid,
   return defaults;
 }
 
-static int interaction(unsigned flags, sasl_interact_t *interact,
-                       lutilSASLdefaults *defaults) {
+static int interaction(unsigned flags, sasl_interact_t *interact, lutilSASLdefaults *defaults) {
   const char *dflt = interact->defresult;
   char input[1024];
 
@@ -135,8 +133,7 @@ static int interaction(unsigned flags, sasl_interact_t *interact,
   if (dflt && !*dflt)
     dflt = NULL;
 
-  if (flags != LDAP_SASL_INTERACTIVE &&
-      (dflt || interact->id == SASL_CB_USER)) {
+  if (flags != LDAP_SASL_INTERACTIVE && (dflt || interact->id == SASL_CB_USER)) {
     goto use_default;
   }
 
@@ -155,8 +152,7 @@ static int interaction(unsigned flags, sasl_interact_t *interact,
     fprintf(stderr, _("Default: %s\n"), dflt);
   }
 
-  snprintf(input, sizeof input,
-           "%s: ", interact->prompt ? interact->prompt : _("Interact"));
+  snprintf(input, sizeof input, "%s: ", interact->prompt ? interact->prompt : _("Interact"));
 
   if (noecho) {
     interact->result = (char *)getpassphrase(input);

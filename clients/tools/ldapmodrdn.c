@@ -42,8 +42,7 @@
 static char *newSuperior = NULL;
 static int remove_old_RDN = 0;
 
-static int domodrdn(LDAP *ld, char *dn, char *rdn, char *newSuperior,
-                    int remove); /* flag: remove old RDN */
+static int domodrdn(LDAP *ld, char *dn, char *rdn, char *newSuperior, int remove); /* flag: remove old RDN */
 
 void usage(void) {
   fprintf(stderr, _("Rename LDAP entries\n\n"));
@@ -55,13 +54,9 @@ void usage(void) {
   fprintf(stderr, _("		from the file specified by \"-f file\" (see "
                     "man page).\n"));
   fprintf(stderr, _("Rename options:\n"));
-  fprintf(
-      stderr,
-      _("  -c         continuous operation mode (do not stop on errors)\n"));
+  fprintf(stderr, _("  -c         continuous operation mode (do not stop on errors)\n"));
   fprintf(stderr, _("  -f file    read operations from `file'\n"));
-  fprintf(
-      stderr,
-      _("  -M         enable Manage DSA IT control (-MM to make critical)\n"));
+  fprintf(stderr, _("  -M         enable Manage DSA IT control (-MM to make critical)\n"));
   fprintf(stderr, _("  -P version protocol version (default: 3)\n"));
   fprintf(stderr, _("  -r		 remove old RDN\n"));
   fprintf(stderr, _("  -s newsup  new superior entry\n"));
@@ -149,9 +144,7 @@ int main(int argc, char **argv) {
     }
     ++havedn;
   } else if (argc - optind != 0) {
-    fprintf(stderr,
-            _("%s: invalid number of arguments (%d), only two allowed\n"), prog,
-            argc - optind);
+    fprintf(stderr, _("%s: invalid number of arguments (%d), only two allowed\n"), prog, argc - optind);
     usage();
   }
 
@@ -215,8 +208,7 @@ fail:
   tool_exit(ld, retval);
 }
 
-static int domodrdn(LDAP *ld, char *dn, char *rdn, char *newSuperior,
-                    int remove) /* flag: remove old RDN */
+static int domodrdn(LDAP *ld, char *dn, char *rdn, char *newSuperior, int remove) /* flag: remove old RDN */
 {
   int rc, code, id;
   char *matcheddn = NULL, *text = NULL, **refs = NULL;
@@ -225,8 +217,7 @@ static int domodrdn(LDAP *ld, char *dn, char *rdn, char *newSuperior,
 
   if (verbose) {
     printf(_("Renaming \"%s\"\n"), dn);
-    printf(_("\tnew rdn=\"%s\" (%s old rdn)\n"), rdn,
-           remove ? _("delete") : _("keep"));
+    printf(_("\tnew rdn=\"%s\" (%s old rdn)\n"), rdn, remove ? _("delete") : _("keep"));
     if (newSuperior != NULL) {
       printf(_("\tnew parent=\"%s\"\n"), newSuperior);
     }
@@ -238,8 +229,7 @@ static int domodrdn(LDAP *ld, char *dn, char *rdn, char *newSuperior,
   rc = ldap_rename(ld, dn, rdn, newSuperior, remove, NULL, NULL, &id);
 
   if (rc != LDAP_SUCCESS) {
-    fprintf(stderr, "%s: ldap_rename: %s (%d)\n", prog, ldap_err2string(rc),
-            rc);
+    fprintf(stderr, "%s: ldap_rename: %s (%d)\n", prog, ldap_err2string(rc), rc);
     return rc;
   }
 
@@ -267,13 +257,11 @@ static int domodrdn(LDAP *ld, char *dn, char *rdn, char *newSuperior,
   rc = ldap_parse_result(ld, res, &code, &matcheddn, &text, &refs, &ctrls, 1);
 
   if (rc != LDAP_SUCCESS) {
-    fprintf(stderr, "%s: ldap_parse_result: %s (%d)\n", prog,
-            ldap_err2string(rc), rc);
+    fprintf(stderr, "%s: ldap_parse_result: %s (%d)\n", prog, ldap_err2string(rc), rc);
     return rc;
   }
 
-  if (verbose || code != LDAP_SUCCESS || (matcheddn && *matcheddn) ||
-      (text && *text) || (refs && *refs)) {
+  if (verbose || code != LDAP_SUCCESS || (matcheddn && *matcheddn) || (text && *text) || (refs && *refs)) {
     printf(_("Rename Result: %s (%d)\n"), ldap_err2string(code), code);
 
     if (text && *text) {

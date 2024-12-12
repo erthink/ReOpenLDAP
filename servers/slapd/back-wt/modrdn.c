@@ -56,9 +56,8 @@ int wt_modrdn(Operation *op, SlapReply *rs) {
   int parent_is_glue = 0;
   int parent_is_leaf = 0;
 
-  Debug(LDAP_DEBUG_TRACE, "==> wt_modrdn(%s -> newrdn=%s - newsup=%s)\n",
-        op->o_req_dn.bv_val, op->oq_modrdn.rs_newrdn.bv_val,
-        op->oq_modrdn.rs_newSup ? op->oq_modrdn.rs_newSup->bv_val : "NULL");
+  Debug(LDAP_DEBUG_TRACE, "==> wt_modrdn(%s -> newrdn=%s - newsup=%s)\n", op->o_req_dn.bv_val,
+        op->oq_modrdn.rs_newrdn.bv_val, op->oq_modrdn.rs_newSup ? op->oq_modrdn.rs_newSup->bv_val : "NULL");
 
   ctrls[num_ctrls] = NULL;
 
@@ -87,8 +86,7 @@ int wt_modrdn(Operation *op, SlapReply *rs) {
   case 0:
     break;
   case WT_NOTFOUND:
-    Debug(LDAP_DEBUG_ARGS, "<== wt_modrdn: parent does not exist %s\n",
-          p_ndn.bv_val);
+    Debug(LDAP_DEBUG_ARGS, "<== wt_modrdn: parent does not exist %s\n", p_ndn.bv_val);
     rs->sr_err = LDAP_NO_SUCH_OBJECT;
     goto return_results;
   default:
@@ -99,9 +97,7 @@ int wt_modrdn(Operation *op, SlapReply *rs) {
   }
 
   /* check parent for "children" acl */
-  rc = access_allowed(op, p, children, NULL,
-                      op->oq_modrdn.rs_newSup == NULL ? ACL_WRITE : ACL_WDEL,
-                      NULL);
+  rc = access_allowed(op, p, children, NULL, op->oq_modrdn.rs_newSup == NULL ? ACL_WRITE : ACL_WDEL, NULL);
 
   if (!rc) {
     rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
@@ -110,8 +106,7 @@ int wt_modrdn(Operation *op, SlapReply *rs) {
     goto return_results;
   }
 
-  Debug(LDAP_DEBUG_TRACE, "wt_modrdn: wr to children of entry %s OK\n",
-        p_ndn.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "wt_modrdn: wr to children of entry %s OK\n", p_ndn.bv_val);
 
   if (p_ndn.bv_val == slap_empty_bv.bv_val) {
     p_dn = slap_empty_bv;
@@ -138,8 +133,7 @@ int wt_modrdn(Operation *op, SlapReply *rs) {
   if (rc == WT_NOTFOUND || (!manageDSAit && e && is_entry_glue(e))) {
 
     if (!e) {
-      Debug(LDAP_DEBUG_ARGS, "<== wt_modrdn: no such object %s\n",
-            op->o_req_dn.bv_val);
+      Debug(LDAP_DEBUG_ARGS, "<== wt_modrdn: no such object %s\n", op->o_req_dn.bv_val);
       rc = wt_dn2aentry(op->o_bd, wc, &op->o_req_ndn, &e);
       switch (rc) {
       case 0:
@@ -159,8 +153,7 @@ int wt_modrdn(Operation *op, SlapReply *rs) {
 
     if (is_entry_referral(e)) {
       BerVarray ref = get_entry_referrals(op, e);
-      rs->sr_ref =
-          referral_rewrite(ref, &e->e_name, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
+      rs->sr_ref = referral_rewrite(ref, &e->e_name, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
       ber_bvarray_free(ref);
     } else {
       rs->sr_ref = NULL;
@@ -171,8 +164,7 @@ int wt_modrdn(Operation *op, SlapReply *rs) {
     goto done;
   }
 
-  if (get_assert(op) &&
-      (test_filter(op, e, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
+  if (get_assert(op) && (test_filter(op, e, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
     rs->sr_err = LDAP_ASSERTION_FAILED;
     goto return_results;
   }
@@ -191,14 +183,12 @@ int wt_modrdn(Operation *op, SlapReply *rs) {
   if (rc != WT_NOTFOUND) {
     switch (rc) {
     case 0:
-      Debug(LDAP_DEBUG_ARGS, "<== wt_modrdn: non-leaf %s\n",
-            op->o_req_dn.bv_val);
+      Debug(LDAP_DEBUG_ARGS, "<== wt_modrdn: non-leaf %s\n", op->o_req_dn.bv_val);
       rs->sr_err = LDAP_NOT_ALLOWED_ON_NONLEAF;
       rs->sr_text = "subtree rename not supported";
       break;
     default:
-      Debug(LDAP_DEBUG_ARGS, "<== wt_modrdn: has_children failed: %s (%d)\n",
-            wiredtiger_strerror(rc), rc);
+      Debug(LDAP_DEBUG_ARGS, "<== wt_modrdn: has_children failed: %s (%d)\n", wiredtiger_strerror(rc), rc);
       rs->sr_err = LDAP_OTHER;
       rs->sr_text = "internal error";
     }
@@ -222,13 +212,11 @@ int wt_modrdn(Operation *op, SlapReply *rs) {
 
   new_parent_dn = &p_dn; /* New Parent unless newSuperior given */
   if (op->oq_modrdn.rs_newSup != NULL) {
-    Debug(LDAP_DEBUG_TRACE, "wt_modrdn: new parent \"%s\" requested...\n",
-          op->oq_modrdn.rs_newSup->bv_val);
+    Debug(LDAP_DEBUG_TRACE, "wt_modrdn: new parent \"%s\" requested...\n", op->oq_modrdn.rs_newSup->bv_val);
 
     /* newSuperior == oldParent? */
     if (dn_match(&p_ndn, op->oq_modrdn.rs_nnewSup)) {
-      Debug(LDAP_DEBUG_TRACE,
-            "wt_modrdn: new parent \"%s\" same as the old parent \"%s\"\n",
+      Debug(LDAP_DEBUG_TRACE, "wt_modrdn: new parent \"%s\" same as the old parent \"%s\"\n",
             op->oq_modrdn.rs_newSup->bv_val, p_dn.bv_val);
       op->oq_modrdn.rs_newSup = NULL; /* ignore newSuperior */
     }
@@ -252,20 +240,17 @@ int wt_modrdn(Operation *op, SlapReply *rs) {
       case 0:
         break;
       case WT_NOTFOUND:
-        Debug(LDAP_DEBUG_ANY, "<== wt_modrdn: new superior not found: %s\n",
-              np_ndn->bv_val);
+        Debug(LDAP_DEBUG_ANY, "<== wt_modrdn: new superior not found: %s\n", np_ndn->bv_val);
         rs->sr_err = LDAP_NO_SUCH_OBJECT;
         rs->sr_text = "new superior not found";
         goto return_results;
       default:
-        Debug(LDAP_DEBUG_ANY, "<== wt_modrdn: wt_dn2entry failed %s (%d)\n",
-              wiredtiger_strerror(rc), rc);
+        Debug(LDAP_DEBUG_ANY, "<== wt_modrdn: wt_dn2entry failed %s (%d)\n", wiredtiger_strerror(rc), rc);
         rs->sr_err = LDAP_OTHER;
         rs->sr_text = "internal error";
         goto return_results;
       }
-      Debug(LDAP_DEBUG_TRACE, "wt_modrdn: wr to new parent OK np=%p, id=%ld\n",
-            (void *)np, (long)np->e_id);
+      Debug(LDAP_DEBUG_TRACE, "wt_modrdn: wr to new parent OK np=%p, id=%ld\n", (void *)np, (long)np->e_id);
       rs->sr_err = access_allowed(op, np, children, NULL, ACL_WADD, NULL);
       if (!rs->sr_err) {
         Debug(LDAP_DEBUG_TRACE, "wt_modrdn: no wr to newSup children\n");
@@ -328,8 +313,7 @@ int wt_modrdn(Operation *op, SlapReply *rs) {
   case WT_NOTFOUND:
     break;
   default:
-    Debug(LDAP_DEBUG_ANY, "<== wt_modrdn: wt_dn2entry failed %s (%d)\n",
-          wiredtiger_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "<== wt_modrdn: wt_dn2entry failed %s (%d)\n", wiredtiger_strerror(rc), rc);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "internal error";
     goto return_results;
@@ -355,8 +339,7 @@ int wt_modrdn(Operation *op, SlapReply *rs) {
   /* begin transaction */
   rc = wc->session->begin_transaction(wc->session, NULL);
   if (rc) {
-    Debug(LDAP_DEBUG_TRACE, "wt_modrdn: begin_transaction failed: %s (%d)\n",
-          wiredtiger_strerror(rc), rc);
+    Debug(LDAP_DEBUG_TRACE, "wt_modrdn: begin_transaction failed: %s (%d)\n", wiredtiger_strerror(rc), rc);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "begin_transaction failed";
     goto return_results;
@@ -367,8 +350,7 @@ int wt_modrdn(Operation *op, SlapReply *rs) {
   /* delete old DN */
   rc = wt_dn2id_delete(op, wc, &e->e_nname);
   if (rc) {
-    Debug(LDAP_DEBUG_TRACE, "<== wt_modrdn: delete failed: %s (%d)\n",
-          wiredtiger_strerror(rc), rc);
+    Debug(LDAP_DEBUG_TRACE, "<== wt_modrdn: delete failed: %s (%d)\n", wiredtiger_strerror(rc), rc);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "dn2id delete failed";
     goto return_results;
@@ -383,19 +365,16 @@ int wt_modrdn(Operation *op, SlapReply *rs) {
   /* add new DN */
   rc = wt_dn2id_add(op, wc, np ? np->e_id : p->e_id, &dummy);
   if (rc) {
-    Debug(LDAP_DEBUG_TRACE, "<== wt_modrdn: add failed: %s (%d)\n",
-          wiredtiger_strerror(rc), rc);
+    Debug(LDAP_DEBUG_TRACE, "<== wt_modrdn: add failed: %s (%d)\n", wiredtiger_strerror(rc), rc);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "DN add failed";
     goto return_results;
   }
   dummy.e_attrs = e->e_attrs;
 
-  rc = wt_modify_internal(op, wc, op->orm_modlist, &dummy, &rs->sr_text,
-                          textbuf, textlen);
+  rc = wt_modify_internal(op, wc, op->orm_modlist, &dummy, &rs->sr_text, textbuf, textlen);
   if (rc != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_TRACE, "<== wt_modrdn: modify failed: %s (%d)\n",
-          wiredtiger_strerror(rc), rc);
+    Debug(LDAP_DEBUG_TRACE, "<== wt_modrdn: modify failed: %s (%d)\n", wiredtiger_strerror(rc), rc);
     if (dummy.e_attrs == e->e_attrs)
       dummy.e_attrs = NULL;
     goto return_results;
@@ -442,15 +421,14 @@ int wt_modrdn(Operation *op, SlapReply *rs) {
   rc = wc->session->commit_transaction(wc->session, NULL);
   wc->is_begin_transaction = 0;
   if (rc) {
-    Debug(LDAP_DEBUG_TRACE, "<== wt_modrdn: commit failed: %s (%d)\n",
-          wiredtiger_strerror(rc), rc);
+    Debug(LDAP_DEBUG_TRACE, "<== wt_modrdn: commit failed: %s (%d)\n", wiredtiger_strerror(rc), rc);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "commit failed";
     goto return_results;
   }
 
-  Debug(LDAP_DEBUG_TRACE, "wt_modrdn: rdn modified%s id=%08lx dn=\"%s\"\n",
-        op->o_noop ? " (no-op)" : "", dummy.e_id, op->o_req_dn.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "wt_modrdn: rdn modified%s id=%08lx dn=\"%s\"\n", op->o_noop ? " (no-op)" : "", dummy.e_id,
+        op->o_req_dn.bv_val);
 
   rs->sr_err = LDAP_SUCCESS;
   rs->sr_text = NULL;

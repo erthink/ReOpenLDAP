@@ -37,29 +37,27 @@
 #define WT_IDL_IS_RANGE(ids) ((ids)[0] == NOID)
 #define WT_IDL_RANGE_SIZE (3)
 #define WT_IDL_RANGE_SIZEOF (WT_IDL_RANGE_SIZE * sizeof(ID))
-#define WT_IDL_SIZEOF(ids)                                                     \
-  ((WT_IDL_IS_RANGE(ids) ? WT_IDL_RANGE_SIZE : ((ids)[0] + 1)) * sizeof(ID))
+#define WT_IDL_SIZEOF(ids) ((WT_IDL_IS_RANGE(ids) ? WT_IDL_RANGE_SIZE : ((ids)[0] + 1)) * sizeof(ID))
 
 #define WT_IDL_RANGE_FIRST(ids) ((ids)[1])
 #define WT_IDL_RANGE_LAST(ids) ((ids)[2])
 
-#define WT_IDL_RANGE(ids, f, l)                                                \
-  do {                                                                         \
-    (ids)[0] = NOID;                                                           \
-    (ids)[1] = (f);                                                            \
-    (ids)[2] = (l);                                                            \
+#define WT_IDL_RANGE(ids, f, l)                                                                                        \
+  do {                                                                                                                 \
+    (ids)[0] = NOID;                                                                                                   \
+    (ids)[1] = (f);                                                                                                    \
+    (ids)[2] = (l);                                                                                                    \
   } while (0)
 
-#define WT_IDL_ZERO(ids)                                                       \
-  do {                                                                         \
-    (ids)[0] = 0;                                                              \
-    (ids)[1] = 0;                                                              \
-    (ids)[2] = 0;                                                              \
+#define WT_IDL_ZERO(ids)                                                                                               \
+  do {                                                                                                                 \
+    (ids)[0] = 0;                                                                                                      \
+    (ids)[1] = 0;                                                                                                      \
+    (ids)[2] = 0;                                                                                                      \
   } while (0)
 
 #define WT_IDL_IS_ZERO(ids) ((ids)[0] == 0)
-#define WT_IDL_IS_ALL(range, ids)                                              \
-  ((ids)[0] == NOID && (ids)[1] <= (range)[1] && (range)[2] <= (ids)[2])
+#define WT_IDL_IS_ALL(range, ids) ((ids)[0] == NOID && (ids)[1] <= (range)[1] && (range)[2] <= (ids)[2])
 
 #define WT_IDL_CPY(dst, src) (memcpy(dst, src, WT_IDL_SIZEOF(src)))
 
@@ -70,8 +68,7 @@
 #define WT_IDL_LLAST(ids) ((ids)[(ids)[0]])
 #define WT_IDL_LAST(ids) (WT_IDL_IS_RANGE(ids) ? (ids)[2] : (ids)[(ids)[0]])
 
-#define WT_IDL_N(ids)                                                          \
-  (WT_IDL_IS_RANGE(ids) ? ((ids)[2] - (ids)[1]) + 1 : (ids)[0])
+#define WT_IDL_N(ids) (WT_IDL_IS_RANGE(ids) ? ((ids)[2] - (ids)[1]) + 1 : (ids)[0])
 
 LDAP_BEGIN_DECL
 LDAP_END_DECL

@@ -52,9 +52,8 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
   int parent_is_glue = 0;
   int parent_is_leaf = 0;
 
-  Debug(LDAP_DEBUG_TRACE, "==>" LDAP_XSTRING(mdb_modrdn) "(%s,%s,%s)\n",
-        op->o_req_dn.bv_val, op->oq_modrdn.rs_newrdn.bv_val,
-        op->oq_modrdn.rs_newSup ? op->oq_modrdn.rs_newSup->bv_val : "NULL");
+  Debug(LDAP_DEBUG_TRACE, "==>" LDAP_XSTRING(mdb_modrdn) "(%s,%s,%s)\n", op->o_req_dn.bv_val,
+        op->oq_modrdn.rs_newrdn.bv_val, op->oq_modrdn.rs_newSup ? op->oq_modrdn.rs_newSup->bv_val : "NULL");
 
 #ifdef LDAP_X_TXN
   if (op->o_txnSpec && txn_preop(op, rs))
@@ -98,8 +97,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
    */
   rs->sr_err = mdbx_cursor_open(txn, mdb->mi_dn2id, &mc);
   if (rs->sr_err != 0) {
-    Debug(LDAP_DEBUG_TRACE,
-          "<=- " LDAP_XSTRING(mdb_modrdn) ": cursor_open failed: %s (%d)\n",
+    Debug(LDAP_DEBUG_TRACE, "<=- " LDAP_XSTRING(mdb_modrdn) ": cursor_open failed: %s (%d)\n",
           mdbx_strerror(rs->sr_err), rs->sr_err);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "DN cursor_open failed";
@@ -108,10 +106,8 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
   rs->sr_err = mdb_dn2entry(op, txn, mc, &p_ndn, &p, NULL, 0);
   switch (rs->sr_err) {
   case MDBX_NOTFOUND:
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(mdb_modrdn) ": parent does not exist\n");
-    rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn,
-                                  LDAP_SCOPE_DEFAULT);
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_modrdn) ": parent does not exist\n");
+    rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
     rs->sr_err = LDAP_REFERRAL;
     rs->sr_flags = REP_REF_MUSTBEFREED;
     send_ldap_result(op, rs);
@@ -128,9 +124,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
   }
 
   /* check parent for "children" acl */
-  rs->sr_err = access_allowed(
-      op, p, children, NULL,
-      op->oq_modrdn.rs_newSup == NULL ? ACL_WRITE : ACL_WDEL, NULL);
+  rs->sr_err = access_allowed(op, p, children, NULL, op->oq_modrdn.rs_newSup == NULL ? ACL_WRITE : ACL_WDEL, NULL);
 
   if (!rs->sr_err) {
     rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
@@ -150,8 +144,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
     dnParent(&op->o_req_dn, &p_dn);
   }
 
-  Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_modrdn) ": parent dn=%s\n",
-        p_dn.bv_val);
+  Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_modrdn) ": parent dn=%s\n", p_dn.bv_val);
 
   /* get entry */
   rs->sr_err = mdb_dn2entry(op, txn, mc, &op->o_req_ndn, &e, &nsubs, 0);
@@ -171,14 +164,12 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
   }
 
   /* FIXME: dn2entry() should return non-glue entry */
-  if ((rs->sr_err == MDBX_NOTFOUND) ||
-      (!manageDSAit && e && is_entry_glue(e))) {
+  if ((rs->sr_err == MDBX_NOTFOUND) || (!manageDSAit && e && is_entry_glue(e))) {
     if (e != NULL) {
       rs->sr_matched = ch_strdup(e->e_dn);
       if (is_entry_referral(e)) {
         BerVarray ref = get_entry_referrals(op, e);
-        rs->sr_ref = referral_rewrite(ref, &e->e_name, &op->o_req_dn,
-                                      LDAP_SCOPE_DEFAULT);
+        rs->sr_ref = referral_rewrite(ref, &e->e_name, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
         ber_bvarray_free(ref);
       } else {
         rs->sr_ref = NULL;
@@ -186,8 +177,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
       mdb_entry_return(op, e);
       e = NULL;
     } else {
-      rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn,
-                                    LDAP_SCOPE_DEFAULT);
+      rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn, LDAP_SCOPE_DEFAULT);
     }
 
     rs->sr_err = LDAP_REFERRAL;
@@ -196,8 +186,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
     goto done;
   }
 
-  if (get_assert(op) &&
-      (test_filter(op, e, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
+  if (get_assert(op) && (test_filter(op, e, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
     rs->sr_err = LDAP_ASSERTION_FAILED;
     goto return_results;
   }
@@ -215,8 +204,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
     /* entry is a referral, don't allow rename */
     rs->sr_ref = get_entry_referrals(op, e);
 
-    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_modrdn) ": entry %s is referral\n",
-          e->e_dn);
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_modrdn) ": entry %s is referral\n", e->e_dn);
 
     rs->sr_err = LDAP_REFERRAL, rs->sr_matched = e->e_name.bv_val;
     rs->sr_flags = REP_REF_MUSTBEFREED;
@@ -227,8 +215,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
   new_parent_dn = &p_dn; /* New Parent unless newSuperior given */
 
   if (op->oq_modrdn.rs_newSup != NULL) {
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(mdb_modrdn) ": new parent \"%s\" requested...\n",
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_modrdn) ": new parent \"%s\" requested...\n",
           op->oq_modrdn.rs_newSup->bv_val);
 
     /*  newSuperior == oldParent? */
@@ -269,9 +256,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
       case 0:
         break;
       case MDBX_NOTFOUND:
-        Debug(LDAP_DEBUG_TRACE,
-              LDAP_XSTRING(mdb_modrdn) ": newSup(ndn=%s) not here!\n",
-              np_ndn->bv_val);
+        Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_modrdn) ": newSup(ndn=%s) not here!\n", np_ndn->bv_val);
         rs->sr_text = "new superior not found";
         rs->sr_err = LDAP_NO_SUCH_OBJECT;
         goto return_results;
@@ -288,16 +273,14 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
       rs->sr_err = access_allowed(op, np, children, NULL, ACL_WADD, NULL);
 
       if (!rs->sr_err) {
-        Debug(LDAP_DEBUG_TRACE,
-              LDAP_XSTRING(mdb_modrdn) ": no wr to newSup children\n");
+        Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_modrdn) ": no wr to newSup children\n");
         rs->sr_text = "no write access to new superior's children";
         rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
         goto return_results;
       }
 
-      Debug(LDAP_DEBUG_TRACE,
-            LDAP_XSTRING(mdb_modrdn) ": wr to new parent OK np=%p, id=%ld\n",
-            (void *)np, (long)np->e_id);
+      Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_modrdn) ": wr to new parent OK np=%p, id=%ld\n", (void *)np,
+            (long)np->e_id);
 
       if (is_entry_alias(np)) {
         /* parent is an alias, don't allow add */
@@ -309,8 +292,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
 
       if (is_entry_referral(np)) {
         /* parent is a referral, don't allow add */
-        Debug(LDAP_DEBUG_TRACE,
-              LDAP_XSTRING(mdb_modrdn) ": entry is referral\n");
+        Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_modrdn) ": entry is referral\n");
         rs->sr_text = "new superior is a referral";
         rs->sr_err = LDAP_OTHER;
         goto return_results;
@@ -321,8 +303,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
       np_dn = NULL;
 
       /* no parent, modrdn entry directly under root */
-      if (be_issuffix(op->o_bd, (struct berval *)&slap_empty_bv) ||
-          be_isupdate(op)) {
+      if (be_issuffix(op->o_bd, (struct berval *)&slap_empty_bv) || be_isupdate(op)) {
         np = (Entry *)&slap_entry_root;
 
         /* check parent for "children" acl */
@@ -339,24 +320,21 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
       }
     }
 
-    Debug(LDAP_DEBUG_TRACE,
-          LDAP_XSTRING(mdb_modrdn) ": wr to new parent's children OK\n");
+    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_modrdn) ": wr to new parent's children OK\n");
 
     new_parent_dn = np_dn;
   }
 
   /* Build target dn and make sure target entry doesn't exist already. */
   if (!new_dn.bv_val) {
-    build_new_dn(&new_dn, new_parent_dn, &op->oq_modrdn.rs_newrdn,
-                 op->o_tmpmemctx);
+    build_new_dn(&new_dn, new_parent_dn, &op->oq_modrdn.rs_newrdn, op->o_tmpmemctx);
   }
 
   if (!new_ndn.bv_val) {
     dnNormalize(0, NULL, NULL, &new_dn, &new_ndn, op->o_tmpmemctx);
   }
 
-  Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_modrdn) ": new ndn=%s\n",
-        new_ndn.bv_val);
+  Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_modrdn) ": new ndn=%s\n", new_ndn.bv_val);
 
   /* Shortcut the search */
   rs->sr_err = mdb_dn2id(op, txn, NULL, &new_ndn, &nid, NULL, NULL, NULL);
@@ -381,8 +359,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
       ctrls[num_ctrls] = NULL;
     }
     if (slap_read_controls(op, rs, e, &slap_pre_read_bv, preread_ctrl)) {
-      Debug(LDAP_DEBUG_TRACE,
-            "<=- " LDAP_XSTRING(mdb_modrdn) ": pre-read failed!\n");
+      Debug(LDAP_DEBUG_TRACE, "<=- " LDAP_XSTRING(mdb_modrdn) ": pre-read failed!\n");
       if (op->o_preread & SLAP_CONTROL_CRITICAL) {
         /* FIXME: is it correct to abort
          * operation if control fails? */
@@ -397,9 +374,8 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
    */
   rs->sr_err = mdb_dn2id_delete(op, mc, e->e_id, np ? nsubs : 0);
   if (rs->sr_err != 0) {
-    Debug(LDAP_DEBUG_TRACE,
-          "<=- " LDAP_XSTRING(mdb_modrdn) ": dn2id del failed: %s (%d)\n",
-          mdbx_strerror(rs->sr_err), rs->sr_err);
+    Debug(LDAP_DEBUG_TRACE, "<=- " LDAP_XSTRING(mdb_modrdn) ": dn2id del failed: %s (%d)\n", mdbx_strerror(rs->sr_err),
+          rs->sr_err);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "DN index delete fail";
     goto return_results;
@@ -412,12 +388,10 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
   dummy.e_attrs = NULL;
 
   /* add new DN */
-  rs->sr_err = mdb_dn2id_add(op, mc, mc, np ? np->e_id : p->e_id, nsubs,
-                             np != NULL, &dummy);
+  rs->sr_err = mdb_dn2id_add(op, mc, mc, np ? np->e_id : p->e_id, nsubs, np != NULL, &dummy);
   if (rs->sr_err != 0) {
-    Debug(LDAP_DEBUG_TRACE,
-          "<=- " LDAP_XSTRING(mdb_modrdn) ": dn2id add failed: %s (%d)\n",
-          mdbx_strerror(rs->sr_err), rs->sr_err);
+    Debug(LDAP_DEBUG_TRACE, "<=- " LDAP_XSTRING(mdb_modrdn) ": dn2id add failed: %s (%d)\n", mdbx_strerror(rs->sr_err),
+          rs->sr_err);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "DN index add failed";
     goto return_results;
@@ -427,12 +401,10 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
 
   if (op->orr_modlist != NULL) {
     /* modify entry */
-    rs->sr_err = mdb_modify_internal(op, txn, op->orr_modlist, &dummy,
-                                     &rs->sr_text, textbuf, textlen);
+    rs->sr_err = mdb_modify_internal(op, txn, op->orr_modlist, &dummy, &rs->sr_text, textbuf, textlen);
     if (rs->sr_err != LDAP_SUCCESS) {
-      Debug(LDAP_DEBUG_TRACE,
-            "<=- " LDAP_XSTRING(mdb_modrdn) ": modify failed: %s (%d)\n",
-            mdbx_strerror(rs->sr_err), rs->sr_err);
+      Debug(LDAP_DEBUG_TRACE, "<=- " LDAP_XSTRING(mdb_modrdn) ": modify failed: %s (%d)\n", mdbx_strerror(rs->sr_err),
+            rs->sr_err);
       if (dummy.e_attrs == e->e_attrs)
         dummy.e_attrs = NULL;
       goto return_results;
@@ -442,9 +414,8 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
   /* id2entry index */
   rs->sr_err = mdb_id2entry_update(op, txn, NULL, &dummy);
   if (rs->sr_err != 0) {
-    Debug(LDAP_DEBUG_TRACE,
-          "<=- " LDAP_XSTRING(mdb_modrdn) ": id2entry failed: %s (%d)\n",
-          mdbx_strerror(rs->sr_err), rs->sr_err);
+    Debug(LDAP_DEBUG_TRACE, "<=- " LDAP_XSTRING(mdb_modrdn) ": id2entry failed: %s (%d)\n", mdbx_strerror(rs->sr_err),
+          rs->sr_err);
     if (rs->sr_err == LDAP_ADMINLIMIT_EXCEEDED) {
       rs->sr_text = "entry too big";
     } else {
@@ -462,9 +433,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
         case 0:
           break;
         default:
-          Debug(LDAP_DEBUG_ARGS,
-                "<=- " LDAP_XSTRING(
-                    mdb_modrdn) ": has_children failed: %s (%d)\n",
+          Debug(LDAP_DEBUG_ARGS, "<=- " LDAP_XSTRING(mdb_modrdn) ": has_children failed: %s (%d)\n",
                 mdbx_strerror(rs->sr_err), rs->sr_err);
           rs->sr_err = LDAP_OTHER;
           rs->sr_text = "internal error";
@@ -484,8 +453,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
       ctrls[num_ctrls] = NULL;
     }
     if (slap_read_controls(op, rs, &dummy, &slap_post_read_bv, postread_ctrl)) {
-      Debug(LDAP_DEBUG_TRACE,
-            "<=- " LDAP_XSTRING(mdb_modrdn) ": post-read failed!\n");
+      Debug(LDAP_DEBUG_TRACE, "<=- " LDAP_XSTRING(mdb_modrdn) ": post-read failed!\n");
       if (op->o_postread & SLAP_CONTROL_CRITICAL) {
         /* FIXME: is it correct to abort
          * operation if control fails? */
@@ -514,15 +482,14 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
   }
 
   if (rs->sr_err != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_modrdn) ": %s : %s (%d)\n",
-          rs->sr_text, mdbx_strerror(rs->sr_err), rs->sr_err);
+    Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_modrdn) ": %s : %s (%d)\n", rs->sr_text, mdbx_strerror(rs->sr_err),
+          rs->sr_err);
     rs->sr_err = LDAP_OTHER;
 
     goto return_results;
   }
 
-  Debug(LDAP_DEBUG_TRACE,
-        LDAP_XSTRING(mdb_modrdn) ": rdn modified%s id=%08lx dn=\"%s\"\n",
+  Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_modrdn) ": rdn modified%s id=%08lx dn=\"%s\"\n",
         op->o_noop ? " (no-op)" : "", dummy.e_id, op->o_req_dn.bv_val);
   rs->sr_text = NULL;
   if (num_ctrls)

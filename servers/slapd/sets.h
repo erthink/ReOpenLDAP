@@ -29,12 +29,10 @@ typedef struct slap_set_cookie {
  * also return the syntax or some "comparison cookie"
  * that is used by set_filter.
  */
-typedef BerVarray(SLAP_SET_GATHER)(SetCookie *cookie, struct berval *name,
-                                   AttributeDescription *ad);
+typedef BerVarray(SLAP_SET_GATHER)(SetCookie *cookie, struct berval *name, AttributeDescription *ad);
 
 LDAP_SLAPD_F(int)
-slap_set_filter(SLAP_SET_GATHER gatherer, SetCookie *cookie,
-                struct berval *filter, struct berval *user,
+slap_set_filter(SLAP_SET_GATHER gatherer, SetCookie *cookie, struct berval *filter, struct berval *user,
                 struct berval *target, BerVarray *results);
 
 LDAP_SLAPD_F(BerVarray)

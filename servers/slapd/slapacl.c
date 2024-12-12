@@ -35,19 +35,15 @@
 
 #include "slapcommon.h"
 
-static int print_access(Operation *op, Entry *e, AttributeDescription *desc,
-                        struct berval *val, struct berval *nval) {
+static int print_access(Operation *op, Entry *e, AttributeDescription *desc, struct berval *val, struct berval *nval) {
   int rc;
   slap_mask_t mask;
   char accessmaskbuf[ACCESSMASK_MAXLEN];
 
   rc = access_allowed_mask(op, e, desc, nval, ACL_AUTH, NULL, &mask);
 
-  fprintf(stderr, "%s%s%s: %s\n", desc->ad_cname.bv_val,
-          (val && !BER_BVISNULL(val)) ? "=" : "",
-          (val && !BER_BVISNULL(val))
-              ? (desc == slap_schema.si_ad_userPassword ? "****" : val->bv_val)
-              : "",
+  fprintf(stderr, "%s%s%s: %s\n", desc->ad_cname.bv_val, (val && !BER_BVISNULL(val)) ? "=" : "",
+          (val && !BER_BVISNULL(val)) ? (desc == slap_schema.si_ad_userPassword ? "****" : val->bv_val) : "",
           accessmask2str(mask, accessmaskbuf, 1));
 
   return rc;
@@ -73,8 +69,7 @@ int slapacl(int argc, char **argv) {
 
     LDAP_STAILQ_FOREACH(bd, &backendDB, be_next) {
       if (bd != be && backend_startup(bd)) {
-        fprintf(stderr, "backend_startup(#%d%s%s) failed\n", i,
-                bd->be_suffix ? ": " : "",
+        fprintf(stderr, "backend_startup(#%d%s%s) failed\n", i, bd->be_suffix ? ": " : "",
                 bd->be_suffix ? bd->be_suffix[0].bv_val : "");
         rc = 1;
         goto destroy;
@@ -112,11 +107,9 @@ int slapacl(int argc, char **argv) {
       goto destroy;
     }
 
-    rc = slap_sasl_getdn(&conn, op, &authcID, NULL, &authcDN,
-                         SLAP_GETDN_AUTHCID);
+    rc = slap_sasl_getdn(&conn, op, &authcID, NULL, &authcDN, SLAP_GETDN_AUTHCID);
     if (rc != LDAP_SUCCESS) {
-      fprintf(stderr, "authcID: <%s> check failed %d (%s)\n", authcID.bv_val,
-              rc, ldap_err2string(rc));
+      fprintf(stderr, "authcID: <%s> check failed %d (%s)\n", authcID.bv_val, rc, ldap_err2string(rc));
       rc = 1;
       goto destroy;
     }
@@ -126,8 +119,7 @@ int slapacl(int argc, char **argv) {
 
     rc = dnNormalize(0, NULL, NULL, &authcDN, &ndn, NULL);
     if (rc != LDAP_SUCCESS) {
-      fprintf(stderr, "autchDN=\"%s\" normalization failed %d (%s)\n",
-              authcDN.bv_val, rc, ldap_err2string(rc));
+      fprintf(stderr, "autchDN=\"%s\" normalization failed %d (%s)\n", authcDN.bv_val, rc, ldap_err2string(rc));
       rc = 1;
       goto destroy;
     }
@@ -145,11 +137,9 @@ int slapacl(int argc, char **argv) {
       goto destroy;
     }
 
-    rc = slap_sasl_getdn(&conn, op, &authzID, NULL, &authzDN,
-                         SLAP_GETDN_AUTHZID);
+    rc = slap_sasl_getdn(&conn, op, &authzID, NULL, &authzDN, SLAP_GETDN_AUTHZID);
     if (rc != LDAP_SUCCESS) {
-      fprintf(stderr, "authzID: <%s> check failed %d (%s)\n", authzID.bv_val,
-              rc, ldap_err2string(rc));
+      fprintf(stderr, "authzID: <%s> check failed %d (%s)\n", authzID.bv_val, rc, ldap_err2string(rc));
       rc = 1;
       goto destroy;
     }
@@ -159,8 +149,7 @@ int slapacl(int argc, char **argv) {
 
     rc = dnNormalize(0, NULL, NULL, &authzDN, &ndn, NULL);
     if (rc != LDAP_SUCCESS) {
-      fprintf(stderr, "autchDN=\"%s\" normalization failed %d (%s)\n",
-              authzDN.bv_val, rc, ldap_err2string(rc));
+      fprintf(stderr, "autchDN=\"%s\" normalization failed %d (%s)\n", authzDN.bv_val, rc, ldap_err2string(rc));
       rc = 1;
       goto destroy;
     }
@@ -199,8 +188,7 @@ int slapacl(int argc, char **argv) {
   assert(!BER_BVISNULL(&baseDN));
   rc = dnPrettyNormal(NULL, &baseDN, &e.e_name, &e.e_nname, NULL);
   if (rc != LDAP_SUCCESS) {
-    fprintf(stderr, "base=\"%s\" normalization failed %d (%s)\n", baseDN.bv_val,
-            rc, ldap_err2string(rc));
+    fprintf(stderr, "base=\"%s\" normalization failed %d (%s)\n", baseDN.bv_val, rc, ldap_err2string(rc));
     rc = 1;
     goto destroy;
   }
@@ -226,8 +214,7 @@ int slapacl(int argc, char **argv) {
       goto destroy;
     }
 
-    if (!be->be_entry_open || !be->be_entry_close || !be->be_dn2id_get ||
-        !be->be_entry_get) {
+    if (!be->be_entry_open || !be->be_entry_close || !be->be_dn2id_get || !be->be_entry_get) {
       fprintf(stderr,
               "%s: target database "
               "doesn't support necessary operations; "
@@ -247,15 +234,13 @@ int slapacl(int argc, char **argv) {
 
     id = be->be_dn2id_get(be, &e.e_nname);
     if (id == NOID) {
-      fprintf(stderr, "%s: unable to fetch ID of DN \"%s\"\n", progname,
-              e.e_nname.bv_val);
+      fprintf(stderr, "%s: unable to fetch ID of DN \"%s\"\n", progname, e.e_nname.bv_val);
       rc = 1;
       goto destroy;
     }
     ep = be->be_entry_get(be, id);
     if (ep == NULL) {
-      fprintf(stderr, "%s: unable to fetch entry \"%s\" (%lu)\n", progname,
-              e.e_nname.bv_val, id);
+      fprintf(stderr, "%s: unable to fetch entry \"%s\" (%lu)\n", progname, e.e_nname.bv_val, id);
       rc = 1;
       goto destroy;
     }
@@ -306,8 +291,7 @@ int slapacl(int argc, char **argv) {
       access = str2access(accessstr);
       switch (access) {
       case ACL_INVALID_ACCESS:
-        fprintf(stderr, "unknown access \"%s\" for attribute \"%s\"\n",
-                accessstr, attr);
+        fprintf(stderr, "unknown access \"%s\" for attribute \"%s\"\n", accessstr, attr);
         invalid = 1;
         break;
 
@@ -330,8 +314,7 @@ int slapacl(int argc, char **argv) {
 
     rc = slap_str2ad(attr, &desc, &text);
     if (rc != LDAP_SUCCESS) {
-      fprintf(stderr, "slap_str2ad(%s) failed %d (%s)\n", attr, rc,
-              ldap_err2string(rc));
+      fprintf(stderr, "slap_str2ad(%s) failed %d (%s)\n", attr, rc, ldap_err2string(rc));
       if (continuemode) {
         continue;
       }
@@ -341,13 +324,11 @@ int slapacl(int argc, char **argv) {
     rc = access_allowed_mask(op, ep, desc, valp, access, NULL, &mask);
 
     if (accessstr) {
-      fprintf(stderr, "%s access to %s%s%s: %s\n", accessstr,
-              desc->ad_cname.bv_val, val.bv_val ? "=" : "",
+      fprintf(stderr, "%s access to %s%s%s: %s\n", accessstr, desc->ad_cname.bv_val, val.bv_val ? "=" : "",
               val.bv_val ? val.bv_val : "", rc ? "ALLOWED" : "DENIED");
 
     } else {
-      fprintf(stderr, "%s%s%s: %s\n", desc->ad_cname.bv_val,
-              val.bv_val ? "=" : "", val.bv_val ? val.bv_val : "",
+      fprintf(stderr, "%s%s%s: %s\n", desc->ad_cname.bv_val, val.bv_val ? "=" : "", val.bv_val ? val.bv_val : "",
               accessmask2str(mask, accessmaskbuf, 1));
     }
     rc = 0;

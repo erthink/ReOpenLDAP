@@ -186,8 +186,7 @@ int main(int argc, char *argv[]) {
     oldpw.bv_val = strdup(getpassphrase(_("Old password: ")));
     ckoldpw = getpassphrase(_("Re-enter old password: "));
 
-    if (oldpw.bv_val == NULL || ckoldpw == NULL ||
-        strcmp(oldpw.bv_val, ckoldpw)) {
+    if (oldpw.bv_val == NULL || ckoldpw == NULL || strcmp(oldpw.bv_val, ckoldpw)) {
       fprintf(stderr, _("passwords do not match\n"));
       rc = EXIT_FAILURE;
       goto done;
@@ -210,8 +209,7 @@ int main(int argc, char *argv[]) {
     newpw.bv_val = strdup(getpassphrase(_("New password: ")));
     cknewpw = getpassphrase(_("Re-enter new password: "));
 
-    if (newpw.bv_val == NULL || cknewpw == NULL ||
-        strcmp(newpw.bv_val, cknewpw)) {
+    if (newpw.bv_val == NULL || cknewpw == NULL || strcmp(newpw.bv_val, cknewpw)) {
       fprintf(stderr, _("passwords do not match\n"));
       rc = EXIT_FAILURE;
       goto done;
@@ -269,8 +267,7 @@ int main(int argc, char *argv[]) {
 
   tool_server_controls(ld, NULL, 0);
 
-  rc = ldap_extended_operation(ld, LDAP_EXOP_MODIFY_PASSWD,
-                               bv.bv_val ? &bv : NULL, NULL, NULL, &id);
+  rc = ldap_extended_operation(ld, LDAP_EXOP_MODIFY_PASSWD, bv.bv_val ? &bv : NULL, NULL, NULL, &id);
 
   ber_free(ber, 1);
 
@@ -339,12 +336,10 @@ int main(int argc, char *argv[]) {
     ber_free(ber, 1);
 
   } else if (code == LDAP_SUCCESS && newpw.bv_val == NULL) {
-    tool_perror("ldap_parse_extended_result", LDAP_DECODING_ERROR,
-                " new password expected", NULL, NULL, NULL);
+    tool_perror("ldap_parse_extended_result", LDAP_DECODING_ERROR, " new password expected", NULL, NULL, NULL);
   }
 
-  if (verbose || code != LDAP_SUCCESS || (matcheddn && *matcheddn) ||
-      (text && *text) || refs || ctrls) {
+  if (verbose || code != LDAP_SUCCESS || (matcheddn && *matcheddn) || (text && *text) || refs || ctrls) {
     printf(_("Result: %s (%d)\n"), ldap_err2string(code), code);
 
     if (text && *text) {

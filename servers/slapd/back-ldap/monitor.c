@@ -181,8 +181,7 @@ static struct {
 
     {NULL}};
 
-static int ldap_back_monitor_update(Operation *op, SlapReply *rs, Entry *e,
-                                    void *priv) {
+static int ldap_back_monitor_update(Operation *op, SlapReply *rs, Entry *e, void *priv) {
   ldapinfo_t *li = (ldapinfo_t *)priv;
 
   Attribute *a;
@@ -209,8 +208,7 @@ static int ldap_back_monitor_update(Operation *op, SlapReply *rs, Entry *e,
   return SLAP_CB_CONTINUE;
 }
 
-static int ldap_back_monitor_modify(Operation *op, SlapReply *rs, Entry *e,
-                                    void *priv) {
+static int ldap_back_monitor_modify(Operation *op, SlapReply *rs, Entry *e, void *priv) {
   ldapinfo_t *li = (ldapinfo_t *)priv;
 
   Attribute *save_attrs = NULL;
@@ -265,8 +263,7 @@ static int ldap_back_monitor_modify(Operation *op, SlapReply *rs, Entry *e,
     }
 
     rc = ldap_url_parselist_ext(&ludlist, ml->sml_nvalues[0].bv_val, NULL,
-                                LDAP_PVT_URL_PARSE_NOEMPTY_HOST |
-                                    LDAP_PVT_URL_PARSE_DEF_PORT);
+                                LDAP_PVT_URL_PARSE_NOEMPTY_HOST | LDAP_PVT_URL_PARSE_DEF_PORT);
     if (rc != LDAP_URL_SUCCESS) {
       rs->sr_err = LDAP_INVALID_SYNTAX;
       rs->sr_text = "unable to parse URI list";
@@ -335,8 +332,7 @@ static int ldap_back_monitor_free(Entry *e, void **priv) {
   return SLAP_CB_CONTINUE;
 }
 
-static int ldap_back_monitor_subsystem_destroy(BackendDB *be,
-                                               monitor_subsys_t *ms) {
+static int ldap_back_monitor_subsystem_destroy(BackendDB *be, monitor_subsys_t *ms) {
   free(ms->mss_dn.bv_val);
   BER_BVZERO(&ms->mss_dn);
 
@@ -396,24 +392,18 @@ static int ldap_back_monitor_conn_peername(LDAP *ld, struct berval *bv) {
   case AF_INET6:
     if (IN6_IS_ADDR_V4MAPPED(&sa.sa_in6_addr.sin6_addr)) {
 #if defined(HAVE_GETADDRINFO) && defined(HAVE_INET_NTOP)
-      peeraddr = inet_ntop(
-          AF_INET, ((struct in_addr *)&sa.sa_in6_addr.sin6_addr.s6_addr[12]),
-          addr, sizeof(addr));
+      peeraddr = inet_ntop(AF_INET, ((struct in_addr *)&sa.sa_in6_addr.sin6_addr.s6_addr[12]), addr, sizeof(addr));
 #else  /* ! HAVE_GETADDRINFO || ! HAVE_INET_NTOP */
-      peeraddr =
-          inet_ntoa(*((struct in_addr *)&sa.sa_in6_addr.sin6_addr.s6_addr[12]));
+      peeraddr = inet_ntoa(*((struct in_addr *)&sa.sa_in6_addr.sin6_addr.s6_addr[12]));
 #endif /* ! HAVE_GETADDRINFO || ! HAVE_INET_NTOP */
       if (!peeraddr)
         peeraddr = SLAP_STRING_UNKNOWN;
-      sprintf(peername, "IP=%s:%d", peeraddr,
-              (unsigned)ntohs(sa.sa_in6_addr.sin6_port));
+      sprintf(peername, "IP=%s:%d", peeraddr, (unsigned)ntohs(sa.sa_in6_addr.sin6_port));
     } else {
-      peeraddr =
-          inet_ntop(AF_INET6, &sa.sa_in6_addr.sin6_addr, addr, sizeof addr);
+      peeraddr = inet_ntop(AF_INET6, &sa.sa_in6_addr.sin6_addr, addr, sizeof addr);
       if (!peeraddr)
         peeraddr = SLAP_STRING_UNKNOWN;
-      sprintf(peername, "IP=[%s]:%d", peeraddr,
-              (unsigned)ntohs(sa.sa_in6_addr.sin6_port));
+      sprintf(peername, "IP=[%s]:%d", peeraddr, (unsigned)ntohs(sa.sa_in6_addr.sin6_port));
     }
     break;
 #endif /* LDAP_PF_INET6 */
@@ -426,8 +416,7 @@ static int ldap_back_monitor_conn_peername(LDAP *ld, struct berval *bv) {
 #endif /* ! HAVE_GETADDRINFO || ! HAVE_INET_NTOP */
     if (!peeraddr)
       peeraddr = SLAP_STRING_UNKNOWN;
-    sprintf(peername, "IP=%s:%d", peeraddr,
-            (unsigned)ntohs(sa.sa_in_addr.sin_port));
+    sprintf(peername, "IP=%s:%d", peeraddr, (unsigned)ntohs(sa.sa_in_addr.sin_port));
   } break;
 
   default:
@@ -438,9 +427,7 @@ static int ldap_back_monitor_conn_peername(LDAP *ld, struct berval *bv) {
   return LDAP_SUCCESS;
 }
 
-static int
-ldap_back_monitor_conn_entry(ldapconn_t *lc,
-                             struct ldap_back_monitor_conn_arg *arg) {
+static int ldap_back_monitor_conn_entry(ldapconn_t *lc, struct ldap_back_monitor_conn_arg *arg) {
   Entry *e;
   monitor_entry_t *mp;
   monitor_extra_t *mbe = arg->op->o_bd->bd_info->bi_extra;
@@ -450,11 +437,9 @@ ldap_back_monitor_conn_entry(ldapconn_t *lc,
   int i;
 
   bv.bv_val = buf;
-  bv.bv_len =
-      snprintf(bv.bv_val, SLAP_TEXT_BUFLEN, "cn=Connection %lu", lc->lc_connid);
+  bv.bv_len = snprintf(bv.bv_val, SLAP_TEXT_BUFLEN, "cn=Connection %lu", lc->lc_connid);
 
-  e = mbe->entry_stub(&arg->ms->mss_dn, &arg->ms->mss_ndn, &bv,
-                      oc_monitorContainer, NULL, NULL);
+  e = mbe->entry_stub(&arg->ms->mss_dn, &arg->ms->mss_ndn, &bv, oc_monitorContainer, NULL, NULL);
 
   attr_merge_normalize_one(e, ad_olmDbBoundDN, &lc->lc_bound_ndn, NULL);
 
@@ -485,8 +470,7 @@ ldap_back_monitor_conn_entry(ldapconn_t *lc,
   return 0;
 }
 
-static int ldap_back_monitor_conn_create(Operation *op, SlapReply *rs,
-                                         struct berval *ndn, Entry *e_parent,
+static int ldap_back_monitor_conn_create(Operation *op, SlapReply *rs, struct berval *ndn, Entry *e_parent,
                                          Entry **ep) {
   monitor_entry_t *mp_parent;
   monitor_subsys_t *ms;
@@ -507,15 +491,11 @@ static int ldap_back_monitor_conn_create(Operation *op, SlapReply *rs,
   arg->ep = ep;
   arg->ms = ms;
 
-  for (conn_type = LDAP_BACK_PCONN_FIRST; conn_type < LDAP_BACK_PCONN_LAST;
-       conn_type++) {
-    LDAP_TAILQ_FOREACH(lc, &li->li_conn_priv[conn_type].lic_priv, lc_q) {
-      ldap_back_monitor_conn_entry(lc, arg);
-    }
+  for (conn_type = LDAP_BACK_PCONN_FIRST; conn_type < LDAP_BACK_PCONN_LAST; conn_type++) {
+    LDAP_TAILQ_FOREACH(lc, &li->li_conn_priv[conn_type].lic_priv, lc_q) { ldap_back_monitor_conn_entry(lc, arg); }
   }
 
-  avl_apply(li->li_conninfo.lai_tree, (AVL_APPLY)ldap_back_monitor_conn_entry,
-            arg, -1, AVL_INORDER);
+  avl_apply(li->li_conninfo.lai_tree, (AVL_APPLY)ldap_back_monitor_conn_entry, arg, -1, AVL_INORDER);
 
   ch_free(arg);
 
@@ -537,8 +517,7 @@ static int ldap_back_monitor_conn_init(BackendDB *be, monitor_subsys_t *ms) {
   ms->mss_create = ldap_back_monitor_conn_create;
   ms->mss_destroy = ldap_back_monitor_subsystem_destroy;
 
-  e = mbe->entry_stub(&ms->mss_dn, &ms->mss_ndn, &ms->mss_rdn,
-                      oc_monitorContainer, NULL, NULL);
+  e = mbe->entry_stub(&ms->mss_dn, &ms->mss_ndn, &ms->mss_rdn, oc_monitorContainer, NULL, NULL);
   if (e == NULL) {
     Debug(LDAP_DEBUG_ANY,
           "ldap_back_monitor_conn_init: "
@@ -566,8 +545,7 @@ static int ldap_back_monitor_conn_init(BackendDB *be, monitor_subsys_t *ms) {
     attr_normalize(a->a_desc, a->a_vals, &a->a_nvals, NULL);
 
     rc = ldap_url_parselist_ext(&ludlist, li->li_uri, NULL,
-                                LDAP_PVT_URL_PARSE_NOEMPTY_HOST |
-                                    LDAP_PVT_URL_PARSE_DEF_PORT);
+                                LDAP_PVT_URL_PARSE_NOEMPTY_HOST | LDAP_PVT_URL_PARSE_DEF_PORT);
     if (rc != LDAP_URL_SUCCESS) {
       Debug(LDAP_DEBUG_ANY, "ldap_back_monitor_db_open: "
                             "unable to parse URI list (ignored)\n");
@@ -638,8 +616,7 @@ static int ldap_back_monitor_ops_free(Entry *e, void **priv) {
   return LDAP_SUCCESS;
 }
 
-static int ldap_back_monitor_ops_update(Operation *op, SlapReply *rs, Entry *e,
-                                        void *priv) {
+static int ldap_back_monitor_ops_update(Operation *op, SlapReply *rs, Entry *e, void *priv) {
   struct ldap_back_monitor_op_counter *counter = priv;
   Attribute *a;
 
@@ -673,8 +650,7 @@ static int ldap_back_monitor_ops_init(BackendDB *be, monitor_subsys_t *ms) {
   ms->mss_rdn = li->li_monitor_info.lmi_ops_rdn;
   ms->mss_destroy = ldap_back_monitor_subsystem_destroy;
 
-  parent = mbe->entry_stub(&ms->mss_dn, &ms->mss_ndn, &ms->mss_rdn,
-                           oc_monitorContainer, NULL, NULL);
+  parent = mbe->entry_stub(&ms->mss_dn, &ms->mss_ndn, &ms->mss_rdn, oc_monitorContainer, NULL, NULL);
   if (parent == NULL) {
     Debug(LDAP_DEBUG_ANY,
           "ldap_back_monitor_ops_init: "
@@ -699,9 +675,8 @@ static int ldap_back_monitor_ops_init(BackendDB *be, monitor_subsys_t *ms) {
     monitor_callback_t *cb;
     struct ldap_back_monitor_op_counter *counter;
 
-    e = mbe->entry_stub(&parent->e_name, &parent->e_nname,
-                        &ldap_back_monitor_op[op].rdn, oc_monitorCounterObject,
-                        NULL, NULL);
+    e = mbe->entry_stub(&parent->e_name, &parent->e_nname, &ldap_back_monitor_op[op].rdn, oc_monitorCounterObject, NULL,
+                        NULL);
     if (e == NULL) {
       Debug(LDAP_DEBUG_ANY,
             "ldap_back_monitor_ops_init: "
@@ -823,9 +798,7 @@ static int ldap_back_monitor_initialize(void) {
   for (i = 0; s_moc[i].name != NULL; i++) {
     *s_moc[i].oc = oc_find(s_moc[i].name);
     if (!*s_moc[i].oc) {
-      Debug(LDAP_DEBUG_ANY,
-            "ldap_back_monitor_initialize: failed to find objectClass (%s)\n",
-            s_moc[i].name);
+      Debug(LDAP_DEBUG_ANY, "ldap_back_monitor_initialize: failed to find objectClass (%s)\n", s_moc[i].name);
       return 5;
     }
   }
@@ -851,9 +824,7 @@ int ldap_back_monitor_db_init(BackendDB *be) {
   return 0;
 }
 
-static int ldap_back_monitor_conn_reject(BackendDB *be, monitor_subsys_t *ms) {
-  return LDAP_NO_SUCH_OBJECT;
-}
+static int ldap_back_monitor_conn_reject(BackendDB *be, monitor_subsys_t *ms) { return LDAP_NO_SUCH_OBJECT; }
 
 static int ldap_back_monitor_destroy(BackendDB *be, monitor_subsys_t *ms) {
   ldapinfo_t *li = (ldapinfo_t *)ms->mss_private;
@@ -914,9 +885,8 @@ int ldap_back_monitor_db_open(BackendDB *be) {
   if (BER_BVISNULL(&li->li_monitor_info.lmi_ndn)) {
     rc = mbe->register_database(be, &li->li_monitor_info.lmi_ndn);
     if (rc != 0) {
-      Debug(LDAP_DEBUG_ANY,
-            "ldap_back_monitor_db_open: "
-            "failed to register the database with back-monitor\n");
+      Debug(LDAP_DEBUG_ANY, "ldap_back_monitor_db_open: "
+                            "failed to register the database with back-monitor\n");
     }
   }
   if (BER_BVISNULL(&li->li_monitor_info.lmi_conn_rdn)) {

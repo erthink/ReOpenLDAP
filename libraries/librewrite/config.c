@@ -26,9 +26,7 @@
 /*
  * Parses a plugin map
  */
-static int rewrite_parse_builtin_map(struct rewrite_info *info,
-                                     const char *fname, int lineno, int argc,
-                                     char **argv);
+static int rewrite_parse_builtin_map(struct rewrite_info *info, const char *fname, int lineno, int argc, char **argv);
 
 /*
  * Parses a config line and takes actions to fit content in rewrite structure;
@@ -41,8 +39,7 @@ static int rewrite_parse_builtin_map(struct rewrite_info *info,
  *      rewriteMap 		mapType mapName [mapArgs]
  *      rewriteParam		paramName paramValue
  */
-int rewrite_parse(struct rewrite_info *info, const char *fname, int lineno,
-                  int argc, char **argv) {
+int rewrite_parse(struct rewrite_info *info, const char *fname, int lineno, int argc, char **argv) {
   int rc = -1;
 
   assert(info != NULL);
@@ -55,8 +52,7 @@ int rewrite_parse(struct rewrite_info *info, const char *fname, int lineno,
    */
   if (strcasecmp(argv[0], "rewriteEngine") == 0) {
     if (argc < 2) {
-      Debug(LDAP_DEBUG_ANY, "[%s:%d] rewriteEngine needs 'state'\n%s", fname,
-            lineno, "");
+      Debug(LDAP_DEBUG_ANY, "[%s:%d] rewriteEngine needs 'state'\n%s", fname, lineno, "");
       return -1;
 
     } else if (argc > 2) {
@@ -86,35 +82,28 @@ int rewrite_parse(struct rewrite_info *info, const char *fname, int lineno,
      */
   } else if (strcasecmp(argv[0], "rewriteMaxPasses") == 0) {
     if (argc < 2) {
-      Debug(LDAP_DEBUG_ANY, "[%s:%d] rewriteMaxPasses needs 'value'\n%s", fname,
-            lineno, "");
+      Debug(LDAP_DEBUG_ANY, "[%s:%d] rewriteMaxPasses needs 'value'\n%s", fname, lineno, "");
       return -1;
     }
 
     if (lutil_atoi(&info->li_max_passes, argv[1]) != 0) {
-      Debug(LDAP_DEBUG_ANY, "[%s:%d] unable to parse rewriteMaxPasses=\"%s\"\n",
-            fname, lineno, argv[1]);
+      Debug(LDAP_DEBUG_ANY, "[%s:%d] unable to parse rewriteMaxPasses=\"%s\"\n", fname, lineno, argv[1]);
       return -1;
     }
 
     if (info->li_max_passes <= 0) {
-      Debug(LDAP_DEBUG_ANY, "[%s:%d] negative or null rewriteMaxPasses\n",
-            fname, lineno);
+      Debug(LDAP_DEBUG_ANY, "[%s:%d] negative or null rewriteMaxPasses\n", fname, lineno);
       return -1;
     }
 
     if (argc > 2) {
       if (lutil_atoi(&info->li_max_passes_per_rule, argv[2]) != 0) {
-        Debug(LDAP_DEBUG_ANY,
-              "[%s:%d] unable to parse rewriteMaxPassesPerRule=\"%s\"\n", fname,
-              lineno, argv[2]);
+        Debug(LDAP_DEBUG_ANY, "[%s:%d] unable to parse rewriteMaxPassesPerRule=\"%s\"\n", fname, lineno, argv[2]);
         return -1;
       }
 
       if (info->li_max_passes_per_rule <= 0) {
-        Debug(LDAP_DEBUG_ANY,
-              "[%s:%d] negative or null rewriteMaxPassesPerRule\n", fname,
-              lineno);
+        Debug(LDAP_DEBUG_ANY, "[%s:%d] negative or null rewriteMaxPassesPerRule\n", fname, lineno);
         return -1;
       }
 
@@ -128,8 +117,7 @@ int rewrite_parse(struct rewrite_info *info, const char *fname, int lineno,
      */
   } else if (strcasecmp(argv[0], "rewriteContext") == 0) {
     if (argc < 2) {
-      Debug(LDAP_DEBUG_ANY, "[%s:%d] rewriteContext needs 'name'\n%s", fname,
-            lineno, "");
+      Debug(LDAP_DEBUG_ANY, "[%s:%d] rewriteContext needs 'name'\n%s", fname, lineno, "");
       return -1;
     }
 
@@ -221,8 +209,7 @@ int rewrite_parse(struct rewrite_info *info, const char *fname, int lineno,
             "[%s:%d] rewriteRule outside a"
             " context; will add to default\n%s",
             fname, lineno, "");
-      rewrite_int_curr_context =
-          rewrite_context_find(info, REWRITE_DEFAULT_CONTEXT);
+      rewrite_int_curr_context = rewrite_context_find(info, REWRITE_DEFAULT_CONTEXT);
 
       /*
        * Default context MUST exist in a properly initialized
@@ -231,8 +218,7 @@ int rewrite_parse(struct rewrite_info *info, const char *fname, int lineno,
       assert(rewrite_int_curr_context != NULL);
     }
 
-    rc = rewrite_rule_compile(info, rewrite_int_curr_context, argv[1], argv[2],
-                              (argc == 4 ? argv[3] : ""));
+    rc = rewrite_rule_compile(info, rewrite_int_curr_context, argv[1], argv[2], (argc == 4 ? argv[3] : ""));
 
     /*
      * Add a plugin map to the map tree
@@ -310,20 +296,17 @@ static int rewrite_builtin_map_dup(void *c1, void *c2) {
 /*
  * Adds a map to the info map tree
  */
-static int rewrite_builtin_map_insert(struct rewrite_info *info,
-                                      struct rewrite_builtin_map *map) {
+static int rewrite_builtin_map_insert(struct rewrite_info *info, struct rewrite_builtin_map *map) {
   /*
    * May need a mutex?
    */
-  return avl_insert(&info->li_maps, (caddr_t)map, rewrite_builtin_map_cmp,
-                    rewrite_builtin_map_dup);
+  return avl_insert(&info->li_maps, (caddr_t)map, rewrite_builtin_map_cmp, rewrite_builtin_map_dup);
 }
 
 /*
  * Retrieves a map
  */
-struct rewrite_builtin_map *rewrite_builtin_map_find(struct rewrite_info *info,
-                                                     const char *name) {
+struct rewrite_builtin_map *rewrite_builtin_map_find(struct rewrite_info *info, const char *name) {
   struct rewrite_builtin_map tmp;
 
   assert(info != NULL);
@@ -331,16 +314,13 @@ struct rewrite_builtin_map *rewrite_builtin_map_find(struct rewrite_info *info,
 
   tmp.lb_name = (char *)name;
 
-  return (struct rewrite_builtin_map *)avl_find(info->li_maps, (caddr_t)&tmp,
-                                                rewrite_builtin_map_cmp);
+  return (struct rewrite_builtin_map *)avl_find(info->li_maps, (caddr_t)&tmp, rewrite_builtin_map_cmp);
 }
 
 /*
  * Parses a plugin map
  */
-static int rewrite_parse_builtin_map(struct rewrite_info *info,
-                                     const char *fname, int lineno, int argc,
-                                     char **argv) {
+static int rewrite_parse_builtin_map(struct rewrite_info *info, const char *fname, int lineno, int argc, char **argv) {
   struct rewrite_builtin_map *map;
 
 #define MAP_TYPE 1
@@ -377,8 +357,7 @@ static int rewrite_parse_builtin_map(struct rewrite_info *info,
     }
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
 
-    map->lb_private =
-        map->lb_mapper->rm_config(fname, lineno, argc - 3, argv + 3);
+    map->lb_private = map->lb_mapper->rm_config(fname, lineno, argc - 3, argv + 3);
 
     /*
      * Error

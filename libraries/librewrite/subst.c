@@ -25,8 +25,7 @@
 /*
  * Compiles a substitution pattern
  */
-struct rewrite_subst *rewrite_subst_compile(struct rewrite_info *info,
-                                            const char *str) {
+struct rewrite_subst *rewrite_subst_compile(struct rewrite_info *info, const char *str) {
   size_t subs_len;
   struct berval *subs = NULL, *tmps;
   struct rewrite_submatch *submatch = NULL;
@@ -98,8 +97,7 @@ struct rewrite_subst *rewrite_subst_compile(struct rewrite_info *info,
        * Add a new value substitution scheme
        */
 
-      tmpsm = (struct rewrite_submatch *)realloc(
-          submatch, sizeof(struct rewrite_submatch) * (nsub + 1));
+      tmpsm = (struct rewrite_submatch *)realloc(submatch, sizeof(struct rewrite_submatch) * (nsub + 1));
       if (tmpsm == NULL) {
         goto cleanup;
       }
@@ -144,8 +142,7 @@ struct rewrite_subst *rewrite_subst_compile(struct rewrite_info *info,
       /*
        * Add a new value substitution scheme
        */
-      tmpsm = (struct rewrite_submatch *)realloc(
-          submatch, sizeof(struct rewrite_submatch) * (nsub + 1));
+      tmpsm = (struct rewrite_submatch *)realloc(submatch, sizeof(struct rewrite_submatch) * (nsub + 1));
       if (tmpsm == NULL) {
         rewrite_map_destroy(&map);
         goto cleanup;
@@ -229,14 +226,13 @@ cleanup:;
  * Copies the match referred to by submatch and fetched in string by match.
  * Helper for rewrite_rule_apply.
  */
-static int submatch_copy(struct rewrite_submatch *submatch, const char *string,
-                         const regmatch_t *match, struct berval *val) {
+static int submatch_copy(struct rewrite_submatch *submatch, const char *string, const regmatch_t *match,
+                         struct berval *val) {
   int c, l;
   const char *s;
 
   assert(submatch != NULL);
-  assert(submatch->ls_type == REWRITE_SUBMATCH_ASIS ||
-         submatch->ls_type == REWRITE_SUBMATCH_XMAP);
+  assert(submatch->ls_type == REWRITE_SUBMATCH_ASIS || submatch->ls_type == REWRITE_SUBMATCH_XMAP);
   assert(string != NULL);
   assert(match != NULL);
   assert(val != NULL);
@@ -262,9 +258,8 @@ static int submatch_copy(struct rewrite_submatch *submatch, const char *string,
  * Substitutes a portion of rewritten string according to substitution
  * pattern using submatches
  */
-int rewrite_subst_apply(struct rewrite_info *info, struct rewrite_op *op,
-                        struct rewrite_subst *subst, const char *string,
-                        const regmatch_t *match, struct berval *val) {
+int rewrite_subst_apply(struct rewrite_info *info, struct rewrite_op *op, struct rewrite_subst *subst,
+                        const char *string, const regmatch_t *match, struct berval *val) {
   struct berval *submatch = NULL;
   char *res = NULL;
   int n = 0, l, cl;
@@ -322,9 +317,7 @@ int rewrite_subst_apply(struct rewrite_info *info, struct rewrite_op *op,
         break;
 
       default:
-        rc = rewrite_subst_apply(info, op,
-                                 subst->lt_submatch[n].ls_map->lm_subst, string,
-                                 match, &key);
+        rc = rewrite_subst_apply(info, op, subst->lt_submatch[n].ls_map->lm_subst, string, match, &key);
       }
 
       if (rc != REWRITE_SUCCESS) {
@@ -353,15 +346,13 @@ int rewrite_subst_apply(struct rewrite_info *info, struct rewrite_op *op,
       break;
 
     case REWRITE_SUBMATCH_XMAP:
-      rc = rewrite_xmap_apply(info, op, subst->lt_submatch[n].ls_map, &key,
-                              &submatch[n]);
+      rc = rewrite_xmap_apply(info, op, subst->lt_submatch[n].ls_map, &key, &submatch[n]);
       free(key.bv_val);
       key.bv_val = NULL;
       break;
 
     case REWRITE_SUBMATCH_MAP_W_ARG:
-      rc = rewrite_map_apply(info, op, subst->lt_submatch[n].ls_map, &key,
-                             &submatch[n]);
+      rc = rewrite_map_apply(info, op, subst->lt_submatch[n].ls_map, &key, &submatch[n]);
       free(key.bv_val);
       key.bv_val = NULL;
       break;

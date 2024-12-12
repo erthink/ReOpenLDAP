@@ -70,26 +70,24 @@ struct tester_conn_args {
 
 #define TESTER_INIT_ONLY (1 << 0)
 #define TESTER_COMMON_OPTS "CD:d:H:h:L:l:i:O:p:R:U:X:Y:r:t:w:x"
-#define TESTER_COMMON_HELP                                                     \
-  "[-C] "                                                                      \
-  "[-D <dn> [-w <passwd>]] "                                                   \
-  "[-d <level>] "                                                              \
-  "[-H uri | -h <host> [-p port]] "                                            \
-  "[-i <ignore>] "                                                             \
-  "[-l <loops>] "                                                              \
-  "[-L <outerloops>] "                                                         \
-  "[-r <maxretries>] "                                                         \
-  "[-t <delay>] "                                                              \
-  "[-O <SASL secprops>] "                                                      \
-  "[-R <SASL realm>] "                                                         \
-  "[-U <SASL authcid> [-X <SASL authzid>]] "                                   \
+#define TESTER_COMMON_HELP                                                                                             \
+  "[-C] "                                                                                                              \
+  "[-D <dn> [-w <passwd>]] "                                                                                           \
+  "[-d <level>] "                                                                                                      \
+  "[-H uri | -h <host> [-p port]] "                                                                                    \
+  "[-i <ignore>] "                                                                                                     \
+  "[-l <loops>] "                                                                                                      \
+  "[-L <outerloops>] "                                                                                                 \
+  "[-r <maxretries>] "                                                                                                 \
+  "[-t <delay>] "                                                                                                      \
+  "[-O <SASL secprops>] "                                                                                              \
+  "[-R <SASL realm>] "                                                                                                 \
+  "[-U <SASL authcid> [-X <SASL authzid>]] "                                                                           \
   "[-x | -Y <SASL mech>] "
 
-extern int tester_config_opt(struct tester_conn_args *config, char opt,
-                             char *optarg);
+extern int tester_config_opt(struct tester_conn_args *config, char opt, char *optarg);
 extern void tester_config_finish(struct tester_conn_args *config);
-extern void tester_init_ld(LDAP **ldp, struct tester_conn_args *conf,
-                           int flags);
+extern void tester_init_ld(LDAP **ldp, struct tester_conn_args *conf, int flags);
 
 extern pid_t pid;
 

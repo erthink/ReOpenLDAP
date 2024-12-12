@@ -63,11 +63,9 @@ static int ainfo_insert(struct mdb_info *mdb, AttrInfo *a) {
   if (i >= 0)
     return -1;
 
-  mdb->mi_attrs =
-      ch_realloc(mdb->mi_attrs, (mdb->mi_nattrs + 1) * sizeof(AttrInfo *));
+  mdb->mi_attrs = ch_realloc(mdb->mi_attrs, (mdb->mi_nattrs + 1) * sizeof(AttrInfo *));
   if (x < mdb->mi_nattrs)
-    memmove(&mdb->mi_attrs[x + 1], &mdb->mi_attrs[x],
-            (mdb->mi_nattrs - x) * sizeof(AttrInfo *));
+    memmove(&mdb->mi_attrs[x + 1], &mdb->mi_attrs[x], (mdb->mi_nattrs - x) * sizeof(AttrInfo *));
   mdb->mi_attrs[x] = a;
   mdb->mi_nattrs++;
   return 0;
@@ -109,19 +107,14 @@ int mdb_attr_dbs_open(BackendDB *be, MDBX_txn *tx0, ConfigReply *cr) {
   for (i = 0; i < mdb->mi_nattrs; i++) {
     if (mdb->mi_attrs[i]->ai_dbi) /* already open */
       continue;
-    if (!(mdb->mi_attrs[i]->ai_indexmask ||
-          mdb->mi_attrs[i]->ai_newmask)) /* not an index record */
+    if (!(mdb->mi_attrs[i]->ai_indexmask || mdb->mi_attrs[i]->ai_newmask)) /* not an index record */
       continue;
-    rc =
-        mdbx_dbi_open(txn, mdb->mi_attrs[i]->ai_desc->ad_type->sat_cname.bv_val,
-                      flags, &mdb->mi_attrs[i]->ai_dbi);
+    rc = mdbx_dbi_open(txn, mdb->mi_attrs[i]->ai_desc->ad_type->sat_cname.bv_val, flags, &mdb->mi_attrs[i]->ai_dbi);
     if (rc) {
       snprintf(cr->msg, sizeof(cr->msg),
                "database \"%s\": "
                "mdbx_dbi_open(%s) failed: %s (%d).",
-               be->be_suffix[0].bv_val,
-               mdb->mi_attrs[i]->ai_desc->ad_type->sat_cname.bv_val,
-               mdbx_strerror(rc), rc);
+               be->be_suffix[0].bv_val, mdb->mi_attrs[i]->ai_desc->ad_type->sat_cname.bv_val, mdbx_strerror(rc), rc);
       Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_attr_dbs) ": %s\n", cr->msg);
       break;
     }
@@ -169,8 +162,7 @@ void mdb_attr_dbs_close(struct mdb_info *mdb) {
     }
 }
 
-int mdb_attr_index_config(struct mdb_info *mdb, const char *fname, int lineno,
-                          int argc, char **argv,
+int mdb_attr_index_config(struct mdb_info *mdb, const char *fname, int lineno, int argc, char **argv,
                           struct config_reply_s *c_reply) {
   int rc = 0;
   int i;
@@ -213,8 +205,7 @@ int mdb_attr_index_config(struct mdb_info *mdb, const char *fname, int lineno,
 
       if (rc != LDAP_SUCCESS) {
         if (c_reply) {
-          snprintf(c_reply->msg, sizeof(c_reply->msg),
-                   "index type \"%s\" undefined", indexes[i]);
+          snprintf(c_reply->msg, sizeof(c_reply->msg), "index type \"%s\" undefined", indexes[i]);
 
           fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
         }
@@ -254,8 +245,7 @@ int mdb_attr_index_config(struct mdb_info *mdb, const char *fname, int lineno,
       rc = extract_component_reference(attrs[i], &cr);
       if (rc != LDAP_SUCCESS) {
         if (c_reply) {
-          snprintf(c_reply->msg, sizeof(c_reply->msg),
-                   "index component reference\"%s\" undefined", attrs[i]);
+          snprintf(c_reply->msg, sizeof(c_reply->msg), "index component reference\"%s\" undefined", attrs[i]);
           fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
         }
         goto done;
@@ -274,8 +264,7 @@ int mdb_attr_index_config(struct mdb_info *mdb, const char *fname, int lineno,
 
     if (rc != LDAP_SUCCESS) {
       if (c_reply) {
-        snprintf(c_reply->msg, sizeof(c_reply->msg),
-                 "index attribute \"%s\" undefined", attrs[i]);
+        snprintf(c_reply->msg, sizeof(c_reply->msg), "index attribute \"%s\" undefined", attrs[i]);
 
         fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
       }
@@ -288,8 +277,7 @@ int mdb_attr_index_config(struct mdb_info *mdb, const char *fname, int lineno,
 
     if (ad == slap_schema.si_ad_entryDN || slap_ad_is_binary(ad)) {
       if (c_reply) {
-        snprintf(c_reply->msg, sizeof(c_reply->msg),
-                 "index of attribute \"%s\" disallowed", attrs[i]);
+        snprintf(c_reply->msg, sizeof(c_reply->msg), "index of attribute \"%s\" disallowed", attrs[i]);
         fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
       }
       rc = LDAP_UNWILLING_TO_PERFORM;
@@ -297,11 +285,9 @@ int mdb_attr_index_config(struct mdb_info *mdb, const char *fname, int lineno,
     }
 
     if (IS_SLAP_INDEX(mask, SLAP_INDEX_APPROX) &&
-        !(ad->ad_type->sat_approx && ad->ad_type->sat_approx->smr_indexer &&
-          ad->ad_type->sat_approx->smr_filter)) {
+        !(ad->ad_type->sat_approx && ad->ad_type->sat_approx->smr_indexer && ad->ad_type->sat_approx->smr_filter)) {
       if (c_reply) {
-        snprintf(c_reply->msg, sizeof(c_reply->msg),
-                 "approx index of attribute \"%s\" disallowed", attrs[i]);
+        snprintf(c_reply->msg, sizeof(c_reply->msg), "approx index of attribute \"%s\" disallowed", attrs[i]);
         fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
       }
       rc = LDAP_INAPPROPRIATE_MATCHING;
@@ -312,8 +298,7 @@ int mdb_attr_index_config(struct mdb_info *mdb, const char *fname, int lineno,
         !(ad->ad_type->sat_equality && ad->ad_type->sat_equality->smr_indexer &&
           ad->ad_type->sat_equality->smr_filter)) {
       if (c_reply) {
-        snprintf(c_reply->msg, sizeof(c_reply->msg),
-                 "equality index of attribute \"%s\" disallowed", attrs[i]);
+        snprintf(c_reply->msg, sizeof(c_reply->msg), "equality index of attribute \"%s\" disallowed", attrs[i]);
         fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
       }
       rc = LDAP_INAPPROPRIATE_MATCHING;
@@ -321,11 +306,9 @@ int mdb_attr_index_config(struct mdb_info *mdb, const char *fname, int lineno,
     }
 
     if (IS_SLAP_INDEX(mask, SLAP_INDEX_SUBSTR) &&
-        !(ad->ad_type->sat_substr && ad->ad_type->sat_substr->smr_indexer &&
-          ad->ad_type->sat_substr->smr_filter)) {
+        !(ad->ad_type->sat_substr && ad->ad_type->sat_substr->smr_indexer && ad->ad_type->sat_substr->smr_filter)) {
       if (c_reply) {
-        snprintf(c_reply->msg, sizeof(c_reply->msg),
-                 "substr index of attribute \"%s\" disallowed", attrs[i]);
+        snprintf(c_reply->msg, sizeof(c_reply->msg), "substr index of attribute \"%s\" disallowed", attrs[i]);
         fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
       }
       rc = LDAP_INAPPROPRIATE_MATCHING;
@@ -358,8 +341,7 @@ int mdb_attr_index_config(struct mdb_info *mdb, const char *fname, int lineno,
         ch_free(a);
         rc = insert_component_reference(cr, &a_cr->ai_cr);
         if (rc != LDAP_SUCCESS) {
-          fprintf(stderr, " error during inserting component reference in %s ",
-                  attrs[i]);
+          fprintf(stderr, " error during inserting component reference in %s ", attrs[i]);
           rc = LDAP_PARAM_ERROR;
           goto fail;
         }
@@ -367,8 +349,7 @@ int mdb_attr_index_config(struct mdb_info *mdb, const char *fname, int lineno,
       } else {
         rc = insert_component_reference(cr, &a->ai_cr);
         if (rc != LDAP_SUCCESS) {
-          fprintf(stderr, " error during inserting component reference in %s ",
-                  attrs[i]);
+          fprintf(stderr, " error during inserting component reference in %s ", attrs[i]);
           rc = LDAP_PARAM_ERROR;
           ch_free(a);
           goto fail;
@@ -404,8 +385,7 @@ int mdb_attr_index_config(struct mdb_info *mdb, const char *fname, int lineno,
         }
       }
       if (c_reply) {
-        snprintf(c_reply->msg, sizeof(c_reply->msg),
-                 "duplicate index definition for attr \"%s\"", attrs[i]);
+        snprintf(c_reply->msg, sizeof(c_reply->msg), "duplicate index definition for attr \"%s\"", attrs[i]);
         fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
       }
 
@@ -456,8 +436,7 @@ void mdb_attr_index_unparse(struct mdb_info *mdb, BerVarray *bva) {
       mdb_attr_index_unparser(mdb->mi_attrs[i], bva);
 }
 
-int mdb_attr_multi_config(struct mdb_info *mdb, const char *fname, int lineno,
-                          int argc, char **argv,
+int mdb_attr_multi_config(struct mdb_info *mdb, const char *fname, int lineno, int argc, char **argv,
                           struct config_reply_s *c_reply) {
   int rc = 0;
   int i;
@@ -505,8 +484,7 @@ int mdb_attr_multi_config(struct mdb_info *mdb, const char *fname, int lineno,
 
     if (rc != LDAP_SUCCESS) {
       if (c_reply) {
-        snprintf(c_reply->msg, sizeof(c_reply->msg),
-                 "multival attribute \"%s\" undefined", attrs[i]);
+        snprintf(c_reply->msg, sizeof(c_reply->msg), "multival attribute \"%s\" undefined", attrs[i]);
 
         fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
       }
@@ -531,8 +509,7 @@ int mdb_attr_multi_config(struct mdb_info *mdb, const char *fname, int lineno,
         continue;
       }
       if (c_reply) {
-        snprintf(c_reply->msg, sizeof(c_reply->msg),
-                 "duplicate multival definition for attr \"%s\"", attrs[i]);
+        snprintf(c_reply->msg, sizeof(c_reply->msg), "duplicate multival definition for attr \"%s\"", attrs[i]);
         fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
       }
 
@@ -554,8 +531,7 @@ static int mdb_attr_multi_unparser(void *v1, void *v2) {
   char digbuf[sizeof("4294967296,4294967296")];
   char *ptr;
 
-  bv.bv_len = snprintf(digbuf, sizeof(digbuf), "%u,%u", ai->ai_multi_hi,
-                       ai->ai_multi_lo);
+  bv.bv_len = snprintf(digbuf, sizeof(digbuf), "%u,%u", ai->ai_multi_hi, ai->ai_multi_lo);
   if (bv.bv_len) {
     bv.bv_len += ai->ai_desc->ad_cname.bv_len + 1;
     ptr = ch_malloc(bv.bv_len + 1);
@@ -581,8 +557,7 @@ void mdb_attr_multi_unparse(struct mdb_info *mdb, BerVarray *bva) {
       mdb_attr_multi_unparser(mdb->mi_attrs[i], bva);
 }
 
-void mdb_attr_multi_thresh(struct mdb_info *mdb, AttributeDescription *ad,
-                           unsigned *hi, unsigned *lo) {
+void mdb_attr_multi_thresh(struct mdb_info *mdb, AttributeDescription *ad, unsigned *hi, unsigned *lo) {
   AttrInfo *ai = mdb_attr_mask(mdb, ad);
   if (ai && ai->ai_multi_hi < UINT_MAX) {
     if (hi)
@@ -656,8 +631,7 @@ int mdb_ad_read(struct mdb_info *mdb, MDBX_txn *txn) {
 
   rc = mdbx_cursor_open(txn, mdb->mi_ad2id, &mc);
   if (rc) {
-    Debug(LDAP_DEBUG_ANY, "mdb_ad_read: cursor_open failed %s(%d)\n",
-          mdbx_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "mdb_ad_read: cursor_open failed %s(%d)\n", mdbx_strerror(rc), rc);
     return rc;
   }
 
@@ -679,8 +653,7 @@ int mdb_ad_read(struct mdb_info *mdb, MDBX_txn *txn) {
       rc = slap_bv2undef_ad(&bdata, &mdb->mi_ads[i], &text, 0);
     } else {
       if (ad->ad_index >= MDB_MAXADS) {
-        Debug(LDAP_DEBUG_ANY,
-              "mdb_adb_read: too many AttributeDescriptions in use\n");
+        Debug(LDAP_DEBUG_ANY, "mdb_adb_read: too many AttributeDescriptions in use\n");
         rc = LDAP_OTHER;
         break;
       }
@@ -725,8 +698,7 @@ int mdb_ad_get(struct mdb_info *mdb, MDBX_txn *txn, AttributeDescription *ad) {
     mdb->mi_ads[i] = ad;
     mdb->mi_numads = i;
   } else {
-    Debug(LDAP_DEBUG_ANY, "mdb_ad_get: mdbx_put failed %s(%d)\n",
-          mdbx_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "mdb_ad_get: mdbx_put failed %s(%d)\n", mdbx_strerror(rc), rc);
   }
 
   ldap_pvt_thread_mutex_unlock(&mdb->mi_ads_mutex);

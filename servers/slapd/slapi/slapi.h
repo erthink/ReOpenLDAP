@@ -143,8 +143,7 @@ struct slapi_pblock {
  * Was: plugin.h
  */
 
-#define SLAPI_PLUGIN_IS_POST_FN(x)                                             \
-  ((x) >= SLAPI_PLUGIN_POST_BIND_FN && (x) <= SLAPI_PLUGIN_BE_POST_DELETE_FN)
+#define SLAPI_PLUGIN_IS_POST_FN(x) ((x) >= SLAPI_PLUGIN_POST_BIND_FN && (x) <= SLAPI_PLUGIN_BE_POST_DELETE_FN)
 
 #define SLAPI_IBM_PBLOCK -3
 

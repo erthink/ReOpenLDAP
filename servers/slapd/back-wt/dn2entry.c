@@ -48,11 +48,9 @@ int wt_dn2entry(BackendDB *be, wt_ctx *wc, struct berval *ndn, Entry **ep) {
   }
 
   if (!cursor) {
-    rc = session->open_cursor(session, WT_INDEX_DN "(id, entry)", NULL, NULL,
-                              &cursor);
+    rc = session->open_cursor(session, WT_INDEX_DN "(id, entry)", NULL, NULL, &cursor);
     if (rc) {
-      Debug(LDAP_DEBUG_ANY, "wt_dn2entry: open_cursor failed: %s (%d)\n",
-            wiredtiger_strerror(rc), rc);
+      Debug(LDAP_DEBUG_ANY, "wt_dn2entry: open_cursor failed: %s (%d)\n", wiredtiger_strerror(rc), rc);
       goto done;
     }
     wc->dn2entry = cursor;
@@ -66,9 +64,7 @@ int wt_dn2entry(BackendDB *be, wt_ctx *wc, struct berval *ndn, Entry **ep) {
   case WT_NOTFOUND:
     goto done;
   default:
-    Debug(LDAP_DEBUG_ANY,
-          LDAP_XSTRING(wt_dn2entry) ": search failed: %s (%d)\n",
-          wiredtiger_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(wt_dn2entry) ": search failed: %s (%d)\n", wiredtiger_strerror(rc), rc);
     goto done;
   }
   cursor->get_value(cursor, &id, &item);
@@ -83,9 +79,7 @@ int wt_dn2entry(BackendDB *be, wt_ctx *wc, struct berval *ndn, Entry **ep) {
   eh.data += eoff;
   rc = entry_decode(&eh, &e);
   if (rc) {
-    Debug(LDAP_DEBUG_ANY,
-          LDAP_XSTRING(wt_dn2entry) ": entry decode error: %s (%d)\n",
-          wiredtiger_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(wt_dn2entry) ": entry decode error: %s (%d)\n", wiredtiger_strerror(rc), rc);
     goto done;
   }
 
@@ -149,8 +143,7 @@ int wt_dn2aentry(BackendDB *be, wt_ctx *wc, struct berval *ndn, Entry **ep) {
     *ep = e;
     break;
   default:
-    Debug(LDAP_DEBUG_ANY, "wt_dn2aentry: failed %s (%d)\n",
-          wiredtiger_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "wt_dn2aentry: failed %s (%d)\n", wiredtiger_strerror(rc), rc);
   }
   return rc;
 }

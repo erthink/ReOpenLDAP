@@ -53,8 +53,7 @@
  * ber_len_t is mostly unrelated to this.  Which may be for the best,
  * since it is also used for lengths of data that are never encoded.
  */
-#define MAXINT_BERSIZE                                                         \
-  (INT_MAX > 0xffffffffUL ? (ber_len_t)0xffffffffUL : INT_MAX - HEADER_SIZE)
+#define MAXINT_BERSIZE (INT_MAX > 0xffffffffUL ? (ber_len_t)0xffffffffUL : INT_MAX - HEADER_SIZE)
 #define MAXINT_BERSIZE_OCTETS 4
 typedef ber_uint_t ber_elem_size_t; /* normally 32 bits */
 
@@ -194,8 +193,7 @@ int ber_put_int(BerElement *ber, ber_int_t num, ber_tag_t tag) {
   return ber_put_int_or_enum(ber, num, tag);
 }
 
-int ber_put_ostring(BerElement *ber, const char *str, ber_len_t len,
-                    ber_tag_t tag) {
+int ber_put_ostring(BerElement *ber, const char *str, ber_len_t len, ber_tag_t tag) {
   int rc;
   unsigned char header[HEADER_SIZE], *ptr;
 
@@ -233,8 +231,7 @@ int ber_put_string(BerElement *ber, const char *str, ber_tag_t tag) {
   return ber_put_ostring(ber, str, strlen(str), tag);
 }
 
-int ber_put_bitstring(BerElement *ber, const char *str,
-                      ber_len_t blen /* in bits */, ber_tag_t tag) {
+int ber_put_bitstring(BerElement *ber, const char *str, ber_len_t blen /* in bits */, ber_tag_t tag) {
   int rc;
   ber_len_t len;
   unsigned char unusedbits, header[HEADER_SIZE + 1], *ptr;
@@ -289,10 +286,8 @@ int ber_put_boolean(BerElement *ber, ber_int_t boolval, ber_tag_t tag) {
 }
 
 /* Max number of length octets in a sequence or set, normally 5 */
-#define SOS_LENLEN                                                             \
-  (1 + (sizeof(ber_elem_size_t) > MAXINT_BERSIZE_OCTETS                        \
-            ? (ber_len_t)sizeof(ber_elem_size_t)                               \
-            : MAXINT_BERSIZE_OCTETS))
+#define SOS_LENLEN                                                                                                     \
+  (1 + (sizeof(ber_elem_size_t) > MAXINT_BERSIZE_OCTETS ? (ber_len_t)sizeof(ber_elem_size_t) : MAXINT_BERSIZE_OCTETS))
 
 /* Header of incomplete sequence or set */
 typedef struct seqorset_header {
@@ -562,8 +557,7 @@ int ber_printf(BerElement *ber, const char *fmt, ...) {
 
     default:
       if (ber->ber_debug) {
-        ber_log_printf(LDAP_DEBUG_ANY, ber->ber_debug,
-                       "ber_printf: unknown fmt %c\n", *fmt);
+        ber_log_printf(LDAP_DEBUG_ANY, ber->ber_debug, "ber_printf: unknown fmt %c\n", *fmt);
       }
       rc = -1;
       break;

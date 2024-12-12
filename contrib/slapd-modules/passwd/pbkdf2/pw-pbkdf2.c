@@ -25,12 +25,9 @@
 #include <stdlib.h>
 #include "slap.h"
 
-#if RELDAP_TLS == RELDAP_TLS_OPENSSL ||                                        \
-    (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL &&                              \
-     RELDAP_TLS != RELDAP_TLS_GNUTLS)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
 #include <openssl/evp.h>
-#elif RELDAP_TLS == RELDAP_TLS_GNUTLS ||                                       \
-    RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 #include <nettle/pbkdf2.h>
 #include <nettle/hmac.h>
 typedef void (*pbkdf2_hmac_update)(void *, unsigned, const uint8_t *);
@@ -103,28 +100,24 @@ static int ab64_to_b64(char *src, char *dst, size_t dstsize) {
   return 0;
 }
 
-static int pbkdf2_format(const struct berval *sc, int iteration,
-                         const struct berval *salt, const struct berval *dk,
+static int pbkdf2_format(const struct berval *sc, int iteration, const struct berval *salt, const struct berval *dk,
                          struct berval *msg) {
 
   int rc, msg_len;
   char salt_b64[LUTIL_BASE64_ENCODE_LEN(PBKDF2_SALT_SIZE) + 1];
   char dk_b64[LUTIL_BASE64_ENCODE_LEN(PBKDF2_MAX_DK_SIZE) + 1];
 
-  rc = lutil_b64_ntop((unsigned char *)salt->bv_val, salt->bv_len, salt_b64,
-                      sizeof(salt_b64));
+  rc = lutil_b64_ntop((unsigned char *)salt->bv_val, salt->bv_len, salt_b64, sizeof(salt_b64));
   if (rc < 0) {
     return LUTIL_PASSWD_ERR;
   }
   b64_to_ab64(salt_b64);
-  rc = lutil_b64_ntop((unsigned char *)dk->bv_val, dk->bv_len, dk_b64,
-                      sizeof(dk_b64));
+  rc = lutil_b64_ntop((unsigned char *)dk->bv_val, dk->bv_len, dk_b64, sizeof(dk_b64));
   if (rc < 0) {
     return LUTIL_PASSWD_ERR;
   }
   b64_to_ab64(dk_b64);
-  msg_len = asprintf(&msg->bv_val, "%s%d$%s$%s", sc->bv_val, iteration,
-                     salt_b64, dk_b64);
+  msg_len = asprintf(&msg->bv_val, "%s%d$%s$%s", sc->bv_val, iteration, salt_b64, dk_b64);
   if (msg_len < 0) {
     msg->bv_len = 0;
     return LUTIL_PASSWD_ERR;
@@ -134,8 +127,7 @@ static int pbkdf2_format(const struct berval *sc, int iteration,
   return LUTIL_PASSWD_OK;
 }
 
-static int pbkdf2_encrypt(const struct berval *scheme,
-                          const struct berval *passwd, struct berval *msg,
+static int pbkdf2_encrypt(const struct berval *scheme, const struct berval *passwd, struct berval *msg,
                           const char **text) {
   unsigned char salt_value[PBKDF2_SALT_SIZE];
   struct berval salt;
@@ -143,12 +135,9 @@ static int pbkdf2_encrypt(const struct berval *scheme,
   struct berval dk;
   int iteration = PBKDF2_ITERATION;
   int rc;
-#if RELDAP_TLS == RELDAP_TLS_OPENSSL ||                                        \
-    (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL &&                              \
-     RELDAP_TLS != RELDAP_TLS_GNUTLS)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
   const EVP_MD *md;
-#elif RELDAP_TLS == RELDAP_TLS_GNUTLS ||                                       \
-    RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
   struct hmac_sha1_ctx sha1_ctx;
   struct hmac_sha256_ctx sha256_ctx;
   struct hmac_sha512_ctx sha512_ctx;
@@ -161,9 +150,7 @@ static int pbkdf2_encrypt(const struct berval *scheme,
   salt.bv_len = sizeof(salt_value);
   dk.bv_val = (char *)dk_value;
 
-#if RELDAP_TLS == RELDAP_TLS_OPENSSL ||                                        \
-    (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL &&                              \
-     RELDAP_TLS != RELDAP_TLS_GNUTLS)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
   if (!ber_bvcmp(scheme, &pbkdf2_scheme)) {
     dk.bv_len = PBKDF2_SHA1_DK_SIZE;
     md = EVP_sha1();
@@ -179,36 +166,31 @@ static int pbkdf2_encrypt(const struct berval *scheme,
   } else {
     return LUTIL_PASSWD_ERR;
   }
-#elif RELDAP_TLS == RELDAP_TLS_GNUTLS ||                                       \
-    RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
   if (!ber_bvcmp(scheme, &pbkdf2_scheme)) {
     dk.bv_len = PBKDF2_SHA1_DK_SIZE;
     current_ctx = &sha1_ctx;
     current_hmac_update = (pbkdf2_hmac_update)&hmac_sha1_update;
     current_hmac_digest = (pbkdf2_hmac_digest)&hmac_sha1_digest;
-    hmac_sha1_set_key(current_ctx, passwd->bv_len,
-                      (const uint8_t *)passwd->bv_val);
+    hmac_sha1_set_key(current_ctx, passwd->bv_len, (const uint8_t *)passwd->bv_val);
   } else if (!ber_bvcmp(scheme, &pbkdf2_sha1_scheme)) {
     dk.bv_len = PBKDF2_SHA1_DK_SIZE;
     current_ctx = &sha1_ctx;
     current_hmac_update = (pbkdf2_hmac_update)&hmac_sha1_update;
     current_hmac_digest = (pbkdf2_hmac_digest)&hmac_sha1_digest;
-    hmac_sha1_set_key(current_ctx, passwd->bv_len,
-                      (const uint8_t *)passwd->bv_val);
+    hmac_sha1_set_key(current_ctx, passwd->bv_len, (const uint8_t *)passwd->bv_val);
   } else if (!ber_bvcmp(scheme, &pbkdf2_sha256_scheme)) {
     dk.bv_len = PBKDF2_SHA256_DK_SIZE;
     current_ctx = &sha256_ctx;
     current_hmac_update = (pbkdf2_hmac_update)&hmac_sha256_update;
     current_hmac_digest = (pbkdf2_hmac_digest)&hmac_sha256_digest;
-    hmac_sha256_set_key(current_ctx, passwd->bv_len,
-                        (const uint8_t *)passwd->bv_val);
+    hmac_sha256_set_key(current_ctx, passwd->bv_len, (const uint8_t *)passwd->bv_val);
   } else if (!ber_bvcmp(scheme, &pbkdf2_sha512_scheme)) {
     dk.bv_len = PBKDF2_SHA512_DK_SIZE;
     current_ctx = &sha512_ctx;
     current_hmac_update = (pbkdf2_hmac_update)&hmac_sha512_update;
     current_hmac_digest = (pbkdf2_hmac_digest)&hmac_sha512_digest;
-    hmac_sha512_set_key(current_ctx, passwd->bv_len,
-                        (const uint8_t *)passwd->bv_val);
+    hmac_sha512_set_key(current_ctx, passwd->bv_len, (const uint8_t *)passwd->bv_val);
   } else {
     return LUTIL_PASSWD_ERR;
   }
@@ -218,19 +200,14 @@ static int pbkdf2_encrypt(const struct berval *scheme,
     return LUTIL_PASSWD_ERR;
   }
 
-#if RELDAP_TLS == RELDAP_TLS_OPENSSL ||                                        \
-    (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL &&                              \
-     RELDAP_TLS != RELDAP_TLS_GNUTLS)
-  if (!PKCS5_PBKDF2_HMAC(passwd->bv_val, passwd->bv_len,
-                         (unsigned char *)salt.bv_val, salt.bv_len, iteration,
-                         md, dk.bv_len, dk_value)) {
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
+  if (!PKCS5_PBKDF2_HMAC(passwd->bv_val, passwd->bv_len, (unsigned char *)salt.bv_val, salt.bv_len, iteration, md,
+                         dk.bv_len, dk_value)) {
     return LUTIL_PASSWD_ERR;
   }
-#elif RELDAP_TLS == RELDAP_TLS_GNUTLS ||                                       \
-    RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
-  PBKDF2(current_ctx, current_hmac_update, current_hmac_digest, dk.bv_len,
-         iteration, salt.bv_len, (const uint8_t *)salt.bv_val, dk.bv_len,
-         dk_value);
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+  PBKDF2(current_ctx, current_hmac_update, current_hmac_digest, dk.bv_len, iteration, salt.bv_len,
+         (const uint8_t *)salt.bv_val, dk.bv_len, dk_value);
 #endif /* RELDAP_TLS */
 
 #ifdef SLAPD_PBKDF2_DEBUG
@@ -261,8 +238,7 @@ static int pbkdf2_encrypt(const struct berval *scheme,
   return rc;
 }
 
-static int pbkdf2_check(const struct berval *scheme,
-                        const struct berval *passwd, const struct berval *cred,
+static int pbkdf2_check(const struct berval *scheme, const struct berval *passwd, const struct berval *cred,
                         const char **text) {
   int rc;
   int iteration;
@@ -275,12 +251,9 @@ static int pbkdf2_check(const struct berval *scheme,
   char dk_b64[LUTIL_BASE64_ENCODE_LEN(PBKDF2_MAX_DK_SIZE) + 1];
   unsigned char input_dk_value[PBKDF2_MAX_DK_SIZE];
   size_t dk_len;
-#if RELDAP_TLS == RELDAP_TLS_OPENSSL ||                                        \
-    (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL &&                              \
-     RELDAP_TLS != RELDAP_TLS_GNUTLS)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
   const EVP_MD *md;
-#elif RELDAP_TLS == RELDAP_TLS_GNUTLS ||                                       \
-    RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
   struct hmac_sha1_ctx sha1_ctx;
   struct hmac_sha256_ctx sha256_ctx;
   struct hmac_sha512_ctx sha512_ctx;
@@ -295,9 +268,7 @@ static int pbkdf2_check(const struct berval *scheme,
   printf("  Input Cred:\t%s\n", cred->bv_val);
 #endif /* SLAPD_PBKDF2_DEBUG */
 
-#if RELDAP_TLS == RELDAP_TLS_OPENSSL ||                                        \
-    (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL &&                              \
-     RELDAP_TLS != RELDAP_TLS_GNUTLS)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
   if (!ber_bvcmp(scheme, &pbkdf2_scheme)) {
     dk_len = PBKDF2_SHA1_DK_SIZE;
     md = EVP_sha1();
@@ -313,8 +284,7 @@ static int pbkdf2_check(const struct berval *scheme,
   } else {
     return LUTIL_PASSWD_ERR;
   }
-#elif RELDAP_TLS == RELDAP_TLS_GNUTLS ||                                       \
-    RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
   if (!ber_bvcmp(scheme, &pbkdf2_scheme)) {
     dk_len = PBKDF2_SHA1_DK_SIZE;
     current_ctx = &sha1_ctx;
@@ -332,15 +302,13 @@ static int pbkdf2_check(const struct berval *scheme,
     current_ctx = &sha256_ctx;
     current_hmac_update = (pbkdf2_hmac_update)&hmac_sha256_update;
     current_hmac_digest = (pbkdf2_hmac_digest)&hmac_sha256_digest;
-    hmac_sha256_set_key(current_ctx, cred->bv_len,
-                        (const uint8_t *)cred->bv_val);
+    hmac_sha256_set_key(current_ctx, cred->bv_len, (const uint8_t *)cred->bv_val);
   } else if (!ber_bvcmp(scheme, &pbkdf2_sha512_scheme)) {
     dk_len = PBKDF2_SHA512_DK_SIZE;
     current_ctx = &sha512_ctx;
     current_hmac_update = (pbkdf2_hmac_update)&hmac_sha512_update;
     current_hmac_digest = (pbkdf2_hmac_digest)&hmac_sha512_digest;
-    hmac_sha512_set_key(current_ctx, cred->bv_len,
-                        (const uint8_t *)cred->bv_val);
+    hmac_sha512_set_key(current_ctx, cred->bv_len, (const uint8_t *)cred->bv_val);
   } else {
     return LUTIL_PASSWD_ERR;
   }
@@ -394,18 +362,14 @@ static int pbkdf2_check(const struct berval *scheme,
     return LUTIL_PASSWD_ERR;
   }
 
-#if RELDAP_TLS == RELDAP_TLS_OPENSSL ||                                        \
-    (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL &&                              \
-     RELDAP_TLS != RELDAP_TLS_GNUTLS)
-  if (!PKCS5_PBKDF2_HMAC(cred->bv_val, cred->bv_len, salt_value,
-                         PBKDF2_SALT_SIZE, iteration, md, dk_len,
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
+  if (!PKCS5_PBKDF2_HMAC(cred->bv_val, cred->bv_len, salt_value, PBKDF2_SALT_SIZE, iteration, md, dk_len,
                          input_dk_value)) {
     return LUTIL_PASSWD_ERR;
   }
-#elif RELDAP_TLS == RELDAP_TLS_GNUTLS ||                                       \
-    RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
-  PBKDF2(current_ctx, current_hmac_update, current_hmac_digest, dk_len,
-         iteration, PBKDF2_SALT_SIZE, salt_value, dk_len, input_dk_value);
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+  PBKDF2(current_ctx, current_hmac_update, current_hmac_digest, dk_len, iteration, PBKDF2_SALT_SIZE, salt_value, dk_len,
+         input_dk_value);
 #endif /* RELDAP_TLS */
 
   rc = memcmp(dk_value, input_dk_value, dk_len);
@@ -438,22 +402,18 @@ static int pbkdf2_check(const struct berval *scheme,
 
 SLAP_MODULE_ENTRY(pw_pbkdf2, modinit)(int argc, char *argv[]) {
   int rc;
-  rc = lutil_passwd_add((struct berval *)&pbkdf2_scheme, pbkdf2_check,
-                        pbkdf2_encrypt);
+  rc = lutil_passwd_add((struct berval *)&pbkdf2_scheme, pbkdf2_check, pbkdf2_encrypt);
   if (rc)
     return rc;
-  rc = lutil_passwd_add((struct berval *)&pbkdf2_sha1_scheme, pbkdf2_check,
-                        pbkdf2_encrypt);
-  if (rc)
-    return rc;
-
-  rc = lutil_passwd_add((struct berval *)&pbkdf2_sha256_scheme, pbkdf2_check,
-                        pbkdf2_encrypt);
+  rc = lutil_passwd_add((struct berval *)&pbkdf2_sha1_scheme, pbkdf2_check, pbkdf2_encrypt);
   if (rc)
     return rc;
 
-  rc = lutil_passwd_add((struct berval *)&pbkdf2_sha512_scheme, pbkdf2_check,
-                        pbkdf2_encrypt);
+  rc = lutil_passwd_add((struct berval *)&pbkdf2_sha256_scheme, pbkdf2_check, pbkdf2_encrypt);
+  if (rc)
+    return rc;
+
+  rc = lutil_passwd_add((struct berval *)&pbkdf2_sha512_scheme, pbkdf2_check, pbkdf2_encrypt);
   return rc;
 }
 

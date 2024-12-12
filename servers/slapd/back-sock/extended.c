@@ -30,8 +30,7 @@ int sock_back_extended(Operation *op, SlapReply *rs) {
   FILE *fp;
   struct berval b64;
 
-  Debug(LDAP_DEBUG_ARGS, "==> sock_back_extended(%s, %s)\n",
-        op->ore_reqoid.bv_val, op->o_req_dn.bv_val);
+  Debug(LDAP_DEBUG_ARGS, "==> sock_back_extended(%s, %s)\n", op->ore_reqoid.bv_val, op->o_req_dn.bv_val);
 
   if ((fp = opensock(si->si_sockpath)) == NULL) {
     send_ldap_error(op, rs, LDAP_OTHER, "could not open socket");
@@ -50,8 +49,7 @@ int sock_back_extended(Operation *op, SlapReply *rs) {
     b64.bv_len = LUTIL_BASE64_ENCODE_LEN(op->ore_reqdata->bv_len) + 1;
     b64.bv_val = op->o_tmpalloc(b64.bv_len + 1, op->o_tmpmemctx);
 
-    rc = lutil_b64_ntop((unsigned char *)op->ore_reqdata->bv_val,
-                        op->ore_reqdata->bv_len, b64.bv_val, b64.bv_len);
+    rc = lutil_b64_ntop((unsigned char *)op->ore_reqdata->bv_val, op->ore_reqdata->bv_len, b64.bv_val, b64.bv_len);
 
     b64.bv_len = rc;
     assert(strlen(b64.bv_val) == b64.bv_len);

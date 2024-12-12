@@ -29,9 +29,7 @@
 
 static int monitor_subsys_conn_update(Operation *op, SlapReply *rs, Entry *e);
 
-static int monitor_subsys_conn_create(Operation *op, SlapReply *rs,
-                                      struct berval *ndn, Entry *e_parent,
-                                      Entry **ep);
+static int monitor_subsys_conn_create(Operation *op, SlapReply *rs, struct berval *ndn, Entry *e_parent, Entry **ep);
 
 int monitor_subsys_conn_init(BackendDB *be, monitor_subsys_t *ms) {
   monitor_info_t *mi;
@@ -64,8 +62,7 @@ int monitor_subsys_conn_init(BackendDB *be, monitor_subsys_t *ms) {
    * Max file descriptors
    */
   BER_BVSTR(&bv, "cn=Max File Descriptors");
-  e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv,
-                         mi->mi_oc_monitorCounterObject, NULL, NULL);
+  e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv, mi->mi_oc_monitorCounterObject, NULL, NULL);
 
   if (e == NULL) {
     Debug(LDAP_DEBUG_ANY,
@@ -108,8 +105,7 @@ int monitor_subsys_conn_init(BackendDB *be, monitor_subsys_t *ms) {
    * Total conns
    */
   BER_BVSTR(&bv, "cn=Total");
-  e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv,
-                         mi->mi_oc_monitorCounterObject, NULL, NULL);
+  e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv, mi->mi_oc_monitorCounterObject, NULL, NULL);
 
   if (e == NULL) {
     Debug(LDAP_DEBUG_ANY,
@@ -146,8 +142,7 @@ int monitor_subsys_conn_init(BackendDB *be, monitor_subsys_t *ms) {
    * Current conns
    */
   BER_BVSTR(&bv, "cn=Current");
-  e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv,
-                         mi->mi_oc_monitorCounterObject, NULL, NULL);
+  e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv, mi->mi_oc_monitorCounterObject, NULL, NULL);
 
   if (e == NULL) {
     Debug(LDAP_DEBUG_ANY,
@@ -190,8 +185,7 @@ static int monitor_subsys_conn_update(Operation *op, SlapReply *rs, Entry *e) {
   monitor_info_t *mi = (monitor_info_t *)op->o_bd->be_private;
 
   long n = -1;
-  static struct berval total_bv = BER_BVC("cn=total"),
-                       current_bv = BER_BVC("cn=current");
+  static struct berval total_bv = BER_BVC("cn=total"), current_bv = BER_BVC("cn=current");
   struct berval rdn;
 
   assert(mi != NULL);
@@ -206,8 +200,7 @@ static int monitor_subsys_conn_update(Operation *op, SlapReply *rs, Entry *e) {
     Connection *c;
     ber_socket_t connindex;
 
-    for (n = 0, c = connection_first(&connindex); c != NULL;
-         n++, c = connection_next(c, &connindex)) {
+    for (n = 0, c = connection_first(&connindex); c != NULL; n++, c = connection_next(c, &connindex)) {
       /* No Op */;
     }
     connection_done(c);
@@ -237,8 +230,7 @@ static int monitor_subsys_conn_update(Operation *op, SlapReply *rs, Entry *e) {
   return SLAP_CB_CONTINUE;
 }
 
-static int conn_create(monitor_info_t *mi, Connection *c, Entry **ep,
-                       monitor_subsys_t *ms) {
+static int conn_create(monitor_info_t *mi, Connection *c, Entry **ep, monitor_subsys_t *ms) {
   monitor_entry_t *mp;
   struct tm tm;
   char buf[BACKMONITOR_BUFSIZE];
@@ -264,8 +256,7 @@ static int conn_create(monitor_info_t *mi, Connection *c, Entry **ep,
 
   bv.bv_len = snprintf(buf, sizeof(buf), "cn=Connection %ld", c->c_connid);
   bv.bv_val = buf;
-  e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv,
-                         mi->mi_oc_monitorConnection, &ctmbv, &mtmbv);
+  e = monitor_entry_stub(&ms->mss_dn, &ms->mss_ndn, &bv, mi->mi_oc_monitorConnection, &ctmbv, &mtmbv);
 
   if (e == NULL) {
     Debug(LDAP_DEBUG_ANY,
@@ -279,40 +270,35 @@ static int conn_create(monitor_info_t *mi, Connection *c, Entry **ep,
 #ifdef MONITOR_LEGACY_CONN
   /* NOTE: this will disappear, as the exploded data
    * has been moved to dedicated attributes */
-  bv.bv_len =
-      snprintf(buf, sizeof(buf),
-               "%ld "
-               ": %ld "
-               ": %ld/%ld/%ld/%ld "
-               ": %ld/%ld/%ld "
-               ": %s%s%s%s%s%s "
-               ": %s "
-               ": %s "
-               ": %s "
-               ": %s "
-               ": %s "
-               ": %s "
-               ": %s",
-               c->c_connid, (long)c->c_protocol, c->c_n_ops_received,
-               c->c_n_ops_executing, c->c_n_ops_pending, c->c_n_ops_completed,
+  bv.bv_len = snprintf(buf, sizeof(buf),
+                       "%ld "
+                       ": %ld "
+                       ": %ld/%ld/%ld/%ld "
+                       ": %ld/%ld/%ld "
+                       ": %s%s%s%s%s%s "
+                       ": %s "
+                       ": %s "
+                       ": %s "
+                       ": %s "
+                       ": %s "
+                       ": %s "
+                       ": %s",
+                       c->c_connid, (long)c->c_protocol, c->c_n_ops_received, c->c_n_ops_executing, c->c_n_ops_pending,
+                       c->c_n_ops_completed,
 
-               /* add low-level counters here */
-               c->c_n_get, c->c_n_read, c->c_n_write,
+                       /* add low-level counters here */
+                       c->c_n_get, c->c_n_read, c->c_n_write,
 
-               c->c_currentber ? "r" : "", c->c_writewaiter ? "w" : "",
-               LDAP_STAILQ_EMPTY(&c->c_ops) ? "" : "x",
-               LDAP_STAILQ_EMPTY(&c->c_pending_ops) ? "" : "p",
-               connection_state2str(c->c_conn_state),
-               c->c_sasl_bind_in_progress ? "S" : "",
+                       c->c_currentber ? "r" : "", c->c_writewaiter ? "w" : "", LDAP_STAILQ_EMPTY(&c->c_ops) ? "" : "x",
+                       LDAP_STAILQ_EMPTY(&c->c_pending_ops) ? "" : "p", connection_state2str(c->c_conn_state),
+                       c->c_sasl_bind_in_progress ? "S" : "",
 
-               c->c_dn.bv_len ? c->c_dn.bv_val : SLAPD_ANONYMOUS,
+                       c->c_dn.bv_len ? c->c_dn.bv_val : SLAPD_ANONYMOUS,
 
-               c->c_listener_url.bv_val,
-               BER_BVISNULL(&c->c_peer_domain) ? "" : c->c_peer_domain.bv_val,
-               BER_BVISNULL(&c->c_peer_name) ? "" : c->c_peer_name.bv_val,
-               c->c_sock_name.bv_val,
+                       c->c_listener_url.bv_val, BER_BVISNULL(&c->c_peer_domain) ? "" : c->c_peer_domain.bv_val,
+                       BER_BVISNULL(&c->c_peer_name) ? "" : c->c_peer_name.bv_val, c->c_sock_name.bv_val,
 
-               buf2, buf3);
+                       buf2, buf3);
   attr_merge_normalize_one(e, mi->mi_ad_monitoredInfo, &bv, NULL);
 #endif /* MONITOR_LEGACY_CONN */
 
@@ -343,38 +329,29 @@ static int conn_create(monitor_info_t *mi, Connection *c, Entry **ep,
   bv.bv_len = snprintf(buf, sizeof(buf), "%ld", c->c_n_write);
   attr_merge_one(e, mi->mi_ad_monitorConnectionWrite, &bv, NULL);
 
-  bv.bv_len = snprintf(buf, sizeof(buf), "%s%s%s%s%s%s",
-                       c->c_currentber ? "r" : "", c->c_writewaiter ? "w" : "",
-                       LDAP_STAILQ_EMPTY(&c->c_ops) ? "" : "x",
-                       LDAP_STAILQ_EMPTY(&c->c_pending_ops) ? "" : "p",
-                       connection_state2str(c->c_conn_state),
-                       c->c_sasl_bind_in_progress ? "S" : "");
+  bv.bv_len = snprintf(buf, sizeof(buf), "%s%s%s%s%s%s", c->c_currentber ? "r" : "", c->c_writewaiter ? "w" : "",
+                       LDAP_STAILQ_EMPTY(&c->c_ops) ? "" : "x", LDAP_STAILQ_EMPTY(&c->c_pending_ops) ? "" : "p",
+                       connection_state2str(c->c_conn_state), c->c_sasl_bind_in_progress ? "S" : "");
   attr_merge_normalize_one(e, mi->mi_ad_monitorConnectionMask, &bv, NULL);
 
   attr_merge_one(e, mi->mi_ad_monitorConnectionAuthzDN, &c->c_dn, &c->c_ndn);
 
   /* NOTE: client connections leave the c_peer_* fields NULL */
   assert(!BER_BVISNULL(&c->c_listener_url));
-  attr_merge_normalize_one(e, mi->mi_ad_monitorConnectionListener,
-                           &c->c_listener_url, NULL);
+  attr_merge_normalize_one(e, mi->mi_ad_monitorConnectionListener, &c->c_listener_url, NULL);
 
-  attr_merge_normalize_one(
-      e, mi->mi_ad_monitorConnectionPeerDomain,
-      BER_BVISNULL(&c->c_peer_domain) ? &bv_unknown : &c->c_peer_domain, NULL);
+  attr_merge_normalize_one(e, mi->mi_ad_monitorConnectionPeerDomain,
+                           BER_BVISNULL(&c->c_peer_domain) ? &bv_unknown : &c->c_peer_domain, NULL);
 
-  attr_merge_normalize_one(
-      e, mi->mi_ad_monitorConnectionPeerAddress,
-      BER_BVISNULL(&c->c_peer_name) ? &bv_unknown : &c->c_peer_name, NULL);
+  attr_merge_normalize_one(e, mi->mi_ad_monitorConnectionPeerAddress,
+                           BER_BVISNULL(&c->c_peer_name) ? &bv_unknown : &c->c_peer_name, NULL);
 
   assert(!BER_BVISNULL(&c->c_sock_name));
-  attr_merge_normalize_one(e, mi->mi_ad_monitorConnectionLocalAddress,
-                           &c->c_sock_name, NULL);
+  attr_merge_normalize_one(e, mi->mi_ad_monitorConnectionLocalAddress, &c->c_sock_name, NULL);
 
-  attr_merge_normalize_one(e, mi->mi_ad_monitorConnectionStartTime, &ctmbv,
-                           NULL);
+  attr_merge_normalize_one(e, mi->mi_ad_monitorConnectionStartTime, &ctmbv, NULL);
 
-  attr_merge_normalize_one(e, mi->mi_ad_monitorConnectionActivityTime, &mtmbv,
-                           NULL);
+  attr_merge_normalize_one(e, mi->mi_ad_monitorConnectionActivityTime, &mtmbv, NULL);
 
   mp = monitor_entrypriv_create();
   if (mp == NULL) {
@@ -389,9 +366,7 @@ static int conn_create(monitor_info_t *mi, Connection *c, Entry **ep,
   return SLAP_CB_CONTINUE;
 }
 
-static int monitor_subsys_conn_create(Operation *op, SlapReply *rs,
-                                      struct berval *ndn, Entry *e_parent,
-                                      Entry **ep) {
+static int monitor_subsys_conn_create(Operation *op, SlapReply *rs, struct berval *ndn, Entry *e_parent, Entry **ep) {
   monitor_info_t *mi = (monitor_info_t *)op->o_bd->be_private;
 
   int rc = SLAP_CB_CONTINUE;
@@ -411,8 +386,7 @@ static int monitor_subsys_conn_create(Operation *op, SlapReply *rs,
     Entry *e = NULL, *e_tmp = NULL;
 
     /* create all the children of e_parent */
-    for (c = connection_first(&connindex); c != NULL;
-         c = connection_next(c, &connindex)) {
+    for (c = connection_first(&connindex); c != NULL; c = connection_next(c, &connindex)) {
       monitor_entry_t *mp;
 
       if (conn_create(mi, c, &e, ms) != SLAP_CB_CONTINUE || e == NULL) {
@@ -449,8 +423,7 @@ static int monitor_subsys_conn_create(Operation *op, SlapReply *rs,
      * the normalized DN must start with "cn=connection ",
      * followed by the connection id, followed by
      * the RDN separator "," */
-    if (ndn->bv_len <= nconn_bv.bv_len ||
-        strncmp(ndn->bv_val, nconn_bv.bv_val, nconn_bv.bv_len) != 0) {
+    if (ndn->bv_len <= nconn_bv.bv_len || strncmp(ndn->bv_val, nconn_bv.bv_val, nconn_bv.bv_len) != 0) {
       return -1;
     }
 
@@ -459,8 +432,7 @@ static int monitor_subsys_conn_create(Operation *op, SlapReply *rs,
       return (rs->sr_err = LDAP_OTHER);
     }
 
-    for (c = connection_first(&connindex); c != NULL;
-         c = connection_next(c, &connindex)) {
+    for (c = connection_first(&connindex); c != NULL; c = connection_next(c, &connindex)) {
       if (c->c_connid == connid) {
         rc = conn_create(mi, c, ep, ms);
         if (rc != SLAP_CB_CONTINUE) {

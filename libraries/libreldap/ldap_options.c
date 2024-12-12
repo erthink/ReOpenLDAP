@@ -46,29 +46,23 @@ static const LDAPAPIFeatureInfo features[] = {
 #endif
 #ifdef LDAP_API_FEATURE_SESSION_THREAD_SAFE
     {/* Session Thread Safe */
-     LDAP_FEATURE_INFO_VERSION, "SESSION_THREAD_SAFE",
-     LDAP_API_FEATURE_SESSION_THREAD_SAFE},
+     LDAP_FEATURE_INFO_VERSION, "SESSION_THREAD_SAFE", LDAP_API_FEATURE_SESSION_THREAD_SAFE},
 #endif
 #ifdef LDAP_API_FEATURE_OPERATION_THREAD_SAFE
     {/* Operation Thread Safe */
-     LDAP_FEATURE_INFO_VERSION, "OPERATION_THREAD_SAFE",
-     LDAP_API_FEATURE_OPERATION_THREAD_SAFE},
+     LDAP_FEATURE_INFO_VERSION, "OPERATION_THREAD_SAFE", LDAP_API_FEATURE_OPERATION_THREAD_SAFE},
 #endif
 #ifdef LDAP_API_FEATURE_X_OPENLDAP_REENTRANT
     {/* OpenLDAP Reentrant */
-     LDAP_FEATURE_INFO_VERSION, "X_OPENLDAP_REENTRANT",
-     LDAP_API_FEATURE_X_OPENLDAP_REENTRANT},
+     LDAP_FEATURE_INFO_VERSION, "X_OPENLDAP_REENTRANT", LDAP_API_FEATURE_X_OPENLDAP_REENTRANT},
 #endif
-#if defined(LDAP_API_FEATURE_X_OPENLDAP_THREAD_SAFE) &&                        \
-    defined(LDAP_THREAD_SAFE)
+#if defined(LDAP_API_FEATURE_X_OPENLDAP_THREAD_SAFE) && defined(LDAP_THREAD_SAFE)
     {/* OpenLDAP Thread Safe */
-     LDAP_FEATURE_INFO_VERSION, "X_OPENLDAP_THREAD_SAFE",
-     LDAP_API_FEATURE_X_OPENLDAP_THREAD_SAFE},
+     LDAP_FEATURE_INFO_VERSION, "X_OPENLDAP_THREAD_SAFE", LDAP_API_FEATURE_X_OPENLDAP_THREAD_SAFE},
 #endif
 #ifdef LDAP_API_FEATURE_X_OPENLDAP_V2_REFERRALS
     {/* V2 Referrals */
-     LDAP_FEATURE_INFO_VERSION, "X_OPENLDAP_V2_REFERRALS",
-     LDAP_API_FEATURE_X_OPENLDAP_V2_REFERRALS},
+     LDAP_FEATURE_INFO_VERSION, "X_OPENLDAP_V2_REFERRALS", LDAP_API_FEATURE_X_OPENLDAP_V2_REFERRALS},
 #endif
     {0, NULL, 0}};
 
@@ -127,8 +121,7 @@ int ldap_get_option(LDAP *ld, int option, void *outvalue) {
       info->ldapai_extensions = NULL;
     } else {
       int i;
-      info->ldapai_extensions = LDAP_MALLOC(sizeof(char *) * sizeof(features) /
-                                            sizeof(LDAPAPIFeatureInfo));
+      info->ldapai_extensions = LDAP_MALLOC(sizeof(char *) * sizeof(features) / sizeof(LDAPAPIFeatureInfo));
 
       for (i = 0; features[i].ldapaif_name != NULL; i++) {
         info->ldapai_extensions[i] = LDAP_STRDUP(features[i].ldapaif_name);
@@ -513,8 +506,7 @@ int ldap_set_option(LDAP *ld, int option, const void *invalue) {
     rc = LDAP_OPT_SUCCESS;
 
     if (host != NULL) {
-      rc = ldap_url_parsehosts(&ludlist, host,
-                               lo->ldo_defport ? lo->ldo_defport : LDAP_PORT);
+      rc = ldap_url_parsehosts(&ludlist, host, lo->ldo_defport ? lo->ldo_defport : LDAP_PORT);
 
     } else if (ld == NULL) {
       /*
@@ -522,8 +514,7 @@ int ldap_set_option(LDAP *ld, int option, const void *invalue) {
        * to initial condition.
        */
       rc = ldap_url_parselist_ext(&ludlist, "ldap://localhost/", NULL,
-                                  LDAP_PVT_URL_PARSE_NOEMPTY_HOST |
-                                      LDAP_PVT_URL_PARSE_DEF_PORT);
+                                  LDAP_PVT_URL_PARSE_NOEMPTY_HOST | LDAP_PVT_URL_PARSE_DEF_PORT);
 
     } else {
       /*
@@ -549,17 +540,14 @@ int ldap_set_option(LDAP *ld, int option, const void *invalue) {
     rc = LDAP_OPT_SUCCESS;
 
     if (urls != NULL) {
-      rc = ldap_url_parselist_ext(&ludlist, urls, NULL,
-                                  LDAP_PVT_URL_PARSE_NOEMPTY_HOST |
-                                      LDAP_PVT_URL_PARSE_DEF_PORT);
+      rc = ldap_url_parselist_ext(&ludlist, urls, NULL, LDAP_PVT_URL_PARSE_NOEMPTY_HOST | LDAP_PVT_URL_PARSE_DEF_PORT);
     } else if (ld == NULL) {
       /*
        * must want global default returned
        * to initial condition.
        */
       rc = ldap_url_parselist_ext(&ludlist, "ldap://localhost/", NULL,
-                                  LDAP_PVT_URL_PARSE_NOEMPTY_HOST |
-                                      LDAP_PVT_URL_PARSE_DEF_PORT);
+                                  LDAP_PVT_URL_PARSE_NOEMPTY_HOST | LDAP_PVT_URL_PARSE_DEF_PORT);
 
     } else {
       /*

@@ -39,8 +39,7 @@ static void idl_check(ID *ids) {
 #if IDL_DEBUG
 static void idl_dump(ID *ids) {
   if (MDB_IDL_IS_RANGE(ids)) {
-    Debug(LDAP_DEBUG_ANY, "IDL: range ( %ld - %ld )\n",
-          (long)MDB_IDL_RANGE_FIRST(ids), (long)MDB_IDL_RANGE_LAST(ids));
+    Debug(LDAP_DEBUG_ANY, "IDL: range ( %ld - %ld )\n", (long)MDB_IDL_RANGE_FIRST(ids), (long)MDB_IDL_RANGE_LAST(ids));
 
   } else {
     ID i;
@@ -248,8 +247,8 @@ static char *mdb_show_key(char *buf, void *val, size_t len) {
   }
 }
 
-int mdb_idl_fetch_key(BackendDB *be, MDBX_txn *txn, MDBX_dbi dbi, MDBX_val *key,
-                      ID *ids, MDBX_cursor **saved_cursor, int get_flag) {
+int mdb_idl_fetch_key(BackendDB *be, MDBX_txn *txn, MDBX_dbi dbi, MDBX_val *key, ID *ids, MDBX_cursor **saved_cursor,
+                      int get_flag) {
   MDBX_val data, key2, *kptr;
   MDBX_cursor *cursor;
   ID *i;
@@ -259,8 +258,7 @@ int mdb_idl_fetch_key(BackendDB *be, MDBX_txn *txn, MDBX_dbi dbi, MDBX_val *key,
 
   char keybuf[16];
 
-  Debug(LDAP_DEBUG_ARGS, "mdb_idl_fetch_key: %s\n",
-        mdb_show_key(keybuf, key->iov_base, key->iov_len));
+  Debug(LDAP_DEBUG_ARGS, "mdb_idl_fetch_key: %s\n", mdb_show_key(keybuf, key->iov_base, key->iov_len));
 
   assert(ids != NULL);
 
@@ -310,8 +308,7 @@ int mdb_idl_fetch_key(BackendDB *be, MDBX_txn *txn, MDBX_dbi dbi, MDBX_val *key,
   /* If we're doing a LE compare and the new key is greater than
    * our search key, we're done
    */
-  if (rc == 0 && get_flag == LDAP_FILTER_LE &&
-      memcmp(kptr->iov_base, key->iov_base, key->iov_len) > 0) {
+  if (rc == 0 && get_flag == LDAP_FILTER_LE && memcmp(kptr->iov_base, key->iov_base, key->iov_len) > 0) {
     rc = MDBX_NOTFOUND;
   }
   if (rc == 0) {
@@ -381,8 +378,7 @@ int mdb_idl_fetch_key(BackendDB *be, MDBX_txn *txn, MDBX_dbi dbi, MDBX_val *key,
   return rc;
 }
 
-int mdb_idl_insert_keys(BackendDB *be, MDBX_cursor *cursor, struct berval *keys,
-                        ID id) {
+int mdb_idl_insert_keys(BackendDB *be, MDBX_cursor *cursor, struct berval *keys, ID id) {
   struct mdb_info *mdb = be->be_private;
   MDBX_val key, data;
   ID lo, hi, *i;
@@ -395,8 +391,7 @@ int mdb_idl_insert_keys(BackendDB *be, MDBX_cursor *cursor, struct berval *keys,
 
   {
     char buf[16];
-    Debug(LDAP_DEBUG_ARGS, "mdb_idl_insert_keys: %lx %s\n", (long)id,
-          mdb_show_key(buf, keys->bv_val, keys->bv_len));
+    Debug(LDAP_DEBUG_ARGS, "mdb_idl_insert_keys: %lx %s\n", (long)id, mdb_show_key(buf, keys->bv_val, keys->bv_len));
   }
 
   assert(id != NOID);
@@ -539,8 +534,7 @@ int mdb_idl_insert_keys(BackendDB *be, MDBX_cursor *cursor, struct berval *keys,
   return rc;
 }
 
-int mdb_idl_delete_keys(BackendDB *be, MDBX_cursor *cursor, struct berval *keys,
-                        ID id) {
+int mdb_idl_delete_keys(BackendDB *be, MDBX_cursor *cursor, struct berval *keys, ID id) {
   int rc = 0, k;
   MDBX_val key, data;
   ID lo, hi, tmp, *i;
@@ -551,8 +545,7 @@ int mdb_idl_delete_keys(BackendDB *be, MDBX_cursor *cursor, struct berval *keys,
 
   {
     char buf[16];
-    Debug(LDAP_DEBUG_ARGS, "mdb_idl_delete_keys: %lx %s\n", (long)id,
-          mdb_show_key(buf, keys->bv_val, keys->bv_len));
+    Debug(LDAP_DEBUG_ARGS, "mdb_idl_delete_keys: %lx %s\n", (long)id, mdb_show_key(buf, keys->bv_val, keys->bv_len));
   }
   assert(id != NOID);
 
@@ -693,8 +686,7 @@ int mdb_idl_intersection(ID *a, ID *b) {
   /* If a range completely covers the list, the result is
    * just the list.
    */
-  if (MDB_IDL_IS_RANGE(b) && MDB_IDL_RANGE_FIRST(b) <= MDB_IDL_FIRST(a) &&
-      MDB_IDL_RANGE_LAST(b) >= MDB_IDL_LLAST(a)) {
+  if (MDB_IDL_IS_RANGE(b) && MDB_IDL_RANGE_FIRST(b) <= MDB_IDL_FIRST(a) && MDB_IDL_RANGE_LAST(b) >= MDB_IDL_LLAST(a)) {
     goto done;
   }
 
@@ -946,8 +938,7 @@ int mdb_idl_append(ID *a, ID *b) {
 
   ida = MDB_IDL_LAST(a);
   idb = MDB_IDL_LAST(b);
-  if (MDB_IDL_IS_RANGE(a) || MDB_IDL_IS_RANGE(b) ||
-      a[0] + b[0] >= MDB_IDL_UM_MAX) {
+  if (MDB_IDL_IS_RANGE(a) || MDB_IDL_IS_RANGE(b) || a[0] + b[0] >= MDB_IDL_UM_MAX) {
     a[2] = IDL_MAX(ida, idb);
     a[1] = IDL_MIN(a[1], b[1]);
     a[0] = NOID;
@@ -985,9 +976,9 @@ int mdb_idl_append(ID *a, ID *b) {
 /* Quicksort + Insertion sort for small arrays */
 
 #define SMALL 8
-#define SWAP(a, b)                                                             \
-  itmp = (a);                                                                  \
-  (a) = (b);                                                                   \
+#define SWAP(a, b)                                                                                                     \
+  itmp = (a);                                                                                                          \
+  (a) = (b);                                                                                                           \
   (b) = itmp
 
 void mdb_idl_sort(ID *ids, ID *tmp) {

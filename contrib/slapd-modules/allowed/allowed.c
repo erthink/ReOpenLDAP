@@ -64,54 +64,52 @@
 
 #define AA_SCHEMA_AT "1.2.840.113556.1.4"
 
-static AttributeDescription *ad_allowedChildClasses,
-    *ad_allowedChildClassesEffective, *ad_allowedAttributes,
+static AttributeDescription *ad_allowedChildClasses, *ad_allowedChildClassesEffective, *ad_allowedAttributes,
     *ad_allowedAttributesEffective;
 
 static struct {
   char *at;
   AttributeDescription **ad;
-} aa_attrs[] = {
-    {"( " AA_SCHEMA_AT ".911 "
-     "NAME 'allowedChildClasses' "
-     "EQUALITY objectIdentifierMatch "
-     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.38 "
-     /* added by me :) */
-     "DESC 'Child classes allowed for a given object' "
-     "NO-USER-MODIFICATION "
-     "USAGE dSAOperation )",
-     &ad_allowedChildClasses},
-    {"( " AA_SCHEMA_AT ".912 "
-     "NAME 'allowedChildClassesEffective' "
-     "EQUALITY objectIdentifierMatch "
-     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.38 "
-     /* added by me :) */
-     "DESC 'Child classes allowed for a given object according to ACLs' "
-     "NO-USER-MODIFICATION "
-     "USAGE dSAOperation )",
-     &ad_allowedChildClassesEffective},
-    {"( " AA_SCHEMA_AT ".913 "
-     "NAME 'allowedAttributes' "
-     "EQUALITY objectIdentifierMatch "
-     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.38 "
-     /* added by me :) */
-     "DESC 'Attributes allowed for a given object' "
-     "NO-USER-MODIFICATION "
-     "USAGE dSAOperation )",
-     &ad_allowedAttributes},
-    {"( " AA_SCHEMA_AT ".914 "
-     "NAME 'allowedAttributesEffective' "
-     "EQUALITY objectIdentifierMatch "
-     "SYNTAX 1.3.6.1.4.1.1466.115.121.1.38 "
-     /* added by me :) */
-     "DESC 'Attributes allowed for a given object according to ACLs' "
-     "NO-USER-MODIFICATION "
-     "USAGE dSAOperation )",
-     &ad_allowedAttributesEffective},
+} aa_attrs[] = {{"( " AA_SCHEMA_AT ".911 "
+                 "NAME 'allowedChildClasses' "
+                 "EQUALITY objectIdentifierMatch "
+                 "SYNTAX 1.3.6.1.4.1.1466.115.121.1.38 "
+                 /* added by me :) */
+                 "DESC 'Child classes allowed for a given object' "
+                 "NO-USER-MODIFICATION "
+                 "USAGE dSAOperation )",
+                 &ad_allowedChildClasses},
+                {"( " AA_SCHEMA_AT ".912 "
+                 "NAME 'allowedChildClassesEffective' "
+                 "EQUALITY objectIdentifierMatch "
+                 "SYNTAX 1.3.6.1.4.1.1466.115.121.1.38 "
+                 /* added by me :) */
+                 "DESC 'Child classes allowed for a given object according to ACLs' "
+                 "NO-USER-MODIFICATION "
+                 "USAGE dSAOperation )",
+                 &ad_allowedChildClassesEffective},
+                {"( " AA_SCHEMA_AT ".913 "
+                 "NAME 'allowedAttributes' "
+                 "EQUALITY objectIdentifierMatch "
+                 "SYNTAX 1.3.6.1.4.1.1466.115.121.1.38 "
+                 /* added by me :) */
+                 "DESC 'Attributes allowed for a given object' "
+                 "NO-USER-MODIFICATION "
+                 "USAGE dSAOperation )",
+                 &ad_allowedAttributes},
+                {"( " AA_SCHEMA_AT ".914 "
+                 "NAME 'allowedAttributesEffective' "
+                 "EQUALITY objectIdentifierMatch "
+                 "SYNTAX 1.3.6.1.4.1.1466.115.121.1.38 "
+                 /* added by me :) */
+                 "DESC 'Attributes allowed for a given object according to ACLs' "
+                 "NO-USER-MODIFICATION "
+                 "USAGE dSAOperation )",
+                 &ad_allowedAttributesEffective},
 
-    /* TODO: add objectClass stuff? */
+                /* TODO: add objectClass stuff? */
 
-    {NULL, NULL}};
+                {NULL, NULL}};
 
 static int aa_add_at(AttributeType *at, AttributeType ***atpp) {
   int i = 0;
@@ -135,8 +133,7 @@ static int aa_add_at(AttributeType *at, AttributeType ***atpp) {
   return 0;
 }
 
-static int aa_add_oc(ObjectClass *oc, ObjectClass ***ocpp,
-                     AttributeType ***atpp) {
+static int aa_add_oc(ObjectClass *oc, ObjectClass ***ocpp, AttributeType ***atpp) {
   int i = 0;
 
   if (*ocpp) {
@@ -228,8 +225,7 @@ static int aa_operational(Operation *op, SlapReply *rs) {
   }
 
   /* if client has no access to objectClass attribute; don't compute */
-  if (!access_allowed(op, rs->sr_entry, slap_schema.si_ad_objectClass, NULL,
-                      ACL_READ, &acl_state)) {
+  if (!access_allowed(op, rs->sr_entry, slap_schema.si_ad_objectClass, NULL, ACL_READ, &acl_state)) {
     return SLAP_CB_CONTINUE;
   }
 
@@ -239,8 +235,7 @@ static int aa_operational(Operation *op, SlapReply *rs) {
     assert(oc != NULL);
 
     /* if client has no access to specific value, don't compute */
-    if (!access_allowed(op, rs->sr_entry, slap_schema.si_ad_objectClass,
-                        &oc->soc_cname, ACL_READ, &acl_state)) {
+    if (!access_allowed(op, rs->sr_entry, slap_schema.si_ad_objectClass, &oc->soc_cname, ACL_READ, &acl_state)) {
       continue;
     }
 
@@ -351,8 +346,7 @@ do_oc:;
       }
 
       if (got & GOT_CE) {
-        if (!access_allowed(op, rs->sr_entry, slap_schema.si_ad_objectClass,
-                            &oc->soc_cname, ACL_WRITE, NULL)) {
+        if (!access_allowed(op, rs->sr_entry, slap_schema.si_ad_objectClass, &oc->soc_cname, ACL_WRITE, NULL)) {
           goto done_ce;
         }
 
@@ -425,6 +419,4 @@ static int aa_initialize(void) {
   return overlay_register(&aa);
 }
 
-SLAP_MODULE_ENTRY(allowed, modinit)(int argc, char *argv[]) {
-  return aa_initialize();
-}
+SLAP_MODULE_ENTRY(allowed, modinit)(int argc, char *argv[]) { return aa_initialize(); }

@@ -43,11 +43,9 @@ int slapindex(int argc, char **argv) {
 
   slap_tool_init(progname, SLAPINDEX, argc, argv);
 
-  if (!be->be_entry_open || !be->be_entry_close ||
-      !(be->be_entry_first || be->be_entry_first_x) || !be->be_entry_next ||
-      !be->be_entry_reindex) {
-    fprintf(stderr, "%s: database doesn't support necessary operations.\n",
-            progname);
+  if (!be->be_entry_open || !be->be_entry_close || !(be->be_entry_first || be->be_entry_first_x) ||
+      !be->be_entry_next || !be->be_entry_reindex) {
+    fprintf(stderr, "%s: database doesn't support necessary operations.\n", progname);
     exit(EXIT_FAILURE);
   }
 
@@ -63,8 +61,7 @@ int slapindex(int argc, char **argv) {
       ad = NULL;
       rc = slap_str2ad(argv[i], &ad, &text);
       if (rc != LDAP_SUCCESS) {
-        fprintf(stderr, "slap_str2ad(%s) failed %d (%s)\n", argv[i], rc,
-                ldap_err2string(rc));
+        fprintf(stderr, "slap_str2ad(%s) failed %d (%s)\n", argv[i], rc, ldap_err2string(rc));
         exit(EXIT_FAILURE);
       }
       adv[i] = ad;

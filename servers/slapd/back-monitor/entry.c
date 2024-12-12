@@ -59,8 +59,7 @@ int monitor_entry_update(Operation *op, SlapReply *rs, Entry *e) {
   return rc;
 }
 
-int monitor_entry_create(Operation *op, SlapReply *rs, struct berval *ndn,
-                         Entry *e_parent, Entry **ep) {
+int monitor_entry_create(Operation *op, SlapReply *rs, struct berval *ndn, Entry *e_parent, Entry **ep) {
   monitor_info_t __maybe_unused *mi = (monitor_info_t *)op->o_bd->be_private;
   monitor_entry_t *mp;
 
@@ -142,8 +141,7 @@ monitor_entry_t *monitor_back_entrypriv_create(void) {
   return mp;
 }
 
-Entry *monitor_entry_stub(struct berval *pdn, struct berval *pndn,
-                          struct berval *rdn, ObjectClass *oc,
+Entry *monitor_entry_stub(struct berval *pdn, struct berval *pndn, struct berval *rdn, ObjectClass *oc,
                           struct berval *create, struct berval *modify) {
   monitor_info_t *mi;
   AttributeDescription *nad = NULL;
@@ -172,19 +170,13 @@ Entry *monitor_entry_stub(struct berval *pdn, struct berval *pndn,
     ber_memfree(nrdn.bv_val);
     nat.bv_val = ptr + 1;
     nat.bv_len = rdn->bv_len - (nat.bv_val - rdn->bv_val);
-    attr_merge_normalize_one(e, slap_schema.si_ad_objectClass, &oc->soc_cname,
-                             NULL);
-    attr_merge_normalize_one(e, slap_schema.si_ad_structuralObjectClass,
-                             &oc->soc_cname, NULL);
+    attr_merge_normalize_one(e, slap_schema.si_ad_objectClass, &oc->soc_cname, NULL);
+    attr_merge_normalize_one(e, slap_schema.si_ad_structuralObjectClass, &oc->soc_cname, NULL);
     attr_merge_normalize_one(e, nad, &nat, NULL);
-    attr_merge_one(e, slap_schema.si_ad_creatorsName, &mi->mi_creatorsName,
-                   &mi->mi_ncreatorsName);
-    attr_merge_one(e, slap_schema.si_ad_modifiersName, &mi->mi_creatorsName,
-                   &mi->mi_ncreatorsName);
-    attr_merge_normalize_one(e, slap_schema.si_ad_createTimestamp,
-                             create ? create : &mi->mi_startTime, NULL);
-    attr_merge_normalize_one(e, slap_schema.si_ad_modifyTimestamp,
-                             modify ? modify : &mi->mi_startTime, NULL);
+    attr_merge_one(e, slap_schema.si_ad_creatorsName, &mi->mi_creatorsName, &mi->mi_ncreatorsName);
+    attr_merge_one(e, slap_schema.si_ad_modifiersName, &mi->mi_creatorsName, &mi->mi_ncreatorsName);
+    attr_merge_normalize_one(e, slap_schema.si_ad_createTimestamp, create ? create : &mi->mi_startTime, NULL);
+    attr_merge_normalize_one(e, slap_schema.si_ad_modifyTimestamp, modify ? modify : &mi->mi_startTime, NULL);
   }
   return e;
 }

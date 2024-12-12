@@ -43,8 +43,7 @@ int sock_back_modrdn(Operation *op, SlapReply *rs) {
   e.e_bv.bv_val = NULL;
   e.e_private = NULL;
 
-  if (!access_allowed(op, &e, entry, NULL,
-                      op->oq_modrdn.rs_newSup ? ACL_WDEL : ACL_WRITE, NULL)) {
+  if (!access_allowed(op, &e, entry, NULL, op->oq_modrdn.rs_newSup ? ACL_WDEL : ACL_WRITE, NULL)) {
     send_ldap_error(op, rs, LDAP_INSUFFICIENT_ACCESS, NULL);
     return -1;
   }

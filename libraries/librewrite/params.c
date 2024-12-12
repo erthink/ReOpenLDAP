@@ -25,8 +25,7 @@
 /*
  * Defines and inits a variable with global scope
  */
-int rewrite_param_set(struct rewrite_info *info, const char *name,
-                      const char *value) {
+int rewrite_param_set(struct rewrite_info *info, const char *name, const char *value) {
   struct rewrite_var *var;
   int rc = REWRITE_SUCCESS;
 
@@ -63,8 +62,7 @@ int rewrite_param_set(struct rewrite_info *info, const char *name,
 /*
  * Gets a var with global scope
  */
-int rewrite_param_get(struct rewrite_info *info, const char *name,
-                      struct berval *value) {
+int rewrite_param_get(struct rewrite_info *info, const char *name, struct berval *value) {
   struct rewrite_var *var;
   int rc = REWRITE_SUCCESS;
 

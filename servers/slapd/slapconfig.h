@@ -95,12 +95,10 @@ typedef struct CfEntryInfo {
 struct config_args_s;
 
 /* Check if the child is allowed to be LDAPAdd'd to the parent */
-typedef int(ConfigLDAPadd)(CfEntryInfo *parent, Entry *child,
-                           struct config_args_s *ca);
+typedef int(ConfigLDAPadd)(CfEntryInfo *parent, Entry *child, struct config_args_s *ca);
 
 /* Let the object create children out of slapd.conf */
-typedef int(ConfigCfAdd)(Operation *op, SlapReply *rs, Entry *parent,
-                         struct config_args_s *ca);
+typedef int(ConfigCfAdd)(Operation *op, SlapReply *rs, Entry *parent, struct config_args_s *ca);
 
 #ifdef SLAP_CONFIG_DELETE
 /* Called when deleting a Cft_Misc Child object from cn=config */
@@ -136,8 +134,7 @@ typedef struct config_args_s {
   const char *fname;
   int lineno;
   int linelen;
-  char log[MAXPATHLEN + STRLENOF(": line ") +
-           LDAP_PVT_INTTYPE_CHARS(unsigned long)];
+  char log[MAXPATHLEN + STRLENOF(": line ") + LDAP_PVT_INTTYPE_CHARS(unsigned long)];
 #define cr_msg reply.msg
   ConfigReply reply;
   int depth;
@@ -205,14 +202,12 @@ LDAP_SLAPD_V(int) config_parse_add(ConfigTable *ct, ConfigArgs *c, int valx);
 LDAP_SLAPD_V(int)
 read_config_file(const char *fname, ConfigArgs *cf, ConfigTable *cft);
 LDAP_SLAPD_V(int)
-config_verbmask2string(const slap_verbmasks *v, slap_mask_t m, char delim,
-                       ConfigArgs *c);
+config_verbmask2string(const slap_verbmasks *v, slap_mask_t m, char delim, ConfigArgs *c);
 
 LDAP_SLAPD_V(ConfigTable *) config_find_keyword(ConfigTable *ct, ConfigArgs *c);
 LDAP_SLAPD_V(Entry *)
-config_build_entry(Operation *op, SlapReply *rs, CfEntryInfo *parent,
-                   ConfigArgs *c, struct berval *rdn, ConfigOCs *main,
-                   ConfigOCs *extra);
+config_build_entry(Operation *op, SlapReply *rs, CfEntryInfo *parent, ConfigArgs *c, struct berval *rdn,
+                   ConfigOCs *main, ConfigOCs *extra);
 
 LDAP_SLAPD_V(Listener *) config_check_my_url(const char *url, LDAPURLDesc *lud);
 LDAP_SLAPD_V(int) config_shadow(ConfigArgs *c, slap_mask_t flag);
@@ -220,8 +215,7 @@ LDAP_SLAPD_V(int) config_shadow(ConfigArgs *c, slap_mask_t flag);
 #define config_sync_shadow(c) config_shadow((c), SLAP_DBFLAG_SYNC_SHADOW)
 
 /* Make sure we don't exceed the bits reserved for userland */
-#define config_check_userland(last)                                            \
-  assert((((last) - 1) & ARGS_USERLAND) == ((last) - 1));
+#define config_check_userland(last) assert((((last) - 1) & ARGS_USERLAND) == ((last) - 1));
 
 #define SLAP_X_ORDERED_FMT "{%d}"
 

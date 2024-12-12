@@ -54,15 +54,14 @@ static int valsort_cid;
 
 static ConfigDriver valsort_cf_func;
 
-static ConfigTable valsort_cfats[] = {
-    {"valsort-attr", "attribute> <dn> <sort-type", 4, 5, 0, ARG_MAGIC,
-     valsort_cf_func,
-     "( OLcfgOvAt:5.1 NAME 'olcValSortAttr' "
-     "DESC 'Sorting rule for attribute under given DN' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString )",
-     NULL, NULL},
-    {NULL}};
+static ConfigTable valsort_cfats[] = {{"valsort-attr", "attribute> <dn> <sort-type", 4, 5, 0, ARG_MAGIC,
+                                       valsort_cf_func,
+                                       "( OLcfgOvAt:5.1 NAME 'olcValSortAttr' "
+                                       "DESC 'Sorting rule for attribute under given DN' "
+                                       "EQUALITY caseIgnoreMatch "
+                                       "SYNTAX OMsDirectoryString )",
+                                       NULL, NULL},
+                                      {NULL}};
 
 static ConfigOCs valsort_cfocs[] = {{"( OLcfgOvOc:5.1 "
                                      "NAME 'olcValSortConfig' "
@@ -72,13 +71,12 @@ static ConfigOCs valsort_cfocs[] = {{"( OLcfgOvOc:5.1 "
                                      Cft_Overlay, valsort_cfats},
                                     {NULL}};
 
-static slap_verbmasks sorts[] = {
-    {BER_BVC("alpha-ascend"), VALSORT_ASCEND | VALSORT_ALPHA},
-    {BER_BVC("alpha-descend"), VALSORT_DESCEND | VALSORT_ALPHA},
-    {BER_BVC("numeric-ascend"), VALSORT_ASCEND | VALSORT_NUMERIC},
-    {BER_BVC("numeric-descend"), VALSORT_DESCEND | VALSORT_NUMERIC},
-    {BER_BVC("weighted"), VALSORT_WEIGHTED},
-    {BER_BVNULL, 0}};
+static slap_verbmasks sorts[] = {{BER_BVC("alpha-ascend"), VALSORT_ASCEND | VALSORT_ALPHA},
+                                 {BER_BVC("alpha-descend"), VALSORT_DESCEND | VALSORT_ALPHA},
+                                 {BER_BVC("numeric-ascend"), VALSORT_ASCEND | VALSORT_NUMERIC},
+                                 {BER_BVC("numeric-descend"), VALSORT_DESCEND | VALSORT_NUMERIC},
+                                 {BER_BVC("weighted"), VALSORT_WEIGHTED},
+                                 {BER_BVNULL, 0}};
 
 static Syntax *syn_numericString;
 
@@ -136,8 +134,8 @@ static int valsort_cf_func(ConfigArgs *c) {
     } else {
       valsort_info **prev;
 
-      for (i = 0, prev = (valsort_info **)&on->on_bi.bi_private, vi = *prev;
-           vi && i < c->valx; prev = &vi->vi_next, vi = vi->vi_next, i++)
+      for (i = 0, prev = (valsort_info **)&on->on_bi.bi_private, vi = *prev; vi && i < c->valx;
+           prev = &vi->vi_next, vi = vi->vi_next, i++)
         ;
       (*prev)->vi_next = vi->vi_next;
       ch_free(vi->vi_dn.bv_val);
@@ -153,8 +151,8 @@ static int valsort_cf_func(ConfigArgs *c) {
     return (1);
   }
   if (is_at_single_value(vitmp.vi_ad->ad_type)) {
-    snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> %s is single-valued, ignoring",
-             c->argv[0], vitmp.vi_ad->ad_cname.bv_val);
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> %s is single-valued, ignoring", c->argv[0],
+             vitmp.vi_ad->ad_cname.bv_val);
     Debug(LDAP_DEBUG_ANY, "%s: %s (%s)!\n", c->log, c->cr_msg, c->argv[1]);
     return (0);
   }
@@ -165,15 +163,13 @@ static int valsort_cf_func(ConfigArgs *c) {
   ber_str2bv(c->argv[2], 0, 0, &bv);
   i = dnNormalize(0, NULL, NULL, &bv, &vitmp.vi_dn, NULL);
   if (i) {
-    snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> unable to normalize DN",
-             c->argv[0]);
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> unable to normalize DN", c->argv[0]);
     Debug(LDAP_DEBUG_ANY, "%s: %s (%s)!\n", c->log, c->cr_msg, c->argv[2]);
     return (1);
   }
   i = verb_to_mask(c->argv[3], sorts);
   if (BER_BVISNULL(&sorts[i].word)) {
-    snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> unrecognized sort type",
-             c->argv[0]);
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> unrecognized sort type", c->argv[0]);
     Debug(LDAP_DEBUG_ANY, "%s: %s (%s)!\n", c->log, c->cr_msg, c->argv[3]);
     return (1);
   }
@@ -181,16 +177,14 @@ static int valsort_cf_func(ConfigArgs *c) {
   if (sorts[i].mask == VALSORT_WEIGHTED && c->argc == 5) {
     i = verb_to_mask(c->argv[4], sorts);
     if (BER_BVISNULL(&sorts[i].word)) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> unrecognized sort type",
-               c->argv[0]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> unrecognized sort type", c->argv[0]);
       Debug(LDAP_DEBUG_ANY, "%s: %s (%s)!\n", c->log, c->cr_msg, c->argv[4]);
       return (1);
     }
     vitmp.vi_sort |= sorts[i].mask;
   }
   if ((vitmp.vi_sort & VALSORT_NUMERIC) && !is_numeric) {
-    snprintf(c->cr_msg, sizeof(c->cr_msg),
-             "<%s> numeric sort specified for non-numeric syntax", c->argv[0]);
+    snprintf(c->cr_msg, sizeof(c->cr_msg), "<%s> numeric sort specified for non-numeric syntax", c->argv[0]);
     Debug(LDAP_DEBUG_ANY, "%s: %s (%s)!\n", c->log, c->cr_msg, c->argv[1]);
     return (1);
   }
@@ -202,8 +196,7 @@ static int valsort_cf_func(ConfigArgs *c) {
 }
 
 /* Use Insertion Sort algorithm on selected values */
-static void do_sort(Operation *op, Attribute *a, int beg, int num,
-                    slap_mask_t sort) {
+static void do_sort(Operation *op, Attribute *a, int beg, int num, slap_mask_t sort) {
   int i, j, gotnvals;
   struct berval tmp = {0}, ntmp, *vals = NULL, *nvals;
 
@@ -225,8 +218,7 @@ static void do_sort(Operation *op, Attribute *a, int beg, int num,
         tmp = vals[i];
       j = i;
       while (j > 0) {
-        int cmp = (sort & VALSORT_DESCEND) ? numbers[j - 1] < idx
-                                           : numbers[j - 1] > idx;
+        int cmp = (sort & VALSORT_DESCEND) ? numbers[j - 1] < idx : numbers[j - 1] > idx;
         if (!cmp)
           break;
         numbers[j] = numbers[j - 1];
@@ -407,19 +399,15 @@ static int valsort_add(Operation *op, SlapReply *rs) {
     for (i = 0; !BER_BVISNULL(&a->a_vals[i]); i++) {
       char *ptr = ber_bvchr(&a->a_vals[i], '{');
       if (!ptr) {
-        Debug(LDAP_DEBUG_TRACE, "weight missing from attribute %s\n",
-              vi->vi_ad->ad_cname.bv_val);
-        send_ldap_error(op, rs, LDAP_CONSTRAINT_VIOLATION,
-                        "weight missing from attribute");
+        Debug(LDAP_DEBUG_TRACE, "weight missing from attribute %s\n", vi->vi_ad->ad_cname.bv_val);
+        send_ldap_error(op, rs, LDAP_CONSTRAINT_VIOLATION, "weight missing from attribute");
         return rs->sr_err;
       }
       char *end = NULL;
       long unused = strtol(ptr + 1, &end, 0);
       if (!end || *end != '}') {
-        Debug(LDAP_DEBUG_TRACE, "weight is misformatted in %s\n",
-              vi->vi_ad->ad_cname.bv_val);
-        send_ldap_error(op, rs, LDAP_CONSTRAINT_VIOLATION,
-                        "weight is misformatted");
+        Debug(LDAP_DEBUG_TRACE, "weight is misformatted in %s\n", vi->vi_ad->ad_cname.bv_val);
+        send_ldap_error(op, rs, LDAP_CONSTRAINT_VIOLATION, "weight is misformatted");
         return rs->sr_err;
       }
       (void)unused;
@@ -453,19 +441,15 @@ static int valsort_modify(Operation *op, SlapReply *rs) {
     for (i = 0; !BER_BVISNULL(&ml->sml_values[i]); i++) {
       char *ptr = ber_bvchr(&ml->sml_values[i], '{');
       if (!ptr) {
-        Debug(LDAP_DEBUG_TRACE, "weight missing from attribute %s\n",
-              vi->vi_ad->ad_cname.bv_val);
-        send_ldap_error(op, rs, LDAP_CONSTRAINT_VIOLATION,
-                        "weight missing from attribute");
+        Debug(LDAP_DEBUG_TRACE, "weight missing from attribute %s\n", vi->vi_ad->ad_cname.bv_val);
+        send_ldap_error(op, rs, LDAP_CONSTRAINT_VIOLATION, "weight missing from attribute");
         return rs->sr_err;
       }
       char *end = NULL;
       long unused = strtol(ptr + 1, &end, 0);
       if (!end || *end != '}') {
-        Debug(LDAP_DEBUG_TRACE, "weight is misformatted in %s\n",
-              vi->vi_ad->ad_cname.bv_val);
-        send_ldap_error(op, rs, LDAP_CONSTRAINT_VIOLATION,
-                        "weight is misformatted");
+        Debug(LDAP_DEBUG_TRACE, "weight is misformatted in %s\n", vi->vi_ad->ad_cname.bv_val);
+        send_ldap_error(op, rs, LDAP_CONSTRAINT_VIOLATION, "weight is misformatted");
         return rs->sr_err;
       }
       (void)unused;
@@ -517,8 +501,7 @@ static int valsort_parseCtrl(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
     return LDAP_PROTOCOL_ERROR;
   }
 
-  op->o_ctrlflag[valsort_cid] =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_ctrlflag[valsort_cid] = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
   if (flag)
     op->o_ctrlflag[valsort_cid] |= SLAP_CONTROL_DATA0;
 
@@ -541,9 +524,8 @@ int valsort_over_initialize(void) {
 
   valsort.on_bi.bi_cf_ocs = valsort_cfocs;
 
-  rc = register_supported_control(LDAP_CONTROL_VALSORT,
-                                  SLAP_CTRL_SEARCH | SLAP_CTRL_HIDE, NULL,
-                                  valsort_parseCtrl, &valsort_cid);
+  rc = register_supported_control(LDAP_CONTROL_VALSORT, SLAP_CTRL_SEARCH | SLAP_CTRL_HIDE, NULL, valsort_parseCtrl,
+                                  &valsort_cid);
   if (rc != LDAP_SUCCESS) {
     Debug(LDAP_DEBUG_ANY, "Failed to register control %d\n", rc);
     return rc;

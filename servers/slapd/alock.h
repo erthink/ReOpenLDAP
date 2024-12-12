@@ -63,8 +63,7 @@ typedef struct alock_slot {
 } alock_slot_t;
 
 LDAP_SLAPD_F(int)
-alock_open(alock_info_t *info, const char *appname, const char *envdir,
-           int locktype);
+alock_open(alock_info_t *info, const char *appname, const char *envdir, int locktype);
 LDAP_SLAPD_F(int) alock_scan(alock_info_t *info);
 LDAP_SLAPD_F(int) alock_close(alock_info_t *info, int nosave);
 LDAP_SLAPD_F(int) alock_recover(alock_info_t *info);

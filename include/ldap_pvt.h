@@ -45,21 +45,18 @@ struct ldap_url_desc; /* avoid pulling in <ldap.h> */
 #define LDAP_PVT_URL_PARSE_DEF_PORT (0x02U)
 #define LDAP_PVT_URL_PARSE_NOEMPTY_DN (0x04U)
 #define LDAP_PVT_URL_PARSE_NODEF_SCOPE (0x08U)
-#define LDAP_PVT_URL_PARSE_HISTORIC                                            \
-  (LDAP_PVT_URL_PARSE_NODEF_SCOPE | LDAP_PVT_URL_PARSE_NOEMPTY_HOST |          \
-   LDAP_PVT_URL_PARSE_DEF_PORT)
+#define LDAP_PVT_URL_PARSE_HISTORIC                                                                                    \
+  (LDAP_PVT_URL_PARSE_NODEF_SCOPE | LDAP_PVT_URL_PARSE_NOEMPTY_HOST | LDAP_PVT_URL_PARSE_DEF_PORT)
 
 LDAP_F(int)
-ldap_url_parse_ext(const char *url, struct ldap_url_desc **ludpp,
-                   unsigned flags);
+ldap_url_parse_ext(const char *url, struct ldap_url_desc **ludpp, unsigned flags);
 
 LDAP_F(int)
 ldap_url_parselist(/* deprecated, use ldap_url_parselist_ext() */
                    struct ldap_url_desc **ludlist, const char *url);
 
 LDAP_F(int)
-ldap_url_parselist_ext(struct ldap_url_desc **ludlist, const char *url,
-                       const char *sep, unsigned flags);
+ldap_url_parselist_ext(struct ldap_url_desc **ludlist, const char *url, const char *sep, unsigned flags);
 
 LDAP_F(char *) ldap_url_list2urls(struct ldap_url_desc *ludlist);
 
@@ -97,19 +94,17 @@ LDAP_F(char *) ldap_pvt_get_fqdn(char *);
 struct hostent; /* avoid pulling in <netdb.h> */
 
 LDAP_F(int)
-ldap_pvt_gethostbyname_a(const char *name, struct hostent *resbuf, char **buf,
-                         struct hostent **result, int *herrno_ptr);
+ldap_pvt_gethostbyname_a(const char *name, struct hostent *resbuf, char **buf, struct hostent **result,
+                         int *herrno_ptr);
 
 LDAP_F(int)
-ldap_pvt_gethostbyaddr_a(const char *addr, int len, int type,
-                         struct hostent *resbuf, char **buf,
+ldap_pvt_gethostbyaddr_a(const char *addr, int len, int type, struct hostent *resbuf, char **buf,
                          struct hostent **result, int *herrno_ptr);
 
 struct sockaddr;
 
 LDAP_F(int)
-ldap_pvt_get_hname(const struct sockaddr *sa, int salen, char *name,
-                   int namelen, char **herr);
+ldap_pvt_get_hname(const struct sockaddr *sa, int salen, char *name, int namelen, char **herr);
 
 /* charray.c */
 
@@ -181,11 +176,9 @@ LDAP_F(int) ldap_pvt_get_controls(BerElement *be, struct ldapcontrol ***ctrlsp);
 /* cyrus.c */
 struct sasl_security_properties; /* avoid pulling in <sasl.h> */
 LDAP_F(int)
-ldap_pvt_sasl_secprops(const char *in,
-                       struct sasl_security_properties *secprops);
+ldap_pvt_sasl_secprops(const char *in, struct sasl_security_properties *secprops);
 LDAP_F(void)
-ldap_pvt_sasl_secprops_unparse(struct sasl_security_properties *secprops,
-                               struct berval *out);
+ldap_pvt_sasl_secprops_unparse(struct sasl_security_properties *secprops, struct berval *out);
 
 LDAP_F(void *) ldap_pvt_sasl_mutex_new(void);
 LDAP_F(int) ldap_pvt_sasl_mutex_lock(void *mutex);
@@ -204,12 +197,9 @@ LDAP_F(void) ldap_pvt_sasl_remove(struct sockbuf *);
 struct sb_sasl_generic_data;
 
 struct sb_sasl_generic_ops {
-  void (*init)(struct sb_sasl_generic_data *p, ber_len_t *min_send,
-               ber_len_t *max_send, ber_len_t *max_recv);
-  ber_int_t (*encode)(struct sb_sasl_generic_data *p, unsigned char *buf,
-                      ber_len_t len, Sockbuf_Buf *dst);
-  ber_int_t (*decode)(struct sb_sasl_generic_data *p, const Sockbuf_Buf *src,
-                      Sockbuf_Buf *dst);
+  void (*init)(struct sb_sasl_generic_data *p, ber_len_t *min_send, ber_len_t *max_send, ber_len_t *max_recv);
+  ber_int_t (*encode)(struct sb_sasl_generic_data *p, unsigned char *buf, ber_len_t len, Sockbuf_Buf *dst);
+  ber_int_t (*decode)(struct sb_sasl_generic_data *p, const Sockbuf_Buf *src, Sockbuf_Buf *dst);
   void (*reset_buf)(struct sb_sasl_generic_data *p, Sockbuf_Buf *buf);
   void (*fini)(struct sb_sasl_generic_data *p);
 };
@@ -250,8 +240,7 @@ ldap_pvt_conf_option(char *cmd, char *opt, int userconf);
 
 /* ldifutil.c */
 LDAP_F(int)
-ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum,
-                         struct ldifrecord *lr, const char *errstr,
+ldap_parse_ldif_record_x(struct berval *rbuf, unsigned long linenum, struct ldifrecord *lr, const char *errstr,
                          unsigned int flags, void *ctx);
 
 /* messages.c */
@@ -263,8 +252,7 @@ LDAP_F(int) ldap_open_internal_connection(struct ldap **ldp, ber_socket_t *fdp);
 
 /* sasl.c */
 LDAP_F(int)
-ldap_pvt_sasl_generic_install(Sockbuf *sb,
-                              struct sb_sasl_generic_install *install_arg);
+ldap_pvt_sasl_generic_install(Sockbuf *sb, struct sb_sasl_generic_install *install_arg);
 LDAP_F(void) ldap_pvt_sasl_generic_remove(Sockbuf *sb);
 
 /* search.c */
@@ -280,21 +268,17 @@ LDAP_F(ber_len_t)
 ldap_bv2escaped_filter_value_len(struct berval *in);
 
 LDAP_F(int)
-ldap_bv2escaped_filter_value_x(struct berval *in, struct berval *out,
-                               int inplace, void *ctx);
+ldap_bv2escaped_filter_value_x(struct berval *in, struct berval *out, int inplace, void *ctx);
 
 LDAP_F(int)
-ldap_pvt_search(struct ldap *ld, const char *base, int scope,
-                const char *filter, char **attrs, int attrsonly,
-                struct ldapcontrol **sctrls, struct ldapcontrol **cctrls,
-                struct timeval *timeout, int sizelimit, int deref, int *msgidp);
+ldap_pvt_search(struct ldap *ld, const char *base, int scope, const char *filter, char **attrs, int attrsonly,
+                struct ldapcontrol **sctrls, struct ldapcontrol **cctrls, struct timeval *timeout, int sizelimit,
+                int deref, int *msgidp);
 
 LDAP_F(int)
-ldap_pvt_search_s(struct ldap *ld, const char *base, int scope,
-                  const char *filter, char **attrs, int attrsonly,
-                  struct ldapcontrol **sctrls, struct ldapcontrol **cctrls,
-                  struct timeval *timeout, int sizelimit, int deref,
-                  struct ldapmsg **res);
+ldap_pvt_search_s(struct ldap *ld, const char *base, int scope, const char *filter, char **attrs, int attrsonly,
+                  struct ldapcontrol **sctrls, struct ldapcontrol **cctrls, struct timeval *timeout, int sizelimit,
+                  int deref, struct ldapmsg **res);
 
 /* string.c */
 LDAP_F(char *)
@@ -329,15 +313,12 @@ LDAP_F(void) ldap_pvt_tls_ctx_free(void *);
 
 typedef int LDAPDN_rewrite_dummy(void *dn, unsigned flags);
 
-typedef int(LDAP_TLS_CONNECT_CB)(struct ldap *ld, void *ssl, void *ctx,
-                                 void *arg);
+typedef int(LDAP_TLS_CONNECT_CB)(struct ldap *ld, void *ssl, void *ctx, void *arg);
 
 LDAP_F(int)
-ldap_pvt_tls_get_my_dn(void *ctx, struct berval *dn, LDAPDN_rewrite_dummy *func,
-                       unsigned flags);
+ldap_pvt_tls_get_my_dn(void *ctx, struct berval *dn, LDAPDN_rewrite_dummy *func, unsigned flags);
 LDAP_F(int)
-ldap_pvt_tls_get_peer_dn(void *ctx, struct berval *dn,
-                         LDAPDN_rewrite_dummy *func, unsigned flags);
+ldap_pvt_tls_get_peer_dn(void *ctx, struct berval *dn, LDAPDN_rewrite_dummy *func, unsigned flags);
 LDAP_F(int) ldap_pvt_tls_get_strength(void *ctx);
 LDAP_F(int)
 ldap_pvt_tls_get_unique(void *ctx, struct berval *buf, int is_server);
@@ -372,26 +353,26 @@ LDAP_BEGIN_DECL
 typedef BIGNUM *ldap_pvt_mp_t;
 #define LDAP_PVT_MP_INIT (NULL)
 
-#define ldap_pvt_mp_init(mp)                                                   \
-  do {                                                                         \
-    (mp) = BN_new();                                                           \
+#define ldap_pvt_mp_init(mp)                                                                                           \
+  do {                                                                                                                 \
+    (mp) = BN_new();                                                                                                   \
   } while (0)
 
 /* FIXME: we rely on mpr being initialized */
-#define ldap_pvt_mp_init_set(mpr, mpv)                                         \
-  do {                                                                         \
-    ldap_pvt_mp_init((mpr));                                                   \
-    BN_add((mpr), (mpr), (mpv));                                               \
+#define ldap_pvt_mp_init_set(mpr, mpv)                                                                                 \
+  do {                                                                                                                 \
+    ldap_pvt_mp_init((mpr));                                                                                           \
+    BN_add((mpr), (mpr), (mpv));                                                                                       \
   } while (0)
 
 #define ldap_pvt_mp_add(mpr, mpv) BN_add((mpr), (mpr), (mpv))
 
 #define ldap_pvt_mp_add_ulong(mp, v) BN_add_word((mp), (v))
 
-#define ldap_pvt_mp_clear(mp)                                                  \
-  do {                                                                         \
-    BN_free((mp));                                                             \
-    (mp) = 0;                                                                  \
+#define ldap_pvt_mp_clear(mp)                                                                                          \
+  do {                                                                                                                 \
+    BN_free((mp));                                                                                                     \
+    (mp) = 0;                                                                                                          \
   } while (0)
 
 #elif defined(USE_MP_GMP)
@@ -432,29 +413,29 @@ typedef unsigned long ldap_pvt_mp_t;
 #define LDAP_PVT_MP_INIT (0L)
 #endif
 
-#define ldap_pvt_mp_init(mp)                                                   \
-  do {                                                                         \
-    (mp) = 0;                                                                  \
+#define ldap_pvt_mp_init(mp)                                                                                           \
+  do {                                                                                                                 \
+    (mp) = 0;                                                                                                          \
   } while (0)
 
-#define ldap_pvt_mp_init_set(mpr, mpv)                                         \
-  do {                                                                         \
-    (mpr) = (mpv);                                                             \
+#define ldap_pvt_mp_init_set(mpr, mpv)                                                                                 \
+  do {                                                                                                                 \
+    (mpr) = (mpv);                                                                                                     \
   } while (0)
 
-#define ldap_pvt_mp_add(mpr, mpv)                                              \
-  do {                                                                         \
-    (mpr) += (mpv);                                                            \
+#define ldap_pvt_mp_add(mpr, mpv)                                                                                      \
+  do {                                                                                                                 \
+    (mpr) += (mpv);                                                                                                    \
   } while (0)
 
-#define ldap_pvt_mp_add_ulong(mp, v)                                           \
-  do {                                                                         \
-    (mp) += (v);                                                               \
+#define ldap_pvt_mp_add_ulong(mp, v)                                                                                   \
+  do {                                                                                                                 \
+    (mp) += (v);                                                                                                       \
   } while (0)
 
-#define ldap_pvt_mp_clear(mp)                                                  \
-  do {                                                                         \
-    (mp) = 0;                                                                  \
+#define ldap_pvt_mp_clear(mp)                                                                                          \
+  do {                                                                                                                 \
+    (mp) = 0;                                                                                                          \
   } while (0)
 
 #endif /* MP */
@@ -468,8 +449,7 @@ LDAP_BEGIN_DECL
 #include <limits.h> /* get CHAR_BIT */
 
 /* Buffer space for sign, decimal digits and \0. Note: log10(2) < 146/485. */
-#define LDAP_PVT_INTTYPE_CHARS(type)                                           \
-  (((sizeof(type) * CHAR_BIT - 1) * 146) / 485 + 3)
+#define LDAP_PVT_INTTYPE_CHARS(type) (((sizeof(type) * CHAR_BIT - 1) * 146) / 485 + 3)
 
 LDAP_END_DECL
 

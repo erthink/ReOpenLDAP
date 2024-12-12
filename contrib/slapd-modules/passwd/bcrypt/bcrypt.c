@@ -62,11 +62,10 @@
 static int bcrypt_workfactor;
 struct berval bcryptscheme = BER_BVC("{BCRYPT}");
 
-static int
-hash_bcrypt(const struct berval *scheme, /* Scheme name to construct output */
-            const struct berval *passwd, /* Plaintext password to hash */
-            struct berval *hash, /* Return value: schema + bcrypt hash */
-            const char **text)   /* Unused */
+static int hash_bcrypt(const struct berval *scheme, /* Scheme name to construct output */
+                       const struct berval *passwd, /* Plaintext password to hash */
+                       struct berval *hash,         /* Return value: schema + bcrypt hash */
+                       const char **text)           /* Unused */
 {
   _DEBUG("Entering hash_bcrypt\n");
 
@@ -87,8 +86,7 @@ hash_bcrypt(const struct berval *scheme, /* Scheme name to construct output */
   }
 
   _DEBUG("Generating setting string and salt\n");
-  if (_crypt_gensalt_blowfish_rn(BCRYPT_DEFAULT_PREFIX, bcrypt_workfactor,
-                                 saltinput, BCRYPT_SALT_SIZE, settingstring,
+  if (_crypt_gensalt_blowfish_rn(BCRYPT_DEFAULT_PREFIX, bcrypt_workfactor, saltinput, BCRYPT_SALT_SIZE, settingstring,
                                  BCRYPT_OUTPUT_SIZE) == NULL) {
     _DEBUG("Error: _crypt_gensalt_blowfish_rn returned NULL\n");
     return LUTIL_PASSWD_ERR;
@@ -96,10 +94,8 @@ hash_bcrypt(const struct berval *scheme, /* Scheme name to construct output */
   _DEBUG("Setting string: \"%s\"\n", settingstring);
 
   char *userpassword = passwd->bv_val;
-  _DEBUG("Hashing password \"%s\" with settingstring \"%s\"\n", userpassword,
-         settingstring);
-  if (_crypt_blowfish_rn(userpassword, settingstring, bcrypthash,
-                         BCRYPT_OUTPUT_SIZE) == NULL)
+  _DEBUG("Hashing password \"%s\" with settingstring \"%s\"\n", userpassword, settingstring);
+  if (_crypt_blowfish_rn(userpassword, settingstring, bcrypthash, BCRYPT_OUTPUT_SIZE) == NULL)
     return LUTIL_PASSWD_ERR;
 
   _DEBUG("bcrypt hash created: \"%s\"\n", bcrypthash);
@@ -121,11 +117,10 @@ hash_bcrypt(const struct berval *scheme, /* Scheme name to construct output */
   return LUTIL_PASSWD_OK;
 }
 
-static int chk_bcrypt(
-    const struct berval *scheme, /* Scheme of hashed reference password */
-    const struct berval *passwd, /* Hashed password to check against */
-    const struct berval *cred,   /* User-supplied password to check */
-    const char **text)           /* Unused */
+static int chk_bcrypt(const struct berval *scheme, /* Scheme of hashed reference password */
+                      const struct berval *passwd, /* Hashed password to check against */
+                      const struct berval *cred,   /* User-supplied password to check */
+                      const char **text)           /* Unused */
 {
   _DEBUG("Entering chk_bcrypt\n");
   char computedhash[BCRYPT_OUTPUT_SIZE];
@@ -145,8 +140,7 @@ static int chk_bcrypt(
 
   _DEBUG("Hashing provided credentials: \"%s\"\n", (char *)cred->bv_val);
   /* No need to base64 decode, as crypt_blowfish already does that */
-  if (_crypt_blowfish_rn((char *)cred->bv_val, (char *)passwd->bv_val,
-                         computedhash, BCRYPT_OUTPUT_SIZE) == NULL) {
+  if (_crypt_blowfish_rn((char *)cred->bv_val, (char *)passwd->bv_val, computedhash, BCRYPT_OUTPUT_SIZE) == NULL) {
     _DEBUG("Error: _crypt_blowfish_rn returned NULL\n");
     return LUTIL_PASSWD_ERR;
   }
@@ -172,19 +166,16 @@ SLAP_MODULE_ENTRY(pwbcrypt, modinit)(int argc, char *argv[]) {
   if (argc > 0) {
     _DEBUG("Work factor argument provided, trying to use that\n");
     int work = atoi(argv[0]);
-    if (work && work >= BCRYPT_MIN_WORKFACTOR &&
-        work <= BCRYPT_MAX_WORKFACTOR) {
+    if (work && work >= BCRYPT_MIN_WORKFACTOR && work <= BCRYPT_MAX_WORKFACTOR) {
       _DEBUG("Using configuration-supplied work factor %d\n", work);
       bcrypt_workfactor = work;
 
     } else {
-      _DEBUG("Invalid work factor. Using default work factor %d\n",
-             BCRYPT_DEFAULT_WORKFACTOR);
+      _DEBUG("Invalid work factor. Using default work factor %d\n", BCRYPT_DEFAULT_WORKFACTOR);
       bcrypt_workfactor = BCRYPT_DEFAULT_WORKFACTOR;
     }
   } else {
-    _DEBUG("No arguments provided. Using default work factor %d\n",
-           BCRYPT_DEFAULT_WORKFACTOR);
+    _DEBUG("No arguments provided. Using default work factor %d\n", BCRYPT_DEFAULT_WORKFACTOR);
     bcrypt_workfactor = BCRYPT_DEFAULT_WORKFACTOR;
   }
 

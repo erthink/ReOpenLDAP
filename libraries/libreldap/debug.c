@@ -64,8 +64,7 @@ static pthread_mutex_t debug_mutex;
 static __attribute__((constructor)) void ldap_debug_lock_init(void) {
   pthread_mutexattr_t mutexattr;
   LDAP_ENSURE(pthread_mutexattr_init(&mutexattr) == 0);
-  LDAP_ENSURE(pthread_mutexattr_settype(&mutexattr, PTHREAD_MUTEX_RECURSIVE) ==
-              0);
+  LDAP_ENSURE(pthread_mutexattr_settype(&mutexattr, PTHREAD_MUTEX_RECURSIVE) == 0);
   LDAP_ENSURE(pthread_mutex_init(&debug_mutex, &mutexattr) == 0);
 }
 #endif /* PTHREAD_RECURSIVE_MUTEX_INITIALIZER */
@@ -105,9 +104,7 @@ int ldap_debug_trylock(void) {
 void ldap_debug_unlock(void) {
   if (debug_lockdeep > 0) {
     debug_lockdeep -= 1;
-    if (debug_lockdeep == 0 &&
-        debug_autoflush >= (AUTOFLUSH_ENABLED | AUTOFLUSH_STUFFED) &&
-        debug_lastc == '\n')
+    if (debug_lockdeep == 0 && debug_autoflush >= (AUTOFLUSH_ENABLED | AUTOFLUSH_STUFFED) && debug_lastc == '\n')
       debug_flush();
   }
 
@@ -171,8 +168,7 @@ void ldap_debug_va(const char *fmt, va_list vl) {
     assert(off > 0);
     rc = syscall(SYS_gettid, NULL, NULL, NULL);
     assert(rc > 0);
-    off += snprintf(buffer + off, sizeof(buffer) - off, ".%06ld_%05ld ",
-                    now.tv_usec, rc);
+    off += snprintf(buffer + off, sizeof(buffer) - off, ".%06ld_%05ld ", now.tv_usec, rc);
     assert(off > 0);
   }
   len = vsnprintf(buffer + off, sizeof(buffer) - off, fmt, vl);
@@ -197,8 +193,7 @@ void ldap_debug_perror(LDAP *ld, const char *str) {
 
   ldap_debug_lock();
 
-  ldap_debug_print("%s: %s (%d)\n", str ? str : "ldap_debug_perror",
-                   ldap_err2string(ld->ld_errno), ld->ld_errno);
+  ldap_debug_print("%s: %s (%d)\n", str ? str : "ldap_debug_perror", ldap_err2string(ld->ld_errno), ld->ld_errno);
 
   if (ld->ld_matched != NULL && ld->ld_matched[0] != '\0') {
     ldap_debug_print("\tmatched DN: %s\n", ld->ld_matched);

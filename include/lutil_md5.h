@@ -38,8 +38,7 @@ LDAP_LUTIL_F(void)
 lutil_MD5Init(struct lutil_MD5Context *context);
 
 LDAP_LUTIL_F(void)
-lutil_MD5Update(struct lutil_MD5Context *context, unsigned char const *buf,
-                ber_len_t len);
+lutil_MD5Update(struct lutil_MD5Context *context, unsigned char const *buf, ber_len_t len);
 
 LDAP_LUTIL_F(void)
 lutil_MD5Final(unsigned char digest[16], struct lutil_MD5Context *context);

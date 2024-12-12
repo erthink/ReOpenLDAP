@@ -22,8 +22,7 @@
 
 #include "authorityKeyIdentifier.h"
 
-BDecComponentAuthorityKeyIdentifierTop(void *mem_op, GenBuf *b, void *v,
-                                       AsnLen *bytesDecoded, int mode) {
+BDecComponentAuthorityKeyIdentifierTop(void *mem_op, GenBuf *b, void *v, AsnLen *bytesDecoded, int mode) {
   AsnTag tag;
   AsnLen elmtLen;
 
@@ -35,21 +34,17 @@ BDecComponentAuthorityKeyIdentifierTop(void *mem_op, GenBuf *b, void *v,
     return (-1);
   }
 
-  return BDecComponentAuthorityKeyIdentifier(
-      mem_op, b, tag, elmtLen, (ComponentAuthorityKeyIdentifier **)v,
-      (AsnLen *)bytesDecoded, mode);
+  return BDecComponentAuthorityKeyIdentifier(mem_op, b, tag, elmtLen, (ComponentAuthorityKeyIdentifier **)v,
+                                             (AsnLen *)bytesDecoded, mode);
 }
 
 void init_module_AuthorityKeyIdentifierDefinition() {
-  InstallOidDecoderMapping("2.5.29.35", NULL,
-                           GDecComponentAuthorityKeyIdentifier,
-                           BDecComponentAuthorityKeyIdentifierTop,
-                           ExtractingComponentAuthorityKeyIdentifier,
+  InstallOidDecoderMapping("2.5.29.35", NULL, GDecComponentAuthorityKeyIdentifier,
+                           BDecComponentAuthorityKeyIdentifierTop, ExtractingComponentAuthorityKeyIdentifier,
                            MatchingComponentAuthorityKeyIdentifier);
 }
 
-int MatchingComponentOtherName(char *oid, ComponentSyntaxInfo *csi_attr,
-                               ComponentSyntaxInfo *csi_assert) {
+int MatchingComponentOtherName(char *oid, ComponentSyntaxInfo *csi_attr, ComponentSyntaxInfo *csi_assert) {
   int rc;
   MatchingRule *mr;
 
@@ -60,28 +55,23 @@ int MatchingComponentOtherName(char *oid, ComponentSyntaxInfo *csi_attr,
   }
 
   rc = 1;
-  rc = MatchingComponentOid(
-      oid, (ComponentSyntaxInfo *)&((ComponentOtherName *)csi_attr)->type_id,
-      (ComponentSyntaxInfo *)&((ComponentOtherName *)csi_assert)->type_id);
+  rc = MatchingComponentOid(oid, (ComponentSyntaxInfo *)&((ComponentOtherName *)csi_attr)->type_id,
+                            (ComponentSyntaxInfo *)&((ComponentOtherName *)csi_assert)->type_id);
   if (rc != LDAP_COMPARE_TRUE)
     return rc;
-  rc = SetAnyTypeByComponentOid(
-      (ComponentSyntaxInfo *)&((ComponentOtherName *)csi_attr)->value,
-      (&((ComponentOtherName *)csi_attr)->type_id));
-  rc = MatchingComponentAnyDefinedBy(
-      oid, (ComponentAny *)&((ComponentOtherName *)csi_attr)->value,
-      (ComponentAny *)&((ComponentOtherName *)csi_assert)->value);
+  rc = SetAnyTypeByComponentOid((ComponentSyntaxInfo *)&((ComponentOtherName *)csi_attr)->value,
+                                (&((ComponentOtherName *)csi_attr)->type_id));
+  rc = MatchingComponentAnyDefinedBy(oid, (ComponentAny *)&((ComponentOtherName *)csi_attr)->value,
+                                     (ComponentAny *)&((ComponentOtherName *)csi_assert)->value);
   if (rc != LDAP_COMPARE_TRUE)
     return rc;
   return LDAP_COMPARE_TRUE;
 } /* BMatchingComponentOtherName */
 
-void *ExtractingComponentOtherName(void *mem_op, ComponentReference *cr,
-                                   ComponentOtherName *comp) {
+void *ExtractingComponentOtherName(void *mem_op, ComponentReference *cr, ComponentOtherName *comp) {
 
   if ((comp->type_id.identifier.bv_val &&
-       strncmp(comp->type_id.identifier.bv_val,
-               cr->cr_curr->ci_val.ci_identifier.bv_val,
+       strncmp(comp->type_id.identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
       (strncmp(comp->type_id.id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0)) {
@@ -90,10 +80,8 @@ void *ExtractingComponentOtherName(void *mem_op, ComponentReference *cr,
     else
       return NULL;
   }
-  if ((comp->value.identifier.bv_val &&
-       strncmp(comp->value.identifier.bv_val,
-               cr->cr_curr->ci_val.ci_identifier.bv_val,
-               cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
+  if ((comp->value.identifier.bv_val && strncmp(comp->value.identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
+                                                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
       (strncmp(comp->value.id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0)) {
     if (cr->cr_curr->ci_next == NULL)
@@ -104,11 +92,9 @@ void *ExtractingComponentOtherName(void *mem_op, ComponentReference *cr,
   return NULL;
 } /* ExtractingComponentOtherName */
 
-int BDecComponentOtherName
-PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
-           _AND_ ComponentOtherName **v _AND_ AsnLen *bytesDecoded
-               _AND_ int mode) {
+int BDecComponentOtherName PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
+                                  void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
+                                      _AND_ ComponentOtherName **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -131,8 +117,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
 
   if (((tagId1 == MAKE_TAG_ID(UNIV, PRIM, OID_TAG_CODE)))) {
     elmtLen1 = BDecLen(b, &totalElmtsLen1);
-    rc = BDecComponentOid(mem_op, b, tagId1, elmtLen1, (&k->type_id),
-                          &totalElmtsLen1, mode);
+    rc = BDecComponentOid(mem_op, b, tagId1, elmtLen1, (&k->type_id), &totalElmtsLen1, mode);
     if (rc != LDAP_SUCCESS)
       return rc;
     (&k->type_id)->identifier.bv_val = (&k->type_id)->id_buf;
@@ -145,8 +130,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
   if (((tagId1 == MAKE_TAG_ID(CNTX, CONS, 0)))) {
     elmtLen1 = BDecLen(b, &totalElmtsLen1);
     rc = SetAnyTypeByComponentOid((&k->value), (&k->type_id));
-    rc = BDecComponentAnyDefinedBy(mem_op, b, (&k->value), &totalElmtsLen1,
-                                   mode);
+    rc = BDecComponentAnyDefinedBy(mem_op, b, (&k->value), &totalElmtsLen1, mode);
     if (rc != LDAP_SUCCESS)
       return rc;
     (&k->value)->identifier.bv_val = (&k->value)->id_buf;
@@ -167,8 +151,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
     return -1;
 
   if (!(old_mode & DEC_ALLOC_MODE_1)) {
-    *v = t =
-        (ComponentOtherName *)CompAlloc(mem_op, sizeof(ComponentOtherName));
+    *v = t = (ComponentOtherName *)CompAlloc(mem_op, sizeof(ComponentOtherName));
     if (!t)
       return -1;
     *t = *k;
@@ -182,20 +165,17 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
   t->comp_desc->cd_gser_decoder = (gser_decoder_func *)GDecComponentOtherName;
   t->comp_desc->cd_ber_decoder = (ber_decoder_func *)BDecComponentOtherName;
   t->comp_desc->cd_free = (comp_free_func *)NULL;
-  t->comp_desc->cd_extract_i =
-      (extract_component_from_id_func *)ExtractingComponentOtherName;
+  t->comp_desc->cd_extract_i = (extract_component_from_id_func *)ExtractingComponentOtherName;
   t->comp_desc->cd_type = ASN_COMPOSITE;
   t->comp_desc->cd_type_id = COMPOSITE_ASN1_TYPE;
-  t->comp_desc->cd_all_match =
-      (allcomponent_matching_func *)MatchingComponentOtherName;
+  t->comp_desc->cd_all_match = (allcomponent_matching_func *)MatchingComponentOtherName;
   (*bytesDecoded) += totalElmtsLen1;
   return LDAP_SUCCESS;
 } /* BDecOtherName*/
 
 int GDecComponentOtherName
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentOtherName **v
-           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentOtherName **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentOtherName *k, *t, c_temp;
@@ -256,8 +236,7 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
     return LDAP_PROTOCOL_ERROR;
   }
   if (!(old_mode & DEC_ALLOC_MODE_1)) {
-    *v = t =
-        (ComponentOtherName *)CompAlloc(mem_op, sizeof(ComponentOtherName));
+    *v = t = (ComponentOtherName *)CompAlloc(mem_op, sizeof(ComponentOtherName));
     if (!t)
       return -1;
     *t = *k;
@@ -271,17 +250,14 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
   t->comp_desc->cd_gser_decoder = (gser_decoder_func *)GDecComponentOtherName;
   t->comp_desc->cd_ber_decoder = (ber_decoder_func *)BDecComponentOtherName;
   t->comp_desc->cd_free = (comp_free_func *)NULL;
-  t->comp_desc->cd_extract_i =
-      (extract_component_from_id_func *)ExtractingComponentOtherName;
+  t->comp_desc->cd_extract_i = (extract_component_from_id_func *)ExtractingComponentOtherName;
   t->comp_desc->cd_type = ASN_COMPOSITE;
   t->comp_desc->cd_type_id = COMPOSITE_ASN1_TYPE;
-  t->comp_desc->cd_all_match =
-      (allcomponent_matching_func *)MatchingComponentOtherName;
+  t->comp_desc->cd_all_match = (allcomponent_matching_func *)MatchingComponentOtherName;
   return LDAP_SUCCESS;
 } /* GDecOtherName*/
 
-int MatchingComponentORAddress(char *oid, ComponentSyntaxInfo *csi_attr,
-                               ComponentSyntaxInfo *csi_assert) {
+int MatchingComponentORAddress(char *oid, ComponentSyntaxInfo *csi_attr, ComponentSyntaxInfo *csi_assert) {
   int rc;
   MatchingRule *mr;
 
@@ -292,33 +268,27 @@ int MatchingComponentORAddress(char *oid, ComponentSyntaxInfo *csi_attr,
   }
 
   rc = 1;
-  rc = MatchingComponentOid(
-      oid, (ComponentSyntaxInfo *)&((ComponentORAddress *)csi_attr)->type_id,
-      (ComponentSyntaxInfo *)&((ComponentORAddress *)csi_assert)->type_id);
+  rc = MatchingComponentOid(oid, (ComponentSyntaxInfo *)&((ComponentORAddress *)csi_attr)->type_id,
+                            (ComponentSyntaxInfo *)&((ComponentORAddress *)csi_assert)->type_id);
   if (rc != LDAP_COMPARE_TRUE)
     return rc;
-  rc = SetAnyTypeByComponentOid(
-      (ComponentSyntaxInfo *)&((ComponentORAddress *)csi_attr)->value,
-      (&((ComponentORAddress *)csi_attr)->type_id));
-  rc = MatchingComponentAnyDefinedBy(
-      oid, (ComponentAny *)&((ComponentORAddress *)csi_attr)->value,
-      (ComponentAny *)&((ComponentORAddress *)csi_assert)->value);
+  rc = SetAnyTypeByComponentOid((ComponentSyntaxInfo *)&((ComponentORAddress *)csi_attr)->value,
+                                (&((ComponentORAddress *)csi_attr)->type_id));
+  rc = MatchingComponentAnyDefinedBy(oid, (ComponentAny *)&((ComponentORAddress *)csi_attr)->value,
+                                     (ComponentAny *)&((ComponentORAddress *)csi_assert)->value);
   if (rc != LDAP_COMPARE_TRUE)
     return rc;
-  rc = MatchingComponentOcts(
-      oid, (ComponentSyntaxInfo *)&((ComponentORAddress *)csi_attr)->extension,
-      (ComponentSyntaxInfo *)&((ComponentORAddress *)csi_assert)->extension);
+  rc = MatchingComponentOcts(oid, (ComponentSyntaxInfo *)&((ComponentORAddress *)csi_attr)->extension,
+                             (ComponentSyntaxInfo *)&((ComponentORAddress *)csi_assert)->extension);
   if (rc != LDAP_COMPARE_TRUE)
     return rc;
   return LDAP_COMPARE_TRUE;
 } /* BMatchingComponentORAddress */
 
-void *ExtractingComponentORAddress(void *mem_op, ComponentReference *cr,
-                                   ComponentORAddress *comp) {
+void *ExtractingComponentORAddress(void *mem_op, ComponentReference *cr, ComponentORAddress *comp) {
 
   if ((comp->type_id.identifier.bv_val &&
-       strncmp(comp->type_id.identifier.bv_val,
-               cr->cr_curr->ci_val.ci_identifier.bv_val,
+       strncmp(comp->type_id.identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
       (strncmp(comp->type_id.id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0)) {
@@ -327,10 +297,8 @@ void *ExtractingComponentORAddress(void *mem_op, ComponentReference *cr,
     else
       return NULL;
   }
-  if ((comp->value.identifier.bv_val &&
-       strncmp(comp->value.identifier.bv_val,
-               cr->cr_curr->ci_val.ci_identifier.bv_val,
-               cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
+  if ((comp->value.identifier.bv_val && strncmp(comp->value.identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
+                                                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
       (strncmp(comp->value.id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0)) {
     if (cr->cr_curr->ci_next == NULL)
@@ -339,8 +307,7 @@ void *ExtractingComponentORAddress(void *mem_op, ComponentReference *cr,
       return NULL;
   }
   if ((comp->extension.identifier.bv_val &&
-       strncmp(comp->extension.identifier.bv_val,
-               cr->cr_curr->ci_val.ci_identifier.bv_val,
+       strncmp(comp->extension.identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
       (strncmp(comp->extension.id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0)) {
@@ -352,11 +319,9 @@ void *ExtractingComponentORAddress(void *mem_op, ComponentReference *cr,
   return NULL;
 } /* ExtractingComponentORAddress */
 
-int BDecComponentORAddress
-PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
-           _AND_ ComponentORAddress **v _AND_ AsnLen *bytesDecoded
-               _AND_ int mode) {
+int BDecComponentORAddress PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
+                                  void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
+                                      _AND_ ComponentORAddress **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -376,8 +341,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
 
   if (((tagId1 == MAKE_TAG_ID(UNIV, PRIM, OID_TAG_CODE)))) {
     elmtLen1 = BDecLen(b, &totalElmtsLen1);
-    rc = BDecComponentOid(mem_op, b, tagId1, elmtLen1, (&k->type_id),
-                          &totalElmtsLen1, mode);
+    rc = BDecComponentOid(mem_op, b, tagId1, elmtLen1, (&k->type_id), &totalElmtsLen1, mode);
     if (rc != LDAP_SUCCESS)
       return rc;
     (&k->type_id)->identifier.bv_val = (&k->type_id)->id_buf;
@@ -388,8 +352,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
 
   {
     rc = SetAnyTypeByComponentOid((&k->value), (&k->type_id));
-    rc = BDecComponentAnyDefinedBy(mem_op, b, (&k->value), &totalElmtsLen1,
-                                   mode);
+    rc = BDecComponentAnyDefinedBy(mem_op, b, (&k->value), &totalElmtsLen1, mode);
     if (rc != LDAP_SUCCESS)
       return rc;
     (&k->value)->identifier.bv_val = (&k->value)->id_buf;
@@ -407,12 +370,10 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
     }
   }
 
-  if ((!seqDone) &&
-      ((tagId1 == MAKE_TAG_ID(UNIV, PRIM, OCTETSTRING_TAG_CODE)) ||
-       (tagId1 == MAKE_TAG_ID(UNIV, CONS, OCTETSTRING_TAG_CODE)))) {
+  if ((!seqDone) && ((tagId1 == MAKE_TAG_ID(UNIV, PRIM, OCTETSTRING_TAG_CODE)) ||
+                     (tagId1 == MAKE_TAG_ID(UNIV, CONS, OCTETSTRING_TAG_CODE)))) {
     elmtLen1 = BDecLen(b, &totalElmtsLen1);
-    rc = BDecComponentOcts(mem_op, b, tagId1, elmtLen1, (&k->extension),
-                           &totalElmtsLen1, mode);
+    rc = BDecComponentOcts(mem_op, b, tagId1, elmtLen1, (&k->extension), &totalElmtsLen1, mode);
     if (rc != LDAP_SUCCESS)
       return rc;
     (&k->extension)->identifier.bv_val = (&k->extension)->id_buf;
@@ -429,8 +390,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
     return -1;
 
   if (!(old_mode & DEC_ALLOC_MODE_1)) {
-    *v = t =
-        (ComponentORAddress *)CompAlloc(mem_op, sizeof(ComponentORAddress));
+    *v = t = (ComponentORAddress *)CompAlloc(mem_op, sizeof(ComponentORAddress));
     if (!t)
       return -1;
     *t = *k;
@@ -444,20 +404,17 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
   t->comp_desc->cd_gser_decoder = (gser_decoder_func *)GDecComponentORAddress;
   t->comp_desc->cd_ber_decoder = (ber_decoder_func *)BDecComponentORAddress;
   t->comp_desc->cd_free = (comp_free_func *)NULL;
-  t->comp_desc->cd_extract_i =
-      (extract_component_from_id_func *)ExtractingComponentORAddress;
+  t->comp_desc->cd_extract_i = (extract_component_from_id_func *)ExtractingComponentORAddress;
   t->comp_desc->cd_type = ASN_COMPOSITE;
   t->comp_desc->cd_type_id = COMPOSITE_ASN1_TYPE;
-  t->comp_desc->cd_all_match =
-      (allcomponent_matching_func *)MatchingComponentORAddress;
+  t->comp_desc->cd_all_match = (allcomponent_matching_func *)MatchingComponentORAddress;
   (*bytesDecoded) += totalElmtsLen1;
   return LDAP_SUCCESS;
 } /* BDecORAddress*/
 
 int GDecComponentORAddress
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentORAddress **v
-           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentORAddress **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentORAddress *k, *t, c_temp;
@@ -537,8 +494,7 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
     return LDAP_PROTOCOL_ERROR;
   }
   if (!(old_mode & DEC_ALLOC_MODE_1)) {
-    *v = t =
-        (ComponentORAddress *)CompAlloc(mem_op, sizeof(ComponentORAddress));
+    *v = t = (ComponentORAddress *)CompAlloc(mem_op, sizeof(ComponentORAddress));
     if (!t)
       return -1;
     *t = *k;
@@ -552,17 +508,14 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
   t->comp_desc->cd_gser_decoder = (gser_decoder_func *)GDecComponentORAddress;
   t->comp_desc->cd_ber_decoder = (ber_decoder_func *)BDecComponentORAddress;
   t->comp_desc->cd_free = (comp_free_func *)NULL;
-  t->comp_desc->cd_extract_i =
-      (extract_component_from_id_func *)ExtractingComponentORAddress;
+  t->comp_desc->cd_extract_i = (extract_component_from_id_func *)ExtractingComponentORAddress;
   t->comp_desc->cd_type = ASN_COMPOSITE;
   t->comp_desc->cd_type_id = COMPOSITE_ASN1_TYPE;
-  t->comp_desc->cd_all_match =
-      (allcomponent_matching_func *)MatchingComponentORAddress;
+  t->comp_desc->cd_all_match = (allcomponent_matching_func *)MatchingComponentORAddress;
   return LDAP_SUCCESS;
 } /* GDecORAddress*/
 
-int MatchingComponentDirectoryString(char *oid, ComponentSyntaxInfo *csi_attr,
-                                     ComponentSyntaxInfo *csi_assert) {
+int MatchingComponentDirectoryString(char *oid, ComponentSyntaxInfo *csi_attr, ComponentSyntaxInfo *csi_assert) {
   int rc;
   MatchingRule *mr;
   ComponentDirectoryString *v1, *v2;
@@ -579,28 +532,23 @@ int MatchingComponentDirectoryString(char *oid, ComponentSyntaxInfo *csi_attr,
     return LDAP_COMPARE_FALSE;
   switch (v1->choiceId) {
   case DIRECTORYSTRING_TELETEXSTRING:
-    rc = MatchingComponentTeletexString(
-        oid, (ComponentSyntaxInfo *)(v1->a.teletexString),
-        (ComponentSyntaxInfo *)(v2->a.teletexString));
+    rc = MatchingComponentTeletexString(oid, (ComponentSyntaxInfo *)(v1->a.teletexString),
+                                        (ComponentSyntaxInfo *)(v2->a.teletexString));
     break;
   case DIRECTORYSTRING_PRINTABLESTRING:
-    rc = MatchingComponentPrintableString(
-        oid, (ComponentSyntaxInfo *)(v1->a.printableString),
-        (ComponentSyntaxInfo *)(v2->a.printableString));
+    rc = MatchingComponentPrintableString(oid, (ComponentSyntaxInfo *)(v1->a.printableString),
+                                          (ComponentSyntaxInfo *)(v2->a.printableString));
     break;
   case DIRECTORYSTRING_UNIVERSALSTRING:
-    rc = MatchingComponentUniversalString(
-        oid, (ComponentSyntaxInfo *)(v1->a.universalString),
-        (ComponentSyntaxInfo *)(v2->a.universalString));
+    rc = MatchingComponentUniversalString(oid, (ComponentSyntaxInfo *)(v1->a.universalString),
+                                          (ComponentSyntaxInfo *)(v2->a.universalString));
     break;
   case DIRECTORYSTRING_UTF8STRING:
-    rc = MatchingComponentUTF8String(oid,
-                                     (ComponentSyntaxInfo *)(v1->a.utf8String),
+    rc = MatchingComponentUTF8String(oid, (ComponentSyntaxInfo *)(v1->a.utf8String),
                                      (ComponentSyntaxInfo *)(v2->a.utf8String));
     break;
   case DIRECTORYSTRING_BMPSTRING:
-    rc = MatchingComponentBMPString(oid,
-                                    (ComponentSyntaxInfo *)(v1->a.bmpString),
+    rc = MatchingComponentBMPString(oid, (ComponentSyntaxInfo *)(v1->a.bmpString),
                                     (ComponentSyntaxInfo *)(v2->a.bmpString));
     break;
   default:
@@ -609,64 +557,52 @@ int MatchingComponentDirectoryString(char *oid, ComponentSyntaxInfo *csi_attr,
   return rc;
 } /* BMatchingComponentDirectoryStringContent */
 
-void *ExtractingComponentDirectoryString(void *mem_op, ComponentReference *cr,
-                                         ComponentDirectoryString *comp) {
+void *ExtractingComponentDirectoryString(void *mem_op, ComponentReference *cr, ComponentDirectoryString *comp) {
 
   if ((comp->choiceId) == DIRECTORYSTRING_TELETEXSTRING &&
       ((comp->a.teletexString->identifier.bv_val &&
-        strncmp(comp->a.teletexString->identifier.bv_val,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+        strncmp(comp->a.teletexString->identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
-       (strncmp(comp->a.teletexString->id_buf,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+       (strncmp(comp->a.teletexString->id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0))) {
     if (cr->cr_curr->ci_next == NULL)
       return (comp->a.teletexString);
     else {
       cr->cr_curr = cr->cr_curr->ci_next;
-      return ExtractingComponentTeletexString(mem_op, cr,
-                                              (comp->a.teletexString));
+      return ExtractingComponentTeletexString(mem_op, cr, (comp->a.teletexString));
     };
   }
   if ((comp->choiceId) == DIRECTORYSTRING_PRINTABLESTRING &&
       ((comp->a.printableString->identifier.bv_val &&
-        strncmp(comp->a.printableString->identifier.bv_val,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+        strncmp(comp->a.printableString->identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
-       (strncmp(comp->a.printableString->id_buf,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+       (strncmp(comp->a.printableString->id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0))) {
     if (cr->cr_curr->ci_next == NULL)
       return (comp->a.printableString);
     else {
       cr->cr_curr = cr->cr_curr->ci_next;
-      return ExtractingComponentPrintableString(mem_op, cr,
-                                                (comp->a.printableString));
+      return ExtractingComponentPrintableString(mem_op, cr, (comp->a.printableString));
     };
   }
   if ((comp->choiceId) == DIRECTORYSTRING_UNIVERSALSTRING &&
       ((comp->a.universalString->identifier.bv_val &&
-        strncmp(comp->a.universalString->identifier.bv_val,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+        strncmp(comp->a.universalString->identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
-       (strncmp(comp->a.universalString->id_buf,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+       (strncmp(comp->a.universalString->id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0))) {
     if (cr->cr_curr->ci_next == NULL)
       return (comp->a.universalString);
     else {
       cr->cr_curr = cr->cr_curr->ci_next;
-      return ExtractingComponentUniversalString(mem_op, cr,
-                                                (comp->a.universalString));
+      return ExtractingComponentUniversalString(mem_op, cr, (comp->a.universalString));
     };
   }
   if ((comp->choiceId) == DIRECTORYSTRING_UTF8STRING &&
       ((comp->a.utf8String->identifier.bv_val &&
-        strncmp(comp->a.utf8String->identifier.bv_val,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+        strncmp(comp->a.utf8String->identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
-       (strncmp(comp->a.utf8String->id_buf,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+       (strncmp(comp->a.utf8String->id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0))) {
     if (cr->cr_curr->ci_next == NULL)
       return (comp->a.utf8String);
@@ -677,11 +613,9 @@ void *ExtractingComponentDirectoryString(void *mem_op, ComponentReference *cr,
   }
   if ((comp->choiceId) == DIRECTORYSTRING_BMPSTRING &&
       ((comp->a.bmpString->identifier.bv_val &&
-        strncmp(comp->a.bmpString->identifier.bv_val,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+        strncmp(comp->a.bmpString->identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
-       (strncmp(comp->a.bmpString->id_buf,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+       (strncmp(comp->a.bmpString->id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0))) {
     if (cr->cr_curr->ci_next == NULL)
       return (comp->a.bmpString);
@@ -695,9 +629,8 @@ void *ExtractingComponentDirectoryString(void *mem_op, ComponentReference *cr,
 
 int BDecComponentDirectoryString
 PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
-           _AND_ ComponentDirectoryString **v _AND_ AsnLen *bytesDecoded
-               _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0 _AND_ ComponentDirectoryString **v
+           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -717,8 +650,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
   case MAKE_TAG_ID(UNIV, PRIM, TELETEXSTRING_TAG_CODE):
   case MAKE_TAG_ID(UNIV, CONS, TELETEXSTRING_TAG_CODE):
     (k->choiceId) = DIRECTORYSTRING_TELETEXSTRING;
-    rc = BDecComponentTeletexString(mem_op, b, tagId0, elmtLen0,
-                                    (&k->a.teletexString), &totalElmtsLen1,
+    rc = BDecComponentTeletexString(mem_op, b, tagId0, elmtLen0, (&k->a.teletexString), &totalElmtsLen1,
                                     DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
@@ -730,8 +662,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
   case MAKE_TAG_ID(UNIV, PRIM, PRINTABLESTRING_TAG_CODE):
   case MAKE_TAG_ID(UNIV, CONS, PRINTABLESTRING_TAG_CODE):
     (k->choiceId) = DIRECTORYSTRING_PRINTABLESTRING;
-    rc = BDecComponentPrintableString(mem_op, b, tagId0, elmtLen0,
-                                      (&k->a.printableString), &totalElmtsLen1,
+    rc = BDecComponentPrintableString(mem_op, b, tagId0, elmtLen0, (&k->a.printableString), &totalElmtsLen1,
                                       DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
@@ -743,8 +674,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
   case MAKE_TAG_ID(UNIV, PRIM, UNIVERSALSTRING_TAG_CODE):
   case MAKE_TAG_ID(UNIV, CONS, UNIVERSALSTRING_TAG_CODE):
     (k->choiceId) = DIRECTORYSTRING_UNIVERSALSTRING;
-    rc = BDecComponentUniversalString(mem_op, b, tagId0, elmtLen0,
-                                      (&k->a.universalString), &totalElmtsLen1,
+    rc = BDecComponentUniversalString(mem_op, b, tagId0, elmtLen0, (&k->a.universalString), &totalElmtsLen1,
                                       DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
@@ -756,9 +686,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
   case MAKE_TAG_ID(UNIV, PRIM, UTF8STRING_TAG_CODE):
   case MAKE_TAG_ID(UNIV, CONS, UTF8STRING_TAG_CODE):
     (k->choiceId) = DIRECTORYSTRING_UTF8STRING;
-    rc =
-        BDecComponentUTF8String(mem_op, b, tagId0, elmtLen0, (&k->a.utf8String),
-                                &totalElmtsLen1, DEC_ALLOC_MODE_0);
+    rc = BDecComponentUTF8String(mem_op, b, tagId0, elmtLen0, (&k->a.utf8String), &totalElmtsLen1, DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.utf8String)->identifier.bv_val = (k->a.utf8String)->id_buf;
@@ -769,8 +697,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
   case MAKE_TAG_ID(UNIV, PRIM, BMPSTRING_TAG_CODE):
   case MAKE_TAG_ID(UNIV, CONS, BMPSTRING_TAG_CODE):
     (k->choiceId) = DIRECTORYSTRING_BMPSTRING;
-    rc = BDecComponentBMPString(mem_op, b, tagId0, elmtLen0, (&k->a.bmpString),
-                                &totalElmtsLen1, DEC_ALLOC_MODE_0);
+    rc = BDecComponentBMPString(mem_op, b, tagId0, elmtLen0, (&k->a.bmpString), &totalElmtsLen1, DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.bmpString)->identifier.bv_val = (k->a.bmpString)->id_buf;
@@ -784,8 +711,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
     break;
   } /* end switch */
   if (!(old_mode & DEC_ALLOC_MODE_1)) {
-    *v = t = (ComponentDirectoryString *)CompAlloc(
-        mem_op, sizeof(ComponentDirectoryString));
+    *v = t = (ComponentDirectoryString *)CompAlloc(mem_op, sizeof(ComponentDirectoryString));
     if (!t)
       return -1;
     *t = *k;
@@ -796,25 +722,20 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
     free(t);
     return -1;
   }
-  t->comp_desc->cd_gser_decoder =
-      (gser_decoder_func *)GDecComponentDirectoryString;
-  t->comp_desc->cd_ber_decoder =
-      (ber_decoder_func *)BDecComponentDirectoryString;
+  t->comp_desc->cd_gser_decoder = (gser_decoder_func *)GDecComponentDirectoryString;
+  t->comp_desc->cd_ber_decoder = (ber_decoder_func *)BDecComponentDirectoryString;
   t->comp_desc->cd_free = (comp_free_func *)NULL;
-  t->comp_desc->cd_extract_i =
-      (extract_component_from_id_func *)ExtractingComponentDirectoryString;
+  t->comp_desc->cd_extract_i = (extract_component_from_id_func *)ExtractingComponentDirectoryString;
   t->comp_desc->cd_type = ASN_COMPOSITE;
   t->comp_desc->cd_type_id = COMPOSITE_ASN1_TYPE;
-  t->comp_desc->cd_all_match =
-      (allcomponent_matching_func *)MatchingComponentDirectoryString;
+  t->comp_desc->cd_all_match = (allcomponent_matching_func *)MatchingComponentDirectoryString;
   (*bytesDecoded) += totalElmtsLen1;
   return LDAP_SUCCESS;
 } /* BDecDirectoryStringContent */
 
 int GDecComponentDirectoryString
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentDirectoryString **v
-           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentDirectoryString **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentDirectoryString *k, *t, c_temp;
@@ -839,42 +760,35 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
   }
   if (strncmp("teletexString", peek_head, strlen("teletexString")) == 0) {
     (k->choiceId) = DIRECTORYSTRING_TELETEXSTRING;
-    rc = GDecComponentTeletexString(mem_op, b, (&k->a.teletexString),
-                                    bytesDecoded, DEC_ALLOC_MODE_0);
+    rc = GDecComponentTeletexString(mem_op, b, (&k->a.teletexString), bytesDecoded, DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.teletexString)->identifier.bv_val = peek_head;
     (k->a.teletexString)->identifier.bv_len = strLen;
-  } else if (strncmp("printableString", peek_head, strlen("printableString")) ==
-             0) {
+  } else if (strncmp("printableString", peek_head, strlen("printableString")) == 0) {
     (k->choiceId) = DIRECTORYSTRING_PRINTABLESTRING;
-    rc = GDecComponentPrintableString(mem_op, b, (&k->a.printableString),
-                                      bytesDecoded, DEC_ALLOC_MODE_0);
+    rc = GDecComponentPrintableString(mem_op, b, (&k->a.printableString), bytesDecoded, DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.printableString)->identifier.bv_val = peek_head;
     (k->a.printableString)->identifier.bv_len = strLen;
-  } else if (strncmp("universalString", peek_head, strlen("universalString")) ==
-             0) {
+  } else if (strncmp("universalString", peek_head, strlen("universalString")) == 0) {
     (k->choiceId) = DIRECTORYSTRING_UNIVERSALSTRING;
-    rc = GDecComponentUniversalString(mem_op, b, (&k->a.universalString),
-                                      bytesDecoded, DEC_ALLOC_MODE_0);
+    rc = GDecComponentUniversalString(mem_op, b, (&k->a.universalString), bytesDecoded, DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.universalString)->identifier.bv_val = peek_head;
     (k->a.universalString)->identifier.bv_len = strLen;
   } else if (strncmp("utf8String", peek_head, strlen("utf8String")) == 0) {
     (k->choiceId) = DIRECTORYSTRING_UTF8STRING;
-    rc = GDecComponentUTF8String(mem_op, b, (&k->a.utf8String), bytesDecoded,
-                                 DEC_ALLOC_MODE_0);
+    rc = GDecComponentUTF8String(mem_op, b, (&k->a.utf8String), bytesDecoded, DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.utf8String)->identifier.bv_val = peek_head;
     (k->a.utf8String)->identifier.bv_len = strLen;
   } else if (strncmp("bmpString", peek_head, strlen("bmpString")) == 0) {
     (k->choiceId) = DIRECTORYSTRING_BMPSTRING;
-    rc = GDecComponentBMPString(mem_op, b, (&k->a.bmpString), bytesDecoded,
-                                DEC_ALLOC_MODE_0);
+    rc = GDecComponentBMPString(mem_op, b, (&k->a.bmpString), bytesDecoded, DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.bmpString)->identifier.bv_val = peek_head;
@@ -884,8 +798,7 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
     return LDAP_PROTOCOL_ERROR;
   }
   if (!(old_mode & DEC_ALLOC_MODE_1)) {
-    *v = t = (ComponentDirectoryString *)CompAlloc(
-        mem_op, sizeof(ComponentDirectoryString));
+    *v = t = (ComponentDirectoryString *)CompAlloc(mem_op, sizeof(ComponentDirectoryString));
     if (!t)
       return -1;
     *t = *k;
@@ -896,22 +809,17 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
     free(t);
     return -1;
   }
-  t->comp_desc->cd_gser_decoder =
-      (gser_decoder_func *)GDecComponentDirectoryString;
-  t->comp_desc->cd_ber_decoder =
-      (ber_decoder_func *)BDecComponentDirectoryString;
+  t->comp_desc->cd_gser_decoder = (gser_decoder_func *)GDecComponentDirectoryString;
+  t->comp_desc->cd_ber_decoder = (ber_decoder_func *)BDecComponentDirectoryString;
   t->comp_desc->cd_free = (comp_free_func *)NULL;
-  t->comp_desc->cd_extract_i =
-      (extract_component_from_id_func *)ExtractingComponentDirectoryString;
+  t->comp_desc->cd_extract_i = (extract_component_from_id_func *)ExtractingComponentDirectoryString;
   t->comp_desc->cd_type = ASN_COMPOSITE;
   t->comp_desc->cd_type_id = COMPOSITE_ASN1_TYPE;
-  t->comp_desc->cd_all_match =
-      (allcomponent_matching_func *)MatchingComponentDirectoryString;
+  t->comp_desc->cd_all_match = (allcomponent_matching_func *)MatchingComponentDirectoryString;
   return LDAP_SUCCESS;
 } /* GDecDirectoryStringContent */
 
-int MatchingComponentEDIPartyName(char *oid, ComponentSyntaxInfo *csi_attr,
-                                  ComponentSyntaxInfo *csi_assert) {
+int MatchingComponentEDIPartyName(char *oid, ComponentSyntaxInfo *csi_attr, ComponentSyntaxInfo *csi_assert) {
   int rc;
   MatchingRule *mr;
 
@@ -923,33 +831,24 @@ int MatchingComponentEDIPartyName(char *oid, ComponentSyntaxInfo *csi_attr,
 
   rc = 1;
   if (COMPONENTNOT_NULL(((ComponentEDIPartyName *)csi_attr)->nameAssigner)) {
-    rc = MatchingComponentDirectoryString(
-        oid,
-        (ComponentSyntaxInfo *)((ComponentEDIPartyName *)csi_attr)
-            ->nameAssigner,
-        (ComponentSyntaxInfo *)((ComponentEDIPartyName *)csi_assert)
-            ->nameAssigner);
+    rc = MatchingComponentDirectoryString(oid, (ComponentSyntaxInfo *)((ComponentEDIPartyName *)csi_attr)->nameAssigner,
+                                          (ComponentSyntaxInfo *)((ComponentEDIPartyName *)csi_assert)->nameAssigner);
     if (rc != LDAP_COMPARE_TRUE)
       return rc;
   }
-  rc = MatchingComponentDirectoryString(
-      oid,
-      (ComponentSyntaxInfo *)((ComponentEDIPartyName *)csi_attr)->partyName,
-      (ComponentSyntaxInfo *)((ComponentEDIPartyName *)csi_assert)->partyName);
+  rc = MatchingComponentDirectoryString(oid, (ComponentSyntaxInfo *)((ComponentEDIPartyName *)csi_attr)->partyName,
+                                        (ComponentSyntaxInfo *)((ComponentEDIPartyName *)csi_assert)->partyName);
   if (rc != LDAP_COMPARE_TRUE)
     return rc;
   return LDAP_COMPARE_TRUE;
 } /* BMatchingComponentEDIPartyName */
 
-void *ExtractingComponentEDIPartyName(void *mem_op, ComponentReference *cr,
-                                      ComponentEDIPartyName *comp) {
+void *ExtractingComponentEDIPartyName(void *mem_op, ComponentReference *cr, ComponentEDIPartyName *comp) {
 
   if ((comp->nameAssigner->identifier.bv_val &&
-       strncmp(comp->nameAssigner->identifier.bv_val,
-               cr->cr_curr->ci_val.ci_identifier.bv_val,
+       strncmp(comp->nameAssigner->identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
-      (strncmp(comp->nameAssigner->id_buf,
-               cr->cr_curr->ci_val.ci_identifier.bv_val,
+      (strncmp(comp->nameAssigner->id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0)) {
     if (cr->cr_curr->ci_next == NULL)
       return comp->nameAssigner;
@@ -959,11 +858,9 @@ void *ExtractingComponentEDIPartyName(void *mem_op, ComponentReference *cr,
     }
   }
   if ((comp->partyName->identifier.bv_val &&
-       strncmp(comp->partyName->identifier.bv_val,
-               cr->cr_curr->ci_val.ci_identifier.bv_val,
+       strncmp(comp->partyName->identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
-      (strncmp(comp->partyName->id_buf,
-               cr->cr_curr->ci_val.ci_identifier.bv_val,
+      (strncmp(comp->partyName->id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0)) {
     if (cr->cr_curr->ci_next == NULL)
       return comp->partyName;
@@ -975,11 +872,9 @@ void *ExtractingComponentEDIPartyName(void *mem_op, ComponentReference *cr,
   return NULL;
 } /* ExtractingComponentEDIPartyName */
 
-int BDecComponentEDIPartyName
-PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
-           _AND_ ComponentEDIPartyName **v _AND_ AsnLen *bytesDecoded
-               _AND_ int mode) {
+int BDecComponentEDIPartyName PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
+                                     void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
+                                         _AND_ ComponentEDIPartyName **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -1007,8 +902,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
     elmtLen1 = BDecLen(b, &totalElmtsLen1);
     rc = tagId2 = BDecTag(b, &totalElmtsLen1);
     elmtLen2 = BDecLen(b, &totalElmtsLen1);
-    BDecComponentDirectoryString(mem_op, b, tagId2, elmtLen2,
-                                 (&k->nameAssigner), &totalElmtsLen1, mode);
+    BDecComponentDirectoryString(mem_op, b, tagId2, elmtLen2, (&k->nameAssigner), &totalElmtsLen1, mode);
     if (elmtLen1 == INDEFINITE_LEN)
       BDecEoc(b, &totalElmtsLen1);
     if (rc != LDAP_SUCCESS)
@@ -1025,8 +919,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
     elmtLen1 = BDecLen(b, &totalElmtsLen1);
     rc = tagId2 = BDecTag(b, &totalElmtsLen1);
     elmtLen2 = BDecLen(b, &totalElmtsLen1);
-    BDecComponentDirectoryString(mem_op, b, tagId2, elmtLen2, (&k->partyName),
-                                 &totalElmtsLen1, mode);
+    BDecComponentDirectoryString(mem_op, b, tagId2, elmtLen2, (&k->partyName), &totalElmtsLen1, mode);
     if (elmtLen1 == INDEFINITE_LEN)
       BDecEoc(b, &totalElmtsLen1);
     if (rc != LDAP_SUCCESS)
@@ -1049,8 +942,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
     return -1;
 
   if (!(old_mode & DEC_ALLOC_MODE_1)) {
-    *v = t = (ComponentEDIPartyName *)CompAlloc(mem_op,
-                                                sizeof(ComponentEDIPartyName));
+    *v = t = (ComponentEDIPartyName *)CompAlloc(mem_op, sizeof(ComponentEDIPartyName));
     if (!t)
       return -1;
     *t = *k;
@@ -1061,24 +953,20 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
     free(t);
     return -1;
   }
-  t->comp_desc->cd_gser_decoder =
-      (gser_decoder_func *)GDecComponentEDIPartyName;
+  t->comp_desc->cd_gser_decoder = (gser_decoder_func *)GDecComponentEDIPartyName;
   t->comp_desc->cd_ber_decoder = (ber_decoder_func *)BDecComponentEDIPartyName;
   t->comp_desc->cd_free = (comp_free_func *)NULL;
-  t->comp_desc->cd_extract_i =
-      (extract_component_from_id_func *)ExtractingComponentEDIPartyName;
+  t->comp_desc->cd_extract_i = (extract_component_from_id_func *)ExtractingComponentEDIPartyName;
   t->comp_desc->cd_type = ASN_COMPOSITE;
   t->comp_desc->cd_type_id = COMPOSITE_ASN1_TYPE;
-  t->comp_desc->cd_all_match =
-      (allcomponent_matching_func *)MatchingComponentEDIPartyName;
+  t->comp_desc->cd_all_match = (allcomponent_matching_func *)MatchingComponentEDIPartyName;
   (*bytesDecoded) += totalElmtsLen1;
   return LDAP_SUCCESS;
 } /* BDecEDIPartyName*/
 
 int GDecComponentEDIPartyName
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentEDIPartyName **v
-           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentEDIPartyName **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentEDIPartyName *k, *t, c_temp;
@@ -1104,8 +992,7 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
     return LDAP_PROTOCOL_ERROR;
   }
   if (strncmp(peek_head, "nameAssigner", strlen("nameAssigner")) == 0) {
-    rc = GDecComponentDirectoryString(mem_op, b, (&k->nameAssigner),
-                                      bytesDecoded, mode);
+    rc = GDecComponentDirectoryString(mem_op, b, (&k->nameAssigner), bytesDecoded, mode);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->nameAssigner)->identifier.bv_val = peek_head;
@@ -1124,8 +1011,7 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
     }
   }
   if (strncmp(peek_head, "partyName", strlen("partyName")) == 0) {
-    rc = GDecComponentDirectoryString(mem_op, b, (&k->partyName), bytesDecoded,
-                                      mode);
+    rc = GDecComponentDirectoryString(mem_op, b, (&k->partyName), bytesDecoded, mode);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->partyName)->identifier.bv_val = peek_head;
@@ -1140,8 +1026,7 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
     return LDAP_PROTOCOL_ERROR;
   }
   if (!(old_mode & DEC_ALLOC_MODE_1)) {
-    *v = t = (ComponentEDIPartyName *)CompAlloc(mem_op,
-                                                sizeof(ComponentEDIPartyName));
+    *v = t = (ComponentEDIPartyName *)CompAlloc(mem_op, sizeof(ComponentEDIPartyName));
     if (!t)
       return -1;
     *t = *k;
@@ -1152,21 +1037,17 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
     free(t);
     return -1;
   }
-  t->comp_desc->cd_gser_decoder =
-      (gser_decoder_func *)GDecComponentEDIPartyName;
+  t->comp_desc->cd_gser_decoder = (gser_decoder_func *)GDecComponentEDIPartyName;
   t->comp_desc->cd_ber_decoder = (ber_decoder_func *)BDecComponentEDIPartyName;
   t->comp_desc->cd_free = (comp_free_func *)NULL;
-  t->comp_desc->cd_extract_i =
-      (extract_component_from_id_func *)ExtractingComponentEDIPartyName;
+  t->comp_desc->cd_extract_i = (extract_component_from_id_func *)ExtractingComponentEDIPartyName;
   t->comp_desc->cd_type = ASN_COMPOSITE;
   t->comp_desc->cd_type_id = COMPOSITE_ASN1_TYPE;
-  t->comp_desc->cd_all_match =
-      (allcomponent_matching_func *)MatchingComponentEDIPartyName;
+  t->comp_desc->cd_all_match = (allcomponent_matching_func *)MatchingComponentEDIPartyName;
   return LDAP_SUCCESS;
 } /* GDecEDIPartyName*/
 
-int MatchingComponentGeneralName(char *oid, ComponentSyntaxInfo *csi_attr,
-                                 ComponentSyntaxInfo *csi_assert) {
+int MatchingComponentGeneralName(char *oid, ComponentSyntaxInfo *csi_attr, ComponentSyntaxInfo *csi_assert) {
   int rc;
   MatchingRule *mr;
   ComponentGeneralName *v1, *v2;
@@ -1183,42 +1064,35 @@ int MatchingComponentGeneralName(char *oid, ComponentSyntaxInfo *csi_attr,
     return LDAP_COMPARE_FALSE;
   switch (v1->choiceId) {
   case GENERALNAME_OTHERNAME:
-    rc = MatchingComponentOtherName(oid,
-                                    (ComponentSyntaxInfo *)(v1->a.otherName),
+    rc = MatchingComponentOtherName(oid, (ComponentSyntaxInfo *)(v1->a.otherName),
                                     (ComponentSyntaxInfo *)(v2->a.otherName));
     break;
   case GENERALNAME_RFC822NAME:
-    rc = MatchingComponentIA5String(oid,
-                                    (ComponentSyntaxInfo *)(v1->a.rfc822Name),
+    rc = MatchingComponentIA5String(oid, (ComponentSyntaxInfo *)(v1->a.rfc822Name),
                                     (ComponentSyntaxInfo *)(v2->a.rfc822Name));
     break;
   case GENERALNAME_DNSNAME:
-    rc = MatchingComponentIA5String(oid, (ComponentSyntaxInfo *)(v1->a.dNSName),
-                                    (ComponentSyntaxInfo *)(v2->a.dNSName));
+    rc =
+        MatchingComponentIA5String(oid, (ComponentSyntaxInfo *)(v1->a.dNSName), (ComponentSyntaxInfo *)(v2->a.dNSName));
     break;
   case GENERALNAME_X400ADDRESS:
-    rc = MatchingComponentORAddress(oid,
-                                    (ComponentSyntaxInfo *)(v1->a.x400Address),
+    rc = MatchingComponentORAddress(oid, (ComponentSyntaxInfo *)(v1->a.x400Address),
                                     (ComponentSyntaxInfo *)(v2->a.x400Address));
     break;
   case GENERALNAME_DIRECTORYNAME:
-    rc =
-        MatchingComponentName(oid, (ComponentSyntaxInfo *)(v1->a.directoryName),
-                              (ComponentSyntaxInfo *)(v2->a.directoryName));
+    rc = MatchingComponentName(oid, (ComponentSyntaxInfo *)(v1->a.directoryName),
+                               (ComponentSyntaxInfo *)(v2->a.directoryName));
     break;
   case GENERALNAME_EDIPARTYNAME:
-    rc = MatchingComponentEDIPartyName(
-        oid, (ComponentSyntaxInfo *)(v1->a.ediPartyName),
-        (ComponentSyntaxInfo *)(v2->a.ediPartyName));
+    rc = MatchingComponentEDIPartyName(oid, (ComponentSyntaxInfo *)(v1->a.ediPartyName),
+                                       (ComponentSyntaxInfo *)(v2->a.ediPartyName));
     break;
   case GENERALNAME_UNIFORMRESOURCEIDENTIFIER:
-    rc = MatchingComponentIA5String(
-        oid, (ComponentSyntaxInfo *)(v1->a.uniformResourceIdentifier),
-        (ComponentSyntaxInfo *)(v2->a.uniformResourceIdentifier));
+    rc = MatchingComponentIA5String(oid, (ComponentSyntaxInfo *)(v1->a.uniformResourceIdentifier),
+                                    (ComponentSyntaxInfo *)(v2->a.uniformResourceIdentifier));
     break;
   case GENERALNAME_IPADDRESS:
-    rc = MatchingComponentOcts(oid, (ComponentSyntaxInfo *)(v1->a.iPAddress),
-                               (ComponentSyntaxInfo *)(v2->a.iPAddress));
+    rc = MatchingComponentOcts(oid, (ComponentSyntaxInfo *)(v1->a.iPAddress), (ComponentSyntaxInfo *)(v2->a.iPAddress));
     break;
   case GENERALNAME_REGISTEREDID:
     rc = MatchingComponentOid(oid, (ComponentSyntaxInfo *)(v1->a.registeredID),
@@ -1230,16 +1104,13 @@ int MatchingComponentGeneralName(char *oid, ComponentSyntaxInfo *csi_attr,
   return rc;
 } /* BMatchingComponentGeneralNameContent */
 
-void *ExtractingComponentGeneralName(void *mem_op, ComponentReference *cr,
-                                     ComponentGeneralName *comp) {
+void *ExtractingComponentGeneralName(void *mem_op, ComponentReference *cr, ComponentGeneralName *comp) {
 
   if ((comp->choiceId) == GENERALNAME_OTHERNAME &&
       ((comp->a.otherName->identifier.bv_val &&
-        strncmp(comp->a.otherName->identifier.bv_val,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+        strncmp(comp->a.otherName->identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
-       (strncmp(comp->a.otherName->id_buf,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+       (strncmp(comp->a.otherName->id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0))) {
     if (cr->cr_curr->ci_next == NULL)
       return (comp->a.otherName);
@@ -1250,11 +1121,9 @@ void *ExtractingComponentGeneralName(void *mem_op, ComponentReference *cr,
   }
   if ((comp->choiceId) == GENERALNAME_RFC822NAME &&
       ((comp->a.rfc822Name->identifier.bv_val &&
-        strncmp(comp->a.rfc822Name->identifier.bv_val,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+        strncmp(comp->a.rfc822Name->identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
-       (strncmp(comp->a.rfc822Name->id_buf,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+       (strncmp(comp->a.rfc822Name->id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0))) {
     if (cr->cr_curr->ci_next == NULL)
       return (comp->a.rfc822Name);
@@ -1265,11 +1134,9 @@ void *ExtractingComponentGeneralName(void *mem_op, ComponentReference *cr,
   }
   if ((comp->choiceId) == GENERALNAME_DNSNAME &&
       ((comp->a.dNSName->identifier.bv_val &&
-        strncmp(comp->a.dNSName->identifier.bv_val,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+        strncmp(comp->a.dNSName->identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
-       (strncmp(comp->a.dNSName->id_buf,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+       (strncmp(comp->a.dNSName->id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0))) {
     if (cr->cr_curr->ci_next == NULL)
       return (comp->a.dNSName);
@@ -1280,11 +1147,9 @@ void *ExtractingComponentGeneralName(void *mem_op, ComponentReference *cr,
   }
   if ((comp->choiceId) == GENERALNAME_X400ADDRESS &&
       ((comp->a.x400Address->identifier.bv_val &&
-        strncmp(comp->a.x400Address->identifier.bv_val,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+        strncmp(comp->a.x400Address->identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
-       (strncmp(comp->a.x400Address->id_buf,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+       (strncmp(comp->a.x400Address->id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0))) {
     if (cr->cr_curr->ci_next == NULL)
       return (comp->a.x400Address);
@@ -1295,11 +1160,9 @@ void *ExtractingComponentGeneralName(void *mem_op, ComponentReference *cr,
   }
   if ((comp->choiceId) == GENERALNAME_DIRECTORYNAME &&
       ((comp->a.directoryName->identifier.bv_val &&
-        strncmp(comp->a.directoryName->identifier.bv_val,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+        strncmp(comp->a.directoryName->identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
-       (strncmp(comp->a.directoryName->id_buf,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+       (strncmp(comp->a.directoryName->id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0))) {
     if (cr->cr_curr->ci_next == NULL)
       return (comp->a.directoryName);
@@ -1310,43 +1173,35 @@ void *ExtractingComponentGeneralName(void *mem_op, ComponentReference *cr,
   }
   if ((comp->choiceId) == GENERALNAME_EDIPARTYNAME &&
       ((comp->a.ediPartyName->identifier.bv_val &&
-        strncmp(comp->a.ediPartyName->identifier.bv_val,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+        strncmp(comp->a.ediPartyName->identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
-       (strncmp(comp->a.ediPartyName->id_buf,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+       (strncmp(comp->a.ediPartyName->id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0))) {
     if (cr->cr_curr->ci_next == NULL)
       return (comp->a.ediPartyName);
     else {
       cr->cr_curr = cr->cr_curr->ci_next;
-      return ExtractingComponentEDIPartyName(mem_op, cr,
-                                             (comp->a.ediPartyName));
+      return ExtractingComponentEDIPartyName(mem_op, cr, (comp->a.ediPartyName));
     };
   }
   if ((comp->choiceId) == GENERALNAME_UNIFORMRESOURCEIDENTIFIER &&
       ((comp->a.uniformResourceIdentifier->identifier.bv_val &&
-        strncmp(comp->a.uniformResourceIdentifier->identifier.bv_val,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+        strncmp(comp->a.uniformResourceIdentifier->identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
-       (strncmp(comp->a.uniformResourceIdentifier->id_buf,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+       (strncmp(comp->a.uniformResourceIdentifier->id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0))) {
     if (cr->cr_curr->ci_next == NULL)
       return (comp->a.uniformResourceIdentifier);
     else {
       cr->cr_curr = cr->cr_curr->ci_next;
-      return ExtractingComponentIA5String(mem_op, cr,
-                                          (comp->a.uniformResourceIdentifier));
+      return ExtractingComponentIA5String(mem_op, cr, (comp->a.uniformResourceIdentifier));
     };
   }
   if ((comp->choiceId) == GENERALNAME_IPADDRESS &&
       ((comp->a.iPAddress->identifier.bv_val &&
-        strncmp(comp->a.iPAddress->identifier.bv_val,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+        strncmp(comp->a.iPAddress->identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
-       (strncmp(comp->a.iPAddress->id_buf,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+       (strncmp(comp->a.iPAddress->id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0))) {
     if (cr->cr_curr->ci_next == NULL)
       return (comp->a.iPAddress);
@@ -1357,11 +1212,9 @@ void *ExtractingComponentGeneralName(void *mem_op, ComponentReference *cr,
   }
   if ((comp->choiceId) == GENERALNAME_REGISTEREDID &&
       ((comp->a.registeredID->identifier.bv_val &&
-        strncmp(comp->a.registeredID->identifier.bv_val,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+        strncmp(comp->a.registeredID->identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
-       (strncmp(comp->a.registeredID->id_buf,
-                cr->cr_curr->ci_val.ci_identifier.bv_val,
+       (strncmp(comp->a.registeredID->id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                 cr->cr_curr->ci_val.ci_identifier.bv_len) == 0))) {
     if (cr->cr_curr->ci_next == NULL)
       return (comp->a.registeredID);
@@ -1373,11 +1226,9 @@ void *ExtractingComponentGeneralName(void *mem_op, ComponentReference *cr,
   return NULL;
 } /* ExtractingComponentGeneralName */
 
-int BDecComponentGeneralName
-PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
-           _AND_ ComponentGeneralName **v _AND_ AsnLen *bytesDecoded
-               _AND_ int mode) {
+int BDecComponentGeneralName PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
+                                    void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
+                                        _AND_ ComponentGeneralName **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -1408,8 +1259,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
 
     elmtLen1 = BDecLen(b, &totalElmtsLen1);
     (k->choiceId) = GENERALNAME_OTHERNAME;
-    rc = BDecComponentOtherName(mem_op, b, tagId1, elmtLen1, (&k->a.otherName),
-                                &totalElmtsLen1, mode);
+    rc = BDecComponentOtherName(mem_op, b, tagId1, elmtLen1, (&k->a.otherName), &totalElmtsLen1, mode);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.otherName)->identifier.bv_val = (k->a.otherName)->id_buf;
@@ -1429,8 +1279,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
 
     elmtLen1 = BDecLen(b, &totalElmtsLen1);
     (k->choiceId) = GENERALNAME_RFC822NAME;
-    rc = BDecComponentIA5String(mem_op, b, tagId1, elmtLen1, (&k->a.rfc822Name),
-                                &totalElmtsLen1, DEC_ALLOC_MODE_0);
+    rc = BDecComponentIA5String(mem_op, b, tagId1, elmtLen1, (&k->a.rfc822Name), &totalElmtsLen1, DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.rfc822Name)->identifier.bv_val = (k->a.rfc822Name)->id_buf;
@@ -1450,8 +1299,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
 
     elmtLen1 = BDecLen(b, &totalElmtsLen1);
     (k->choiceId) = GENERALNAME_DNSNAME;
-    rc = BDecComponentIA5String(mem_op, b, tagId1, elmtLen1, (&k->a.dNSName),
-                                &totalElmtsLen1, DEC_ALLOC_MODE_0);
+    rc = BDecComponentIA5String(mem_op, b, tagId1, elmtLen1, (&k->a.dNSName), &totalElmtsLen1, DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.dNSName)->identifier.bv_val = (k->a.dNSName)->id_buf;
@@ -1469,8 +1317,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
 
     elmtLen1 = BDecLen(b, &totalElmtsLen1);
     (k->choiceId) = GENERALNAME_X400ADDRESS;
-    rc = BDecComponentORAddress(mem_op, b, tagId1, elmtLen1,
-                                (&k->a.x400Address), &totalElmtsLen1, mode);
+    rc = BDecComponentORAddress(mem_op, b, tagId1, elmtLen1, (&k->a.x400Address), &totalElmtsLen1, mode);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.x400Address)->identifier.bv_val = (k->a.x400Address)->id_buf;
@@ -1484,8 +1331,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
     (k->choiceId) = GENERALNAME_DIRECTORYNAME;
     tagId1 = BDecTag(b, &totalElmtsLen1);
     elmtLen1 = BDecLen(b, &totalElmtsLen1);
-    rc = BDecComponentName(mem_op, b, tagId1, elmtLen1, (&k->a.directoryName),
-                           &totalElmtsLen1, mode);
+    rc = BDecComponentName(mem_op, b, tagId1, elmtLen1, (&k->a.directoryName), &totalElmtsLen1, mode);
     if (elmtLen0 == INDEFINITE_LEN)
       BDecEoc(b, &totalElmtsLen1);
     if (rc != LDAP_SUCCESS)
@@ -1505,8 +1351,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
 
     elmtLen1 = BDecLen(b, &totalElmtsLen1);
     (k->choiceId) = GENERALNAME_EDIPARTYNAME;
-    rc = BDecComponentEDIPartyName(mem_op, b, tagId1, elmtLen1,
-                                   (&k->a.ediPartyName), &totalElmtsLen1, mode);
+    rc = BDecComponentEDIPartyName(mem_op, b, tagId1, elmtLen1, (&k->a.ediPartyName), &totalElmtsLen1, mode);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.ediPartyName)->identifier.bv_val = (k->a.ediPartyName)->id_buf;
@@ -1526,17 +1371,13 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
 
     elmtLen1 = BDecLen(b, &totalElmtsLen1);
     (k->choiceId) = GENERALNAME_UNIFORMRESOURCEIDENTIFIER;
-    rc = BDecComponentIA5String(mem_op, b, tagId1, elmtLen1,
-                                (&k->a.uniformResourceIdentifier),
-                                &totalElmtsLen1, DEC_ALLOC_MODE_0);
+    rc = BDecComponentIA5String(mem_op, b, tagId1, elmtLen1, (&k->a.uniformResourceIdentifier), &totalElmtsLen1,
+                                DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
-    (k->a.uniformResourceIdentifier)->identifier.bv_val =
-        (k->a.uniformResourceIdentifier)->id_buf;
-    (k->a.uniformResourceIdentifier)->identifier.bv_len =
-        strlen("uniformResourceIdentifier");
-    strcpy((k->a.uniformResourceIdentifier)->identifier.bv_val,
-           "uniformResourceIdentifier");
+    (k->a.uniformResourceIdentifier)->identifier.bv_val = (k->a.uniformResourceIdentifier)->id_buf;
+    (k->a.uniformResourceIdentifier)->identifier.bv_len = strlen("uniformResourceIdentifier");
+    strcpy((k->a.uniformResourceIdentifier)->identifier.bv_val, "uniformResourceIdentifier");
     if (elmtLen0 == INDEFINITE_LEN)
       BDecEoc(b, &totalElmtsLen1);
     break;
@@ -1551,8 +1392,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
 
     elmtLen1 = BDecLen(b, &totalElmtsLen1);
     (k->choiceId) = GENERALNAME_IPADDRESS;
-    rc = BDecComponentOcts(mem_op, b, tagId1, elmtLen1, (&k->a.iPAddress),
-                           &totalElmtsLen1, DEC_ALLOC_MODE_0);
+    rc = BDecComponentOcts(mem_op, b, tagId1, elmtLen1, (&k->a.iPAddress), &totalElmtsLen1, DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.iPAddress)->identifier.bv_val = (k->a.iPAddress)->id_buf;
@@ -1570,8 +1410,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
 
     elmtLen1 = BDecLen(b, &totalElmtsLen1);
     (k->choiceId) = GENERALNAME_REGISTEREDID;
-    rc = BDecComponentOid(mem_op, b, tagId1, elmtLen1, (&k->a.registeredID),
-                          &totalElmtsLen1, DEC_ALLOC_MODE_0);
+    rc = BDecComponentOid(mem_op, b, tagId1, elmtLen1, (&k->a.registeredID), &totalElmtsLen1, DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.registeredID)->identifier.bv_val = (k->a.registeredID)->id_buf;
@@ -1587,8 +1426,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
     break;
   } /* end switch */
   if (!(old_mode & DEC_ALLOC_MODE_1)) {
-    *v = t =
-        (ComponentGeneralName *)CompAlloc(mem_op, sizeof(ComponentGeneralName));
+    *v = t = (ComponentGeneralName *)CompAlloc(mem_op, sizeof(ComponentGeneralName));
     if (!t)
       return -1;
     *t = *k;
@@ -1602,20 +1440,17 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
   t->comp_desc->cd_gser_decoder = (gser_decoder_func *)GDecComponentGeneralName;
   t->comp_desc->cd_ber_decoder = (ber_decoder_func *)BDecComponentGeneralName;
   t->comp_desc->cd_free = (comp_free_func *)NULL;
-  t->comp_desc->cd_extract_i =
-      (extract_component_from_id_func *)ExtractingComponentGeneralName;
+  t->comp_desc->cd_extract_i = (extract_component_from_id_func *)ExtractingComponentGeneralName;
   t->comp_desc->cd_type = ASN_COMPOSITE;
   t->comp_desc->cd_type_id = COMPOSITE_ASN1_TYPE;
-  t->comp_desc->cd_all_match =
-      (allcomponent_matching_func *)MatchingComponentGeneralName;
+  t->comp_desc->cd_all_match = (allcomponent_matching_func *)MatchingComponentGeneralName;
   (*bytesDecoded) += totalElmtsLen1;
   return LDAP_SUCCESS;
 } /* BDecGeneralNameContent */
 
 int GDecComponentGeneralName
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentGeneralName **v
-           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentGeneralName **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentGeneralName *k, *t, c_temp;
@@ -1640,74 +1475,63 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
   }
   if (strncmp("otherName", peek_head, strlen("otherName")) == 0) {
     (k->choiceId) = GENERALNAME_OTHERNAME;
-    rc = GDecComponentOtherName(mem_op, b, (&k->a.otherName), bytesDecoded,
-                                mode);
+    rc = GDecComponentOtherName(mem_op, b, (&k->a.otherName), bytesDecoded, mode);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.otherName)->identifier.bv_val = peek_head;
     (k->a.otherName)->identifier.bv_len = strLen;
   } else if (strncmp("rfc822Name", peek_head, strlen("rfc822Name")) == 0) {
     (k->choiceId) = GENERALNAME_RFC822NAME;
-    rc = GDecComponentIA5String(mem_op, b, (&k->a.rfc822Name), bytesDecoded,
-                                DEC_ALLOC_MODE_0);
+    rc = GDecComponentIA5String(mem_op, b, (&k->a.rfc822Name), bytesDecoded, DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.rfc822Name)->identifier.bv_val = peek_head;
     (k->a.rfc822Name)->identifier.bv_len = strLen;
   } else if (strncmp("dNSName", peek_head, strlen("dNSName")) == 0) {
     (k->choiceId) = GENERALNAME_DNSNAME;
-    rc = GDecComponentIA5String(mem_op, b, (&k->a.dNSName), bytesDecoded,
-                                DEC_ALLOC_MODE_0);
+    rc = GDecComponentIA5String(mem_op, b, (&k->a.dNSName), bytesDecoded, DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.dNSName)->identifier.bv_val = peek_head;
     (k->a.dNSName)->identifier.bv_len = strLen;
   } else if (strncmp("x400Address", peek_head, strlen("x400Address")) == 0) {
     (k->choiceId) = GENERALNAME_X400ADDRESS;
-    rc = GDecComponentORAddress(mem_op, b, (&k->a.x400Address), bytesDecoded,
-                                mode);
+    rc = GDecComponentORAddress(mem_op, b, (&k->a.x400Address), bytesDecoded, mode);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.x400Address)->identifier.bv_val = peek_head;
     (k->a.x400Address)->identifier.bv_len = strLen;
-  } else if (strncmp("directoryName", peek_head, strlen("directoryName")) ==
-             0) {
+  } else if (strncmp("directoryName", peek_head, strlen("directoryName")) == 0) {
     (k->choiceId) = GENERALNAME_DIRECTORYNAME;
-    rc =
-        GDecComponentName(mem_op, b, (&k->a.directoryName), bytesDecoded, mode);
+    rc = GDecComponentName(mem_op, b, (&k->a.directoryName), bytesDecoded, mode);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.directoryName)->identifier.bv_val = peek_head;
     (k->a.directoryName)->identifier.bv_len = strLen;
   } else if (strncmp("ediPartyName", peek_head, strlen("ediPartyName")) == 0) {
     (k->choiceId) = GENERALNAME_EDIPARTYNAME;
-    rc = GDecComponentEDIPartyName(mem_op, b, (&k->a.ediPartyName),
-                                   bytesDecoded, mode);
+    rc = GDecComponentEDIPartyName(mem_op, b, (&k->a.ediPartyName), bytesDecoded, mode);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.ediPartyName)->identifier.bv_val = peek_head;
     (k->a.ediPartyName)->identifier.bv_len = strLen;
-  } else if (strncmp("uniformResourceIdentifier", peek_head,
-                     strlen("uniformResourceIdentifier")) == 0) {
+  } else if (strncmp("uniformResourceIdentifier", peek_head, strlen("uniformResourceIdentifier")) == 0) {
     (k->choiceId) = GENERALNAME_UNIFORMRESOURCEIDENTIFIER;
-    rc = GDecComponentIA5String(mem_op, b, (&k->a.uniformResourceIdentifier),
-                                bytesDecoded, DEC_ALLOC_MODE_0);
+    rc = GDecComponentIA5String(mem_op, b, (&k->a.uniformResourceIdentifier), bytesDecoded, DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.uniformResourceIdentifier)->identifier.bv_val = peek_head;
     (k->a.uniformResourceIdentifier)->identifier.bv_len = strLen;
   } else if (strncmp("iPAddress", peek_head, strlen("iPAddress")) == 0) {
     (k->choiceId) = GENERALNAME_IPADDRESS;
-    rc = GDecComponentOcts(mem_op, b, (&k->a.iPAddress), bytesDecoded,
-                           DEC_ALLOC_MODE_0);
+    rc = GDecComponentOcts(mem_op, b, (&k->a.iPAddress), bytesDecoded, DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.iPAddress)->identifier.bv_val = peek_head;
     (k->a.iPAddress)->identifier.bv_len = strLen;
   } else if (strncmp("registeredID", peek_head, strlen("registeredID")) == 0) {
     (k->choiceId) = GENERALNAME_REGISTEREDID;
-    rc = GDecComponentOid(mem_op, b, (&k->a.registeredID), bytesDecoded,
-                          DEC_ALLOC_MODE_0);
+    rc = GDecComponentOid(mem_op, b, (&k->a.registeredID), bytesDecoded, DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->a.registeredID)->identifier.bv_val = peek_head;
@@ -1717,8 +1541,7 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
     return LDAP_PROTOCOL_ERROR;
   }
   if (!(old_mode & DEC_ALLOC_MODE_1)) {
-    *v = t =
-        (ComponentGeneralName *)CompAlloc(mem_op, sizeof(ComponentGeneralName));
+    *v = t = (ComponentGeneralName *)CompAlloc(mem_op, sizeof(ComponentGeneralName));
     if (!t)
       return -1;
     *t = *k;
@@ -1732,17 +1555,14 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
   t->comp_desc->cd_gser_decoder = (gser_decoder_func *)GDecComponentGeneralName;
   t->comp_desc->cd_ber_decoder = (ber_decoder_func *)BDecComponentGeneralName;
   t->comp_desc->cd_free = (comp_free_func *)NULL;
-  t->comp_desc->cd_extract_i =
-      (extract_component_from_id_func *)ExtractingComponentGeneralName;
+  t->comp_desc->cd_extract_i = (extract_component_from_id_func *)ExtractingComponentGeneralName;
   t->comp_desc->cd_type = ASN_COMPOSITE;
   t->comp_desc->cd_type_id = COMPOSITE_ASN1_TYPE;
-  t->comp_desc->cd_all_match =
-      (allcomponent_matching_func *)MatchingComponentGeneralName;
+  t->comp_desc->cd_all_match = (allcomponent_matching_func *)MatchingComponentGeneralName;
   return LDAP_SUCCESS;
 } /* GDecGeneralNameContent */
 
-int MatchingComponentGeneralNames(char *oid, ComponentSyntaxInfo *csi_attr,
-                                  ComponentSyntaxInfo *csi_assert) {
+int MatchingComponentGeneralNames(char *oid, ComponentSyntaxInfo *csi_attr, ComponentSyntaxInfo *csi_assert) {
   int rc;
   MatchingRule *mr;
   void *component1, *component2;
@@ -1757,8 +1577,7 @@ int MatchingComponentGeneralNames(char *oid, ComponentSyntaxInfo *csi_attr,
   v1 = &((ComponentGeneralNames *)csi_attr)->comp_list;
   v2 = &((ComponentGeneralNames *)csi_assert)->comp_list;
   FOR_EACH_LIST_PAIR_ELMT(component1, component2, v1, v2) {
-    if (MatchingComponentGeneralName(oid, (ComponentSyntaxInfo *)component1,
-                                     (ComponentSyntaxInfo *)component2) ==
+    if (MatchingComponentGeneralName(oid, (ComponentSyntaxInfo *)component1, (ComponentSyntaxInfo *)component2) ==
         LDAP_COMPARE_FALSE) {
       return LDAP_COMPARE_FALSE;
     }
@@ -1772,8 +1591,7 @@ int MatchingComponentGeneralNames(char *oid, ComponentSyntaxInfo *csi_attr,
     return LDAP_COMPARE_TRUE;
 } /* BMatchingComponentGeneralNamesContent */
 
-void *ExtractingComponentGeneralNames(void *mem_op, ComponentReference *cr,
-                                      ComponentGeneralNames *comp) {
+void *ExtractingComponentGeneralNames(void *mem_op, ComponentReference *cr, ComponentGeneralNames *comp) {
   int count = 0;
   int total;
   AsnList *v = &comp->comp_list;
@@ -1820,8 +1638,7 @@ void *ExtractingComponentGeneralNames(void *mem_op, ComponentReference *cr,
     k->comp_desc->cd_extract_i = (extract_component_from_id_func *)NULL;
     k->comp_desc->cd_type = ASN_BASIC;
     k->comp_desc->cd_type_id = BASICTYPE_INTEGER;
-    k->comp_desc->cd_all_match =
-        (allcomponent_matching_func *)MatchingComponentInt;
+    k->comp_desc->cd_all_match = (allcomponent_matching_func *)MatchingComponentInt;
     k->value = AsnListCount(v);
     return k;
   default:
@@ -1829,11 +1646,9 @@ void *ExtractingComponentGeneralNames(void *mem_op, ComponentReference *cr,
   }
 } /* ExtractingComponentGeneralNames */
 
-int BDecComponentGeneralNames
-PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
-           _AND_ ComponentGeneralNames **v _AND_ AsnLen *bytesDecoded
-               _AND_ int mode) {
+int BDecComponentGeneralNames PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
+                                     void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
+                                         _AND_ ComponentGeneralNames **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -1850,8 +1665,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
     k = t = *v;
   mode = DEC_ALLOC_MODE_2;
   AsnListInit(&k->comp_list, sizeof(ComponentGeneralName));
-  for (totalElmtsLen1 = 0;
-       (totalElmtsLen1 < elmtLen0) || (elmtLen0 == INDEFINITE_LEN);) {
+  for (totalElmtsLen1 = 0; (totalElmtsLen1 < elmtLen0) || (elmtLen0 == INDEFINITE_LEN);) {
     ComponentGeneralName **tmpVar;
     tagId1 = BDecTag(b, &totalElmtsLen1);
 
@@ -1861,15 +1675,13 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
     }
     elmtLen1 = BDecLen(b, &totalElmtsLen1);
     tmpVar = (ComponentGeneralName **)CompAsnListAppend(mem_op, &k->comp_list);
-    rc = BDecComponentGeneralName(mem_op, b, tagId1, elmtLen1, tmpVar,
-                                  &totalElmtsLen1, mode);
+    rc = BDecComponentGeneralName(mem_op, b, tagId1, elmtLen1, tmpVar, &totalElmtsLen1, mode);
     if (rc != LDAP_SUCCESS)
       return rc;
   } /* end of for */
 
   if (!(old_mode & DEC_ALLOC_MODE_1)) {
-    *v = t = (ComponentGeneralNames *)CompAlloc(mem_op,
-                                                sizeof(ComponentGeneralNames));
+    *v = t = (ComponentGeneralNames *)CompAlloc(mem_op, sizeof(ComponentGeneralNames));
     if (!t)
       return -1;
     *t = *k;
@@ -1880,24 +1692,20 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
     free(t);
     return -1;
   }
-  t->comp_desc->cd_gser_decoder =
-      (gser_decoder_func *)GDecComponentGeneralNames;
+  t->comp_desc->cd_gser_decoder = (gser_decoder_func *)GDecComponentGeneralNames;
   t->comp_desc->cd_ber_decoder = (ber_decoder_func *)BDecComponentGeneralNames;
   t->comp_desc->cd_free = (comp_free_func *)NULL;
-  t->comp_desc->cd_extract_i =
-      (extract_component_from_id_func *)ExtractingComponentGeneralNames;
+  t->comp_desc->cd_extract_i = (extract_component_from_id_func *)ExtractingComponentGeneralNames;
   t->comp_desc->cd_type = ASN_COMPOSITE;
   t->comp_desc->cd_type_id = COMPOSITE_ASN1_TYPE;
-  t->comp_desc->cd_all_match =
-      (allcomponent_matching_func *)MatchingComponentGeneralNames;
+  t->comp_desc->cd_all_match = (allcomponent_matching_func *)MatchingComponentGeneralNames;
   (*bytesDecoded) += totalElmtsLen1;
   return LDAP_SUCCESS;
 } /* BDecGeneralNamesContent */
 
 int GDecComponentGeneralNames
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentGeneralNames **v
-           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentGeneralNames **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentGeneralNames *k, *t, c_temp;
@@ -1942,8 +1750,7 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
   } /* end of for */
 
   if (!(old_mode & DEC_ALLOC_MODE_1)) {
-    *v = t = (ComponentGeneralNames *)CompAlloc(mem_op,
-                                                sizeof(ComponentGeneralNames));
+    *v = t = (ComponentGeneralNames *)CompAlloc(mem_op, sizeof(ComponentGeneralNames));
     if (!t)
       return -1;
     *t = *k;
@@ -1954,22 +1761,17 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
     free(t);
     return -1;
   }
-  t->comp_desc->cd_gser_decoder =
-      (gser_decoder_func *)GDecComponentGeneralNames;
+  t->comp_desc->cd_gser_decoder = (gser_decoder_func *)GDecComponentGeneralNames;
   t->comp_desc->cd_ber_decoder = (ber_decoder_func *)BDecComponentGeneralNames;
   t->comp_desc->cd_free = (comp_free_func *)NULL;
-  t->comp_desc->cd_extract_i =
-      (extract_component_from_id_func *)ExtractingComponentGeneralNames;
+  t->comp_desc->cd_extract_i = (extract_component_from_id_func *)ExtractingComponentGeneralNames;
   t->comp_desc->cd_type = ASN_COMPOSITE;
   t->comp_desc->cd_type_id = COMPOSITE_ASN1_TYPE;
-  t->comp_desc->cd_all_match =
-      (allcomponent_matching_func *)MatchingComponentGeneralNames;
+  t->comp_desc->cd_all_match = (allcomponent_matching_func *)MatchingComponentGeneralNames;
   return LDAP_SUCCESS;
 } /* GDecGeneralNamesContent */
 
-int MatchingComponentAuthorityKeyIdentifier(char *oid,
-                                            ComponentSyntaxInfo *csi_attr,
-                                            ComponentSyntaxInfo *csi_assert) {
+int MatchingComponentAuthorityKeyIdentifier(char *oid, ComponentSyntaxInfo *csi_attr, ComponentSyntaxInfo *csi_assert) {
   int rc;
   MatchingRule *mr;
 
@@ -1981,48 +1783,34 @@ int MatchingComponentAuthorityKeyIdentifier(char *oid,
 
   rc = 1;
   rc = MatchingComponentKeyIdentifier(
-      oid,
-      (ComponentSyntaxInfo *)&((ComponentAuthorityKeyIdentifier *)csi_attr)
-          ->keyIdentifier,
-      (ComponentSyntaxInfo *)&((ComponentAuthorityKeyIdentifier *)csi_assert)
-          ->keyIdentifier);
+      oid, (ComponentSyntaxInfo *)&((ComponentAuthorityKeyIdentifier *)csi_attr)->keyIdentifier,
+      (ComponentSyntaxInfo *)&((ComponentAuthorityKeyIdentifier *)csi_assert)->keyIdentifier);
   if (rc != LDAP_COMPARE_TRUE)
     return rc;
-  if (COMPONENTNOT_NULL(
-          ((ComponentAuthorityKeyIdentifier *)csi_attr)->authorityCertIssuer)) {
+  if (COMPONENTNOT_NULL(((ComponentAuthorityKeyIdentifier *)csi_attr)->authorityCertIssuer)) {
     rc = MatchingComponentGeneralNames(
-        oid,
-        (ComponentSyntaxInfo *)((ComponentAuthorityKeyIdentifier *)csi_attr)
-            ->authorityCertIssuer,
-        (ComponentSyntaxInfo *)((ComponentAuthorityKeyIdentifier *)csi_assert)
-            ->authorityCertIssuer);
+        oid, (ComponentSyntaxInfo *)((ComponentAuthorityKeyIdentifier *)csi_attr)->authorityCertIssuer,
+        (ComponentSyntaxInfo *)((ComponentAuthorityKeyIdentifier *)csi_assert)->authorityCertIssuer);
     if (rc != LDAP_COMPARE_TRUE)
       return rc;
   }
-  if (COMPONENTNOT_NULL(((ComponentAuthorityKeyIdentifier *)csi_attr)
-                            ->authorityCertSerialNumber)) {
+  if (COMPONENTNOT_NULL(((ComponentAuthorityKeyIdentifier *)csi_attr)->authorityCertSerialNumber)) {
     rc = MatchingComponentCertificateSerialNumber(
-        oid,
-        (ComponentSyntaxInfo *)((ComponentAuthorityKeyIdentifier *)csi_attr)
-            ->authorityCertSerialNumber,
-        (ComponentSyntaxInfo *)((ComponentAuthorityKeyIdentifier *)csi_assert)
-            ->authorityCertSerialNumber);
+        oid, (ComponentSyntaxInfo *)((ComponentAuthorityKeyIdentifier *)csi_attr)->authorityCertSerialNumber,
+        (ComponentSyntaxInfo *)((ComponentAuthorityKeyIdentifier *)csi_assert)->authorityCertSerialNumber);
     if (rc != LDAP_COMPARE_TRUE)
       return rc;
   }
   return LDAP_COMPARE_TRUE;
 } /* BMatchingComponentAuthorityKeyIdentifier */
 
-void *ExtractingComponentAuthorityKeyIdentifier(
-    void *mem_op, ComponentReference *cr,
-    ComponentAuthorityKeyIdentifier *comp) {
+void *ExtractingComponentAuthorityKeyIdentifier(void *mem_op, ComponentReference *cr,
+                                                ComponentAuthorityKeyIdentifier *comp) {
 
   if ((comp->keyIdentifier.identifier.bv_val &&
-       strncmp(comp->keyIdentifier.identifier.bv_val,
-               cr->cr_curr->ci_val.ci_identifier.bv_val,
+       strncmp(comp->keyIdentifier.identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
-      (strncmp(comp->keyIdentifier.id_buf,
-               cr->cr_curr->ci_val.ci_identifier.bv_val,
+      (strncmp(comp->keyIdentifier.id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0)) {
     if (cr->cr_curr->ci_next == NULL)
       return &comp->keyIdentifier;
@@ -2030,33 +1818,27 @@ void *ExtractingComponentAuthorityKeyIdentifier(
       return NULL;
   }
   if ((comp->authorityCertIssuer->identifier.bv_val &&
-       strncmp(comp->authorityCertIssuer->identifier.bv_val,
-               cr->cr_curr->ci_val.ci_identifier.bv_val,
+       strncmp(comp->authorityCertIssuer->identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
-      (strncmp(comp->authorityCertIssuer->id_buf,
-               cr->cr_curr->ci_val.ci_identifier.bv_val,
+      (strncmp(comp->authorityCertIssuer->id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0)) {
     if (cr->cr_curr->ci_next == NULL)
       return comp->authorityCertIssuer;
     else {
       cr->cr_curr = cr->cr_curr->ci_next;
-      return ExtractingComponentGeneralNames(mem_op, cr,
-                                             comp->authorityCertIssuer);
+      return ExtractingComponentGeneralNames(mem_op, cr, comp->authorityCertIssuer);
     }
   }
   if ((comp->authorityCertSerialNumber->identifier.bv_val &&
-       strncmp(comp->authorityCertSerialNumber->identifier.bv_val,
-               cr->cr_curr->ci_val.ci_identifier.bv_val,
+       strncmp(comp->authorityCertSerialNumber->identifier.bv_val, cr->cr_curr->ci_val.ci_identifier.bv_val,
                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0) ||
-      (strncmp(comp->authorityCertSerialNumber->id_buf,
-               cr->cr_curr->ci_val.ci_identifier.bv_val,
+      (strncmp(comp->authorityCertSerialNumber->id_buf, cr->cr_curr->ci_val.ci_identifier.bv_val,
                cr->cr_curr->ci_val.ci_identifier.bv_len) == 0)) {
     if (cr->cr_curr->ci_next == NULL)
       return comp->authorityCertSerialNumber;
     else {
       cr->cr_curr = cr->cr_curr->ci_next;
-      return ExtractingComponentCertificateSerialNumber(
-          mem_op, cr, comp->authorityCertSerialNumber);
+      return ExtractingComponentCertificateSerialNumber(mem_op, cr, comp->authorityCertSerialNumber);
     }
   }
   return NULL;
@@ -2064,9 +1846,8 @@ void *ExtractingComponentAuthorityKeyIdentifier(
 
 int BDecComponentAuthorityKeyIdentifier
 PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
-           _AND_ ComponentAuthorityKeyIdentifier **v _AND_ AsnLen *bytesDecoded
-               _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0 _AND_ ComponentAuthorityKeyIdentifier **v
+           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -2096,11 +1877,9 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
     }
   }
 
-  if ((!seqDone) && ((tagId1 == MAKE_TAG_ID(CNTX, PRIM, 0)) ||
-                     (tagId1 == MAKE_TAG_ID(CNTX, CONS, 0)))) {
+  if ((!seqDone) && ((tagId1 == MAKE_TAG_ID(CNTX, PRIM, 0)) || (tagId1 == MAKE_TAG_ID(CNTX, CONS, 0)))) {
     elmtLen1 = BDecLen(b, &totalElmtsLen1);
-    rc = BDecComponentKeyIdentifier(mem_op, b, tagId1, elmtLen1,
-                                    (&k->keyIdentifier), &totalElmtsLen1, mode);
+    rc = BDecComponentKeyIdentifier(mem_op, b, tagId1, elmtLen1, (&k->keyIdentifier), &totalElmtsLen1, mode);
     if (rc != LDAP_SUCCESS)
       return rc;
     (&k->keyIdentifier)->identifier.bv_val = (&k->keyIdentifier)->id_buf;
@@ -2120,13 +1899,10 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
 
   if ((!seqDone) && ((tagId1 == MAKE_TAG_ID(CNTX, CONS, 1)))) {
     elmtLen1 = BDecLen(b, &totalElmtsLen1);
-    rc = BDecComponentGeneralNames(mem_op, b, tagId1, elmtLen1,
-                                   (&k->authorityCertIssuer), &totalElmtsLen1,
-                                   mode);
+    rc = BDecComponentGeneralNames(mem_op, b, tagId1, elmtLen1, (&k->authorityCertIssuer), &totalElmtsLen1, mode);
     if (rc != LDAP_SUCCESS)
       return rc;
-    (k->authorityCertIssuer)->identifier.bv_val =
-        (k->authorityCertIssuer)->id_buf;
+    (k->authorityCertIssuer)->identifier.bv_val = (k->authorityCertIssuer)->id_buf;
     (k->authorityCertIssuer)->identifier.bv_len = strlen("authorityCertIssuer");
     strcpy((k->authorityCertIssuer)->identifier.bv_val, "authorityCertIssuer");
     if ((elmtLen0 != INDEFINITE_LEN) && (totalElmtsLen1 == elmtLen0))
@@ -2143,17 +1919,13 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
 
   if ((!seqDone) && ((tagId1 == MAKE_TAG_ID(CNTX, PRIM, 2)))) {
     elmtLen1 = BDecLen(b, &totalElmtsLen1);
-    rc = BDecComponentCertificateSerialNumber(
-        mem_op, b, tagId1, elmtLen1, (&k->authorityCertSerialNumber),
-        &totalElmtsLen1, DEC_ALLOC_MODE_0);
+    rc = BDecComponentCertificateSerialNumber(mem_op, b, tagId1, elmtLen1, (&k->authorityCertSerialNumber),
+                                              &totalElmtsLen1, DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
-    (k->authorityCertSerialNumber)->identifier.bv_val =
-        (k->authorityCertSerialNumber)->id_buf;
-    (k->authorityCertSerialNumber)->identifier.bv_len =
-        strlen("authorityCertSerialNumber");
-    strcpy((k->authorityCertSerialNumber)->identifier.bv_val,
-           "authorityCertSerialNumber");
+    (k->authorityCertSerialNumber)->identifier.bv_val = (k->authorityCertSerialNumber)->id_buf;
+    (k->authorityCertSerialNumber)->identifier.bv_len = strlen("authorityCertSerialNumber");
+    strcpy((k->authorityCertSerialNumber)->identifier.bv_val, "authorityCertSerialNumber");
     seqDone = TRUE;
     if (elmtLen0 == INDEFINITE_LEN)
       BDecEoc(b, &totalElmtsLen1);
@@ -2165,8 +1937,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
     return -1;
 
   if (!(old_mode & DEC_ALLOC_MODE_1)) {
-    *v = t = (ComponentAuthorityKeyIdentifier *)CompAlloc(
-        mem_op, sizeof(ComponentAuthorityKeyIdentifier));
+    *v = t = (ComponentAuthorityKeyIdentifier *)CompAlloc(mem_op, sizeof(ComponentAuthorityKeyIdentifier));
     if (!t)
       return -1;
     *t = *k;
@@ -2177,25 +1948,20 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
     free(t);
     return -1;
   }
-  t->comp_desc->cd_gser_decoder =
-      (gser_decoder_func *)GDecComponentAuthorityKeyIdentifier;
-  t->comp_desc->cd_ber_decoder =
-      (ber_decoder_func *)BDecComponentAuthorityKeyIdentifier;
+  t->comp_desc->cd_gser_decoder = (gser_decoder_func *)GDecComponentAuthorityKeyIdentifier;
+  t->comp_desc->cd_ber_decoder = (ber_decoder_func *)BDecComponentAuthorityKeyIdentifier;
   t->comp_desc->cd_free = (comp_free_func *)NULL;
-  t->comp_desc->cd_extract_i = (extract_component_from_id_func *)
-      ExtractingComponentAuthorityKeyIdentifier;
+  t->comp_desc->cd_extract_i = (extract_component_from_id_func *)ExtractingComponentAuthorityKeyIdentifier;
   t->comp_desc->cd_type = ASN_COMPOSITE;
   t->comp_desc->cd_type_id = COMPOSITE_ASN1_TYPE;
-  t->comp_desc->cd_all_match =
-      (allcomponent_matching_func *)MatchingComponentAuthorityKeyIdentifier;
+  t->comp_desc->cd_all_match = (allcomponent_matching_func *)MatchingComponentAuthorityKeyIdentifier;
   (*bytesDecoded) += totalElmtsLen1;
   return LDAP_SUCCESS;
 } /* BDecAuthorityKeyIdentifier*/
 
-int GDecComponentAuthorityKeyIdentifier
-PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentAuthorityKeyIdentifier **v
-           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
+int GDecComponentAuthorityKeyIdentifier PARAMS((mem_op, b, v, bytesDecoded, mode),
+                                               void *mem_op _AND_ GenBuf *b _AND_ ComponentAuthorityKeyIdentifier **v
+                                                   _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentAuthorityKeyIdentifier *k, *t, c_temp;
@@ -2221,8 +1987,7 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
     return LDAP_PROTOCOL_ERROR;
   }
   if (strncmp(peek_head, "keyIdentifier", strlen("keyIdentifier")) == 0) {
-    rc = GDecComponentKeyIdentifier(mem_op, b, (&k->keyIdentifier),
-                                    bytesDecoded, mode);
+    rc = GDecComponentKeyIdentifier(mem_op, b, (&k->keyIdentifier), bytesDecoded, mode);
     if (rc != LDAP_SUCCESS)
       return rc;
     (&k->keyIdentifier)->identifier.bv_val = peek_head;
@@ -2240,10 +2005,8 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
       return LDAP_PROTOCOL_ERROR;
     }
   }
-  if (strncmp(peek_head, "authorityCertIssuer",
-              strlen("authorityCertIssuer")) == 0) {
-    rc = GDecComponentGeneralNames(mem_op, b, (&k->authorityCertIssuer),
-                                   bytesDecoded, mode);
+  if (strncmp(peek_head, "authorityCertIssuer", strlen("authorityCertIssuer")) == 0) {
+    rc = GDecComponentGeneralNames(mem_op, b, (&k->authorityCertIssuer), bytesDecoded, mode);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->authorityCertIssuer)->identifier.bv_val = peek_head;
@@ -2261,11 +2024,9 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
       return LDAP_PROTOCOL_ERROR;
     }
   }
-  if (strncmp(peek_head, "authorityCertSerialNumber",
-              strlen("authorityCertSerialNumber")) == 0) {
-    rc = GDecComponentCertificateSerialNumber(mem_op, b,
-                                              (&k->authorityCertSerialNumber),
-                                              bytesDecoded, DEC_ALLOC_MODE_0);
+  if (strncmp(peek_head, "authorityCertSerialNumber", strlen("authorityCertSerialNumber")) == 0) {
+    rc = GDecComponentCertificateSerialNumber(mem_op, b, (&k->authorityCertSerialNumber), bytesDecoded,
+                                              DEC_ALLOC_MODE_0);
     if (rc != LDAP_SUCCESS)
       return rc;
     (k->authorityCertSerialNumber)->identifier.bv_val = peek_head;
@@ -2280,8 +2041,7 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
     return LDAP_PROTOCOL_ERROR;
   }
   if (!(old_mode & DEC_ALLOC_MODE_1)) {
-    *v = t = (ComponentAuthorityKeyIdentifier *)CompAlloc(
-        mem_op, sizeof(ComponentAuthorityKeyIdentifier));
+    *v = t = (ComponentAuthorityKeyIdentifier *)CompAlloc(mem_op, sizeof(ComponentAuthorityKeyIdentifier));
     if (!t)
       return -1;
     *t = *k;
@@ -2292,16 +2052,12 @@ PARAMS((mem_op, b, v, bytesDecoded, mode),
     free(t);
     return -1;
   }
-  t->comp_desc->cd_gser_decoder =
-      (gser_decoder_func *)GDecComponentAuthorityKeyIdentifier;
-  t->comp_desc->cd_ber_decoder =
-      (ber_decoder_func *)BDecComponentAuthorityKeyIdentifier;
+  t->comp_desc->cd_gser_decoder = (gser_decoder_func *)GDecComponentAuthorityKeyIdentifier;
+  t->comp_desc->cd_ber_decoder = (ber_decoder_func *)BDecComponentAuthorityKeyIdentifier;
   t->comp_desc->cd_free = (comp_free_func *)NULL;
-  t->comp_desc->cd_extract_i = (extract_component_from_id_func *)
-      ExtractingComponentAuthorityKeyIdentifier;
+  t->comp_desc->cd_extract_i = (extract_component_from_id_func *)ExtractingComponentAuthorityKeyIdentifier;
   t->comp_desc->cd_type = ASN_COMPOSITE;
   t->comp_desc->cd_type_id = COMPOSITE_ASN1_TYPE;
-  t->comp_desc->cd_all_match =
-      (allcomponent_matching_func *)MatchingComponentAuthorityKeyIdentifier;
+  t->comp_desc->cd_all_match = (allcomponent_matching_func *)MatchingComponentAuthorityKeyIdentifier;
   return LDAP_SUCCESS;
 } /* GDecAuthorityKeyIdentifier*/

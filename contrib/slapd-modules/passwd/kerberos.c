@@ -27,8 +27,8 @@
 static LUTIL_PASSWD_CHK_FUNC chk_kerberos;
 static const struct berval scheme = BER_BVC("{KERBEROS}");
 
-static int chk_kerberos(const struct berval *sc, const struct berval *passwd,
-                        const struct berval *cred, const char **text) {
+static int chk_kerberos(const struct berval *sc, const struct berval *passwd, const struct berval *cred,
+                        const char **text) {
   unsigned int i;
   int rtn;
 
@@ -118,8 +118,7 @@ static int chk_kerberos(const struct berval *sc, const struct berval *passwd,
       return LUTIL_PASSWD_ERR;
     }
 
-    ret = krb5_get_init_creds_password(context, &creds, client, cred->bv_val,
-                                       NULL, NULL, 0, NULL, &get_options);
+    ret = krb5_get_init_creds_password(context, &creds, client, cred->bv_val, NULL, NULL, 0, NULL, &get_options);
 
     if (ret) {
       krb5_free_principal(context, client);
@@ -136,8 +135,7 @@ static int chk_kerberos(const struct berval *sc, const struct berval *passwd,
         return LUTIL_PASSWD_ERR;
       }
 
-      ret = krb5_sname_to_principal(context, host, "ldap", KRB5_NT_SRV_HST,
-                                    &server);
+      ret = krb5_sname_to_principal(context, host, "ldap", KRB5_NT_SRV_HST, &server);
 
       ber_memfree(host);
     }
@@ -148,8 +146,7 @@ static int chk_kerberos(const struct berval *sc, const struct berval *passwd,
       return LUTIL_PASSWD_ERR;
     }
 
-    ret = krb5_verify_init_creds(context, &creds, server, NULL, NULL,
-                                 &verify_options);
+    ret = krb5_verify_init_creds(context, &creds, server, NULL, NULL, &verify_options);
 
     krb5_free_principal(context, client);
     krb5_free_principal(context, server);

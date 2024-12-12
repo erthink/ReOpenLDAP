@@ -35,17 +35,15 @@ int ldap_back_dn_massage(dncookie *dc, struct berval *dn, struct berval *res) {
   int rc = 0;
   static char *dmy = "";
 
-  switch (rewrite_session(dc->target->mt_rwmap.rwm_rw, dc->ctx,
-                          (dn->bv_val ? dn->bv_val : dmy), dc->conn,
-                          &res->bv_val)) {
+  switch (
+      rewrite_session(dc->target->mt_rwmap.rwm_rw, dc->ctx, (dn->bv_val ? dn->bv_val : dmy), dc->conn, &res->bv_val)) {
   case REWRITE_REGEXEC_OK:
     if (res->bv_val != NULL) {
       res->bv_len = strlen(res->bv_val);
     } else {
       *res = *dn;
     }
-    Debug(LDAP_DEBUG_ARGS, "[rw] %s: \"%s\" -> \"%s\"\n", dc->ctx,
-          BER_BVISNULL(dn) ? "" : dn->bv_val,
+    Debug(LDAP_DEBUG_ARGS, "[rw] %s: \"%s\" -> \"%s\"\n", dc->ctx, BER_BVISNULL(dn) ? "" : dn->bv_val,
           BER_BVISNULL(res) ? "" : res->bv_val);
     rc = LDAP_SUCCESS;
     break;
@@ -110,8 +108,7 @@ int ldap_back_dn_massage(dncookie *dc, struct berval *odn, struct berval *res) {
       dn = &pretty;
   }
 
-  for (i = 0; dc->target->mt_rwmap.rwm_suffix_massage[i].bv_val != NULL;
-       i += 4) {
+  for (i = 0; dc->target->mt_rwmap.rwm_suffix_massage[i].bv_val != NULL; i += 4) {
     int aliasLength = dc->target->mt_rwmap.rwm_suffix_massage[i + src].bv_len;
     int diff = dn->bv_len - aliasLength;
 
@@ -124,19 +121,15 @@ int ldap_back_dn_massage(dncookie *dc, struct berval *odn, struct berval *res) {
       /* At a DN Separator */
     }
 
-    if (!strcmp(dc->target->mt_rwmap.rwm_suffix_massage[i + src].bv_val,
-                &dn->bv_val[diff])) {
-      res->bv_len =
-          diff + dc->target->mt_rwmap.rwm_suffix_massage[i + dst].bv_len;
+    if (!strcmp(dc->target->mt_rwmap.rwm_suffix_massage[i + src].bv_val, &dn->bv_val[diff])) {
+      res->bv_len = diff + dc->target->mt_rwmap.rwm_suffix_massage[i + dst].bv_len;
       res->bv_val = ch_malloc(res->bv_len + 1);
       strncpy(res->bv_val, dn->bv_val, diff);
-      strcpy(&res->bv_val[diff],
-             dc->target->mt_rwmap.rwm_suffix_massage[i + dst].bv_val);
+      strcpy(&res->bv_val[diff], dc->target->mt_rwmap.rwm_suffix_massage[i + dst].bv_val);
       Debug(LDAP_DEBUG_ARGS,
             "ldap_back_dn_massage:"
             " converted \"%s\" to \"%s\"\n",
-            BER_BVISNULL(dn) ? "" : dn->bv_val,
-            BER_BVISNULL(res) ? "" : res->bv_val);
+            BER_BVISNULL(dn) ? "" : dn->bv_val, BER_BVISNULL(res) ? "" : res->bv_val);
       break;
     }
   }

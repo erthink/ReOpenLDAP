@@ -41,12 +41,10 @@ LDAP_LUTIL_F(void)
 lutil_HASHInit(lutil_HASH_CTX *context);
 
 LDAP_LUTIL_F(void)
-lutil_HASHUpdate(lutil_HASH_CTX *context, unsigned char const *buf,
-                 ber_len_t len);
+lutil_HASHUpdate(lutil_HASH_CTX *context, unsigned char const *buf, ber_len_t len);
 
 LDAP_LUTIL_F(void)
-lutil_HASHFinal(unsigned char digest[LUTIL_HASH_BYTES],
-                lutil_HASH_CTX *context);
+lutil_HASHFinal(unsigned char digest[LUTIL_HASH_BYTES], lutil_HASH_CTX *context);
 
 #ifdef HAVE_LONG_LONG
 
@@ -56,12 +54,10 @@ LDAP_LUTIL_F(void)
 lutil_HASH64Init(lutil_HASH_CTX *context);
 
 LDAP_LUTIL_F(void)
-lutil_HASH64Update(lutil_HASH_CTX *context, unsigned char const *buf,
-                   ber_len_t len);
+lutil_HASH64Update(lutil_HASH_CTX *context, unsigned char const *buf, ber_len_t len);
 
 LDAP_LUTIL_F(void)
-lutil_HASH64Final(unsigned char digest[LUTIL_HASH64_BYTES],
-                  lutil_HASH_CTX *context);
+lutil_HASH64Final(unsigned char digest[LUTIL_HASH64_BYTES], lutil_HASH_CTX *context);
 
 #endif /* HAVE_LONG_LONG */
 

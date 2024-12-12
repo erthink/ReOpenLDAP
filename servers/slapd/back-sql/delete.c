@@ -40,8 +40,7 @@ static int backsql_delete_attr_f(void *v_at, void *v_bda) {
   backsql_delete_attr_t *bda = (backsql_delete_attr_t *)v_bda;
   int rc;
 
-  rc = backsql_modify_delete_all_values(bda->op, bda->rs, bda->dbh, bda->e_id,
-                                        at);
+  rc = backsql_modify_delete_all_values(bda->op, bda->rs, bda->dbh, bda->e_id, at);
 
   if (rc != LDAP_SUCCESS) {
     return BACKSQL_AVL_STOP;
@@ -50,8 +49,7 @@ static int backsql_delete_attr_f(void *v_at, void *v_bda) {
   return BACKSQL_AVL_CONTINUE;
 }
 
-static int backsql_delete_all_attrs(Operation *op, SlapReply *rs, SQLHDBC dbh,
-                                    backsql_entryID *eid) {
+static int backsql_delete_all_attrs(Operation *op, SlapReply *rs, SQLHDBC dbh, backsql_entryID *eid) {
   backsql_delete_attr_t bda;
   int rc;
 
@@ -60,8 +58,7 @@ static int backsql_delete_all_attrs(Operation *op, SlapReply *rs, SQLHDBC dbh,
   bda.dbh = dbh;
   bda.e_id = eid;
 
-  rc = avl_apply(eid->eid_oc->bom_attrs, backsql_delete_attr_f, &bda,
-                 BACKSQL_AVL_STOP, AVL_INORDER);
+  rc = avl_apply(eid->eid_oc->bom_attrs, backsql_delete_attr_f, &bda, BACKSQL_AVL_STOP, AVL_INORDER);
   if (rc == BACKSQL_AVL_STOP) {
     return rs->sr_err;
   }
@@ -69,8 +66,7 @@ static int backsql_delete_all_attrs(Operation *op, SlapReply *rs, SQLHDBC dbh,
   return LDAP_SUCCESS;
 }
 
-static int backsql_delete_int(Operation *op, SlapReply *rs, SQLHDBC dbh,
-                              SQLHSTMT *sthp, backsql_entryID *eid,
+static int backsql_delete_int(Operation *op, SlapReply *rs, SQLHDBC dbh, SQLHSTMT *sthp, backsql_entryID *eid,
                               Entry **ep) {
   backsql_info *bi = (backsql_info *)op->o_bd->be_private;
   SQLHSTMT sth = SQL_NULL_HSTMT;
@@ -159,9 +155,8 @@ static int backsql_delete_int(Operation *op, SlapReply *rs, SQLHDBC dbh,
   /* delete "auxiliary" objectClasses, if any... */
   rc = backsql_Prepare(dbh, &sth, bi->sql_delobjclasses_stmt, 0);
   if (rc != SQL_SUCCESS) {
-    Debug(LDAP_DEBUG_TRACE,
-          "   backsql_delete(): "
-          "error preparing ldap_entry_objclasses delete query\n");
+    Debug(LDAP_DEBUG_TRACE, "   backsql_delete(): "
+                            "error preparing ldap_entry_objclasses delete query\n");
     backsql_PrintErrors(bi->sql_db_env, dbh, sth, rc);
 
     rs->sr_err = LDAP_OTHER;
@@ -195,9 +190,8 @@ static int backsql_delete_int(Operation *op, SlapReply *rs, SQLHDBC dbh,
     break;
 
   default:
-    Debug(LDAP_DEBUG_TRACE,
-          "   backsql_delete(): "
-          "failed to delete record from ldap_entry_objclasses\n");
+    Debug(LDAP_DEBUG_TRACE, "   backsql_delete(): "
+                            "failed to delete record from ldap_entry_objclasses\n");
     backsql_PrintErrors(bi->sql_db_env, dbh, sth, rc);
     SQLFreeStmt(sth, SQL_DROP);
     rs->sr_err = LDAP_OTHER;
@@ -271,10 +265,8 @@ static int backsql_tree_delete_search_cb(Operation *op, SlapReply *rs) {
 
     btd = (backsql_tree_delete_t *)op->o_callback->sc_private;
 
-    if (!access_allowed(btd->btd_op, rs->sr_entry, slap_schema.si_ad_entry,
-                        NULL, ACL_WDEL, NULL) ||
-        !access_allowed(btd->btd_op, rs->sr_entry, slap_schema.si_ad_children,
-                        NULL, ACL_WDEL, NULL)) {
+    if (!access_allowed(btd->btd_op, rs->sr_entry, slap_schema.si_ad_entry, NULL, ACL_WDEL, NULL) ||
+        !access_allowed(btd->btd_op, rs->sr_entry, slap_schema.si_ad_children, NULL, ACL_WDEL, NULL)) {
       btd->btd_rc = LDAP_INSUFFICIENT_ACCESS;
       return rs->sr_err = LDAP_UNAVAILABLE;
     }
@@ -297,8 +289,7 @@ static int backsql_tree_delete_search_cb(Operation *op, SlapReply *rs) {
   return 0;
 }
 
-static int backsql_tree_delete(Operation *op, SlapReply *rs, SQLHDBC dbh,
-                               SQLHSTMT *sthp) {
+static int backsql_tree_delete(Operation *op, SlapReply *rs, SQLHDBC dbh, SQLHSTMT *sthp) {
   Operation op2 = *op;
   slap_callback sc = {0};
   SlapReply rs2 = {REP_RESULT};
@@ -346,8 +337,7 @@ static int backsql_tree_delete(Operation *op, SlapReply *rs, SQLHDBC dbh,
     goto clean;
   }
 
-  for (; btd.btd_eid != NULL;
-       btd.btd_eid = backsql_free_entryID(btd.btd_eid, 1, op->o_tmpmemctx)) {
+  for (; btd.btd_eid != NULL; btd.btd_eid = backsql_free_entryID(btd.btd_eid, 1, op->o_tmpmemctx)) {
     Entry *e = (void *)0xbad;
     rc = backsql_delete_int(op, rs, dbh, sthp, btd.btd_eid, &e);
     if (rc != LDAP_SUCCESS) {
@@ -356,8 +346,7 @@ static int backsql_tree_delete(Operation *op, SlapReply *rs, SQLHDBC dbh,
   }
 
 clean:;
-  for (; btd.btd_eid != NULL;
-       btd.btd_eid = backsql_free_entryID(btd.btd_eid, 1, op->o_tmpmemctx))
+  for (; btd.btd_eid != NULL; btd.btd_eid = backsql_free_entryID(btd.btd_eid, 1, op->o_tmpmemctx))
     ;
 
   return rc;
@@ -373,8 +362,7 @@ int backsql_delete(Operation *op, SlapReply *rs) {
   struct berval pdn = BER_BVNULL;
   int manageDSAit = get_manageDSAit(op);
 
-  Debug(LDAP_DEBUG_TRACE, "==>backsql_delete(): deleting entry \"%s\"\n",
-        op->o_req_ndn.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "==>backsql_delete(): deleting entry \"%s\"\n", op->o_req_ndn.bv_val);
 
   rs->sr_err = backsql_get_db_conn(op, &dbh);
   if (rs->sr_err != LDAP_SUCCESS) {
@@ -389,17 +377,15 @@ int backsql_delete(Operation *op, SlapReply *rs) {
    * Get the entry
    */
   bsi.bsi_e = &d;
-  rs->sr_err = backsql_init_search(
-      &bsi, &op->o_req_ndn, LDAP_SCOPE_BASE, (time_t)(-1), NULL, dbh, op, rs,
-      slap_anlist_no_attrs,
-      (BACKSQL_ISF_MATCHED | BACKSQL_ISF_GET_ENTRY | BACKSQL_ISF_GET_OC));
+  rs->sr_err =
+      backsql_init_search(&bsi, &op->o_req_ndn, LDAP_SCOPE_BASE, (time_t)(-1), NULL, dbh, op, rs, slap_anlist_no_attrs,
+                          (BACKSQL_ISF_MATCHED | BACKSQL_ISF_GET_ENTRY | BACKSQL_ISF_GET_OC));
   switch (rs->sr_err) {
   case LDAP_SUCCESS:
     break;
 
   case LDAP_REFERRAL:
-    if (manageDSAit && !BER_BVISNULL(&bsi.bsi_e->e_nname) &&
-        dn_match(&op->o_req_ndn, &bsi.bsi_e->e_nname)) {
+    if (manageDSAit && !BER_BVISNULL(&bsi.bsi_e->e_nname) && dn_match(&op->o_req_ndn, &bsi.bsi_e->e_nname)) {
       rs->sr_err = LDAP_SUCCESS;
       rs_send_cleanup(rs);
       break;
@@ -420,8 +406,7 @@ int backsql_delete(Operation *op, SlapReply *rs) {
     goto done;
   }
 
-  if (get_assert(op) &&
-      (test_filter(op, &d, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
+  if (get_assert(op) && (test_filter(op, &d, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
     rs->sr_err = LDAP_ASSERTION_FAILED;
     e = &d;
     goto done;
@@ -482,8 +467,7 @@ int backsql_delete(Operation *op, SlapReply *rs) {
   if (!be_issuffix(op->o_bd, &op->o_req_ndn)) {
     dnParent(&op->o_req_ndn, &pdn);
     bsi.bsi_e = &p;
-    rs->sr_err = backsql_init_search(&bsi, &pdn, LDAP_SCOPE_BASE, (time_t)(-1),
-                                     NULL, dbh, op, rs, slap_anlist_no_attrs,
+    rs->sr_err = backsql_init_search(&bsi, &pdn, LDAP_SCOPE_BASE, (time_t)(-1), NULL, dbh, op, rs, slap_anlist_no_attrs,
                                      BACKSQL_ISF_GET_ENTRY);
     if (rs->sr_err != LDAP_SUCCESS) {
       Debug(LDAP_DEBUG_TRACE, "backsql_delete(): "
@@ -496,8 +480,7 @@ int backsql_delete(Operation *op, SlapReply *rs) {
     (void)backsql_free_entryID(&bsi.bsi_base_id, 0, op->o_tmpmemctx);
 
     /* check parent for "children" acl */
-    if (!access_allowed(op, &p, slap_schema.si_ad_children, NULL, ACL_WDEL,
-                        NULL)) {
+    if (!access_allowed(op, &p, slap_schema.si_ad_children, NULL, ACL_WDEL, NULL)) {
       Debug(LDAP_DEBUG_TRACE, "   backsql_delete(): "
                               "no write access to parent\n");
       rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
@@ -536,8 +519,7 @@ int backsql_delete(Operation *op, SlapReply *rs) {
 
 done:;
   if (e != NULL) {
-    if (!access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE,
-                        NULL)) {
+    if (!access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL)) {
       rs->sr_err = LDAP_NO_SUCH_OBJECT;
       rs_send_cleanup(rs);
     }

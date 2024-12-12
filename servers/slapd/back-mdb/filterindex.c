@@ -24,38 +24,26 @@
 #include <component.h>
 #endif
 
-static int presence_candidates(Operation *op, MDBX_txn *rtxn,
-                               AttributeDescription *desc, ID *ids);
+static int presence_candidates(Operation *op, MDBX_txn *rtxn, AttributeDescription *desc, ID *ids);
 
-static int equality_candidates(Operation *op, MDBX_txn *rtxn,
-                               AttributeAssertion *ava, ID *ids, ID *tmp);
-static int inequality_candidates(Operation *op, MDBX_txn *rtxn,
-                                 AttributeAssertion *ava, ID *ids, ID *tmp,
-                                 int gtorlt);
-static int approx_candidates(Operation *op, MDBX_txn *rtxn,
-                             AttributeAssertion *ava, ID *ids, ID *tmp);
-static int substring_candidates(Operation *op, MDBX_txn *rtxn,
-                                SubstringsAssertion *sub, ID *ids, ID *tmp);
+static int equality_candidates(Operation *op, MDBX_txn *rtxn, AttributeAssertion *ava, ID *ids, ID *tmp);
+static int inequality_candidates(Operation *op, MDBX_txn *rtxn, AttributeAssertion *ava, ID *ids, ID *tmp, int gtorlt);
+static int approx_candidates(Operation *op, MDBX_txn *rtxn, AttributeAssertion *ava, ID *ids, ID *tmp);
+static int substring_candidates(Operation *op, MDBX_txn *rtxn, SubstringsAssertion *sub, ID *ids, ID *tmp);
 
-static int list_candidates(Operation *op, MDBX_txn *rtxn, Filter *flist,
-                           int ftype, ID *ids, ID *tmp, ID *stack);
+static int list_candidates(Operation *op, MDBX_txn *rtxn, Filter *flist, int ftype, ID *ids, ID *tmp, ID *stack);
 
-static int ext_candidates(Operation *op, MDBX_txn *rtxn,
-                          MatchingRuleAssertion *mra, ID *ids, ID *tmp,
-                          ID *stack);
+static int ext_candidates(Operation *op, MDBX_txn *rtxn, MatchingRuleAssertion *mra, ID *ids, ID *tmp, ID *stack);
 
 #ifdef LDAP_COMP_MATCH
-static int comp_candidates(Operation *op, MDBX_txn *rtxn,
-                           MatchingRuleAssertion *mra, ComponentFilter *f,
-                           ID *ids, ID *tmp, ID *stack);
+static int comp_candidates(Operation *op, MDBX_txn *rtxn, MatchingRuleAssertion *mra, ComponentFilter *f, ID *ids,
+                           ID *tmp, ID *stack);
 
-static int ava_comp_candidates(Operation *op, MDBX_txn *rtxn,
-                               AttributeAssertion *ava, AttributeAliasing *aa,
-                               ID *ids, ID *tmp, ID *stack);
+static int ava_comp_candidates(Operation *op, MDBX_txn *rtxn, AttributeAssertion *ava, AttributeAliasing *aa, ID *ids,
+                               ID *tmp, ID *stack);
 #endif
 
-int mdb_filter_candidates(Operation *op, MDBX_txn *rtxn, Filter *f, ID *ids,
-                          ID *tmp, ID *stack) {
+int mdb_filter_candidates(Operation *op, MDBX_txn *rtxn, Filter *f, ID *ids, ID *tmp, ID *stack) {
   int rc = 0;
 #ifdef LDAP_COMP_MATCH
   AttributeAliasing *aa;
@@ -94,8 +82,7 @@ int mdb_filter_candidates(Operation *op, MDBX_txn *rtxn, Filter *f, ID *ids,
   case LDAP_FILTER_EQUALITY:
     Debug(LDAP_DEBUG_FILTER, "\tEQUALITY\n");
 #ifdef LDAP_COMP_MATCH
-    if (is_aliased_attribute &&
-        (aa = is_aliased_attribute(f->f_ava->aa_desc))) {
+    if (is_aliased_attribute && (aa = is_aliased_attribute(f->f_ava->aa_desc))) {
       rc = ava_comp_candidates(op, rtxn, f->f_ava, aa, ids, tmp, stack);
     } else
 #endif
@@ -118,8 +105,7 @@ int mdb_filter_candidates(Operation *op, MDBX_txn *rtxn, Filter *f, ID *ids,
     /* if no GE index, use pres */
     Debug(LDAP_DEBUG_FILTER, "\tGE\n");
     if (f->f_ava->aa_desc->ad_type->sat_ordering &&
-        (f->f_ava->aa_desc->ad_type->sat_ordering->smr_usage &
-         SLAP_MR_ORDERED_INDEX))
+        (f->f_ava->aa_desc->ad_type->sat_ordering->smr_usage & SLAP_MR_ORDERED_INDEX))
       rc = inequality_candidates(op, rtxn, f->f_ava, ids, tmp, LDAP_FILTER_GE);
     else
       rc = presence_candidates(op, rtxn, f->f_ava->aa_desc, ids);
@@ -129,8 +115,7 @@ int mdb_filter_candidates(Operation *op, MDBX_txn *rtxn, Filter *f, ID *ids,
     /* if no LE index, use pres */
     Debug(LDAP_DEBUG_FILTER, "\tLE\n");
     if (f->f_ava->aa_desc->ad_type->sat_ordering &&
-        (f->f_ava->aa_desc->ad_type->sat_ordering->smr_usage &
-         SLAP_MR_ORDERED_INDEX))
+        (f->f_ava->aa_desc->ad_type->sat_ordering->smr_usage & SLAP_MR_ORDERED_INDEX))
       rc = inequality_candidates(op, rtxn, f->f_ava, ids, tmp, LDAP_FILTER_LE);
     else
       rc = presence_candidates(op, rtxn, f->f_ava->aa_desc, ids);
@@ -185,18 +170,15 @@ int mdb_filter_candidates(Operation *op, MDBX_txn *rtxn, Filter *f, ID *ids,
   }
 
 out:
-  Debug(LDAP_DEBUG_FILTER,
-        "<= mdb_filter_candidates: id=%ld first=%ld last=%ld\n", (long)ids[0],
+  Debug(LDAP_DEBUG_FILTER, "<= mdb_filter_candidates: id=%ld first=%ld last=%ld\n", (long)ids[0],
         (long)MDB_IDL_FIRST(ids), (long)MDB_IDL_LAST(ids));
 
   return rc;
 }
 
 #ifdef LDAP_COMP_MATCH
-static int comp_list_candidates(Operation *op, MDBX_txn *rtxn,
-                                MatchingRuleAssertion *mra,
-                                ComponentFilter *flist, int ftype, ID *ids,
-                                ID *tmp, ID *save) {
+static int comp_list_candidates(Operation *op, MDBX_txn *rtxn, MatchingRuleAssertion *mra, ComponentFilter *flist,
+                                int ftype, ID *ids, ID *tmp, ID *save) {
   int rc = 0;
   ComponentFilter *f;
 
@@ -235,8 +217,7 @@ static int comp_list_candidates(Operation *op, MDBX_txn *rtxn,
   }
 
   if (rc == LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_FILTER,
-          "<= comp_list_candidates: id=%ld first=%ld last=%ld\n", (long)ids[0],
+    Debug(LDAP_DEBUG_FILTER, "<= comp_list_candidates: id=%ld first=%ld last=%ld\n", (long)ids[0],
           (long)MDB_IDL_FIRST(ids), (long)MDB_IDL_LAST(ids));
 
   } else {
@@ -246,10 +227,8 @@ static int comp_list_candidates(Operation *op, MDBX_txn *rtxn,
   return rc;
 }
 
-static int comp_equality_candidates(Operation *op, MDBX_txn *rtxn,
-                                    MatchingRuleAssertion *mra,
-                                    ComponentAssertion *ca, ID *ids, ID *tmp,
-                                    ID *stack) {
+static int comp_equality_candidates(Operation *op, MDBX_txn *rtxn, MatchingRuleAssertion *mra, ComponentAssertion *ca,
+                                    ID *ids, ID *tmp, ID *stack) {
   MDBX_dbi dbi;
   int i;
   int rc;
@@ -276,16 +255,14 @@ static int comp_equality_candidates(Operation *op, MDBX_txn *rtxn,
   sat_syntax = ca->ca_ma_rule->smr_syntax;
   for (cr = cr_list; cr; cr = cr->cr_next) {
     if (cr->cr_string.bv_len == ca->ca_comp_ref->cr_string.bv_len &&
-        strncmp(cr->cr_string.bv_val, ca->ca_comp_ref->cr_string.bv_val,
-                cr->cr_string.bv_len) == 0)
+        strncmp(cr->cr_string.bv_val, ca->ca_comp_ref->cr_string.bv_val, cr->cr_string.bv_len) == 0)
       break;
   }
 
   if (!cr)
     return 0;
 
-  rc = mdb_index_param(op->o_bd, mra->ma_desc, LDAP_FILTER_EQUALITY, &dbi,
-                       &mask, &prefix);
+  rc = mdb_index_param(op->o_bd, mra->ma_desc, LDAP_FILTER_EQUALITY, &dbi, &mask, &prefix);
 
   if (rc != LDAP_SUCCESS) {
     return 0;
@@ -299,8 +276,7 @@ static int comp_equality_candidates(Operation *op, MDBX_txn *rtxn,
     return 0;
   }
 
-  rc = (ca->ca_ma_rule->smr_filter)(LDAP_FILTER_EQUALITY, cr->cr_indexmask,
-                                    sat_syntax, ca->ca_ma_rule, &prefix,
+  rc = (ca->ca_ma_rule->smr_filter)(LDAP_FILTER_EQUALITY, cr->cr_indexmask, sat_syntax, ca->ca_ma_rule, &prefix,
                                     &ca->ca_ma_value, &keys, op->o_tmpmemctx);
 
   if (rc != LDAP_SUCCESS) {
@@ -337,15 +313,13 @@ static int comp_equality_candidates(Operation *op, MDBX_txn *rtxn,
   }
   ber_bvarray_free_x(keys, op->o_tmpmemctx);
 
-  Debug(LDAP_DEBUG_TRACE,
-        "<= comp_equality_candidates: id=%ld, first=%ld, last=%ld\n",
-        (long)ids[0], (long)MDB_IDL_FIRST(ids), (long)MDB_IDL_LAST(ids));
+  Debug(LDAP_DEBUG_TRACE, "<= comp_equality_candidates: id=%ld, first=%ld, last=%ld\n", (long)ids[0],
+        (long)MDB_IDL_FIRST(ids), (long)MDB_IDL_LAST(ids));
   return (rc);
 }
 
-static int ava_comp_candidates(Operation *op, MDBX_txn *rtxn,
-                               AttributeAssertion *ava, AttributeAliasing *aa,
-                               ID *ids, ID *tmp, ID *stack) {
+static int ava_comp_candidates(Operation *op, MDBX_txn *rtxn, AttributeAssertion *ava, AttributeAliasing *aa, ID *ids,
+                               ID *tmp, ID *stack) {
   MatchingRuleAssertion mra;
 
   mra.ma_rule = ava->aa_desc->ad_type->sat_equality;
@@ -359,9 +333,8 @@ static int ava_comp_candidates(Operation *op, MDBX_txn *rtxn,
   return comp_candidates(op, rtxn, &mra, ava->aa_cf, ids, tmp, stack);
 }
 
-static int comp_candidates(Operation *op, MDBX_txn *rtxn,
-                           MatchingRuleAssertion *mra, ComponentFilter *f,
-                           ID *ids, ID *tmp, ID *stack) {
+static int comp_candidates(Operation *op, MDBX_txn *rtxn, MatchingRuleAssertion *mra, ComponentFilter *f, ID *ids,
+                           ID *tmp, ID *stack) {
   int rc;
 
   if (!f)
@@ -373,12 +346,10 @@ static int comp_candidates(Operation *op, MDBX_txn *rtxn,
     rc = f->cf_result;
     break;
   case LDAP_COMP_FILTER_AND:
-    rc = comp_list_candidates(op, rtxn, mra, f->cf_and, LDAP_COMP_FILTER_AND,
-                              ids, tmp, stack);
+    rc = comp_list_candidates(op, rtxn, mra, f->cf_and, LDAP_COMP_FILTER_AND, ids, tmp, stack);
     break;
   case LDAP_COMP_FILTER_OR:
-    rc = comp_list_candidates(op, rtxn, mra, f->cf_or, LDAP_COMP_FILTER_OR, ids,
-                              tmp, stack);
+    rc = comp_list_candidates(op, rtxn, mra, f->cf_or, LDAP_COMP_FILTER_OR, ids, tmp, stack);
     break;
   case LDAP_COMP_FILTER_NOT:
     /* No component indexing supported for NOT filter */
@@ -398,9 +369,7 @@ static int comp_candidates(Operation *op, MDBX_txn *rtxn,
 }
 #endif
 
-static int ext_candidates(Operation *op, MDBX_txn *rtxn,
-                          MatchingRuleAssertion *mra, ID *ids, ID *tmp,
-                          ID *stack) {
+static int ext_candidates(Operation *op, MDBX_txn *rtxn, MatchingRuleAssertion *mra, ID *ids, ID *tmp, ID *stack) {
 #ifdef LDAP_COMP_MATCH
   /*
    * Currently Only Component Indexing for componentFilterMatch is supported
@@ -460,8 +429,7 @@ static int ext_candidates(Operation *op, MDBX_txn *rtxn,
   return 0;
 }
 
-static int list_candidates(Operation *op, MDBX_txn *rtxn, Filter *flist,
-                           int ftype, ID *ids, ID *tmp, ID *save) {
+static int list_candidates(Operation *op, MDBX_txn *rtxn, Filter *flist, int ftype, ID *ids, ID *tmp, ID *save) {
   int rc = 0;
   Filter *f;
 
@@ -500,8 +468,7 @@ static int list_candidates(Operation *op, MDBX_txn *rtxn, Filter *flist,
   }
 
   if (rc == LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_FILTER,
-          "<= mdb_list_candidates: id=%ld first=%ld last=%ld\n", (long)ids[0],
+    Debug(LDAP_DEBUG_FILTER, "<= mdb_list_candidates: id=%ld first=%ld last=%ld\n", (long)ids[0],
           (long)MDB_IDL_FIRST(ids), (long)MDB_IDL_LAST(ids));
 
   } else {
@@ -511,15 +478,13 @@ static int list_candidates(Operation *op, MDBX_txn *rtxn, Filter *flist,
   return rc;
 }
 
-static int presence_candidates(Operation *op, MDBX_txn *rtxn,
-                               AttributeDescription *desc, ID *ids) {
+static int presence_candidates(Operation *op, MDBX_txn *rtxn, AttributeDescription *desc, ID *ids) {
   MDBX_dbi dbi;
   int rc;
   slap_mask_t mask;
   struct berval prefix = {0, NULL};
 
-  Debug(LDAP_DEBUG_TRACE, "=> mdb_presence_candidates (%s)\n",
-        desc->ad_cname.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "=> mdb_presence_candidates (%s)\n", desc->ad_cname.bv_val);
 
   MDB_IDL_ALL(ids);
 
@@ -527,13 +492,11 @@ static int presence_candidates(Operation *op, MDBX_txn *rtxn,
     return 0;
   }
 
-  rc = mdb_index_param(op->o_bd, desc, LDAP_FILTER_PRESENT, &dbi, &mask,
-                       &prefix);
+  rc = mdb_index_param(op->o_bd, desc, LDAP_FILTER_PRESENT, &dbi, &mask, &prefix);
 
   if (rc == LDAP_INAPPROPRIATE_MATCHING) {
     /* not indexed */
-    Debug(LDAP_DEBUG_TRACE, "<= mdb_presence_candidates: (%s) not indexed\n",
-          desc->ad_cname.bv_val);
+    Debug(LDAP_DEBUG_TRACE, "<= mdb_presence_candidates: (%s) not indexed\n", desc->ad_cname.bv_val);
     return 0;
   }
 
@@ -546,8 +509,7 @@ static int presence_candidates(Operation *op, MDBX_txn *rtxn,
   }
 
   if (prefix.bv_val == NULL) {
-    Debug(LDAP_DEBUG_TRACE, "<= mdb_presence_candidates: (%s) no prefix\n",
-          desc->ad_cname.bv_val);
+    Debug(LDAP_DEBUG_TRACE, "<= mdb_presence_candidates: (%s) no prefix\n", desc->ad_cname.bv_val);
     return -1;
   }
 
@@ -564,16 +526,14 @@ static int presence_candidates(Operation *op, MDBX_txn *rtxn,
     goto done;
   }
 
-  Debug(LDAP_DEBUG_TRACE,
-        "<= mdb_presence_candidates: id=%ld first=%ld last=%ld\n", (long)ids[0],
+  Debug(LDAP_DEBUG_TRACE, "<= mdb_presence_candidates: id=%ld first=%ld last=%ld\n", (long)ids[0],
         (long)MDB_IDL_FIRST(ids), (long)MDB_IDL_LAST(ids));
 
 done:
   return rc;
 }
 
-static int equality_candidates(Operation *op, MDBX_txn *rtxn,
-                               AttributeAssertion *ava, ID *ids, ID *tmp) {
+static int equality_candidates(Operation *op, MDBX_txn *rtxn, AttributeAssertion *ava, ID *ids, ID *tmp) {
   MDBX_dbi dbi;
   int i;
   int rc;
@@ -582,8 +542,7 @@ static int equality_candidates(Operation *op, MDBX_txn *rtxn,
   struct berval *keys = NULL;
   MatchingRule *mr;
 
-  Debug(LDAP_DEBUG_TRACE, "=> mdb_equality_candidates (%s)\n",
-        ava->aa_desc->ad_cname.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "=> mdb_equality_candidates (%s)\n", ava->aa_desc->ad_cname.bv_val);
 
   if (ava->aa_desc == slap_schema.si_ad_entryDN) {
     ID id;
@@ -602,12 +561,10 @@ static int equality_candidates(Operation *op, MDBX_txn *rtxn,
 
   MDB_IDL_ALL(ids);
 
-  rc = mdb_index_param(op->o_bd, ava->aa_desc, LDAP_FILTER_EQUALITY, &dbi,
-                       &mask, &prefix);
+  rc = mdb_index_param(op->o_bd, ava->aa_desc, LDAP_FILTER_EQUALITY, &dbi, &mask, &prefix);
 
   if (rc == LDAP_INAPPROPRIATE_MATCHING) {
-    Debug(LDAP_DEBUG_ANY, "<= mdb_equality_candidates: (%s) not indexed\n",
-          ava->aa_desc->ad_cname.bv_val);
+    Debug(LDAP_DEBUG_ANY, "<= mdb_equality_candidates: (%s) not indexed\n", ava->aa_desc->ad_cname.bv_val);
     return 0;
   }
 
@@ -628,9 +585,8 @@ static int equality_candidates(Operation *op, MDBX_txn *rtxn,
     return 0;
   }
 
-  rc = (mr->smr_filter)(LDAP_FILTER_EQUALITY, mask,
-                        ava->aa_desc->ad_type->sat_syntax, mr, &prefix,
-                        &ava->aa_value, &keys, op->o_tmpmemctx);
+  rc = (mr->smr_filter)(LDAP_FILTER_EQUALITY, mask, ava->aa_desc->ad_type->sat_syntax, mr, &prefix, &ava->aa_value,
+                        &keys, op->o_tmpmemctx);
 
   if (rc != LDAP_SUCCESS) {
     Debug(LDAP_DEBUG_TRACE,
@@ -641,8 +597,7 @@ static int equality_candidates(Operation *op, MDBX_txn *rtxn,
   }
 
   if (keys == NULL) {
-    Debug(LDAP_DEBUG_TRACE, "<= mdb_equality_candidates: (%s) no keys\n",
-          ava->aa_desc->ad_cname.bv_val);
+    Debug(LDAP_DEBUG_TRACE, "<= mdb_equality_candidates: (%s) no keys\n", ava->aa_desc->ad_cname.bv_val);
     return 0;
   }
 
@@ -662,8 +617,7 @@ static int equality_candidates(Operation *op, MDBX_txn *rtxn,
     }
 
     if (MDB_IDL_IS_ZERO(tmp)) {
-      Debug(LDAP_DEBUG_TRACE, "<= mdb_equality_candidates: (%s) NULL\n",
-            ava->aa_desc->ad_cname.bv_val);
+      Debug(LDAP_DEBUG_TRACE, "<= mdb_equality_candidates: (%s) NULL\n", ava->aa_desc->ad_cname.bv_val);
       MDB_IDL_ZERO(ids);
       break;
     }
@@ -680,14 +634,12 @@ static int equality_candidates(Operation *op, MDBX_txn *rtxn,
 
   ber_bvarray_free_x(keys, op->o_tmpmemctx);
 
-  Debug(LDAP_DEBUG_TRACE,
-        "<= mdb_equality_candidates: id=%ld, first=%ld, last=%ld\n",
-        (long)ids[0], (long)MDB_IDL_FIRST(ids), (long)MDB_IDL_LAST(ids));
+  Debug(LDAP_DEBUG_TRACE, "<= mdb_equality_candidates: id=%ld, first=%ld, last=%ld\n", (long)ids[0],
+        (long)MDB_IDL_FIRST(ids), (long)MDB_IDL_LAST(ids));
   return (rc);
 }
 
-static int approx_candidates(Operation *op, MDBX_txn *rtxn,
-                             AttributeAssertion *ava, ID *ids, ID *tmp) {
+static int approx_candidates(Operation *op, MDBX_txn *rtxn, AttributeAssertion *ava, ID *ids, ID *tmp) {
   MDBX_dbi dbi;
   int i;
   int rc;
@@ -696,17 +648,14 @@ static int approx_candidates(Operation *op, MDBX_txn *rtxn,
   struct berval *keys = NULL;
   MatchingRule *mr;
 
-  Debug(LDAP_DEBUG_TRACE, "=> mdb_approx_candidates (%s)\n",
-        ava->aa_desc->ad_cname.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "=> mdb_approx_candidates (%s)\n", ava->aa_desc->ad_cname.bv_val);
 
   MDB_IDL_ALL(ids);
 
-  rc = mdb_index_param(op->o_bd, ava->aa_desc, LDAP_FILTER_APPROX, &dbi, &mask,
-                       &prefix);
+  rc = mdb_index_param(op->o_bd, ava->aa_desc, LDAP_FILTER_APPROX, &dbi, &mask, &prefix);
 
   if (rc == LDAP_INAPPROPRIATE_MATCHING) {
-    Debug(LDAP_DEBUG_ANY, "<= mdb_approx_candidates: (%s) not indexed\n",
-          ava->aa_desc->ad_cname.bv_val);
+    Debug(LDAP_DEBUG_ANY, "<= mdb_approx_candidates: (%s) not indexed\n", ava->aa_desc->ad_cname.bv_val);
     return 0;
   }
 
@@ -732,9 +681,8 @@ static int approx_candidates(Operation *op, MDBX_txn *rtxn,
     return 0;
   }
 
-  rc = (mr->smr_filter)(LDAP_FILTER_APPROX, mask,
-                        ava->aa_desc->ad_type->sat_syntax, mr, &prefix,
-                        &ava->aa_value, &keys, op->o_tmpmemctx);
+  rc = (mr->smr_filter)(LDAP_FILTER_APPROX, mask, ava->aa_desc->ad_type->sat_syntax, mr, &prefix, &ava->aa_value, &keys,
+                        op->o_tmpmemctx);
 
   if (rc != LDAP_SUCCESS) {
     Debug(LDAP_DEBUG_TRACE,
@@ -745,8 +693,8 @@ static int approx_candidates(Operation *op, MDBX_txn *rtxn,
   }
 
   if (keys == NULL) {
-    Debug(LDAP_DEBUG_TRACE, "<= mdb_approx_candidates: (%s) no keys (%s)\n",
-          prefix.bv_val, ava->aa_desc->ad_cname.bv_val);
+    Debug(LDAP_DEBUG_TRACE, "<= mdb_approx_candidates: (%s) no keys (%s)\n", prefix.bv_val,
+          ava->aa_desc->ad_cname.bv_val);
     return 0;
   }
 
@@ -766,8 +714,7 @@ static int approx_candidates(Operation *op, MDBX_txn *rtxn,
     }
 
     if (MDB_IDL_IS_ZERO(tmp)) {
-      Debug(LDAP_DEBUG_TRACE, "<= mdb_approx_candidates: (%s) NULL\n",
-            ava->aa_desc->ad_cname.bv_val);
+      Debug(LDAP_DEBUG_TRACE, "<= mdb_approx_candidates: (%s) NULL\n", ava->aa_desc->ad_cname.bv_val);
       MDB_IDL_ZERO(ids);
       break;
     }
@@ -784,13 +731,12 @@ static int approx_candidates(Operation *op, MDBX_txn *rtxn,
 
   ber_bvarray_free_x(keys, op->o_tmpmemctx);
 
-  Debug(LDAP_DEBUG_TRACE, "<= mdb_approx_candidates %ld, first=%ld, last=%ld\n",
-        (long)ids[0], (long)MDB_IDL_FIRST(ids), (long)MDB_IDL_LAST(ids));
+  Debug(LDAP_DEBUG_TRACE, "<= mdb_approx_candidates %ld, first=%ld, last=%ld\n", (long)ids[0], (long)MDB_IDL_FIRST(ids),
+        (long)MDB_IDL_LAST(ids));
   return (rc);
 }
 
-static int substring_candidates(Operation *op, MDBX_txn *rtxn,
-                                SubstringsAssertion *sub, ID *ids, ID *tmp) {
+static int substring_candidates(Operation *op, MDBX_txn *rtxn, SubstringsAssertion *sub, ID *ids, ID *tmp) {
   MDBX_dbi dbi;
   int i;
   int rc;
@@ -799,17 +745,14 @@ static int substring_candidates(Operation *op, MDBX_txn *rtxn,
   struct berval *keys = NULL;
   MatchingRule *mr;
 
-  Debug(LDAP_DEBUG_TRACE, "=> mdb_substring_candidates (%s)\n",
-        sub->sa_desc->ad_cname.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "=> mdb_substring_candidates (%s)\n", sub->sa_desc->ad_cname.bv_val);
 
   MDB_IDL_ALL(ids);
 
-  rc = mdb_index_param(op->o_bd, sub->sa_desc, LDAP_FILTER_SUBSTRINGS, &dbi,
-                       &mask, &prefix);
+  rc = mdb_index_param(op->o_bd, sub->sa_desc, LDAP_FILTER_SUBSTRINGS, &dbi, &mask, &prefix);
 
   if (rc == LDAP_INAPPROPRIATE_MATCHING) {
-    Debug(LDAP_DEBUG_ANY, "<= mdb_substring_candidates: (%s) not indexed\n",
-          sub->sa_desc->ad_cname.bv_val);
+    Debug(LDAP_DEBUG_ANY, "<= mdb_substring_candidates: (%s) not indexed\n", sub->sa_desc->ad_cname.bv_val);
     return 0;
   }
 
@@ -831,9 +774,8 @@ static int substring_candidates(Operation *op, MDBX_txn *rtxn,
     return 0;
   }
 
-  rc = (mr->smr_filter)(LDAP_FILTER_SUBSTRINGS, mask,
-                        sub->sa_desc->ad_type->sat_syntax, mr, &prefix, sub,
-                        &keys, op->o_tmpmemctx);
+  rc = (mr->smr_filter)(LDAP_FILTER_SUBSTRINGS, mask, sub->sa_desc->ad_type->sat_syntax, mr, &prefix, sub, &keys,
+                        op->o_tmpmemctx);
 
   if (rc != LDAP_SUCCESS) {
     Debug(LDAP_DEBUG_TRACE,
@@ -844,8 +786,7 @@ static int substring_candidates(Operation *op, MDBX_txn *rtxn,
   }
 
   if (keys == NULL) {
-    Debug(LDAP_DEBUG_TRACE,
-          "<= mdb_substring_candidates: (0x%04lx) no keys (%s)\n", mask,
+    Debug(LDAP_DEBUG_TRACE, "<= mdb_substring_candidates: (0x%04lx) no keys (%s)\n", mask,
           sub->sa_desc->ad_cname.bv_val);
     return 0;
   }
@@ -866,8 +807,7 @@ static int substring_candidates(Operation *op, MDBX_txn *rtxn,
     }
 
     if (MDB_IDL_IS_ZERO(tmp)) {
-      Debug(LDAP_DEBUG_TRACE, "<= mdb_substring_candidates: (%s) NULL\n",
-            sub->sa_desc->ad_cname.bv_val);
+      Debug(LDAP_DEBUG_TRACE, "<= mdb_substring_candidates: (%s) NULL\n", sub->sa_desc->ad_cname.bv_val);
       MDB_IDL_ZERO(ids);
       break;
     }
@@ -884,15 +824,12 @@ static int substring_candidates(Operation *op, MDBX_txn *rtxn,
 
   ber_bvarray_free_x(keys, op->o_tmpmemctx);
 
-  Debug(LDAP_DEBUG_TRACE,
-        "<= mdb_substring_candidates: %ld, first=%ld, last=%ld\n", (long)ids[0],
+  Debug(LDAP_DEBUG_TRACE, "<= mdb_substring_candidates: %ld, first=%ld, last=%ld\n", (long)ids[0],
         (long)MDB_IDL_FIRST(ids), (long)MDB_IDL_LAST(ids));
   return (rc);
 }
 
-static int inequality_candidates(Operation *op, MDBX_txn *rtxn,
-                                 AttributeAssertion *ava, ID *ids, ID *tmp,
-                                 int gtorlt) {
+static int inequality_candidates(Operation *op, MDBX_txn *rtxn, AttributeAssertion *ava, ID *ids, ID *tmp, int gtorlt) {
   MDBX_dbi dbi;
   int rc;
   slap_mask_t mask;
@@ -900,17 +837,14 @@ static int inequality_candidates(Operation *op, MDBX_txn *rtxn,
   struct berval *keys = NULL;
   MatchingRule *mr;
 
-  Debug(LDAP_DEBUG_TRACE, "=> mdb_inequality_candidates (%s)\n",
-        ava->aa_desc->ad_cname.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "=> mdb_inequality_candidates (%s)\n", ava->aa_desc->ad_cname.bv_val);
 
   MDB_IDL_ALL(ids);
 
-  rc = mdb_index_param(op->o_bd, ava->aa_desc, LDAP_FILTER_EQUALITY, &dbi,
-                       &mask, &prefix);
+  rc = mdb_index_param(op->o_bd, ava->aa_desc, LDAP_FILTER_EQUALITY, &dbi, &mask, &prefix);
 
   if (rc == LDAP_INAPPROPRIATE_MATCHING) {
-    Debug(LDAP_DEBUG_ANY, "<= mdb_inequality_candidates: (%s) not indexed\n",
-          ava->aa_desc->ad_cname.bv_val);
+    Debug(LDAP_DEBUG_ANY, "<= mdb_inequality_candidates: (%s) not indexed\n", ava->aa_desc->ad_cname.bv_val);
     return 0;
   }
 
@@ -931,9 +865,8 @@ static int inequality_candidates(Operation *op, MDBX_txn *rtxn,
     return 0;
   }
 
-  rc = (mr->smr_filter)(LDAP_FILTER_EQUALITY, mask,
-                        ava->aa_desc->ad_type->sat_syntax, mr, &prefix,
-                        &ava->aa_value, &keys, op->o_tmpmemctx);
+  rc = (mr->smr_filter)(LDAP_FILTER_EQUALITY, mask, ava->aa_desc->ad_type->sat_syntax, mr, &prefix, &ava->aa_value,
+                        &keys, op->o_tmpmemctx);
 
   if (rc != LDAP_SUCCESS) {
     Debug(LDAP_DEBUG_TRACE,
@@ -944,8 +877,7 @@ static int inequality_candidates(Operation *op, MDBX_txn *rtxn,
   }
 
   if (keys == NULL) {
-    Debug(LDAP_DEBUG_TRACE, "<= mdb_inequality_candidates: (%s) no keys\n",
-          ava->aa_desc->ad_cname.bv_val);
+    Debug(LDAP_DEBUG_TRACE, "<= mdb_inequality_candidates: (%s) no keys\n", ava->aa_desc->ad_cname.bv_val);
     return 0;
   }
 
@@ -966,8 +898,7 @@ static int inequality_candidates(Operation *op, MDBX_txn *rtxn,
     }
 
     if (MDB_IDL_IS_ZERO(tmp)) {
-      Debug(LDAP_DEBUG_TRACE, "<= mdb_inequality_candidates: (%s) NULL\n",
-            ava->aa_desc->ad_cname.bv_val);
+      Debug(LDAP_DEBUG_TRACE, "<= mdb_inequality_candidates: (%s) NULL\n", ava->aa_desc->ad_cname.bv_val);
       break;
     }
 
@@ -982,8 +913,7 @@ static int inequality_candidates(Operation *op, MDBX_txn *rtxn,
   if (cursor)
     mdbx_cursor_close(cursor);
 
-  Debug(LDAP_DEBUG_TRACE,
-        "<= mdb_inequality_candidates: id=%ld, first=%ld, last=%ld\n",
-        (long)ids[0], (long)MDB_IDL_FIRST(ids), (long)MDB_IDL_LAST(ids));
+  Debug(LDAP_DEBUG_TRACE, "<= mdb_inequality_candidates: id=%ld, first=%ld, last=%ld\n", (long)ids[0],
+        (long)MDB_IDL_FIRST(ids), (long)MDB_IDL_LAST(ids));
   return (rc);
 }

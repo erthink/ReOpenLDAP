@@ -40,8 +40,7 @@ static int usage(void) {
   fprintf(stderr, _("  -h host    \n"));
   fprintf(stderr, _("  -p port    (default: 389 for ldap, 636 for ldaps)\n"));
   fprintf(stderr, _("  -s scope   (RFC 4511 searchScope and extensions)\n"));
-  fprintf(stderr,
-          _("  -S scheme  (RFC 4516 LDAP URL scheme and extensions)\n"));
+  fprintf(stderr, _("  -S scheme  (RFC 4516 LDAP URL scheme and extensions)\n"));
   exit(EXIT_FAILURE);
 }
 
@@ -267,8 +266,7 @@ int main(int argc, char *argv[]) {
       break;
 
     case 'E':
-      lud.lud_exts =
-          (char **)realloc(lud.lud_exts, sizeof(char *) * (nexts + 2));
+      lud.lud_exts = (char **)realloc(lud.lud_exts, sizeof(char *) * (nexts + 2));
       lud.lud_exts[nexts++] = optarg;
       lud.lud_exts[nexts] = NULL;
       break;

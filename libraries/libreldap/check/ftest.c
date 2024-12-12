@@ -57,12 +57,10 @@ int main(int argc, char *argv[]) {
   }
 
   if (debug) {
-    if (ber_set_option(NULL, LBER_OPT_DEBUG_LEVEL, &debug) !=
-        LBER_OPT_SUCCESS) {
+    if (ber_set_option(NULL, LBER_OPT_DEBUG_LEVEL, &debug) != LBER_OPT_SUCCESS) {
       fprintf(stderr, "Could not set LBER_OPT_DEBUG_LEVEL %d\n", debug);
     }
-    if (ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, &debug) !=
-        LDAP_OPT_SUCCESS) {
+    if (ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, &debug) != LDAP_OPT_SUCCESS) {
       fprintf(stderr, "Could not set LDAP_OPT_DEBUG_LEVEL %d\n", debug);
     }
   }

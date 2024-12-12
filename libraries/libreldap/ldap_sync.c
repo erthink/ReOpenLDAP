@@ -171,8 +171,7 @@ static int ldap_sync_search_entry(ldap_sync_t *ls, LDAPMessage *res) {
     goto done;
   }
   /* scan entryUUID in-place ("m") */
-  if (ber_scanf(ber, "{em" /*"}"*/, &state, &entryUUID) == LBER_ERROR ||
-      entryUUID.bv_len == 0) {
+  if (ber_scanf(ber, "{em" /*"}"*/, &state, &entryUUID) == LBER_ERROR || entryUUID.bv_len == 0) {
     goto done;
   }
 
@@ -185,8 +184,7 @@ static int ldap_sync_search_entry(ldap_sync_t *ls, LDAPMessage *res) {
       ber_bvreplace(&ls->ls_cookie, &cookie);
     }
 #ifdef LDAP_SYNC_TRACE
-    fprintf(stderr, "\t\tgot cookie=%s\n",
-            cookie.bv_val ? cookie.bv_val : "(null)");
+    fprintf(stderr, "\t\tgot cookie=%s\n", cookie.bv_val ? cookie.bv_val : "(null)");
 #endif /* LDAP_SYNC_TRACE */
   }
 
@@ -211,8 +209,7 @@ static int ldap_sync_search_entry(ldap_sync_t *ls, LDAPMessage *res) {
     goto done;
   }
 
-  rc = ls->ls_search_entry ? ls->ls_search_entry(ls, res, &entryUUID, phase)
-                           : LDAP_SUCCESS;
+  rc = ls->ls_search_entry ? ls->ls_search_entry(ls, res, &entryUUID, phase) : LDAP_SUCCESS;
 
 done:;
   if (ber != NULL) {
@@ -267,8 +264,7 @@ static int ldap_sync_search_result(ldap_sync_t *ls, LDAPMessage *res) {
   /* should not happen in refreshAndPersist... */
   rc = ldap_parse_result(ls->ls_ld, res, &err, &matched, &msg, NULL, &ctrls, 0);
 #ifdef LDAP_SYNC_TRACE
-  fprintf(stderr, "\tldap_parse_result(%d, \"%s\", \"%s\") == %d\n", err,
-          matched ? matched : "", msg ? msg : "", rc);
+  fprintf(stderr, "\tldap_parse_result(%d, \"%s\", \"%s\") == %d\n", err, matched ? matched : "", msg ? msg : "", rc);
 #endif /* LDAP_SYNC_TRACE */
   if (rc == LDAP_SUCCESS) {
     rc = err;
@@ -319,8 +315,7 @@ static int ldap_sync_search_result(ldap_sync_t *ls, LDAPMessage *res) {
         ber_bvreplace(&ls->ls_cookie, &cookie);
       }
 #ifdef LDAP_SYNC_TRACE
-      fprintf(stderr, "\t\tgot cookie=%s\n",
-              cookie.bv_val ? cookie.bv_val : "(null)");
+      fprintf(stderr, "\t\tgot cookie=%s\n", cookie.bv_val ? cookie.bv_val : "(null)");
 #endif /* LDAP_SYNC_TRACE */
     }
 
@@ -345,8 +340,7 @@ static int ldap_sync_search_result(ldap_sync_t *ls, LDAPMessage *res) {
     }
 
 #ifdef LDAP_SYNC_TRACE
-    fprintf(stderr, "\t\tgot refreshDeletes=%s\n",
-            refreshDeletes ? "TRUE" : "FALSE");
+    fprintf(stderr, "\t\tgot refreshDeletes=%s\n", refreshDeletes ? "TRUE" : "FALSE");
 #endif /* LDAP_SYNC_TRACE */
 
     /* FIXME: what should we do with the refreshDelete? */
@@ -394,8 +388,7 @@ done:;
 /*
  * handle the LDAP_RES_INTERMEDIATE response
  */
-static int ldap_sync_search_intermediate(ldap_sync_t *ls, LDAPMessage *res,
-                                         int *refreshDone) {
+static int ldap_sync_search_intermediate(ldap_sync_t *ls, LDAPMessage *res, int *refreshDone) {
   int rc;
   char *retoid = NULL;
   struct berval *retdata = NULL;
@@ -419,9 +412,8 @@ static int ldap_sync_search_intermediate(ldap_sync_t *ls, LDAPMessage *res,
 
   rc = ldap_parse_intermediate(ls->ls_ld, res, &retoid, &retdata, NULL, 0);
 #ifdef LDAP_SYNC_TRACE
-  fprintf(stderr, "\t%sldap_parse_intermediate(%s) == %d\n",
-          rc != LDAP_SUCCESS ? "!!! " : "", retoid == NULL ? "\"\"" : retoid,
-          rc);
+  fprintf(stderr, "\t%sldap_parse_intermediate(%s) == %d\n", rc != LDAP_SUCCESS ? "!!! " : "",
+          retoid == NULL ? "\"\"" : retoid, rc);
 #endif /* LDAP_SYNC_TRACE */
   /* parsing must be successful, and yield the OID
    * of the sync info intermediate response */
@@ -451,8 +443,7 @@ static int ldap_sync_search_intermediate(ldap_sync_t *ls, LDAPMessage *res,
       ber_bvreplace(&ls->ls_cookie, &cookie);
     }
 #ifdef LDAP_SYNC_TRACE
-    fprintf(stderr, "\t\tgot cookie=%s\n",
-            cookie.bv_val ? cookie.bv_val : "(null)");
+    fprintf(stderr, "\t\tgot cookie=%s\n", cookie.bv_val ? cookie.bv_val : "(null)");
 #endif /* LDAP_SYNC_TRACE */
     break;
 
@@ -499,8 +490,7 @@ static int ldap_sync_search_intermediate(ldap_sync_t *ls, LDAPMessage *res,
         ber_bvreplace(&ls->ls_cookie, &cookie);
       }
 #ifdef LDAP_SYNC_TRACE
-      fprintf(stderr, "\t\tgot cookie=%s\n",
-              cookie.bv_val ? cookie.bv_val : "(null)");
+      fprintf(stderr, "\t\tgot cookie=%s\n", cookie.bv_val ? cookie.bv_val : "(null)");
 #endif /* LDAP_SYNC_TRACE */
     }
 
@@ -512,8 +502,7 @@ static int ldap_sync_search_intermediate(ldap_sync_t *ls, LDAPMessage *res,
     }
 
 #ifdef LDAP_SYNC_TRACE
-    fprintf(stderr, "\t\tgot refreshDone=%s\n",
-            *refreshDone ? "TRUE" : "FALSE");
+    fprintf(stderr, "\t\tgot refreshDone=%s\n", *refreshDone ? "TRUE" : "FALSE");
 #endif /* LDAP_SYNC_TRACE */
 
     if (ber_scanf(ber, /*"{"*/ "}") == LBER_ERROR) {
@@ -545,8 +534,7 @@ static int ldap_sync_search_intermediate(ldap_sync_t *ls, LDAPMessage *res,
         ber_bvreplace(&ls->ls_cookie, &cookie);
       }
 #ifdef LDAP_SYNC_TRACE
-      fprintf(stderr, "\t\tgot cookie=%s\n",
-              cookie.bv_val ? cookie.bv_val : "(null)");
+      fprintf(stderr, "\t\tgot cookie=%s\n", cookie.bv_val ? cookie.bv_val : "(null)");
 #endif /* LDAP_SYNC_TRACE */
     }
 
@@ -556,8 +544,7 @@ static int ldap_sync_search_intermediate(ldap_sync_t *ls, LDAPMessage *res,
       }
     }
 
-    if (ber_scanf(ber, /*"{"*/ "[W]}", &syncUUIDs) == LBER_ERROR ||
-        syncUUIDs == NULL) {
+    if (ber_scanf(ber, /*"{"*/ "[W]}", &syncUUIDs) == LBER_ERROR || syncUUIDs == NULL) {
       goto done;
     }
 
@@ -565,14 +552,11 @@ static int ldap_sync_search_intermediate(ldap_sync_t *ls, LDAPMessage *res,
     {
       int i;
 
-      fprintf(stderr, "\t\tgot refreshDeletes=%s\n",
-              refreshDeletes ? "TRUE" : "FALSE");
+      fprintf(stderr, "\t\tgot refreshDeletes=%s\n", refreshDeletes ? "TRUE" : "FALSE");
       for (i = 0; syncUUIDs[i].bv_val != NULL; i++) {
         char buf[BUFSIZ];
         fprintf(stderr, "\t\t%s\n",
-                lutil_uuidstr_from_normalized(syncUUIDs[i].bv_val,
-                                              syncUUIDs[i].bv_len, buf,
-                                              sizeof(buf)));
+                lutil_uuidstr_from_normalized(syncUUIDs[i].bv_val, syncUUIDs[i].bv_len, buf, sizeof(buf)));
       }
     }
 #endif /* LDAP_SYNC_TRACE */
@@ -631,8 +615,7 @@ int ldap_sync_init(ldap_sync_t *ls, int mode) {
   fprintf(stderr, "ldap_sync_init(%s)...\n",
           mode == LDAP_SYNC_REFRESH_AND_PERSIST
               ? "LDAP_SYNC_REFRESH_AND_PERSIST"
-              : (mode == LDAP_SYNC_REFRESH_ONLY ? "LDAP_SYNC_REFRESH_ONLY"
-                                                : "unknown"));
+              : (mode == LDAP_SYNC_REFRESH_ONLY ? "LDAP_SYNC_REFRESH_ONLY" : "unknown"));
 #endif /* LDAP_SYNC_TRACE */
 
   assert(ls != NULL);
@@ -661,8 +644,7 @@ int ldap_sync_init(ldap_sync_t *ls, int mode) {
   /* prepare the Sync Request control */
   ber = ber_alloc_t(LBER_USE_DER);
 #ifdef LDAP_SYNC_TRACE
-  fprintf(stderr, "%sber_alloc_t() %s= NULL\n", ber == NULL ? "!!! " : "",
-          ber == NULL ? "=" : "!");
+  fprintf(stderr, "%sber_alloc_t() %s= NULL\n", ber == NULL ? "!!! " : "", ber == NULL ? "=" : "!");
 #endif /* LDAP_SYNC_TRACE */
   if (ber == NULL) {
     rc = LDAP_NO_MEMORY;
@@ -698,12 +680,11 @@ int ldap_sync_init(ldap_sync_t *ls, int mode) {
   }
 
   /* actually run the search */
-  rc = ldap_search_ext(ls->ls_ld, ls->ls_base, ls->ls_scope, ls->ls_filter,
-                       ls->ls_attrs, 0, ctrls, NULL, tvp, ls->ls_sizelimit,
-                       &ls->ls_msgid);
+  rc = ldap_search_ext(ls->ls_ld, ls->ls_base, ls->ls_scope, ls->ls_filter, ls->ls_attrs, 0, ctrls, NULL, tvp,
+                       ls->ls_sizelimit, &ls->ls_msgid);
 #ifdef LDAP_SYNC_TRACE
-  fprintf(stderr, "%sldap_search_ext(\"%s\", %d, \"%s\") == %d\n",
-          rc ? "!!! " : "", ls->ls_base, ls->ls_scope, ls->ls_filter, rc);
+  fprintf(stderr, "%sldap_search_ext(\"%s\", %d, \"%s\") == %d\n", rc ? "!!! " : "", ls->ls_base, ls->ls_scope,
+          ls->ls_filter, rc);
 #endif /* LDAP_SYNC_TRACE */
   if (rc != LDAP_SUCCESS) {
     goto done;
@@ -720,8 +701,7 @@ int ldap_sync_init(ldap_sync_t *ls, int mode) {
 
     rc = ldap_result(ls->ls_ld, ls->ls_msgid, LDAP_MSG_RECEIVED, &tv, &res);
 #ifdef LDAP_SYNC_TRACE
-    fprintf(stderr, "\t%sldap_result(%d) == %d\n", rc == -1 ? "!!! " : "",
-            ls->ls_msgid, rc);
+    fprintf(stderr, "\t%sldap_result(%d) == %d\n", rc == -1 ? "!!! " : "", ls->ls_msgid, rc);
 #endif /* LDAP_SYNC_TRACE */
     switch (rc) {
     case 0:
@@ -737,8 +717,7 @@ int ldap_sync_init(ldap_sync_t *ls, int mode) {
       goto done;
 
     default:
-      for (msg = ldap_first_message(ls->ls_ld, res); msg != NULL;
-           msg = ldap_next_message(ls->ls_ld, msg)) {
+      for (msg = ldap_first_message(ls->ls_ld, res); msg != NULL; msg = ldap_next_message(ls->ls_ld, msg)) {
         int refreshDone;
 
         switch (ldap_msgtype(msg)) {
@@ -792,16 +771,12 @@ done:;
 /*
  * initialize the refreshOnly sync
  */
-int ldap_sync_init_refresh_only(ldap_sync_t *ls) {
-  return ldap_sync_init(ls, LDAP_SYNC_REFRESH_ONLY);
-}
+int ldap_sync_init_refresh_only(ldap_sync_t *ls) { return ldap_sync_init(ls, LDAP_SYNC_REFRESH_ONLY); }
 
 /*
  * initialize the refreshAndPersist sync
  */
-int ldap_sync_init_refresh_and_persist(ldap_sync_t *ls) {
-  return ldap_sync_init(ls, LDAP_SYNC_REFRESH_AND_PERSIST);
-}
+int ldap_sync_init_refresh_and_persist(ldap_sync_t *ls) { return ldap_sync_init(ls, LDAP_SYNC_REFRESH_AND_PERSIST); }
 
 /*
  * poll for new responses
@@ -829,8 +804,7 @@ int ldap_sync_poll(ldap_sync_t *ls) {
     return rc;
   }
 
-  for (msg = ldap_first_message(ls->ls_ld, res); msg;
-       msg = ldap_next_message(ls->ls_ld, msg)) {
+  for (msg = ldap_first_message(ls->ls_ld, res); msg; msg = ldap_next_message(ls->ls_ld, msg)) {
     int refreshDone;
 
     switch (ldap_msgtype(msg)) {

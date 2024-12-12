@@ -39,8 +39,7 @@ int shell_back_modify(Operation *op, SlapReply *rs) {
   int i;
 
   if (si->si_modify == NULL) {
-    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                    "modify not implemented");
+    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "modify not implemented");
     return (-1);
   }
 
@@ -88,8 +87,7 @@ int shell_back_modify(Operation *op, SlapReply *rs) {
     if (mod->sm_values != NULL) {
       for (i = 0; mod->sm_values[i].bv_val != NULL; i++) {
         char *out =
-            ldif_put(LDIF_PUT_VALUE, mod->sm_desc->ad_cname.bv_val,
-                     mod->sm_values[i].bv_val, mod->sm_values[i].bv_len);
+            ldif_put(LDIF_PUT_VALUE, mod->sm_desc->ad_cname.bv_val, mod->sm_values[i].bv_val, mod->sm_values[i].bv_len);
         if (out) {
           fprintf(wfp, "%s", out);
           ber_memfree(out);

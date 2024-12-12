@@ -187,8 +187,7 @@ int main(int argc, char *argv[]) {
 
       tool_server_controls(ld, NULL, 0);
 
-      rc = ldap_extended_operation(ld, argv[0], p ? &reqdata : NULL, NULL, NULL,
-                                   &id);
+      rc = ldap_extended_operation(ld, argv[0], p ? &reqdata : NULL, NULL, NULL, &id);
       if (rc != LDAP_SUCCESS) {
         tool_perror("ldap_extended_operation", rc, NULL, NULL, NULL, NULL);
         rc = EXIT_FAILURE;
@@ -292,24 +291,21 @@ int main(int argc, char *argv[]) {
     }
 
     if (ldif < 2 && retoid != NULL) {
-      tool_write_ldif(ldif ? LDIF_PUT_COMMENT : LDIF_PUT_VALUE, "oid", retoid,
-                      strlen(retoid));
+      tool_write_ldif(ldif ? LDIF_PUT_COMMENT : LDIF_PUT_VALUE, "oid", retoid, strlen(retoid));
     }
 
     ber_memfree(retoid);
 
     if (retdata != NULL) {
       if (ldif < 2) {
-        tool_write_ldif(ldif ? LDIF_PUT_COMMENT : LDIF_PUT_BINARY, "data",
-                        retdata->bv_val, retdata->bv_len);
+        tool_write_ldif(ldif ? LDIF_PUT_COMMENT : LDIF_PUT_BINARY, "data", retdata->bv_val, retdata->bv_len);
       }
 
       ber_bvfree(retdata);
     }
   }
 
-  if (verbose || code != LDAP_SUCCESS || (matcheddn && *matcheddn) ||
-      (text && *text) || refs) {
+  if (verbose || code != LDAP_SUCCESS || (matcheddn && *matcheddn) || (text && *text) || refs) {
     printf(_("Result: %s (%d)\n"), ldap_err2string(code), code);
 
     if (text && *text) {

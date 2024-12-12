@@ -55,8 +55,7 @@ int do_search(Operation *op, /* info about the op to which we're responding */
    */
 
   /* baseObject, scope, derefAliases, sizelimit, timelimit, attrsOnly */
-  if (ber_scanf(op->o_ber, "{miiiib" /*}*/, &base, &op->ors_scope,
-                &op->ors_deref, &op->ors_slimit, &op->ors_tlimit,
+  if (ber_scanf(op->o_ber, "{miiiib" /*}*/, &base, &op->ors_scope, &op->ors_deref, &op->ors_slimit, &op->ors_tlimit,
                 &op->ors_attrsonly) == LBER_ERROR) {
     send_ldap_discon(op, rs, LDAP_PROTOCOL_ERROR, "decoding error");
     rs->sr_err = SLAPD_DISCONNECT;
@@ -95,19 +94,15 @@ int do_search(Operation *op, /* info about the op to which we're responding */
     goto return_results;
   }
 
-  rs->sr_err = dnPrettyNormal(NULL, &base, &op->o_req_dn, &op->o_req_ndn,
-                              op->o_tmpmemctx);
+  rs->sr_err = dnPrettyNormal(NULL, &base, &op->o_req_dn, &op->o_req_ndn, op->o_tmpmemctx);
   if (rs->sr_err != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_ANY, "%s do_search: invalid dn: \"%s\"\n",
-          op->o_log_prefix, base.bv_val);
+    Debug(LDAP_DEBUG_ANY, "%s do_search: invalid dn: \"%s\"\n", op->o_log_prefix, base.bv_val);
     send_ldap_error(op, rs, LDAP_INVALID_DN_SYNTAX, "invalid DN");
     goto return_results;
   }
 
-  Debug(LDAP_DEBUG_ARGS, "SRCH \"%s\" %d %d", base.bv_val, op->ors_scope,
-        op->ors_deref);
-  Debug(LDAP_DEBUG_ARGS, "    %d %d %d\n", op->ors_slimit, op->ors_tlimit,
-        op->ors_attrsonly);
+  Debug(LDAP_DEBUG_ARGS, "SRCH \"%s\" %d %d", base.bv_val, op->ors_scope, op->ors_deref);
+  Debug(LDAP_DEBUG_ARGS, "    %d %d %d\n", op->ors_slimit, op->ors_tlimit, op->ors_attrsonly);
 
   /* filter - returns a "normalized" version */
   rs->sr_err = get_filter(op, op->o_ber, &op->ors_filter, &rs->sr_text);
@@ -123,9 +118,7 @@ int do_search(Operation *op, /* info about the op to which we're responding */
   }
   filter2bv_x(op, op->ors_filter, &op->ors_filterstr);
 
-  Debug(LDAP_DEBUG_ARGS, "    filter: %s\n",
-        !BER_BVISEMPTY(&op->ors_filterstr) ? op->ors_filterstr.bv_val
-                                           : "empty");
+  Debug(LDAP_DEBUG_ARGS, "    filter: %s\n", !BER_BVISEMPTY(&op->ors_filterstr) ? op->ors_filterstr.bv_val : "empty");
 
   /* attributes */
   siz = sizeof(AttributeName);
@@ -140,10 +133,9 @@ int do_search(Operation *op, /* info about the op to which we're responding */
     op->ors_attrs[i].an_desc = NULL;
     op->ors_attrs[i].an_oc = NULL;
     op->ors_attrs[i].an_flags = 0;
-    if (slap_bv2ad(&op->ors_attrs[i].an_name, &op->ors_attrs[i].an_desc,
-                   &dummy) != LDAP_SUCCESS) {
-      if (slap_bv2undef_ad(&op->ors_attrs[i].an_name, &op->ors_attrs[i].an_desc,
-                           &dummy, SLAP_AD_PROXIED | SLAP_AD_NOINSERT)) {
+    if (slap_bv2ad(&op->ors_attrs[i].an_name, &op->ors_attrs[i].an_desc, &dummy) != LDAP_SUCCESS) {
+      if (slap_bv2undef_ad(&op->ors_attrs[i].an_name, &op->ors_attrs[i].an_desc, &dummy,
+                           SLAP_AD_PROXIED | SLAP_AD_NOINSERT)) {
         struct berval *bv = &op->ors_attrs[i].an_name;
 
         /* RFC 4511 LDAPv3: All User Attributes */
@@ -196,8 +188,7 @@ int do_search(Operation *op, /* info about the op to which we're responding */
     unsigned len = 0, alen;
 
     sprintf(abuf, "scope=%d deref=%d", op->ors_scope, op->ors_deref);
-    Statslog(LDAP_DEBUG_STATS, "%s SRCH base=\"%s\" %s filter=\"%s\"\n",
-             op->o_log_prefix, op->o_req_dn.bv_val, abuf,
+    Statslog(LDAP_DEBUG_STATS, "%s SRCH base=\"%s\" %s filter=\"%s\"\n", op->o_log_prefix, op->o_req_dn.bv_val, abuf,
              op->ors_filterstr.bv_val);
 
     for (i = 0; i < siz; i++) {
@@ -291,8 +282,7 @@ int fe_op_search(Operation *op, SlapReply *rs) {
       goto return_results;
 
     } else if (entry != NULL) {
-      if (get_assert(op) &&
-          (test_filter(op, entry, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
+      if (get_assert(op) && (test_filter(op, entry, get_assertion(op)) != LDAP_COMPARE_TRUE)) {
         rs->sr_err = LDAP_ASSERTION_FAILED;
         goto fail1;
       }
@@ -339,8 +329,7 @@ int fe_op_search(Operation *op, SlapReply *rs) {
 
   op->o_bd = select_backend(&op->o_req_ndn, 1);
   if (op->o_bd == NULL) {
-    rs->sr_ref =
-        referral_rewrite(default_referral, NULL, &op->o_req_dn, op->ors_scope);
+    rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn, op->ors_scope);
 
     if (!rs->sr_ref)
       rs->sr_ref = default_referral;
@@ -366,8 +355,7 @@ int fe_op_search(Operation *op, SlapReply *rs) {
 
   if (SLAP_SHADOW(op->o_bd) && get_dontUseCopy(op)) {
     /* don't use shadow copy */
-    BerVarray defref =
-        op->o_bd->be_update_refs ? op->o_bd->be_update_refs : default_referral;
+    BerVarray defref = op->o_bd->be_update_refs ? op->o_bd->be_update_refs : default_referral;
 
     if (defref != NULL) {
       rs->sr_ref = referral_rewrite(defref, NULL, &op->o_req_dn, op->ors_scope);
@@ -378,8 +366,7 @@ int fe_op_search(Operation *op, SlapReply *rs) {
       send_ldap_result(op, rs);
       rs_send_cleanup(rs);
     } else {
-      send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                      "copy not used; no referral information available");
+      send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "copy not used; no referral information available");
     }
 
   } else if (op->o_bd->be_search) {
@@ -390,8 +377,7 @@ int fe_op_search(Operation *op, SlapReply *rs) {
     /* else limits_check() sends error */
 
   } else {
-    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                    "operation not supported within namingContext");
+    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "operation not supported within namingContext");
   }
 
 return_results:;

@@ -287,11 +287,9 @@ static int pw2entry(Backend *be, struct passwd *pw, Entry *e) {
 
   val.bv_val = pw->pw_name;
   val.bv_len = pwlen;
-  attr_merge_normalize_one(e, slap_schema.si_ad_uid, &val,
-                           NULL); /* required by uidObject */
-  attr_merge_normalize_one(e, slap_schema.si_ad_cn, &val,
-                           NULL);                 /* required by person */
-  attr_merge_normalize_one(e, ad_sn, &val, NULL); /* required by person */
+  attr_merge_normalize_one(e, slap_schema.si_ad_uid, &val, NULL); /* required by uidObject */
+  attr_merge_normalize_one(e, slap_schema.si_ad_cn, &val, NULL);  /* required by person */
+  attr_merge_normalize_one(e, ad_sn, &val, NULL);                 /* required by person */
 
 #ifdef HAVE_STRUCT_PASSWD_PW_GECOS
   /*

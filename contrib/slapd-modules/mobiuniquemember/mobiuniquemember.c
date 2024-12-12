@@ -48,8 +48,7 @@ static int mobiuniquemember_getdn_cb(Operation *op, SlapReply *rs) {
 }
 
 /* get dn based on passed filter */
-static int mobiuniquemember_getdn(Operation *op, struct berval *filterstr,
-                                  struct berval *dn) {
+static int mobiuniquemember_getdn(Operation *op, struct berval *filterstr, struct berval *dn) {
   Operation op2 = *op;
   SlapReply rs2 = {REP_RESULT};
   slap_overinst *on = (slap_overinst *)op->o_bd->bd_info;
@@ -115,8 +114,7 @@ void bvtrim(struct berval *bv) {
   /* remove intermediate withespaces upon condition */
   for (char prev = 0, *next = i; *i;) {
     next++;
-    if (*i == ' ' && (prev == ',' || prev == '=' || prev == ' ' ||
-                      *next == ',' || *next == '=' || *next == ' ')) {
+    if (*i == ' ' && (prev == ',' || prev == '=' || prev == ' ' || *next == ',' || *next == '=' || *next == ' ')) {
       i++;
     } else {
       *j = *i;
@@ -150,8 +148,7 @@ static int mobiuniquemember_op_search(Operation *op, SlapReply *rs) {
   BER_BVSTR(&bv_prefix, "uid=");
 
   /* parse all filter to get substring undefined on uniqueMember */
-  for (Filter **ref = &op->ors_filter, *filter = op->ors_filter;
-       filter != NULL;) {
+  for (Filter **ref = &op->ors_filter, *filter = op->ors_filter; filter != NULL;) {
 
     switch (filter->f_choice) {
     case LDAP_FILTER_OR:
@@ -208,18 +205,15 @@ static int mobiuniquemember_op_search(Operation *op, SlapReply *rs) {
         continue;
       }
 
-      Debug(LDAP_DEBUG_TRACE, "mobiuniquemember: userdn = %s)\n",
-            userDN.bv_val);
+      Debug(LDAP_DEBUG_TRACE, "mobiuniquemember: userdn = %s)\n", userDN.bv_val);
 
       struct berval newfilterstr;
-      newfilterstr.bv_val =
-          ber_memalloc(sizeof(char) * (userDN.bv_len + bv_um.bv_len + 2));
+      newfilterstr.bv_val = ber_memalloc(sizeof(char) * (userDN.bv_len + bv_um.bv_len + 2));
 
       /* copy "uniqueMember=" in newfilterstr */
       memcpy(newfilterstr.bv_val, bv_um.bv_val, bv_um.bv_len);
       newfilterstr.bv_val[bv_um.bv_len] = '=';
-      memcpy(&newfilterstr.bv_val[bv_um.bv_len + 1], userDN.bv_val,
-             userDN.bv_len + 1);
+      memcpy(&newfilterstr.bv_val[bv_um.bv_len + 1], userDN.bv_val, userDN.bv_len + 1);
       newfilterstr.bv_val[userDN.bv_len + bv_um.bv_len + 2] = 0;
       newfilterstr.bv_len = userDN.bv_len + bv_um.bv_len + 1;
 
@@ -246,8 +240,7 @@ static int mobiuniquemember_op_search(Operation *op, SlapReply *rs) {
 /* Overlay removal function */
 static int mobiuniquemember_db_destroy(BackendDB *be, ConfigReply *cr) {
   slap_overinst *on = (slap_overinst *)be->bd_info;
-  mobiuniquemember_private *ao =
-      (mobiuniquemember_private *)on->on_bi.bi_private;
+  mobiuniquemember_private *ao = (mobiuniquemember_private *)on->on_bi.bi_private;
   (void)cr;
 
   if (ao != NULL) {
@@ -267,6 +260,4 @@ static int mobiuniquemember_initialize() {
   return overlay_register(&mobiuniquemember);
 }
 
-SLAP_MODULE_ENTRY(mobiuniquemember, modinit)(int argc, char *argv[]) {
-  return mobiuniquemember_initialize();
-}
+SLAP_MODULE_ENTRY(mobiuniquemember, modinit)(int argc, char *argv[]) { return mobiuniquemember_initialize(); }

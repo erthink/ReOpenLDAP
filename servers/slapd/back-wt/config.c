@@ -37,34 +37,30 @@ enum {
   WT_MODE,
 };
 
-static ConfigTable wtcfg[] = {
-    {"directory", "dir", 2, 2, 0, ARG_STRING | ARG_MAGIC | WT_DIRECTORY,
-     wt_cf_gen,
-     "( OLcfgDbAt:0.1 NAME 'olcDbDirectory' "
-     "DESC 'Directory for database content' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString SINGLE-VALUE )",
-     NULL, NULL},
-    {"wtconfig", "config", 2, 2, 0, ARG_STRING | ARG_MAGIC | WT_CONFIG,
-     wt_cf_gen,
-     "( OLcfgDbAt:13.1 NAME 'olcWtConfig' "
-     "DESC 'Configuration for WiredTiger' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString SINGLE-VALUE )",
-     NULL, NULL},
-    {"index", "attr> <[pres,eq,approx,sub]", 2, 3, 0, ARG_MAGIC | WT_INDEX,
-     wt_cf_gen,
-     "( OLcfgDbAt:0.2 NAME 'olcDbIndex' "
-     "DESC 'Attribute index parameters' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString )",
-     NULL, NULL},
-    {"mode", "mode", 2, 2, 0, ARG_MAGIC | WT_MODE, wt_cf_gen,
-     "( OLcfgDbAt:0.3 NAME 'olcDbMode' "
-     "DESC 'Unix permissions of database files' "
-     "SYNTAX OMsDirectoryString SINGLE-VALUE )",
-     NULL, NULL},
-    {NULL, NULL, 0, 0, 0, ARG_IGNORED, NULL, NULL, NULL, NULL}};
+static ConfigTable wtcfg[] = {{"directory", "dir", 2, 2, 0, ARG_STRING | ARG_MAGIC | WT_DIRECTORY, wt_cf_gen,
+                               "( OLcfgDbAt:0.1 NAME 'olcDbDirectory' "
+                               "DESC 'Directory for database content' "
+                               "EQUALITY caseIgnoreMatch "
+                               "SYNTAX OMsDirectoryString SINGLE-VALUE )",
+                               NULL, NULL},
+                              {"wtconfig", "config", 2, 2, 0, ARG_STRING | ARG_MAGIC | WT_CONFIG, wt_cf_gen,
+                               "( OLcfgDbAt:13.1 NAME 'olcWtConfig' "
+                               "DESC 'Configuration for WiredTiger' "
+                               "EQUALITY caseIgnoreMatch "
+                               "SYNTAX OMsDirectoryString SINGLE-VALUE )",
+                               NULL, NULL},
+                              {"index", "attr> <[pres,eq,approx,sub]", 2, 3, 0, ARG_MAGIC | WT_INDEX, wt_cf_gen,
+                               "( OLcfgDbAt:0.2 NAME 'olcDbIndex' "
+                               "DESC 'Attribute index parameters' "
+                               "EQUALITY caseIgnoreMatch "
+                               "SYNTAX OMsDirectoryString )",
+                               NULL, NULL},
+                              {"mode", "mode", 2, 2, 0, ARG_MAGIC | WT_MODE, wt_cf_gen,
+                               "( OLcfgDbAt:0.3 NAME 'olcDbMode' "
+                               "DESC 'Unix permissions of database files' "
+                               "SYNTAX OMsDirectoryString SINGLE-VALUE )",
+                               NULL, NULL},
+                              {NULL, NULL, 0, 0, 0, ARG_IGNORED, NULL, NULL, NULL, NULL}};
 
 static ConfigOCs wtocs[] = {{"( OLcfgDbOc:13.1 "
                              "NAME 'olcWtConfig' "
@@ -131,8 +127,7 @@ static int wt_cf_gen(ConfigArgs *c) {
     break;
 
   case WT_INDEX:
-    rc = wt_attr_index_config(wi, c->fname, c->lineno, c->argc - 1, &c->argv[1],
-                              &c->reply);
+    rc = wt_attr_index_config(wi, c->fname, c->lineno, c->argc - 1, &c->argv[1], &c->reply);
 
     if (rc != LDAP_SUCCESS)
       return 1;
@@ -153,9 +148,8 @@ static int wt_cf_gen(ConfigArgs *c) {
           return 1;
         }
         ldap_pvt_thread_mutex_lock(&slapd_rq.rq_mutex);
-        wi->wi_index_task = ldap_pvt_runqueue_insert(
-            &slapd_rq, 36000, wt_online_index, c->be,
-            LDAP_XSTRING(wt_online_index), c->be->be_suffix[0].bv_val);
+        wi->wi_index_task = ldap_pvt_runqueue_insert(&slapd_rq, 36000, wt_online_index, c->be,
+                                                     LDAP_XSTRING(wt_online_index), c->be->be_suffix[0].bv_val);
         ldap_pvt_thread_mutex_unlock(&slapd_rq.rq_mutex);
       }
     }

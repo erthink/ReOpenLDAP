@@ -133,9 +133,7 @@ struct mdb_info {
 #ifdef __SANITIZE_THREAD__
 ID mdb_read_nextid(struct mdb_info *mdb);
 #else
-static __inline ID mdb_read_nextid(struct mdb_info *mdb) {
-  return mdb->_mi_nextid;
-}
+static __inline ID mdb_read_nextid(struct mdb_info *mdb) { return mdb->_mi_nextid; }
 #endif
 
 #define mi_id2entry mi_dbis[MDB_ID2ENTRY]

@@ -52,14 +52,13 @@ typedef struct collect_info {
 
 static int collect_cf(ConfigArgs *c);
 
-static ConfigTable collectcfg[] = {
-    {"collectinfo", "dn> <attribute", 3, 3, 0, ARG_MAGIC, collect_cf,
-     "( OLcfgOvAt:19.1 NAME 'olcCollectInfo' "
-     "DESC 'DN of entry and attribute to distribute' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString )",
-     NULL, NULL},
-    {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
+static ConfigTable collectcfg[] = {{"collectinfo", "dn> <attribute", 3, 3, 0, ARG_MAGIC, collect_cf,
+                                    "( OLcfgOvAt:19.1 NAME 'olcCollectInfo' "
+                                    "DESC 'DN of entry and attribute to distribute' "
+                                    "EQUALITY caseIgnoreMatch "
+                                    "SYNTAX OMsDirectoryString )",
+                                    NULL, NULL},
+                                   {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
 
 static ConfigOCs collectocs[] = {{"( OLcfgOvOc:19.1 "
                                   "NAME 'olcCollectConfig' "
@@ -137,8 +136,7 @@ static int collect_cf(ConfigArgs *c) {
       len = snprintf(bv.bv_val, bv.bv_len + 1, "\"%s\" ", ci->ci_dn.bv_val);
       ptr = bv.bv_val + len;
       for (idx = 0; idx < ci->ci_ad_num; idx++) {
-        ptr = lutil_strncopy(ptr, ci->ci_ad[idx]->ad_cname.bv_val,
-                             ci->ci_ad[idx]->ad_cname.bv_len);
+        ptr = lutil_strncopy(ptr, ci->ci_ad[idx]->ad_cname.bv_val, ci->ci_ad[idx]->ad_cname.bv_len);
         if (idx < (ci->ci_ad_num - 1)) {
           *ptr++ = ',';
         }
@@ -193,8 +191,7 @@ static int collect_cf(ConfigArgs *c) {
     /* validate and normalize dn */
     ber_str2bv(c->argv[1], 0, 0, &bv);
     if (dnNormalize(0, NULL, NULL, &bv, &dn, NULL)) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg), "%s invalid DN: \"%s\"",
-               c->argv[0], c->argv[1]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "%s invalid DN: \"%s\"", c->argv[0], c->argv[1]);
       Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log, c->cr_msg);
       return ARG_BAD_CONF;
     }
@@ -211,15 +208,13 @@ static int collect_cf(ConfigArgs *c) {
       }
     }
     if (ci) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg), "%s DN already configured: \"%s\"",
-               c->argv[0], c->argv[1]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "%s DN already configured: \"%s\"", c->argv[0], c->argv[1]);
       Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log, c->cr_msg);
       return ARG_BAD_CONF;
     }
 
     /* allocate config info with room for attribute array */
-    ci = ch_malloc(sizeof(collect_info) +
-                   sizeof(AttributeDescription *) * count);
+    ci = ch_malloc(sizeof(collect_info) + sizeof(AttributeDescription *) * count);
 
     /* load attribute description for attribute list */
     arg = c->argv[2];
@@ -227,10 +222,8 @@ static int collect_cf(ConfigArgs *c) {
       ci->ci_ad[idx] = NULL;
 
       if (slap_str2ad(arg, &ci->ci_ad[idx], &text)) {
-        snprintf(c->cr_msg, sizeof(c->cr_msg),
-                 "%s attribute description unknown: \"%s\"", c->argv[0], arg);
-        Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log,
-              c->cr_msg);
+        snprintf(c->cr_msg, sizeof(c->cr_msg), "%s attribute description unknown: \"%s\"", c->argv[0], arg);
+        Debug(LDAP_DEBUG_CONFIG | LDAP_DEBUG_NONE, "%s: %s\n", c->log, c->cr_msg);
         ch_free(ci);
         return ARG_BAD_CONF;
       }
@@ -317,9 +310,7 @@ static int collect_modify(Operation *op, SlapReply *rs) {
       for (idx = 0; idx < ci->ci_ad_num; idx++) {
         if (ml->sml_desc == ci->ci_ad[idx]) {
           rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
-          snprintf(errMsg, sizeof(errMsg),
-                   "cannot change virtual attribute '%s'",
-                   ci->ci_ad[idx]->ad_cname.bv_val);
+          snprintf(errMsg, sizeof(errMsg), "cannot change virtual attribute '%s'", ci->ci_ad[idx]->ad_cname.bv_val);
           rs->sr_text = errMsg;
           send_ldap_result(op, rs);
           return rs->sr_err;
@@ -370,15 +361,13 @@ static int collect_response(Operation *op, SlapReply *rs) {
 
         /* Extract the values of the desired attribute from
          * the ancestor entry */
-        rc = backend_attribute(op, NULL, &ci->ci_dn, ci->ci_ad[idx], &vals,
-                               ACL_READ);
+        rc = backend_attribute(op, NULL, &ci->ci_dn, ci->ci_ad[idx], &vals, ACL_READ);
 
         /* If there are any values, merge them into the
          * current search result
          */
         if (!rc && vals) {
-          attr_merge_normalize(rs->sr_entry, ci->ci_ad[idx], vals,
-                               op->o_tmpmemctx);
+          attr_merge_normalize(rs->sr_entry, ci->ci_ad[idx], vals, op->o_tmpmemctx);
           ber_bvarray_free_x(vals, op->o_tmpmemctx);
         }
       }

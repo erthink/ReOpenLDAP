@@ -76,8 +76,7 @@ int mdb_dup_compare(const MDBX_val *usrkey, const MDBX_val *curkey) {
  * entryID containing the child's RDN and entryID, and an item under the
  * child's entryID containing the parent's entryID.
  */
-int mdb_dn2id_add(Operation *op, MDBX_cursor *mcp, MDBX_cursor *mcd, ID pid,
-                  ID nsubs, int upsub, Entry *e) {
+int mdb_dn2id_add(Operation *op, MDBX_cursor *mcp, MDBX_cursor *mcd, ID pid, ID nsubs, int upsub, Entry *e) {
   struct mdb_info *mdb = (struct mdb_info *)op->o_bd->be_private;
   MDBX_val key, data;
   ID nid;
@@ -85,8 +84,7 @@ int mdb_dn2id_add(Operation *op, MDBX_cursor *mcp, MDBX_cursor *mcd, ID pid,
   diskNode *d;
   char *ptr;
 
-  Debug(LDAP_DEBUG_TRACE, "=> mdb_dn2id_add 0x%lx: \"%s\"\n", e->e_id,
-        e->e_ndn ? e->e_ndn : "");
+  Debug(LDAP_DEBUG_TRACE, "=> mdb_dn2id_add 0x%lx: \"%s\"\n", e->e_id, e->e_ndn ? e->e_ndn : "");
 
   nrlen = dn_rdnlen(op->o_bd, &e->e_nname);
   if (nrlen) {
@@ -96,8 +94,7 @@ int mdb_dn2id_add(Operation *op, MDBX_cursor *mcp, MDBX_cursor *mcd, ID pid,
     rlen = e->e_name.bv_len;
   }
 
-  d = op->o_tmpalloc(sizeof(diskNode) + rlen + nrlen + sizeof(ID),
-                     op->o_tmpmemctx);
+  d = op->o_tmpalloc(sizeof(diskNode) + rlen + nrlen + sizeof(ID), op->o_tmpmemctx);
   d->nrdnlen[1] = nrlen & 0xff;
   d->nrdnlen[0] = (nrlen >> 8) | 0x80;
   ptr = lutil_strncopy(d->nrdn, e->e_nname.bv_val, nrlen);
@@ -267,9 +264,8 @@ int mdb_dn2id_delete(Operation *op, MDBX_cursor *mc, ID id, ID nsubs) {
  * record under the parent's ID. If nsubs is provided, return
  * the number of entries in this entry's subtree.
  */
-int mdb_dn2id(Operation *op, MDBX_txn *txn, MDBX_cursor *mc, struct berval *in,
-              ID *id, ID *nsubs, struct berval *matched,
-              struct berval *nmatched) {
+int mdb_dn2id(Operation *op, MDBX_txn *txn, MDBX_cursor *mc, struct berval *in, ID *id, ID *nsubs,
+              struct berval *matched, struct berval *nmatched) {
   struct mdb_info *mdb = (struct mdb_info *)op->o_bd->be_private;
   MDBX_cursor *cursor;
   MDBX_dbi dbi = mdb->mi_dn2id;
@@ -281,8 +277,7 @@ int mdb_dn2id(Operation *op, MDBX_txn *txn, MDBX_cursor *mc, struct berval *in,
   ID pid, nid;
   struct berval tmp;
 
-  Debug(LDAP_DEBUG_TRACE, "=> mdb_dn2id(\"%s\")\n",
-        in->bv_val ? in->bv_val : "");
+  Debug(LDAP_DEBUG_TRACE, "=> mdb_dn2id(\"%s\")\n", in->bv_val ? in->bv_val : "");
 
   if (matched) {
     matched->bv_val = dn + sizeof(dn) - 1;
@@ -361,8 +356,7 @@ int mdb_dn2id(Operation *op, MDBX_txn *txn, MDBX_cursor *mc, struct berval *in,
     }
 
     if (tmp.bv_val > in->bv_val) {
-      for (ptr = tmp.bv_val - 2; ptr > in->bv_val && !DN_SEPARATOR(*ptr);
-           ptr--) /* empty */
+      for (ptr = tmp.bv_val - 2; ptr > in->bv_val && !DN_SEPARATOR(*ptr); ptr--) /* empty */
         ;
       if (ptr >= in->bv_val) {
         if (DN_SEPARATOR(*ptr))
@@ -405,8 +399,7 @@ done:
   }
 
   if (rc != 0) {
-    Debug(LDAP_DEBUG_TRACE, "<= mdb_dn2id: get failed: %s (%d)\n",
-          mdbx_strerror(rc), rc);
+    Debug(LDAP_DEBUG_TRACE, "<= mdb_dn2id: get failed: %s (%d)\n", mdbx_strerror(rc), rc);
   } else {
     Debug(LDAP_DEBUG_TRACE, "<= mdb_dn2id: got id=0x%lx\n", nid);
   }
@@ -468,8 +461,7 @@ int mdb_dn2sups(Operation *op, MDBX_txn *txn, struct berval *in, ID *ids) {
       mdb_idl_insert(ids, pid);
 
     if (tmp.bv_val > in->bv_val) {
-      for (ptr = tmp.bv_val - 2; ptr > in->bv_val && !DN_SEPARATOR(*ptr);
-           ptr--) /* empty */
+      for (ptr = tmp.bv_val - 2; ptr > in->bv_val && !DN_SEPARATOR(*ptr); ptr--) /* empty */
         ;
       if (ptr >= in->bv_val) {
         if (DN_SEPARATOR(*ptr))
@@ -484,8 +476,7 @@ int mdb_dn2sups(Operation *op, MDBX_txn *txn, struct berval *in, ID *ids) {
 
 done:
   if (rc != 0) {
-    Debug(LDAP_DEBUG_TRACE, "<= mdb_dn2sups: get failed: %s (%d)\n",
-          mdbx_strerror(rc), rc);
+    Debug(LDAP_DEBUG_TRACE, "<= mdb_dn2sups: get failed: %s (%d)\n", mdbx_strerror(rc), rc);
   }
 
   return rc;
@@ -520,8 +511,7 @@ int mdb_dn2id_children(Operation *op, MDBX_txn *txn, Entry *e) {
   return rc;
 }
 
-int mdb_id2name(Operation *op, MDBX_txn *txn, MDBX_cursor **cursp, ID id,
-                struct berval *name, struct berval *nname) {
+int mdb_id2name(Operation *op, MDBX_txn *txn, MDBX_cursor **cursp, ID id, struct berval *name, struct berval *nname) {
   struct mdb_info *mdb = (struct mdb_info *)op->o_bd->be_private;
   MDBX_dbi dbi = mdb->mi_dn2id;
   MDBX_val key, data;
@@ -830,8 +820,7 @@ int mdb_dn2id_walk(Operation *op, IdScopes *isc) {
       isc->nrdns[n].bv_len = ((d->nrdnlen[0] & 0x7f) << 8) | d->nrdnlen[1];
       isc->nrdns[n].bv_val = d->nrdn;
       isc->rdns[n].bv_val = d->nrdn + isc->nrdns[n].bv_len + 1;
-      isc->rdns[n].bv_len =
-          data.iov_len - sizeof(diskNode) - isc->nrdns[n].bv_len - sizeof(ID);
+      isc->rdns[n].bv_len = data.iov_len - sizeof(diskNode) - isc->nrdns[n].bv_len - sizeof(ID);
       /* return this ID to caller */
       if (!isc->nscope)
         break;
@@ -860,8 +849,7 @@ int mdb_dn2id_walk(Operation *op, IdScopes *isc) {
         key.iov_base = &isc->scopes[n].mid;
         key.iov_len = sizeof(ID);
         data.iov_base = isc->nrdns[n].bv_val - 2;
-        data.iov_len =
-            1; /* just needs to be non-zero, mdb_dup_compare doesn't care */
+        data.iov_len = 1; /* just needs to be non-zero, mdb_dup_compare doesn't care */
         mdbx_cursor_get(isc->mc, &key, &data, MDBX_GET_BOTH);
         continue;
       }

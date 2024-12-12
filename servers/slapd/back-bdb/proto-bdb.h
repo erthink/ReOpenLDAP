@@ -43,11 +43,10 @@ AttrInfo *bdb_attr_mask(struct bdb_info *bdb, AttributeDescription *desc);
 
 void bdb_attr_flush(struct bdb_info *bdb);
 
-int bdb_attr_slot(struct bdb_info *bdb, AttributeDescription *desc,
-                  int *insert);
+int bdb_attr_slot(struct bdb_info *bdb, AttributeDescription *desc, int *insert);
 
-int bdb_attr_index_config(struct bdb_info *bdb, const char *fname, int lineno,
-                          int argc, char **argv, struct config_reply_s *cr);
+int bdb_attr_index_config(struct bdb_info *bdb, const char *fname, int lineno, int argc, char **argv,
+                          struct config_reply_s *cr);
 
 void bdb_attr_index_unparse(struct bdb_info *bdb, BerVarray *bva);
 void bdb_attr_index_destroy(struct bdb_info *bdb);
@@ -78,8 +77,7 @@ int bdb_db_findsize(struct bdb_info *bdb, struct berval *name);
  */
 #define bdb_dn2entry BDB_SYMBOL(dn2entry)
 
-int bdb_dn2entry(Operation *op, DB_TXN *tid, struct berval *dn, EntryInfo **e,
-                 int matched, DB_LOCK *lock);
+int bdb_dn2entry(Operation *op, DB_TXN *tid, struct berval *dn, EntryInfo **e, int matched, DB_LOCK *lock);
 
 /*
  * dn2id.c
@@ -90,8 +88,7 @@ int bdb_dn2entry(Operation *op, DB_TXN *tid, struct berval *dn, EntryInfo **e,
 #define bdb_dn2id_children BDB_SYMBOL(dn2id_children)
 #define bdb_dn2idl BDB_SYMBOL(dn2idl)
 
-int bdb_dn2id(Operation *op, struct berval *dn, EntryInfo *ei, DB_TXN *txn,
-              DBC **cursor);
+int bdb_dn2id(Operation *op, struct berval *dn, EntryInfo *ei, DB_TXN *txn, DBC **cursor);
 
 int bdb_dn2id_add(Operation *op, DB_TXN *tid, EntryInfo *eip, Entry *e);
 
@@ -99,8 +96,7 @@ int bdb_dn2id_delete(Operation *op, DB_TXN *tid, EntryInfo *eip, Entry *e);
 
 int bdb_dn2id_children(Operation *op, DB_TXN *tid, Entry *e);
 
-int bdb_dn2idl(Operation *op, DB_TXN *txn, struct berval *ndn, EntryInfo *ei,
-               ID *ids, ID *stack);
+int bdb_dn2idl(Operation *op, DB_TXN *txn, struct berval *ndn, EntryInfo *ei, ID *ids, ID *stack);
 
 #ifdef BDB_HIER
 #define bdb_dn2id_parent BDB_SYMBOL(dn2id_parent)
@@ -132,8 +128,7 @@ void bdb_msgcall(const DB_ENV *env, const char *msg);
  */
 #define bdb_filter_candidates BDB_SYMBOL(filter_candidates)
 
-int bdb_filter_candidates(Operation *op, DB_TXN *txn, Filter *f, ID *ids,
-                          ID *tmp, ID *stack);
+int bdb_filter_candidates(Operation *op, DB_TXN *txn, Filter *f, ID *ids, ID *tmp, ID *stack);
 
 /*
  * id2entry.c
@@ -205,8 +200,7 @@ void bdb_idl_cache_del_id(struct bdb_info *bdb, DB *db, DBT *key, ID id);
 
 unsigned bdb_idl_search(ID *ids, ID id);
 
-int bdb_idl_fetch_key(BackendDB *be, DB *db, DB_TXN *txn, DBT *key, ID *ids,
-                      DBC **saved_cursor, int get_flag);
+int bdb_idl_fetch_key(BackendDB *be, DB *db, DB_TXN *txn, DBT *key, ID *ids, DBC **saved_cursor, int get_flag);
 
 int bdb_idl_insert(ID *ids, ID id);
 int bdb_idl_delete(ID *ids, ID id);
@@ -236,29 +230,21 @@ int bdb_idl_append_one(ID *ids, ID id);
 #define bdb_index_recset BDB_SYMBOL(index_recset)
 #define bdb_index_recrun BDB_SYMBOL(index_recrun)
 
-extern AttrInfo *bdb_index_mask(Backend *be, AttributeDescription *desc,
-                                struct berval *name);
+extern AttrInfo *bdb_index_mask(Backend *be, AttributeDescription *desc, struct berval *name);
 
-extern int bdb_index_param(Backend *be, AttributeDescription *desc, int ftype,
-                           DB **db, slap_mask_t *mask, struct berval *prefix);
+extern int bdb_index_param(Backend *be, AttributeDescription *desc, int ftype, DB **db, slap_mask_t *mask,
+                           struct berval *prefix);
 
-extern int bdb_index_values(Operation *op, DB_TXN *txn,
-                            AttributeDescription *desc, BerVarray vals, ID id,
-                            int opid);
+extern int bdb_index_values(Operation *op, DB_TXN *txn, AttributeDescription *desc, BerVarray vals, ID id, int opid);
 
-extern int bdb_index_recset(struct bdb_info *bdb, Attribute *a,
-                            AttributeType *type, struct berval *tags,
-                            IndexRec *ir);
+extern int bdb_index_recset(struct bdb_info *bdb, Attribute *a, AttributeType *type, struct berval *tags, IndexRec *ir);
 
-extern int bdb_index_recrun(Operation *op, struct bdb_info *bdb, IndexRec *ir,
-                            ID id, int base);
+extern int bdb_index_recrun(Operation *op, struct bdb_info *bdb, IndexRec *ir, ID id, int base);
 
 int bdb_index_entry(Operation *op, DB_TXN *t, int r, Entry *e);
 
-#define bdb_index_entry_add(op, t, e)                                          \
-  bdb_index_entry((op), (t), SLAP_INDEX_ADD_OP, (e))
-#define bdb_index_entry_del(op, t, e)                                          \
-  bdb_index_entry((op), (t), SLAP_INDEX_DELETE_OP, (e))
+#define bdb_index_entry_add(op, t, e) bdb_index_entry((op), (t), SLAP_INDEX_ADD_OP, (e))
+#define bdb_index_entry_del(op, t, e) bdb_index_entry((op), (t), SLAP_INDEX_DELETE_OP, (e))
 
 /*
  * key.c
@@ -266,11 +252,9 @@ int bdb_index_entry(Operation *op, DB_TXN *t, int r, Entry *e);
 #define bdb_key_read BDB_SYMBOL(key_read)
 #define bdb_key_change BDB_SYMBOL(key_change)
 
-extern int bdb_key_read(Backend *be, DB *db, DB_TXN *txn, struct berval *k,
-                        ID *ids, DBC **saved_cursor, int get_flags);
+extern int bdb_key_read(Backend *be, DB *db, DB_TXN *txn, struct berval *k, ID *ids, DBC **saved_cursor, int get_flags);
 
-extern int bdb_key_change(Backend *be, DB *db, DB_TXN *txn, struct berval *k,
-                          ID id, int op);
+extern int bdb_key_change(Backend *be, DB *db, DB_TXN *txn, struct berval *k, ID id, int op);
 
 /*
  * nextid.c
@@ -286,8 +270,7 @@ int bdb_last_id(BackendDB *be, DB_TXN *tid);
  */
 #define bdb_modify_internal BDB_SYMBOL(modify_internal)
 
-int bdb_modify_internal(Operation *op, DB_TXN *tid, Modifications *modlist,
-                        Entry *e, const char **text, char *textbuf,
+int bdb_modify_internal(Operation *op, DB_TXN *tid, Modifications *modlist, Entry *e, const char **text, char *textbuf,
                         size_t textlen);
 
 /*
@@ -306,8 +289,7 @@ int bdb_monitor_db_destroy(BackendDB *be);
 
 #ifdef BDB_MONITOR_IDX
 #define bdb_monitor_idx_add BDB_SYMBOL(monitor_idx_add)
-int bdb_monitor_idx_add(struct bdb_info *bdb, AttributeDescription *desc,
-                        slap_mask_t type);
+int bdb_monitor_idx_add(struct bdb_info *bdb, AttributeDescription *desc, slap_mask_t type);
 #endif /* BDB_MONITOR_IDX */
 
 /*
@@ -316,31 +298,23 @@ int bdb_monitor_idx_add(struct bdb_info *bdb, AttributeDescription *desc,
 #define bdb_cache_entry_db_unlock BDB_SYMBOL(cache_entry_db_unlock)
 #define bdb_cache_return_entry_rw BDB_SYMBOL(cache_return_entry_rw)
 
-#define bdb_cache_entryinfo_lock(e)                                            \
-  ldap_pvt_thread_mutex_lock(&(e)->bei_kids_mutex)
-#define bdb_cache_entryinfo_unlock(e)                                          \
-  ldap_pvt_thread_mutex_unlock(&(e)->bei_kids_mutex)
-#define bdb_cache_entryinfo_trylock(e)                                         \
-  ldap_pvt_thread_mutex_trylock(&(e)->bei_kids_mutex)
+#define bdb_cache_entryinfo_lock(e) ldap_pvt_thread_mutex_lock(&(e)->bei_kids_mutex)
+#define bdb_cache_entryinfo_unlock(e) ldap_pvt_thread_mutex_unlock(&(e)->bei_kids_mutex)
+#define bdb_cache_entryinfo_trylock(e) ldap_pvt_thread_mutex_trylock(&(e)->bei_kids_mutex)
 
 /* What a mess. Hopefully the current cache scheme will stabilize
  * and we can trim out all of this stuff.
  */
-void bdb_cache_return_entry_rw(struct bdb_info *bdb, Entry *e, int rw,
-                               DB_LOCK *lock);
-#define bdb_cache_return_entry_r(bdb, e, l)                                    \
-  bdb_cache_return_entry_rw((bdb), (e), 0, (l))
-#define bdb_cache_return_entry_w(bdb, e, l)                                    \
-  bdb_cache_return_entry_rw((bdb), (e), 1, (l))
+void bdb_cache_return_entry_rw(struct bdb_info *bdb, Entry *e, int rw, DB_LOCK *lock);
+#define bdb_cache_return_entry_r(bdb, e, l) bdb_cache_return_entry_rw((bdb), (e), 0, (l))
+#define bdb_cache_return_entry_w(bdb, e, l) bdb_cache_return_entry_rw((bdb), (e), 1, (l))
 #if 0
 void bdb_unlocked_cache_return_entry_rw( struct bdb_info *bdb, Entry *e, int rw );
 #else
 #define bdb_unlocked_cache_return_entry_rw(a, b, c) ((void)0)
 #endif
-#define bdb_unlocked_cache_return_entry_r(c, e)                                \
-  bdb_unlocked_cache_return_entry_rw((c), (e), 0)
-#define bdb_unlocked_cache_return_entry_w(c, e)                                \
-  bdb_unlocked_cache_return_entry_rw((c), (e), 1)
+#define bdb_unlocked_cache_return_entry_r(c, e) bdb_unlocked_cache_return_entry_rw((c), (e), 0)
+#define bdb_unlocked_cache_return_entry_w(c, e) bdb_unlocked_cache_return_entry_rw((c), (e), 1)
 
 #define bdb_cache_add BDB_SYMBOL(cache_add)
 #define bdb_cache_children BDB_SYMBOL(cache_children)
@@ -356,24 +330,19 @@ void bdb_unlocked_cache_return_entry_rw( struct bdb_info *bdb, Entry *e, int rw 
 #define bdb_cache_deref BDB_SYMBOL(cache_deref)
 
 int bdb_cache_children(Operation *op, DB_TXN *txn, Entry *e);
-int bdb_cache_add(struct bdb_info *bdb, EntryInfo *pei, Entry *e,
-                  struct berval *nrdn, DB_TXN *txn, DB_LOCK *lock);
-int bdb_cache_modrdn(struct bdb_info *bdb, Entry *e, struct berval *nrdn,
-                     Entry *new, EntryInfo *ein, DB_TXN *txn, DB_LOCK *lock);
-int bdb_cache_modify(struct bdb_info *bdb, Entry *e, Attribute *newAttrs,
-                     DB_TXN *txn, DB_LOCK *lock);
-int bdb_cache_find_ndn(Operation *op, DB_TXN *txn, struct berval *ndn,
-                       EntryInfo **res);
+int bdb_cache_add(struct bdb_info *bdb, EntryInfo *pei, Entry *e, struct berval *nrdn, DB_TXN *txn, DB_LOCK *lock);
+int bdb_cache_modrdn(struct bdb_info *bdb, Entry *e, struct berval *nrdn, Entry *new, EntryInfo *ein, DB_TXN *txn,
+                     DB_LOCK *lock);
+int bdb_cache_modify(struct bdb_info *bdb, Entry *e, Attribute *newAttrs, DB_TXN *txn, DB_LOCK *lock);
+int bdb_cache_find_ndn(Operation *op, DB_TXN *txn, struct berval *ndn, EntryInfo **res);
 
 #define ID_LOCKED 1
 #define ID_NOCACHE 2
 #define ID_NOENTRY 4
 #define ID_CHKPURGE 8
-int bdb_cache_find_id(Operation *op, DB_TXN *tid, ID id, EntryInfo **eip,
-                      int flag, DB_LOCK *lock);
+int bdb_cache_find_id(Operation *op, DB_TXN *tid, ID id, EntryInfo **eip, int flag, DB_LOCK *lock);
 int bdb_cache_find_parent(Operation *op, DB_TXN *txn, ID id, EntryInfo **res);
-int bdb_cache_delete(struct bdb_info *bdb, Entry *e, DB_TXN *txn,
-                     DB_LOCK *lock);
+int bdb_cache_delete(struct bdb_info *bdb, Entry *e, DB_TXN *txn, DB_LOCK *lock);
 void bdb_cache_delete_cleanup(Cache *cache, EntryInfo *ei);
 void bdb_cache_release_all(Cache *cache);
 void bdb_cache_deref(EntryInfo *ei);
@@ -383,8 +352,7 @@ int hdb_cache_load(struct bdb_info *bdb, EntryInfo *ei, EntryInfo **res);
 #endif
 
 #define bdb_cache_entry_db_relock BDB_SYMBOL(cache_entry_db_relock)
-int bdb_cache_entry_db_relock(struct bdb_info *bdb, DB_TXN *txn, EntryInfo *ei,
-                              int rw, int tryOnly, DB_LOCK *lock);
+int bdb_cache_entry_db_relock(struct bdb_info *bdb, DB_TXN *txn, EntryInfo *ei, int rw, int tryOnly, DB_LOCK *lock);
 
 int bdb_cache_entry_db_unlock(struct bdb_info *bdb, DB_LOCK *lock);
 

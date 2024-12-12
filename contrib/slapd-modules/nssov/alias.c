@@ -34,8 +34,7 @@
 static struct berval alias_filter = BER_BVC("(objectClass=nisMailAlias)");
 
 /* the attributes to request with searches */
-static struct berval alias_keys[] = {BER_BVC("cn"), BER_BVC("rfc822MailMember"),
-                                     BER_BVNULL};
+static struct berval alias_keys[] = {BER_BVC("cn"), BER_BVC("rfc822MailMember"), BER_BVNULL};
 
 NSSOV_INIT(alias)
 
@@ -52,8 +51,7 @@ static int write_alias(nssov_alias_cbp *cbp, Entry *entry) {
   if (BER_BVISNULL(&cbp->name)) {
     a = attr_find(entry->e_attrs, cbp->mi->mi_attrs[0].an_desc);
     if (!a) {
-      Debug(LDAP_DEBUG_ANY, "alias entry %s does not contain %s value\n",
-            entry->e_name.bv_val,
+      Debug(LDAP_DEBUG_ANY, "alias entry %s does not contain %s value\n", entry->e_name.bv_val,
             cbp->mi->mi_attrs[0].an_desc->ad_cname.bv_val);
       return 0;
     }
@@ -82,17 +80,12 @@ static int write_alias(nssov_alias_cbp *cbp, Entry *entry) {
 
 NSSOV_CB(alias)
 
-NSSOV_HANDLE(alias, byname, char fbuf[1024];
-             struct berval filter = {sizeof(fbuf)}; filter.bv_val = fbuf;
-             READ_STRING(fp, cbp.buf); cbp.name.bv_len = tmpint32;
-             cbp.name.bv_val = cbp.buf;
-             , Debug(LDAP_DEBUG_TRACE, "nssov_alias_byname(%s)\n",
-                     cbp.name.bv_val);
-             , NSLCD_ACTION_ALIAS_BYNAME,
-             nssov_filter_byname(cbp.mi, 0, &cbp.name, &filter))
+NSSOV_HANDLE(alias, byname, char fbuf[1024]; struct berval filter = {sizeof(fbuf)}; filter.bv_val = fbuf;
+             READ_STRING(fp, cbp.buf); cbp.name.bv_len = tmpint32; cbp.name.bv_val = cbp.buf;
+             , Debug(LDAP_DEBUG_TRACE, "nssov_alias_byname(%s)\n", cbp.name.bv_val);
+             , NSLCD_ACTION_ALIAS_BYNAME, nssov_filter_byname(cbp.mi, 0, &cbp.name, &filter))
 
 NSSOV_HANDLE(alias, all, struct berval filter;
              /* no parameters to read */
-             BER_BVZERO(&cbp.name);
-             , Debug(LDAP_DEBUG_TRACE, "nssov_alias_all()\n");
+             BER_BVZERO(&cbp.name);, Debug(LDAP_DEBUG_TRACE, "nssov_alias_all()\n");
              , NSLCD_ACTION_ALIAS_ALL, (filter = cbp.mi->mi_filter, 0))

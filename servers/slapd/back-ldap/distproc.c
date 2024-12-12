@@ -104,9 +104,7 @@ typedef struct ContinuationReference_t {
   BerVarray cr_searchedSubtrees;
   struct berval cr_failedName;
 } ContinuationReference_t;
-#define CR_INIT                                                                \
-  {NULL, BER_BVNULL, LDAP_DP_RT_UNKNOWN, BER_BVNULL, LDAP_DP_SS_UNKNOWN,       \
-   NULL, BER_BVNULL}
+#define CR_INIT {NULL, BER_BVNULL, LDAP_DP_RT_UNKNOWN, BER_BVNULL, LDAP_DP_SS_UNKNOWN, NULL, BER_BVNULL}
 
 #ifdef unused
 static struct berval bv2rt[] = {BER_BVC("superior"),
@@ -119,17 +117,12 @@ static struct berval bv2rt[] = {BER_BVC("superior"),
                                 BER_BVC("self"),
                                 BER_BVNULL};
 
-static struct berval bv2ss[] = {BER_BVC("baseObject"), BER_BVC("singleLevel"),
-                                BER_BVC("wholeSubtree"),
+static struct berval bv2ss[] = {BER_BVC("baseObject"), BER_BVC("singleLevel"), BER_BVC("wholeSubtree"),
                                 BER_BVC("subordinateSubtree"), BER_BVNULL};
 
-static struct berval *ldap_distproc_rt2bv(ReferenceType_t rt) {
-  return &bv2rt[rt];
-}
+static struct berval *ldap_distproc_rt2bv(ReferenceType_t rt) { return &bv2rt[rt]; }
 
-static const char *ldap_distproc_rt2str(ReferenceType_t rt) {
-  return bv2rt[rt].bv_val;
-}
+static const char *ldap_distproc_rt2str(ReferenceType_t rt) { return bv2rt[rt].bv_val; }
 
 static ReferenceType_t ldap_distproc_bv2rt(struct berval *bv) {
   ReferenceType_t rt;
@@ -150,13 +143,9 @@ static ReferenceType_t ldap_distproc_str2rt(const char *s) {
   return ldap_distproc_bv2rt(&bv);
 }
 
-static struct berval *ldap_distproc_ss2bv(SearchScope_t ss) {
-  return &bv2ss[ss];
-}
+static struct berval *ldap_distproc_ss2bv(SearchScope_t ss) { return &bv2ss[ss]; }
 
-static const char *ldap_distproc_ss2str(SearchScope_t ss) {
-  return bv2ss[ss].bv_val;
-}
+static const char *ldap_distproc_ss2str(SearchScope_t ss) { return bv2ss[ss].bv_val; }
 
 static SearchScope_t ldap_distproc_bv2ss(struct berval *bv) {
   ReferenceType_t ss;
@@ -188,10 +177,8 @@ static int sc_returnContRef;
 #define o_returnContRef o_ctrlflag[sc_returnContRef]
 #define get_returnContRef(op) ((op)->o_returnContRef & SLAP_CONTROL_MASK)
 
-static struct berval slap_EXOP_CHAINEDREQUEST =
-    BER_BVC(LDAP_EXOP_X_CHAINEDREQUEST);
-static struct berval slap_FEATURE_CANCHAINOPS =
-    BER_BVC(LDAP_FEATURE_X_CANCHAINOPS);
+static struct berval slap_EXOP_CHAINEDREQUEST = BER_BVC(LDAP_EXOP_X_CHAINEDREQUEST);
+static struct berval slap_FEATURE_CANCHAINOPS = BER_BVC(LDAP_FEATURE_X_CANCHAINOPS);
 
 static BackendInfo *lback;
 
@@ -210,10 +197,8 @@ typedef struct ldap_distproc_t {
 #define LDAP_DISTPROC_F_CHAINING (0x01U)
 #define LDAP_DISTPROC_F_CACHE_URI (0x10U)
 
-#define LDAP_DISTPROC_CHAINING(lc)                                             \
-  (((lc)->lc_flags & LDAP_DISTPROC_F_CHAINING) == LDAP_DISTPROC_F_CHAINING)
-#define LDAP_DISTPROC_CACHE_URI(lc)                                            \
-  (((lc)->lc_flags & LDAP_DISTPROC_F_CACHE_URI) == LDAP_DISTPROC_F_CACHE_URI)
+#define LDAP_DISTPROC_CHAINING(lc) (((lc)->lc_flags & LDAP_DISTPROC_F_CHAINING) == LDAP_DISTPROC_F_CHAINING)
+#define LDAP_DISTPROC_CACHE_URI(lc) (((lc)->lc_flags & LDAP_DISTPROC_F_CACHE_URI) == LDAP_DISTPROC_F_CACHE_URI)
 
 } ldap_distproc_t;
 
@@ -276,9 +261,7 @@ static int ldap_distproc_operational(Operation *op, SlapReply *rs) {
   return SLAP_CB_CONTINUE;
 }
 
-static int ldap_distproc_response(Operation *op, SlapReply *rs) {
-  return SLAP_CB_CONTINUE;
-}
+static int ldap_distproc_response(Operation *op, SlapReply *rs) { return SLAP_CB_CONTINUE; }
 
 /*
  * configuration...
@@ -298,8 +281,7 @@ static ConfigCfAdd distproc_cfadd;
 static ConfigLDAPadd distproc_ldadd;
 
 static ConfigTable distproc_cfg[] = {
-    {"distproc-chaining", "args", 2, 4, 0, ARG_MAGIC | ARG_BERVAL | DP_CHAINING,
-     distproc_cfgen,
+    {"distproc-chaining", "args", 2, 4, 0, ARG_MAGIC | ARG_BERVAL | DP_CHAINING, distproc_cfgen,
      /* NOTE: using the same attributeTypes defined
       * for the "chain" overlay */
      "( OLcfgOvAt:3.1 NAME 'olcChainingBehavior' "
@@ -307,8 +289,7 @@ static ConfigTable distproc_cfg[] = {
      "(draft-sermersheim-ldap-chaining)' "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
-    {"distproc-cache-uri", "TRUE/FALSE", 2, 2, 0,
-     ARG_MAGIC | ARG_ON_OFF | DP_CACHE_URI, distproc_cfgen,
+    {"distproc-cache-uri", "TRUE/FALSE", 2, 2, 0, ARG_MAGIC | ARG_ON_OFF | DP_CACHE_URI, distproc_cfgen,
      "( OLcfgOvAt:3.2 NAME 'olcChainCacheURI' "
      "DESC 'Enables caching of URIs not present in configuration' "
      "SYNTAX OMsBoolean "
@@ -316,23 +297,22 @@ static ConfigTable distproc_cfg[] = {
      NULL, NULL},
     {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
 
-static ConfigOCs distproc_ocs[] = {
-    {"( OLcfgOvOc:7.1 "
-     "NAME 'olcDistProcConfig' "
-     "DESC 'Distributed procedures <draft-sermersheim-ldap-distproc> "
-     "configuration' "
-     "SUP olcOverlayConfig "
-     "MAY ( "
-     "olcChainingBehavior $ "
-     "olcChainCacheURI "
-     ") )",
-     Cft_Overlay, distproc_cfg, NULL, distproc_cfadd},
-    {"( OLcfgOvOc:7.2 "
-     "NAME 'olcDistProcDatabase' "
-     "DESC 'Distributed procedure remote server configuration' "
-     "AUXILIARY )",
-     Cft_Misc, distproc_cfg, distproc_ldadd},
-    {NULL, 0, NULL}};
+static ConfigOCs distproc_ocs[] = {{"( OLcfgOvOc:7.1 "
+                                    "NAME 'olcDistProcConfig' "
+                                    "DESC 'Distributed procedures <draft-sermersheim-ldap-distproc> "
+                                    "configuration' "
+                                    "SUP olcOverlayConfig "
+                                    "MAY ( "
+                                    "olcChainingBehavior $ "
+                                    "olcChainCacheURI "
+                                    ") )",
+                                    Cft_Overlay, distproc_cfg, NULL, distproc_cfadd},
+                                   {"( OLcfgOvOc:7.2 "
+                                    "NAME 'olcDistProcDatabase' "
+                                    "DESC 'Distributed procedure remote server configuration' "
+                                    "AUXILIARY )",
+                                    Cft_Misc, distproc_cfg, distproc_ldadd},
+                                   {NULL, 0, NULL}};
 
 static int distproc_ldadd(CfEntryInfo *p, Entry *e, ConfigArgs *ca) {
   slap_overinst *on;
@@ -346,8 +326,7 @@ static int distproc_ldadd(CfEntryInfo *p, Entry *e, ConfigArgs *ca) {
 
   int rc;
 
-  if (p->ce_type != Cft_Overlay || !p->ce_bi ||
-      p->ce_bi->bi_cf_ocs != distproc_ocs) {
+  if (p->ce_type != Cft_Overlay || !p->ce_bi || p->ce_bi->bi_cf_ocs != distproc_ocs) {
     return LDAP_CONSTRAINT_VIOLATION;
   }
 
@@ -407,8 +386,7 @@ static int distproc_ldadd(CfEntryInfo *p, Entry *e, ConfigArgs *ca) {
   if (lc->lc_common_li == NULL) {
     lc->lc_common_li = li;
 
-  } else if (avl_insert(&lc->lc_lai.lai_tree, (caddr_t)li,
-                        ldap_distproc_uri_cmp, ldap_distproc_uri_dup)) {
+  } else if (avl_insert(&lc->lc_lai.lai_tree, (caddr_t)li, ldap_distproc_uri_cmp, ldap_distproc_uri_dup)) {
     Debug(LDAP_DEBUG_ANY,
           "slapd-distproc: "
           "database \"%s\" insert failed.\n",
@@ -442,21 +420,18 @@ static int ldap_distproc_cfadd_apply(void *datum, void *arg) {
   struct berval bv;
 
   /* FIXME: should not hardcode "olcDatabase" here */
-  bv.bv_len = snprintf(lca->ca->cr_msg, sizeof(lca->ca->cr_msg),
-                       "olcDatabase={%d}%s", lca->count, lback->bi_type);
+  bv.bv_len = snprintf(lca->ca->cr_msg, sizeof(lca->ca->cr_msg), "olcDatabase={%d}%s", lca->count, lback->bi_type);
   bv.bv_val = lca->ca->cr_msg;
 
   lca->ca->be->be_private = (void *)li;
-  config_build_entry(lca->op, lca->rs, lca->p->e_private, lca->ca, &bv,
-                     lback->bi_cf_ocs, &distproc_ocs[1]);
+  config_build_entry(lca->op, lca->rs, lca->p->e_private, lca->ca, &bv, lback->bi_cf_ocs, &distproc_ocs[1]);
 
   lca->count++;
 
   return 0;
 }
 
-static int distproc_cfadd(Operation *op, SlapReply *rs, Entry *p,
-                          ConfigArgs *ca) {
+static int distproc_cfadd(Operation *op, SlapReply *rs, Entry *p, ConfigArgs *ca) {
   CfEntryInfo *pe = p->e_private;
   slap_overinst *on = (slap_overinst *)pe->ce_bi;
   ldap_distproc_t *lc = (ldap_distproc_t *)on->on_bi.bi_private;
@@ -473,8 +448,7 @@ static int distproc_cfadd(Operation *op, SlapReply *rs, Entry *p,
 
     (void)ldap_distproc_cfadd_apply((void *)lc->lc_common_li, (void *)&lca);
 
-    (void)avl_apply(lc->lc_lai.lai_tree, ldap_distproc_cfadd_apply, &lca, 1,
-                    AVL_INORDER);
+    (void)avl_apply(lc->lc_lai.lai_tree, ldap_distproc_cfadd_apply, &lca, 1, AVL_INORDER);
 
     ca->be->be_private = priv;
   }
@@ -556,8 +530,7 @@ static int ldap_distproc_db_init(BackendDB *be, ConfigReply *cr) {
   return 0;
 }
 
-static int ldap_distproc_db_config(BackendDB *be, const char *fname, int lineno,
-                                   int argc, char **argv) {
+static int ldap_distproc_db_config(BackendDB *be, const char *fname, int lineno, int argc, char **argv) {
   slap_overinst *on = (slap_overinst *)be->bd_info;
   ldap_distproc_t *lc = (ldap_distproc_t *)on->on_bi.bi_private;
 
@@ -622,8 +595,7 @@ static int ldap_distproc_db_config(BackendDB *be, const char *fname, int lineno,
         lc->lc_cfg_li = NULL;
 
       } else {
-        if (lc->lc_cfg_li->li_bvuri == NULL ||
-            BER_BVISNULL(&lc->lc_cfg_li->li_bvuri[0]) ||
+        if (lc->lc_cfg_li->li_bvuri == NULL || BER_BVISNULL(&lc->lc_cfg_li->li_bvuri[0]) ||
             !BER_BVISNULL(&lc->lc_cfg_li->li_bvuri[1])) {
           Debug(LDAP_DEBUG_ANY,
                 "%s: line %d: "
@@ -633,8 +605,7 @@ static int ldap_distproc_db_config(BackendDB *be, const char *fname, int lineno,
           goto private_destroy;
         }
 
-        if (avl_insert(&lc->lc_lai.lai_tree, (caddr_t)lc->lc_cfg_li,
-                       ldap_distproc_uri_cmp, ldap_distproc_uri_dup)) {
+        if (avl_insert(&lc->lc_lai.lai_tree, (caddr_t)lc->lc_cfg_li, ldap_distproc_uri_cmp, ldap_distproc_uri_dup)) {
           Debug(LDAP_DEBUG_ANY,
                 "%s: line %d: "
                 "duplicate URI in slapo-distproc.\n",
@@ -698,8 +669,7 @@ static int ldap_distproc_db_func(BackendDB *be, enum db_which which) {
         lca.be = &db;
         lca.func = func;
 
-        rc = avl_apply(lc->lc_lai.lai_tree, ldap_distproc_db_apply,
-                       (void *)&lca, 1, AVL_INORDER) != AVL_NOMORE;
+        rc = avl_apply(lc->lc_lai.lai_tree, ldap_distproc_db_apply, (void *)&lca, 1, AVL_INORDER) != AVL_NOMORE;
       }
     }
   }
@@ -707,13 +677,9 @@ static int ldap_distproc_db_func(BackendDB *be, enum db_which which) {
   return rc;
 }
 
-static int ldap_distproc_db_open(BackendDB *be, ConfigReply *cr) {
-  return ldap_distproc_db_func(be, db_open);
-}
+static int ldap_distproc_db_open(BackendDB *be, ConfigReply *cr) { return ldap_distproc_db_func(be, db_open); }
 
-static int ldap_distproc_db_close(BackendDB *be, ConfigReply *cr) {
-  return ldap_distproc_db_func(be, db_close);
-}
+static int ldap_distproc_db_close(BackendDB *be, ConfigReply *cr) { return ldap_distproc_db_func(be, db_close); }
 
 static int ldap_distproc_db_destroy(BackendDB *be, ConfigReply *cr) {
   slap_overinst *on = (slap_overinst *)be->bd_info;
@@ -813,19 +779,16 @@ static int ldap_distproc_connection_destroy(BackendDB *be, Connection *conn) {
   lca.be = be;
   lca.conn = conn;
   ldap_pvt_thread_mutex_lock(&lc->lc_lai.lai_mutex);
-  rc = avl_apply(lc->lc_lai.lai_tree, ldap_distproc_conn_apply, (void *)&lca, 1,
-                 AVL_INORDER) != AVL_NOMORE;
+  rc = avl_apply(lc->lc_lai.lai_tree, ldap_distproc_conn_apply, (void *)&lca, 1, AVL_INORDER) != AVL_NOMORE;
   ldap_pvt_thread_mutex_unlock(&lc->lc_lai.lai_mutex);
   be->be_private = private;
 
   return rc;
 }
 
-static int ldap_distproc_parse_returnContRef_ctrl(Operation *op, SlapReply *rs,
-                                                  LDAPControl *ctrl) {
+static int ldap_distproc_parse_returnContRef_ctrl(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   if (get_returnContRef(op) != SLAP_CONTROL_NONE) {
-    rs->sr_text =
-        "returnContinuationReference control specified multiple times";
+    rs->sr_text = "returnContinuationReference control specified multiple times";
     return LDAP_PROTOCOL_ERROR;
   }
 
@@ -840,8 +803,7 @@ static int ldap_distproc_parse_returnContRef_ctrl(Operation *op, SlapReply *rs,
     return LDAP_PROTOCOL_ERROR;
   }
 
-  op->o_returnContRef =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_returnContRef = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   return LDAP_SUCCESS;
 }
@@ -849,8 +811,7 @@ static int ldap_distproc_parse_returnContRef_ctrl(Operation *op, SlapReply *rs,
 static int ldap_exop_chained_request(Operation *op, SlapReply *rs) {
   Statslog(LDAP_DEBUG_STATS, "%s CHAINED REQUEST\n", op->o_log_prefix);
 
-  rs->sr_err = backend_check_restrictions(
-      op, rs, (struct berval *)&slap_EXOP_CHAINEDREQUEST);
+  rs->sr_err = backend_check_restrictions(op, rs, (struct berval *)&slap_EXOP_CHAINEDREQUEST);
   if (rs->sr_err != LDAP_SUCCESS) {
     return rs->sr_err;
   }
@@ -868,8 +829,7 @@ int distproc_initialize(void) {
   /* Make sure we don't exceed the bits reserved for userland */
   config_check_userland(DP_LAST);
 
-  rc = extop_register((struct berval *)&slap_EXOP_CHAINEDREQUEST,
-                      SLAP_EXOP_HIDE, ldap_exop_chained_request);
+  rc = extop_register((struct berval *)&slap_EXOP_CHAINEDREQUEST, SLAP_EXOP_HIDE, ldap_exop_chained_request);
   if (rc != LDAP_SUCCESS) {
     Debug(LDAP_DEBUG_ANY,
           "slapd-distproc: "
@@ -887,10 +847,8 @@ int distproc_initialize(void) {
     return rc;
   }
 
-  rc = register_supported_control(
-      LDAP_CONTROL_X_RETURNCONTREF,
-      SLAP_CTRL_GLOBAL | SLAP_CTRL_ACCESS | SLAP_CTRL_HIDE, NULL,
-      ldap_distproc_parse_returnContRef_ctrl, &sc_returnContRef);
+  rc = register_supported_control(LDAP_CONTROL_X_RETURNCONTREF, SLAP_CTRL_GLOBAL | SLAP_CTRL_ACCESS | SLAP_CTRL_HIDE,
+                                  NULL, ldap_distproc_parse_returnContRef_ctrl, &sc_returnContRef);
   if (rc != LDAP_SUCCESS) {
     Debug(LDAP_DEBUG_ANY,
           "slapd-distproc: "

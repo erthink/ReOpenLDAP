@@ -54,8 +54,7 @@ struct tavlnode {
 #define EH 0
 #define RH 1
 
-#define avl_bf2str(bf)                                                         \
-  ((bf) == -1 ? "LH" : (bf) == 0 ? "EH" : (bf) == 1 ? "RH" : "(unknown)")
+#define avl_bf2str(bf) ((bf) == -1 ? "LH" : (bf) == 0 ? "EH" : (bf) == 1 ? "RH" : "(unknown)")
 
 /* thread bits */
 #define AVL_CHILD 0
@@ -67,8 +66,7 @@ struct tavlnode {
 
 #endif /* AVL_INTERNALS */
 
-#define avl_child(x, dir)                                                      \
-  ((x)->avl_bits[dir]) == AVL_CHILD ? (x)->avl_link[dir] : NULL
+#define avl_child(x, dir) ((x)->avl_bits[dir]) == AVL_CHILD ? (x)->avl_link[dir] : NULL
 #define avl_lchild(x) avl_child(x, 0)
 #define avl_rchild(x) avl_child(x, 1)
 

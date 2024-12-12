@@ -29,8 +29,7 @@
 #include "back-monitor.h"
 #include "proto-back-monitor.h"
 
-static void monitor_find_children(Operation *op, SlapReply *rs, Entry *e_parent,
-                                  Entry **nonv, Entry **vol) {
+static void monitor_find_children(Operation *op, SlapReply *rs, Entry *e_parent, Entry **nonv, Entry **vol) {
   monitor_entry_t *mp;
 
   mp = (monitor_entry_t *)e_parent->e_private;
@@ -41,8 +40,7 @@ static void monitor_find_children(Operation *op, SlapReply *rs, Entry *e_parent,
   }
 }
 
-static int monitor_send_children(Operation *op, SlapReply *rs,
-                                 Entry *e_nonvolatile, Entry *e_ch, int sub) {
+static int monitor_send_children(Operation *op, SlapReply *rs, Entry *e_nonvolatile, Entry *e_ch, int sub) {
   monitor_info_t *mi = (monitor_info_t *)op->o_bd->be_private;
   Entry *e, *e_tmp;
   monitor_entry_t *mp;
@@ -159,8 +157,7 @@ int monitor_back_search(Operation *op, SlapReply *rs) {
   if (e == NULL) {
     rs->sr_err = LDAP_NO_SUCH_OBJECT;
     if (matched) {
-      if (!access_allowed_mask(op, matched, slap_schema.si_ad_entry, NULL,
-                               ACL_DISCLOSE, NULL, NULL)) {
+      if (!access_allowed_mask(op, matched, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL, NULL)) {
         /* do nothing */;
       } else {
         rs->sr_matched = matched->e_dn;
@@ -178,8 +175,7 @@ int monitor_back_search(Operation *op, SlapReply *rs) {
 
   /* NOTE: __NEW__ "search" access is required
    * on searchBase object */
-  if (!access_allowed_mask(op, e, slap_schema.si_ad_entry, NULL, ACL_SEARCH,
-                           NULL, &mask)) {
+  if (!access_allowed_mask(op, e, slap_schema.si_ad_entry, NULL, ACL_SEARCH, NULL, &mask)) {
     monitor_cache_release(mi, e);
 
     if (!ACL_GRANT(mask, ACL_DISCLOSE)) {
@@ -213,8 +209,7 @@ int monitor_back_search(Operation *op, SlapReply *rs) {
   case LDAP_SCOPE_SUBORDINATE:
     monitor_find_children(op, rs, e, &e_nv, &e_ch);
     monitor_cache_release(mi, e);
-    rc = monitor_send_children(
-        op, rs, e_nv, e_ch, op->oq_search.rs_scope == LDAP_SCOPE_SUBORDINATE);
+    rc = monitor_send_children(op, rs, e_nv, e_ch, op->oq_search.rs_scope == LDAP_SCOPE_SUBORDINATE);
     break;
 
   case LDAP_SCOPE_SUBTREE:

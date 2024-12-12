@@ -61,8 +61,7 @@ int dnssrv_back_search(Operation *op, SlapReply *rs) {
    * FIXME: we may return a referral if manageDSAit is not set
    */
   if (!manageDSAit) {
-    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                    "manageDSAit must be set");
+    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "manageDSAit must be set");
     goto done;
   }
 
@@ -74,13 +73,12 @@ int dnssrv_back_search(Operation *op, SlapReply *rs) {
     goto done;
   }
 
-  Debug(LDAP_DEBUG_TRACE, "DNSSRV: dn=\"%s\" -> domain=\"%s\"\n",
-        op->o_req_dn.bv_len ? op->o_req_dn.bv_val : "", domain);
+  Debug(LDAP_DEBUG_TRACE, "DNSSRV: dn=\"%s\" -> domain=\"%s\"\n", op->o_req_dn.bv_len ? op->o_req_dn.bv_val : "",
+        domain);
 
   if ((rc = ldap_domain2hostlist(domain, &hostlist))) {
     Debug(LDAP_DEBUG_TRACE, "DNSSRV: domain2hostlist returned %d\n", rc);
-    send_ldap_error(op, rs, LDAP_NO_SUCH_OBJECT,
-                    "no DNS SRV RR available for DN");
+    send_ldap_error(op, rs, LDAP_NO_SUCH_OBJECT, "no DNS SRV RR available for DN");
     goto done;
   }
 
@@ -88,8 +86,7 @@ int dnssrv_back_search(Operation *op, SlapReply *rs) {
 
   if (hosts == NULL) {
     Debug(LDAP_DEBUG_TRACE, "DNSSRV: str2charray error\n");
-    send_ldap_error(op, rs, LDAP_OTHER,
-                    "problem processing DNS SRV records for DN");
+    send_ldap_error(op, rs, LDAP_OTHER, "problem processing DNS SRV records for DN");
     goto done;
   }
 
@@ -104,26 +101,21 @@ int dnssrv_back_search(Operation *op, SlapReply *rs) {
 
     if (ber_bvarray_add(&urls, &url) < 0) {
       free(url.bv_val);
-      send_ldap_error(op, rs, LDAP_OTHER,
-                      "problem processing DNS SRV records for DN");
+      send_ldap_error(op, rs, LDAP_OTHER, "problem processing DNS SRV records for DN");
       goto done;
     }
   }
 
-  Statslog(LDAP_DEBUG_STATS, "%s DNSSRV p=%d dn=\"%s\" url=\"%s\"\n",
-           op->o_log_prefix, op->o_protocol,
+  Statslog(LDAP_DEBUG_STATS, "%s DNSSRV p=%d dn=\"%s\" url=\"%s\"\n", op->o_log_prefix, op->o_protocol,
            op->o_req_dn.bv_len ? op->o_req_dn.bv_val : "", urls[0].bv_val);
 
-  Debug(LDAP_DEBUG_TRACE,
-        "DNSSRV: ManageDSAit scope=%d dn=\"%s\" -> url=\"%s\"\n",
-        op->oq_search.rs_scope, op->o_req_dn.bv_len ? op->o_req_dn.bv_val : "",
-        urls[0].bv_val);
+  Debug(LDAP_DEBUG_TRACE, "DNSSRV: ManageDSAit scope=%d dn=\"%s\" -> url=\"%s\"\n", op->oq_search.rs_scope,
+        op->o_req_dn.bv_len ? op->o_req_dn.bv_val : "", urls[0].bv_val);
 
   rc = ldap_domain2dn(domain, &refdn);
 
   if (rc != LDAP_SUCCESS) {
-    send_ldap_error(op, rs, LDAP_OTHER,
-                    "DNS SRV problem processing manageDSAit control");
+    send_ldap_error(op, rs, LDAP_OTHER, "DNS SRV problem processing manageDSAit control");
     goto done;
 
   } else {
@@ -133,8 +125,7 @@ int dnssrv_back_search(Operation *op, SlapReply *rs) {
 
     rc = dnNormalize(0, NULL, NULL, &bv, &nrefdn, op->o_tmpmemctx);
     if (rc != LDAP_SUCCESS) {
-      send_ldap_error(op, rs, LDAP_OTHER,
-                      "DNS SRV problem processing manageDSAit control");
+      send_ldap_error(op, rs, LDAP_OTHER, "DNS SRV problem processing manageDSAit control");
       goto done;
     }
   }
@@ -143,8 +134,7 @@ int dnssrv_back_search(Operation *op, SlapReply *rs) {
     /* requested dn is subordinate */
 
     Debug(LDAP_DEBUG_TRACE, "DNSSRV: dn=\"%s\" subordinate to refdn=\"%s\"\n",
-          op->o_req_dn.bv_len ? op->o_req_dn.bv_val : "",
-          refdn == NULL ? "" : refdn);
+          op->o_req_dn.bv_len ? op->o_req_dn.bv_val : "", refdn == NULL ? "" : refdn);
 
     rs->sr_matched = refdn;
     rs->sr_err = LDAP_NO_SUCH_OBJECT;
@@ -166,10 +156,8 @@ int dnssrv_back_search(Operation *op, SlapReply *rs) {
     e.e_attrs = NULL;
     e.e_private = NULL;
 
-    attr_merge_one(&e, ad_objectClass, &slap_schema.si_oc_referral->soc_cname,
-                   NULL);
-    attr_merge_one(&e, ad_objectClass,
-                   &slap_schema.si_oc_extensibleObject->soc_cname, NULL);
+    attr_merge_one(&e, ad_objectClass, &slap_schema.si_oc_referral->soc_cname, NULL);
+    attr_merge_one(&e, ad_objectClass, &slap_schema.si_oc_extensibleObject->soc_cname, NULL);
 
     if (ad_dc) {
       char *p;

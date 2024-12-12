@@ -82,15 +82,14 @@ size_t lutil_localtime(char *s, size_t smax, const struct tm *tm, long delta) {
 }
 
 int lutil_tm2time(struct lutil_tm *tm, struct lutil_timet *tt) {
-  static int moffset[12] = {0,   31,  59,  90,  120, 151,
-                            181, 212, 243, 273, 304, 334};
+  static int moffset[12] = {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
   int sec;
 
   tt->tt_usec = tm->tm_usec;
 
   /* special case 0000/01/01+00:00:00 is returned as zero */
-  if (tm->tm_year == -1900 && tm->tm_mon == 0 && tm->tm_mday == 1 &&
-      tm->tm_hour == 0 && tm->tm_min == 0 && tm->tm_sec == 0) {
+  if (tm->tm_year == -1900 && tm->tm_mon == 0 && tm->tm_mday == 1 && tm->tm_hour == 0 && tm->tm_min == 0 &&
+      tm->tm_sec == 0) {
     tt->tt_sec = 0;
     tt->tt_gsec = 0;
     return 0;
@@ -255,9 +254,7 @@ char *lutil_strncopy(char *a, const char *b, size_t n) {
  * the end of the result buffer, set to NULL. This allows fast construction
  * of catenated buffers.  Provided for API consistency with lutil_str*copy().
  */
-char *lutil_memcopy(char *a, const char *b, size_t n) {
-  return mempcpy(a, b, n);
-}
+char *lutil_memcopy(char *a, const char *b, size_t n) { return mempcpy(a, b, n); }
 
 #ifndef HAVE_MKSTEMP
 int mkstemp(char *template) {
@@ -522,12 +519,10 @@ int lutil_str2bin(struct berval *in, struct berval *out, void *ctx) {
   char *pin, *end;
   int i, chunk, len, rc = 0;
   /* Leading "0x" for hex input */
-  if (in->bv_len > 2 && in->bv_val[0] == '0' &&
-      (in->bv_val[1] == 'x' || in->bv_val[1] == 'X')) {
+  if (in->bv_len > 2 && in->bv_val[0] == '0' && (in->bv_val[1] == 'x' || in->bv_val[1] == 'X')) {
     len = in->bv_len - 2;
     pin = in->bv_val + 2;
-  } else if (in->bv_len > 3 && in->bv_val[0] == '\'' &&
-             in->bv_val[in->bv_len - 2] == '\'' &&
+  } else if (in->bv_len > 3 && in->bv_val[0] == '\'' && in->bv_val[in->bv_len - 2] == '\'' &&
              in->bv_val[in->bv_len - 1] == 'H') {
     len = in->bv_len - 3;
     pin = in->bv_val + 1;
@@ -727,8 +722,7 @@ int lutil_unparse_time(char *buf, size_t buflen, unsigned long t) {
  *	- if len is not NULL, *len will contain the length of the string printed
  *so far
  */
-int lutil_snprintf(char *buf, ber_len_t bufsize, char **next, ber_len_t *len,
-                   const char *fmt, ...) {
+int lutil_snprintf(char *buf, ber_len_t bufsize, char **next, ber_len_t *len, const char *fmt, ...) {
   va_list ap;
   int ret;
 

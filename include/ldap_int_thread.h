@@ -49,9 +49,7 @@ typedef pthread_key_t ldap_int_thread_key_t;
 
 #define ldap_int_thread_equal(a, b) pthread_equal((a), (b))
 
-#if defined(_POSIX_REENTRANT_FUNCTIONS) ||                                     \
-    defined(_POSIX_THREAD_SAFE_FUNCTIONS) ||                                   \
-    defined(_POSIX_THREADSAFE_FUNCTIONS)
+#if defined(_POSIX_REENTRANT_FUNCTIONS) || defined(_POSIX_THREAD_SAFE_FUNCTIONS) || defined(_POSIX_THREADSAFE_FUNCTIONS)
 #define HAVE_REENTRANT_FUNCTIONS 1
 #endif
 
@@ -203,9 +201,7 @@ LDAP_BEGIN_DECL
 #define LDAP_UINTPTR_T unsigned long
 #endif
 
-typedef enum {
-  ldap_debug_magic = -(int)(((unsigned)-1) / 19)
-} ldap_debug_magic_t;
+typedef enum { ldap_debug_magic = -(int)(((unsigned)-1) / 19) } ldap_debug_magic_t;
 
 typedef enum {
   /* Could fill in "locked" etc here later */
@@ -230,12 +226,11 @@ typedef struct {
   ldap_int_thread_t owner;
 } ldap_debug_thread_mutex_t;
 
-#define LDAP_DEBUG_MUTEX_NULL                                                  \
-  {                                                                            \
-      LDAP_INT_MUTEX_NULL, {0, 0, {0}, 0} /*,owner*/                           \
+#define LDAP_DEBUG_MUTEX_NULL                                                                                          \
+  {                                                                                                                    \
+      LDAP_INT_MUTEX_NULL, {0, 0, {0}, 0} /*,owner*/                                                                   \
   }
-#define LDAP_DEBUG_MUTEX_FIRSTCREATE(m)                                        \
-  ((void)((m).usage.state || ldap_pvt_thread_mutex_init(&(m))))
+#define LDAP_DEBUG_MUTEX_FIRSTCREATE(m) ((void)((m).usage.state || ldap_pvt_thread_mutex_init(&(m))))
 
 typedef struct {
   ldap_int_thread_cond_t wrapped;
@@ -248,13 +243,10 @@ typedef struct {
 } ldap_debug_thread_rdwr_t;
 
 #ifdef LDAP_DEBUG
-#define LDAP_INT_THREAD_ASSERT_MUTEX_OWNER(mutex)                              \
-  ldap_debug_thread_assert_mutex_owner(__FILE__, __LINE__, "owns(" #mutex ")", \
-                                       mutex)
+#define LDAP_INT_THREAD_ASSERT_MUTEX_OWNER(mutex)                                                                      \
+  ldap_debug_thread_assert_mutex_owner(__FILE__, __LINE__, "owns(" #mutex ")", mutex)
 LDAP_F(void)
-ldap_debug_thread_assert_mutex_owner(const char *file, int line,
-                                     const char *msg,
-                                     ldap_debug_thread_mutex_t *mutex);
+ldap_debug_thread_assert_mutex_owner(const char *file, int line, const char *msg, ldap_debug_thread_mutex_t *mutex);
 #endif /* LDAP_DEBUG */
 
 LDAP_END_DECL

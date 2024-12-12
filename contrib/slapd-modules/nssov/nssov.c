@@ -45,8 +45,7 @@ AttributeDescription *nssov_pam_svc_ad;
 #define WRITEBUFFER_MAXSIZE 64 * 1024
 
 /* Find the given attribute's value in the RDN of the DN */
-void nssov_find_rdnval(struct berval *dn, AttributeDescription *ad,
-                       struct berval *value) {
+void nssov_find_rdnval(struct berval *dn, AttributeDescription *ad, struct berval *value) {
   struct berval rdn;
   char *next;
 
@@ -54,8 +53,7 @@ void nssov_find_rdnval(struct berval *dn, AttributeDescription *ad,
   dnRdn(dn, &rdn);
   do {
     next = ber_bvchr(&rdn, '+');
-    if (rdn.bv_val[ad->ad_cname.bv_len] == '=' &&
-        !ber_bvcmp(&rdn, &ad->ad_cname)) {
+    if (rdn.bv_val[ad->ad_cname.bv_len] == '=' && !ber_bvcmp(&rdn, &ad->ad_cname)) {
       if (next)
         rdn.bv_len = next - rdn.bv_val;
       value->bv_val = rdn.bv_val + ad->ad_cname.bv_len + 1;
@@ -71,8 +69,7 @@ void nssov_find_rdnval(struct berval *dn, AttributeDescription *ad,
 }
 
 /* create a search filter using a name that requires escaping */
-int nssov_filter_byname(nssov_mapinfo *mi, int key, struct berval *name,
-                        struct berval *buf) {
+int nssov_filter_byname(nssov_mapinfo *mi, int key, struct berval *name, struct berval *buf) {
   char buf2[1024];
   struct berval bv2 = {sizeof(buf2), buf2};
 
@@ -80,27 +77,20 @@ int nssov_filter_byname(nssov_mapinfo *mi, int key, struct berval *name,
   if (nssov_escape(name, &bv2))
     return -1;
   /* build filter */
-  if (bv2.bv_len + mi->mi_filter.bv_len +
-          mi->mi_attrs[key].an_desc->ad_cname.bv_len + 6 >
-      buf->bv_len)
+  if (bv2.bv_len + mi->mi_filter.bv_len + mi->mi_attrs[key].an_desc->ad_cname.bv_len + 6 > buf->bv_len)
     return -1;
-  buf->bv_len =
-      snprintf(buf->bv_val, buf->bv_len, "(&%s(%s=%s))", mi->mi_filter.bv_val,
-               mi->mi_attrs[key].an_desc->ad_cname.bv_val, bv2.bv_val);
+  buf->bv_len = snprintf(buf->bv_val, buf->bv_len, "(&%s(%s=%s))", mi->mi_filter.bv_val,
+                         mi->mi_attrs[key].an_desc->ad_cname.bv_val, bv2.bv_val);
   return 0;
 }
 
 /* create a search filter using a string converted from an int */
-int nssov_filter_byid(nssov_mapinfo *mi, int key, struct berval *id,
-                      struct berval *buf) {
+int nssov_filter_byid(nssov_mapinfo *mi, int key, struct berval *id, struct berval *buf) {
   /* build filter */
-  if (id->bv_len + mi->mi_filter.bv_len +
-          mi->mi_attrs[key].an_desc->ad_cname.bv_len + 6 >
-      buf->bv_len)
+  if (id->bv_len + mi->mi_filter.bv_len + mi->mi_attrs[key].an_desc->ad_cname.bv_len + 6 > buf->bv_len)
     return -1;
-  buf->bv_len =
-      snprintf(buf->bv_val, buf->bv_len, "(&%s(%s=%s))", mi->mi_filter.bv_val,
-               mi->mi_attrs[key].an_desc->ad_cname.bv_val, id->bv_val);
+  buf->bv_len = snprintf(buf->bv_val, buf->bv_len, "(&%s(%s=%s))", mi->mi_filter.bv_val,
+                         mi->mi_attrs[key].an_desc->ad_cname.bv_val, id->bv_val);
   return 0;
 }
 
@@ -167,8 +157,7 @@ int read_address(TFILE *fp, char *addr, int *addrlen, int *af) {
   /* read address family */
   READ_INT32(fp, *af);
   if ((*af != AF_INET) && (*af != AF_INET6)) {
-    Debug(LDAP_DEBUG_ANY, "nssov: incorrect address family specified: %d\n",
-          *af);
+    Debug(LDAP_DEBUG_ANY, "nssov: incorrect address family specified: %d\n", *af);
     return -1;
   }
   /* read address length */
@@ -229,8 +218,7 @@ static int read_header(TFILE *fp, int32_t *action) {
   /* read the protocol version */
   READ_INT32(fp, tmpint32);
   if (tmpint32 != (int32_t)NSLCD_VERSION) {
-    Debug(LDAP_DEBUG_TRACE, "nssov: wrong nslcd version id (%d)\n",
-          (int)tmpint32);
+    Debug(LDAP_DEBUG_TRACE, "nssov: wrong nslcd version id (%d)\n", (int)tmpint32);
     return -1;
   }
   /* read the request type */
@@ -256,8 +244,7 @@ int nssov_config(nssov_info *ni, TFILE *fp, Operation *op) {
     /* request for pam password_prohibit_message */
     /* nssov_pam prohibits password  */
     if (!BER_BVISEMPTY(&ni->ni_pam_password_prohibit_message)) {
-      Debug(LDAP_DEBUG_TRACE, "nssov_config(): %s (%s)\n",
-            "password_prohibit_message",
+      Debug(LDAP_DEBUG_TRACE, "nssov_config(): %s (%s)\n", "password_prohibit_message",
             ni->ni_pam_password_prohibit_message.bv_val);
       WRITE_STRING(fp, ni->ni_pam_password_prohibit_message.bv_val);
       /* rc = NSLCD_PAM_PERM_DENIED; */
@@ -288,16 +275,12 @@ static void handleconnection(nssov_info *ni, int sock, Operation *op) {
 
   /* log connection */
   if (LUTIL_GETPEEREID(sock, &uid, &gid, &peerbv))
-    Debug(LDAP_DEBUG_TRACE, "nssov: connection from unknown client: %s\n",
-          strerror(errno));
+    Debug(LDAP_DEBUG_TRACE, "nssov: connection from unknown client: %s\n", strerror(errno));
   else
-    Debug(LDAP_DEBUG_TRACE, "nssov: connection from uid=%d gid=%d\n", (int)uid,
-          (int)gid);
+    Debug(LDAP_DEBUG_TRACE, "nssov: connection from uid=%d gid=%d\n", (int)uid, (int)gid);
 
   /* Should do authid mapping too */
-  op->o_dn.bv_len = sprintf(
-      authid, "gidNumber=%d+uidNumber=%d,cn=peercred,cn=external,cn=auth",
-      (int)gid, (int)uid);
+  op->o_dn.bv_len = sprintf(authid, "gidNumber=%d+uidNumber=%d,cn=peercred,cn=external,cn=auth", (int)gid, (int)uid);
   op->o_dn.bv_val = authid;
   op->o_ndn = op->o_dn;
 
@@ -309,11 +292,9 @@ static void handleconnection(nssov_info *ni, int sock, Operation *op) {
   readtimeout = 500;
   writetimeout = 60000;
   /* create a stream object */
-  if ((fp = tio_fdopen(sock, readtimeout, writetimeout, READBUFFER_MINSIZE,
-                       READBUFFER_MAXSIZE, WRITEBUFFER_MINSIZE,
+  if ((fp = tio_fdopen(sock, readtimeout, writetimeout, READBUFFER_MINSIZE, READBUFFER_MAXSIZE, WRITEBUFFER_MINSIZE,
                        WRITEBUFFER_MAXSIZE)) == NULL) {
-    Debug(LDAP_DEBUG_ANY, "nssov: cannot create stream for writing: %s",
-          strerror(errno));
+    Debug(LDAP_DEBUG_ANY, "nssov: cannot create stream for writing: %s", strerror(errno));
     (void)close(sock);
     return;
   }
@@ -467,8 +448,7 @@ static void *acceptconn(void *ctx, void *arg) {
     connection_client_enable(ni->ni_conn);
     if (csock < 0) {
       if ((errno == EINTR) || (errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-        Debug(LDAP_DEBUG_TRACE, "nssov: accept() failed (ignored): %s",
-              strerror(errno));
+        Debug(LDAP_DEBUG_TRACE, "nssov: accept() failed (ignored): %s", strerror(errno));
         return NULL;
       }
       Debug(LDAP_DEBUG_ANY, "nssov: accept() failed: %s", strerror(errno));
@@ -476,19 +456,15 @@ static void *acceptconn(void *ctx, void *arg) {
     }
     /* make sure O_NONBLOCK is not inherited */
     if ((j = fcntl(csock, F_GETFL, 0)) < 0) {
-      Debug(LDAP_DEBUG_ANY, "nssov: fcntl(F_GETFL) failed: %s",
-            strerror(errno));
+      Debug(LDAP_DEBUG_ANY, "nssov: fcntl(F_GETFL) failed: %s", strerror(errno));
       if (close(csock))
-        Debug(LDAP_DEBUG_ANY, "nssov: problem closing socket: %s",
-              strerror(errno));
+        Debug(LDAP_DEBUG_ANY, "nssov: problem closing socket: %s", strerror(errno));
       return NULL;
     }
     if (fcntl(csock, F_SETFL, j & ~O_NONBLOCK) < 0) {
-      Debug(LDAP_DEBUG_ANY, "nssov: fcntl(F_SETFL,~O_NONBLOCK) failed: %s",
-            strerror(errno));
+      Debug(LDAP_DEBUG_ANY, "nssov: fcntl(F_SETFL,~O_NONBLOCK) failed: %s", strerror(errno));
       if (close(csock))
-        Debug(LDAP_DEBUG_ANY, "nssov: problem closing socket: %s",
-              strerror(errno));
+        Debug(LDAP_DEBUG_ANY, "nssov: problem closing socket: %s", strerror(errno));
       return NULL;
     }
   }
@@ -504,12 +480,10 @@ static void *acceptconn(void *ctx, void *arg) {
 }
 
 static slap_verbmasks nss_svcs[] = {
-    {BER_BVC("aliases"), NM_alias},     {BER_BVC("ethers"), NM_ether},
-    {BER_BVC("group"), NM_group},       {BER_BVC("hosts"), NM_host},
-    {BER_BVC("netgroup"), NM_netgroup}, {BER_BVC("networks"), NM_network},
-    {BER_BVC("passwd"), NM_passwd},     {BER_BVC("protocols"), NM_protocol},
-    {BER_BVC("rpc"), NM_rpc},           {BER_BVC("services"), NM_service},
-    {BER_BVC("shadow"), NM_shadow},     {BER_BVNULL, 0}};
+    {BER_BVC("aliases"), NM_alias},    {BER_BVC("ethers"), NM_ether},       {BER_BVC("group"), NM_group},
+    {BER_BVC("hosts"), NM_host},       {BER_BVC("netgroup"), NM_netgroup},  {BER_BVC("networks"), NM_network},
+    {BER_BVC("passwd"), NM_passwd},    {BER_BVC("protocols"), NM_protocol}, {BER_BVC("rpc"), NM_rpc},
+    {BER_BVC("services"), NM_service}, {BER_BVC("shadow"), NM_shadow},      {BER_BVNULL, 0}};
 
 static slap_verbmasks pam_opts[] = {{BER_BVC("userhost"), NI_PAM_USERHOST},
                                     {BER_BVC("userservice"), NI_PAM_USERSVC},
@@ -530,8 +504,7 @@ static ConfigTable nsscfg[] = {
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString )",
      NULL, NULL},
-    {"nssov-map", "service> <orig> <new", 4, 4, 0, ARG_MAGIC | NSS_MAP,
-     nss_cf_gen,
+    {"nssov-map", "service> <orig> <new", 4, 4, 0, ARG_MAGIC | NSS_MAP, nss_cf_gen,
      "(OLcfgCtAt:3.2 NAME 'olcNssMap' "
      "DESC 'Map <service> lookups of <orig> attr to <new> attr' "
      "EQUALITY caseIgnoreMatch "
@@ -550,8 +523,7 @@ static ConfigTable nsscfg[] = {
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
-    {"nssov-pam-group-dn", "DN", 2, 2, 0, ARG_MAGIC | ARG_DN | NSS_PAMGROUP,
-     nss_cf_gen,
+    {"nssov-pam-group-dn", "DN", 2, 2, 0, ARG_MAGIC | ARG_DN | NSS_PAMGROUP, nss_cf_gen,
      "(OLcfgCtAt:3.5 NAME 'olcNssPamGroupDN' "
      "DESC 'DN of group in which membership is required' "
      "EQUALITY distinguishedNameMatch "
@@ -564,15 +536,13 @@ static ConfigTable nsscfg[] = {
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
-    {"nssov-pam-min-uid", "uid", 2, 2, 0, ARG_OFFSET | ARG_INT,
-     (void *)offsetof(struct nssov_info, ni_pam_min_uid),
+    {"nssov-pam-min-uid", "uid", 2, 2, 0, ARG_OFFSET | ARG_INT, (void *)offsetof(struct nssov_info, ni_pam_min_uid),
      "(OLcfgCtAt:3.7 NAME 'olcNssPamMinUid' "
      "DESC 'Minimum UID allowed to login' "
      "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-    {"nssov-pam-max-uid", "uid", 2, 2, 0, ARG_OFFSET | ARG_INT,
-     (void *)offsetof(struct nssov_info, ni_pam_max_uid),
+    {"nssov-pam-max-uid", "uid", 2, 2, 0, ARG_OFFSET | ARG_INT, (void *)offsetof(struct nssov_info, ni_pam_max_uid),
      "(OLcfgCtAt:3.8 NAME 'olcNssPamMaxUid' "
      "DESC 'Maximum UID allowed to login' "
      "EQUALITY integerMatch "
@@ -592,15 +562,13 @@ static ConfigTable nsscfg[] = {
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
-    {"nssov-pam-session", "service", 2, 2, 0, ARG_MAGIC | NSS_PAMSESS,
-     nss_cf_gen,
+    {"nssov-pam-session", "service", 2, 2, 0, ARG_MAGIC | NSS_PAMSESS, nss_cf_gen,
      "(OLcfgCtAt:3.11 NAME 'olcNssPamSession' "
      "DESC 'Services for which sessions will be recorded' "
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString )",
      NULL, NULL},
-    {"nssov-pam-password-prohibit-message", "password_prohibit_message", 2, 2,
-     0, ARG_OFFSET | ARG_BERVAL,
+    {"nssov-pam-password-prohibit-message", "password_prohibit_message", 2, 2, 0, ARG_OFFSET | ARG_BERVAL,
      (void *)offsetof(struct nssov_info, ni_pam_password_prohibit_message),
      "(OLcfgCtAt:3.12 NAME 'olcNssPamPwdProhibitMsg' "
      "DESC 'Prohibit password modification message' "
@@ -623,17 +591,16 @@ static ConfigTable nsscfg[] = {
      NULL, NULL},
     {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
 
-static ConfigOCs nssocs[] = {
-    {"( OLcfgCtOc:3.1 "
-     "NAME 'olcNssOvConfig' "
-     "DESC 'NSS lookup configuration' "
-     "SUP olcOverlayConfig "
-     "MAY ( olcNssSsd $ olcNssMap $ olcNssPam $ olcNssPamDefHost $ "
-     "olcNssPamGroupDN $ olcNssPamGroupAD $ "
-     "olcNssPamMinUid $ olcNssPamMaxUid $ olcNssPamSession $ "
-     "olcNssPamTemplateAD $ olcNssPamTemplate ) )",
-     Cft_Overlay, nsscfg},
-    {NULL, 0, NULL}};
+static ConfigOCs nssocs[] = {{"( OLcfgCtOc:3.1 "
+                              "NAME 'olcNssOvConfig' "
+                              "DESC 'NSS lookup configuration' "
+                              "SUP olcOverlayConfig "
+                              "MAY ( olcNssSsd $ olcNssMap $ olcNssPam $ olcNssPamDefHost $ "
+                              "olcNssPamGroupDN $ olcNssPamGroupAD $ "
+                              "olcNssPamMinUid $ olcNssPamMaxUid $ olcNssPamSession $ "
+                              "olcNssPamTemplateAD $ olcNssPamTemplate ) )",
+                              Cft_Overlay, nsscfg},
+                             {NULL, 0, NULL}};
 
 static int nss_cf_gen(ConfigArgs *c) {
   slap_overinst *on = (slap_overinst *)c->bi;
@@ -654,8 +621,7 @@ static int nss_cf_gen(ConfigArgs *c) {
         mi = &ni->ni_maps[i];
 
         /* ignore all-default services */
-        if (mi->mi_scope == LDAP_SCOPE_DEFAULT &&
-            bvmatch(&mi->mi_filter, &mi->mi_filter0) &&
+        if (mi->mi_scope == LDAP_SCOPE_DEFAULT && bvmatch(&mi->mi_filter, &mi->mi_filter0) &&
             BER_BVISNULL(&mi->mi_base))
           continue;
 
@@ -663,15 +629,12 @@ static int nss_cf_gen(ConfigArgs *c) {
           base = ni->ni_db->be_nsuffix[0];
         else
           base = mi->mi_base;
-        ldap_pvt_scope2bv(mi->mi_scope == LDAP_SCOPE_DEFAULT
-                              ? LDAP_SCOPE_SUBTREE
-                              : mi->mi_scope,
-                          &scope);
-        ssd.bv_len = STRLENOF(" ldap:///???") + nss_svcs[i].word.bv_len +
-                     base.bv_len + scope.bv_len + mi->mi_filter.bv_len;
+        ldap_pvt_scope2bv(mi->mi_scope == LDAP_SCOPE_DEFAULT ? LDAP_SCOPE_SUBTREE : mi->mi_scope, &scope);
+        ssd.bv_len =
+            STRLENOF(" ldap:///???") + nss_svcs[i].word.bv_len + base.bv_len + scope.bv_len + mi->mi_filter.bv_len;
         ssd.bv_val = ch_malloc(ssd.bv_len + 1);
-        sprintf(ssd.bv_val, "%s ldap:///%s??%s?%s", nss_svcs[i].word.bv_val,
-                base.bv_val, scope.bv_val, mi->mi_filter.bv_val);
+        sprintf(ssd.bv_val, "%s ldap:///%s??%s?%s", nss_svcs[i].word.bv_val, base.bv_val, scope.bv_val,
+                mi->mi_filter.bv_val);
         ber_bvarray_add(&c->rvalue_vals, &ssd);
         rc = 0;
       }
@@ -685,11 +648,10 @@ static int nss_cf_gen(ConfigArgs *c) {
           if (ber_bvstrcasecmp(&mi->mi_attrkeys[j], &mi->mi_attrs[j].an_name)) {
             struct berval map;
 
-            map.bv_len = nss_svcs[i].word.bv_len + mi->mi_attrkeys[j].bv_len +
-                         mi->mi_attrs[j].an_desc->ad_cname.bv_len + 2;
+            map.bv_len =
+                nss_svcs[i].word.bv_len + mi->mi_attrkeys[j].bv_len + mi->mi_attrs[j].an_desc->ad_cname.bv_len + 2;
             map.bv_val = ch_malloc(map.bv_len + 1);
-            sprintf(map.bv_val, "%s %s %s", nss_svcs[i].word.bv_val,
-                    mi->mi_attrkeys[j].bv_val,
+            sprintf(map.bv_val, "%s %s %s", nss_svcs[i].word.bv_val, mi->mi_attrkeys[j].bv_val,
                     mi->mi_attrs[j].an_desc->ad_cname.bv_val);
             ber_bvarray_add(&c->rvalue_vals, &map);
             rc = 0;
@@ -741,8 +703,7 @@ static int nss_cf_gen(ConfigArgs *c) {
         break;
       }
       /* Host part, attrs, and extensions must be empty */
-      if ((lud->lud_host && *lud->lud_host) || lud->lud_attrs ||
-          lud->lud_exts) {
+      if ((lud->lud_host && *lud->lud_host) || lud->lud_attrs || lud->lud_exts) {
         rc = 1;
         break;
       }
@@ -787,8 +748,7 @@ static int nss_cf_gen(ConfigArgs *c) {
         const char *text;
         i = slap_str2ad("host", &nssov_pam_host_ad, &text);
         if (i != LDAP_SUCCESS) {
-          snprintf(c->cr_msg, sizeof(c->cr_msg), "nssov: host attr unknown: %s",
-                   text);
+          snprintf(c->cr_msg, sizeof(c->cr_msg), "nssov: host attr unknown: %s", text);
           Debug(LDAP_DEBUG_ANY, "%s\n", c->cr_msg);
           rc = 1;
           break;
@@ -798,8 +758,7 @@ static int nss_cf_gen(ConfigArgs *c) {
         const char *text;
         i = slap_str2ad("authorizedService", &nssov_pam_svc_ad, &text);
         if (i != LDAP_SUCCESS) {
-          snprintf(c->cr_msg, sizeof(c->cr_msg),
-                   "nssov: authorizedService attr unknown: %s", text);
+          snprintf(c->cr_msg, sizeof(c->cr_msg), "nssov: authorizedService attr unknown: %s", text);
           Debug(LDAP_DEBUG_ANY, "%s\n", c->cr_msg);
           rc = 1;
           break;
@@ -882,10 +841,8 @@ static int nssov_db_open(BackendDB *be, ConfigReply *cr) {
       /* skip attrs we already validated */
       if (mi->mi_attrs[j].an_desc)
         continue;
-      if (slap_bv2ad(&mi->mi_attrs[j].an_name, &mi->mi_attrs[j].an_desc,
-                     &text)) {
-        Debug(LDAP_DEBUG_ANY, "nssov: invalid attr \"%s\": %s\n",
-              mi->mi_attrs[j].an_name.bv_val, text);
+      if (slap_bv2ad(&mi->mi_attrs[j].an_name, &mi->mi_attrs[j].an_desc, &text)) {
+        Debug(LDAP_DEBUG_ANY, "nssov: invalid attr \"%s\": %s\n", mi->mi_attrs[j].an_name.bv_val, text);
         return -1;
       }
     }
@@ -902,36 +859,30 @@ static int nssov_db_open(BackendDB *be, ConfigReply *cr) {
       return -1;
     }
   }
-  if ((ni->ni_pam_opts & (NI_PAM_USERSVC | NI_PAM_HOSTSVC)) &&
-      !nssov_pam_svc_ad) {
+  if ((ni->ni_pam_opts & (NI_PAM_USERSVC | NI_PAM_HOSTSVC)) && !nssov_pam_svc_ad) {
     const char *text;
     i = slap_str2ad("authorizedService", &nssov_pam_svc_ad, &text);
     if (i != LDAP_SUCCESS) {
-      Debug(LDAP_DEBUG_ANY, "nssov: authorizedService attr unknown: %s\n",
-            text);
+      Debug(LDAP_DEBUG_ANY, "nssov: authorizedService attr unknown: %s\n", text);
       return -1;
     }
   }
   if (slapMode & SLAP_SERVER_MODE) {
     /* make sure /var/run/nslcd exists */
     if (mkdir(NSLCD_PATH, (mode_t)0555)) {
-      Debug(LDAP_DEBUG_TRACE, "nssov: mkdir(%s) failed (ignored): %s\n",
-            NSLCD_PATH, strerror(errno));
+      Debug(LDAP_DEBUG_TRACE, "nssov: mkdir(%s) failed (ignored): %s\n", NSLCD_PATH, strerror(errno));
     } else {
       Debug(LDAP_DEBUG_TRACE, "nssov: created %s\n", NSLCD_PATH);
     }
 
     /* create a socket */
     if ((sock = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
-      Debug(LDAP_DEBUG_ANY, "nssov: cannot create socket: %s\n",
-            strerror(errno));
+      Debug(LDAP_DEBUG_ANY, "nssov: cannot create socket: %s\n", strerror(errno));
       return -1;
     }
     /* remove existing named socket */
     if (unlink(NSLCD_SOCKET) < 0) {
-      Debug(LDAP_DEBUG_TRACE,
-            "nssov: unlink() of " NSLCD_SOCKET " failed (ignored): %s\n",
-            strerror(errno));
+      Debug(LDAP_DEBUG_TRACE, "nssov: unlink() of " NSLCD_SOCKET " failed (ignored): %s\n", strerror(errno));
     }
     /* create socket address structure */
     memset(&addr, 0, sizeof(struct sockaddr_un));
@@ -940,20 +891,16 @@ static int nssov_db_open(BackendDB *be, ConfigReply *cr) {
     addr.sun_path[sizeof(addr.sun_path) - 1] = '\0';
     /* bind to the named socket */
     if (bind(sock, (struct sockaddr *)&addr, sizeof(struct sockaddr_un))) {
-      Debug(LDAP_DEBUG_ANY, "nssov: bind() to " NSLCD_SOCKET " failed: %s",
-            strerror(errno));
+      Debug(LDAP_DEBUG_ANY, "nssov: bind() to " NSLCD_SOCKET " failed: %s", strerror(errno));
       if (close(sock))
-        Debug(LDAP_DEBUG_ANY, "nssov: problem closing socket: %s",
-              strerror(errno));
+        Debug(LDAP_DEBUG_ANY, "nssov: problem closing socket: %s", strerror(errno));
       return -1;
     }
     /* close the file descriptor on exit */
     if (fcntl(sock, F_SETFD, FD_CLOEXEC) < 0) {
-      Debug(LDAP_DEBUG_ANY, "nssov: fcntl(F_SETFL,O_NONBLOCK) failed: %s",
-            strerror(errno));
+      Debug(LDAP_DEBUG_ANY, "nssov: fcntl(F_SETFL,O_NONBLOCK) failed: %s", strerror(errno));
       if (close(sock))
-        Debug(LDAP_DEBUG_ANY, "nssov: problem closing socket: %s",
-              strerror(errno));
+        Debug(LDAP_DEBUG_ANY, "nssov: problem closing socket: %s", strerror(errno));
       return -1;
     }
     /* set permissions of socket so anybody can do requests */
@@ -964,16 +911,14 @@ static int nssov_db_open(BackendDB *be, ConfigReply *cr) {
     if (chmod(NSLCD_SOCKET, (mode_t)0666)) {
       Debug(LDAP_DEBUG_ANY, "nssov: chmod(0666) failed: %s", strerror(errno));
       if (close(sock))
-        Debug(LDAP_DEBUG_ANY, "nssov: problem closing socket: %s",
-              strerror(errno));
+        Debug(LDAP_DEBUG_ANY, "nssov: problem closing socket: %s", strerror(errno));
       return -1;
     }
     /* start listening for connections */
     if (listen(sock, SOMAXCONN) < 0) {
       Debug(LDAP_DEBUG_ANY, "nssov: listen() failed: %s", strerror(errno));
       if (close(sock))
-        Debug(LDAP_DEBUG_ANY, "nssov: problem closing socket: %s",
-              strerror(errno));
+        Debug(LDAP_DEBUG_ANY, "nssov: problem closing socket: %s", strerror(errno));
       return -1;
     }
     ni->ni_socket = sock;
@@ -991,15 +936,12 @@ static int nssov_db_close(BackendDB *be, ConfigReply *cr) {
     /* close socket if it's still in use */
     if (ni->ni_socket >= 0) {
       if (close(ni->ni_socket))
-        Debug(LDAP_DEBUG_ANY, "problem closing server socket (ignored): %s",
-              strerror(errno));
+        Debug(LDAP_DEBUG_ANY, "problem closing server socket (ignored): %s", strerror(errno));
       ni->ni_socket = -1;
     }
     /* remove existing named socket */
     if (unlink(NSLCD_SOCKET) < 0) {
-      Debug(LDAP_DEBUG_TRACE,
-            "unlink() of " NSLCD_SOCKET " failed (ignored): %s",
-            strerror(errno));
+      Debug(LDAP_DEBUG_TRACE, "unlink() of " NSLCD_SOCKET " failed (ignored): %s", strerror(errno));
     }
   }
   return 0;
@@ -1026,7 +968,5 @@ int nssov_initialize(void) {
 }
 
 #if SLAPD_OVER_NSSOV == SLAPD_MOD_DYNAMIC
-SLAP_MODULE_ENTRY(nssov, modinit)(int argc, char *argv[]) {
-  return nssov_initialize();
-}
+SLAP_MODULE_ENTRY(nssov, modinit)(int argc, char *argv[]) { return nssov_initialize(); }
 #endif

@@ -29,13 +29,11 @@ static int put_simple_vrFilter(BerElement *ber, char *str);
 
 static int put_vrFilter_list(BerElement *ber, char *str);
 
-static char *put_complex_filter(BerElement *ber, char *str, ber_tag_t tag,
-                                int not);
+static char *put_complex_filter(BerElement *ber, char *str, ber_tag_t tag, int not);
 
 static int put_simple_filter(BerElement *ber, char *str);
 
-static int put_substring_filter(BerElement *ber, char *type, char *str,
-                                char *nextstar);
+static int put_substring_filter(BerElement *ber, char *type, char *str, char *nextstar);
 
 static int put_filter_list(BerElement *ber, char *str, ber_tag_t tag);
 
@@ -260,8 +258,7 @@ ber_slen_t ldap_pvt_filter_value_unescape(char *fval) {
   return r;
 }
 
-static char *put_complex_filter(BerElement *ber, char *str, ber_tag_t tag,
-                                int not) {
+static char *put_complex_filter(BerElement *ber, char *str, ber_tag_t tag, int not) {
   char *next;
 
   /*
@@ -682,8 +679,7 @@ done:
   return rc;
 }
 
-static int put_substring_filter(BerElement *ber, char *type, char *val,
-                                char *nextstar) {
+static int put_substring_filter(BerElement *ber, char *type, char *val, char *nextstar) {
   int gotstar = 0;
   ber_tag_t ftype = LDAP_FILTER_SUBSTRINGS;
 

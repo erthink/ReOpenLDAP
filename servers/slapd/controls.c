@@ -82,8 +82,7 @@ struct slap_control {
   LDAP_SLIST_ENTRY(slap_control) sc_next;
 };
 
-static LDAP_SLIST_HEAD(ControlsList, slap_control)
-    controls_list = LDAP_SLIST_HEAD_INITIALIZER(&controls_list);
+static LDAP_SLIST_HEAD(ControlsList, slap_control) controls_list = LDAP_SLIST_HEAD_INITIALIZER(&controls_list);
 
 /*
  * all known request control OIDs should be added to this list
@@ -102,103 +101,76 @@ static LDAP_SLIST_HEAD(ControlsList, slap_control)
 const char *slap_known_controls[SLAP_MAX_CIDS + 1];
 static int num_known_controls = 1;
 
-static const char *proxy_authz_extops[] = {
-    LDAP_EXOP_MODIFY_PASSWD, LDAP_EXOP_WHO_AM_I, LDAP_EXOP_REFRESH, NULL};
+static const char *proxy_authz_extops[] = {LDAP_EXOP_MODIFY_PASSWD, LDAP_EXOP_WHO_AM_I, LDAP_EXOP_REFRESH, NULL};
 
 static const char *manageDSAit_extops[] = {LDAP_EXOP_REFRESH, NULL};
 
 #ifdef SLAP_CONTROL_X_SESSION_TRACKING
-static const char *session_tracking_extops[] = {
-    LDAP_EXOP_MODIFY_PASSWD, LDAP_EXOP_WHO_AM_I, LDAP_EXOP_REFRESH, NULL};
+static const char *session_tracking_extops[] = {LDAP_EXOP_MODIFY_PASSWD, LDAP_EXOP_WHO_AM_I, LDAP_EXOP_REFRESH, NULL};
 #endif /* SLAP_CONTROL_X_SESSION_TRACKING */
 
 static struct slap_control control_defs[] = {
     {LDAP_CONTROL_ASSERT, (int)offsetof(struct slap_control_ids, sc_assert),
-     SLAP_CTRL_UPDATE | SLAP_CTRL_COMPARE | SLAP_CTRL_SEARCH, NULL, NULL,
-     parseAssert, LDAP_SLIST_ENTRY_INITIALIZER(next)},
+     SLAP_CTRL_UPDATE | SLAP_CTRL_COMPARE | SLAP_CTRL_SEARCH, NULL, NULL, parseAssert,
+     LDAP_SLIST_ENTRY_INITIALIZER(next)},
     {LDAP_CONTROL_PRE_READ, (int)offsetof(struct slap_control_ids, sc_preRead),
-     SLAP_CTRL_DELETE | SLAP_CTRL_MODIFY | SLAP_CTRL_RENAME, NULL, NULL,
-     parsePreRead, LDAP_SLIST_ENTRY_INITIALIZER(next)},
-    {LDAP_CONTROL_POST_READ,
-     (int)offsetof(struct slap_control_ids, sc_postRead),
-     SLAP_CTRL_ADD | SLAP_CTRL_MODIFY | SLAP_CTRL_RENAME, NULL, NULL,
-     parsePostRead, LDAP_SLIST_ENTRY_INITIALIZER(next)},
-    {LDAP_CONTROL_VALUESRETURNFILTER,
-     (int)offsetof(struct slap_control_ids, sc_valuesReturnFilter),
-     SLAP_CTRL_GLOBAL | SLAP_CTRL_SEARCH, NULL, NULL, parseValuesReturnFilter,
+     SLAP_CTRL_DELETE | SLAP_CTRL_MODIFY | SLAP_CTRL_RENAME, NULL, NULL, parsePreRead,
      LDAP_SLIST_ENTRY_INITIALIZER(next)},
-    {LDAP_CONTROL_PAGEDRESULTS,
-     (int)offsetof(struct slap_control_ids, sc_pagedResults), SLAP_CTRL_SEARCH,
-     NULL, NULL, parsePagedResults, LDAP_SLIST_ENTRY_INITIALIZER(next)},
+    {LDAP_CONTROL_POST_READ, (int)offsetof(struct slap_control_ids, sc_postRead),
+     SLAP_CTRL_ADD | SLAP_CTRL_MODIFY | SLAP_CTRL_RENAME, NULL, NULL, parsePostRead,
+     LDAP_SLIST_ENTRY_INITIALIZER(next)},
+    {LDAP_CONTROL_VALUESRETURNFILTER, (int)offsetof(struct slap_control_ids, sc_valuesReturnFilter),
+     SLAP_CTRL_GLOBAL | SLAP_CTRL_SEARCH, NULL, NULL, parseValuesReturnFilter, LDAP_SLIST_ENTRY_INITIALIZER(next)},
+    {LDAP_CONTROL_PAGEDRESULTS, (int)offsetof(struct slap_control_ids, sc_pagedResults), SLAP_CTRL_SEARCH, NULL, NULL,
+     parsePagedResults, LDAP_SLIST_ENTRY_INITIALIZER(next)},
 #ifdef SLAP_CONTROL_X_SORTEDRESULTS
-    {LDAP_CONTROL_SORTREQUEST,
-     (int)offsetof(struct slap_control_ids, sc_sortedResults),
-     SLAP_CTRL_GLOBAL | SLAP_CTRL_SEARCH | SLAP_CTRL_HIDE, NULL, NULL,
-     parseSortedResults, LDAP_SLIST_ENTRY_INITIALIZER(next)},
+    {LDAP_CONTROL_SORTREQUEST, (int)offsetof(struct slap_control_ids, sc_sortedResults),
+     SLAP_CTRL_GLOBAL | SLAP_CTRL_SEARCH | SLAP_CTRL_HIDE, NULL, NULL, parseSortedResults,
+     LDAP_SLIST_ENTRY_INITIALIZER(next)},
 #endif /* SLAP_CONTROL_X_SORTEDRESULTS */
-    {LDAP_CONTROL_X_DOMAIN_SCOPE,
-     (int)offsetof(struct slap_control_ids, sc_domainScope),
-     SLAP_CTRL_GLOBAL | SLAP_CTRL_SEARCH | SLAP_CTRL_HIDE, NULL, NULL,
-     parseDomainScope, LDAP_SLIST_ENTRY_INITIALIZER(next)},
-    {LDAP_CONTROL_DONTUSECOPY,
-     (int)offsetof(struct slap_control_ids, sc_dontUseCopy),
-     SLAP_CTRL_GLOBAL | SLAP_CTRL_INTROGATE, NULL, NULL, parseDontUseCopy,
+    {LDAP_CONTROL_X_DOMAIN_SCOPE, (int)offsetof(struct slap_control_ids, sc_domainScope),
+     SLAP_CTRL_GLOBAL | SLAP_CTRL_SEARCH | SLAP_CTRL_HIDE, NULL, NULL, parseDomainScope,
      LDAP_SLIST_ENTRY_INITIALIZER(next)},
-    {LDAP_CONTROL_X_PERMISSIVE_MODIFY,
-     (int)offsetof(struct slap_control_ids, sc_permissiveModify),
-     SLAP_CTRL_MODIFY | SLAP_CTRL_HIDE, NULL, NULL, parsePermissiveModify,
-     LDAP_SLIST_ENTRY_INITIALIZER(next)},
+    {LDAP_CONTROL_DONTUSECOPY, (int)offsetof(struct slap_control_ids, sc_dontUseCopy),
+     SLAP_CTRL_GLOBAL | SLAP_CTRL_INTROGATE, NULL, NULL, parseDontUseCopy, LDAP_SLIST_ENTRY_INITIALIZER(next)},
+    {LDAP_CONTROL_X_PERMISSIVE_MODIFY, (int)offsetof(struct slap_control_ids, sc_permissiveModify),
+     SLAP_CTRL_MODIFY | SLAP_CTRL_HIDE, NULL, NULL, parsePermissiveModify, LDAP_SLIST_ENTRY_INITIALIZER(next)},
 #ifdef SLAP_CONTROL_X_TREE_DELETE
-    {LDAP_CONTROL_X_TREE_DELETE,
-     (int)offsetof(struct slap_control_ids, sc_treeDelete),
-     SLAP_CTRL_DELETE | SLAP_CTRL_HIDE, NULL, NULL, parseTreeDelete,
-     LDAP_SLIST_ENTRY_INITIALIZER(next)},
+    {LDAP_CONTROL_X_TREE_DELETE, (int)offsetof(struct slap_control_ids, sc_treeDelete),
+     SLAP_CTRL_DELETE | SLAP_CTRL_HIDE, NULL, NULL, parseTreeDelete, LDAP_SLIST_ENTRY_INITIALIZER(next)},
 #endif /* SLAP_CONTROL_X_TREE_DELETE */
-    {LDAP_CONTROL_X_SEARCH_OPTIONS,
-     (int)offsetof(struct slap_control_ids, sc_searchOptions),
-     SLAP_CTRL_GLOBAL | SLAP_CTRL_SEARCH | SLAP_CTRL_HIDE, NULL, NULL,
-     parseSearchOptions, LDAP_SLIST_ENTRY_INITIALIZER(next)},
-    {LDAP_CONTROL_SUBENTRIES,
-     (int)offsetof(struct slap_control_ids, sc_subentries), SLAP_CTRL_SEARCH,
-     NULL, NULL, parseSubentries, LDAP_SLIST_ENTRY_INITIALIZER(next)},
-    {LDAP_CONTROL_NOOP, (int)offsetof(struct slap_control_ids, sc_noOp),
-     SLAP_CTRL_ACCESS | SLAP_CTRL_HIDE, NULL, NULL, parseNoOp,
+    {LDAP_CONTROL_X_SEARCH_OPTIONS, (int)offsetof(struct slap_control_ids, sc_searchOptions),
+     SLAP_CTRL_GLOBAL | SLAP_CTRL_SEARCH | SLAP_CTRL_HIDE, NULL, NULL, parseSearchOptions,
      LDAP_SLIST_ENTRY_INITIALIZER(next)},
+    {LDAP_CONTROL_SUBENTRIES, (int)offsetof(struct slap_control_ids, sc_subentries), SLAP_CTRL_SEARCH, NULL, NULL,
+     parseSubentries, LDAP_SLIST_ENTRY_INITIALIZER(next)},
+    {LDAP_CONTROL_NOOP, (int)offsetof(struct slap_control_ids, sc_noOp), SLAP_CTRL_ACCESS | SLAP_CTRL_HIDE, NULL, NULL,
+     parseNoOp, LDAP_SLIST_ENTRY_INITIALIZER(next)},
     {LDAP_CONTROL_RELAX, (int)offsetof(struct slap_control_ids, sc_relax),
-     SLAP_CTRL_GLOBAL | SLAP_CTRL_UPDATE | SLAP_CTRL_HIDE, NULL, NULL,
-     parseRelax, LDAP_SLIST_ENTRY_INITIALIZER(next)},
+     SLAP_CTRL_GLOBAL | SLAP_CTRL_UPDATE | SLAP_CTRL_HIDE, NULL, NULL, parseRelax, LDAP_SLIST_ENTRY_INITIALIZER(next)},
 #ifdef LDAP_X_TXN
-    {LDAP_CONTROL_X_TXN_SPEC,
-     (int)offsetof(struct slap_control_ids, sc_txnSpec),
-     SLAP_CTRL_UPDATE | SLAP_CTRL_HIDE, NULL, NULL, txn_spec_ctrl,
-     LDAP_SLIST_ENTRY_INITIALIZER(next)},
+    {LDAP_CONTROL_X_TXN_SPEC, (int)offsetof(struct slap_control_ids, sc_txnSpec), SLAP_CTRL_UPDATE | SLAP_CTRL_HIDE,
+     NULL, NULL, txn_spec_ctrl, LDAP_SLIST_ENTRY_INITIALIZER(next)},
 #endif /* LDAP_X_TXN */
-    {LDAP_CONTROL_MANAGEDSAIT,
-     (int)offsetof(struct slap_control_ids, sc_manageDSAit), SLAP_CTRL_ACCESS,
-     manageDSAit_extops, NULL, parseManageDSAit,
+    {LDAP_CONTROL_MANAGEDSAIT, (int)offsetof(struct slap_control_ids, sc_manageDSAit), SLAP_CTRL_ACCESS,
+     manageDSAit_extops, NULL, parseManageDSAit, LDAP_SLIST_ENTRY_INITIALIZER(next)},
+    {LDAP_CONTROL_PROXY_AUTHZ, (int)offsetof(struct slap_control_ids, sc_proxyAuthz),
+     SLAP_CTRL_GLOBAL | SLAP_CTRL_ACCESS, proxy_authz_extops, NULL, parseProxyAuthz,
      LDAP_SLIST_ENTRY_INITIALIZER(next)},
-    {LDAP_CONTROL_PROXY_AUTHZ,
-     (int)offsetof(struct slap_control_ids, sc_proxyAuthz),
-     SLAP_CTRL_GLOBAL | SLAP_CTRL_ACCESS, proxy_authz_extops, NULL,
-     parseProxyAuthz, LDAP_SLIST_ENTRY_INITIALIZER(next)},
 #ifdef SLAP_CONTROL_X_SESSION_TRACKING
-    {LDAP_CONTROL_X_SESSION_TRACKING,
-     (int)offsetof(struct slap_control_ids, sc_sessionTracking),
-     SLAP_CTRL_GLOBAL | SLAP_CTRL_ACCESS | SLAP_CTRL_BIND | SLAP_CTRL_HIDE,
-     session_tracking_extops, NULL, parseSessionTracking,
-     LDAP_SLIST_ENTRY_INITIALIZER(next)},
+    {LDAP_CONTROL_X_SESSION_TRACKING, (int)offsetof(struct slap_control_ids, sc_sessionTracking),
+     SLAP_CTRL_GLOBAL | SLAP_CTRL_ACCESS | SLAP_CTRL_BIND | SLAP_CTRL_HIDE, session_tracking_extops, NULL,
+     parseSessionTracking, LDAP_SLIST_ENTRY_INITIALIZER(next)},
 #endif /* SLAP_CONTROL_X_SESSION_TRACKING*/
 #ifdef SLAP_CONTROL_X_WHATFAILED
-    {LDAP_CONTROL_X_WHATFAILED,
-     (int)offsetof(struct slap_control_ids, sc_whatFailed),
-     SLAP_CTRL_GLOBAL | SLAP_CTRL_ACCESS | SLAP_CTRL_HIDE, NULL, NULL,
-     parseWhatFailed, LDAP_SLIST_ENTRY_INITIALIZER(next)},
+    {LDAP_CONTROL_X_WHATFAILED, (int)offsetof(struct slap_control_ids, sc_whatFailed),
+     SLAP_CTRL_GLOBAL | SLAP_CTRL_ACCESS | SLAP_CTRL_HIDE, NULL, NULL, parseWhatFailed,
+     LDAP_SLIST_ENTRY_INITIALIZER(next)},
 #endif /* SLAP_CONTROL_X_WHATFAILED */
 #ifdef SLAP_CONTROL_X_LAZY_COMMIT
-    {LDAP_CONTROL_X_LAZY_COMMIT,
-     (int)offsetof(struct slap_control_ids, sc_lazyCommit),
-     SLAP_CTRL_GLOBAL | SLAP_CTRL_ACCESS | SLAP_CTRL_HIDE, NULL, NULL,
-     parseLazyCommit, LDAP_SLIST_ENTRY_INITIALIZER(next)},
+    {LDAP_CONTROL_X_LAZY_COMMIT, (int)offsetof(struct slap_control_ids, sc_lazyCommit),
+     SLAP_CTRL_GLOBAL | SLAP_CTRL_ACCESS | SLAP_CTRL_HIDE, NULL, NULL, parseLazyCommit,
+     LDAP_SLIST_ENTRY_INITIALIZER(next)},
 #endif /* SLAP_CONTROL_X_LAZY_COMMIT */
 
     {NULL, 0, 0, NULL, 0, NULL, LDAP_SLIST_ENTRY_INITIALIZER(next)}};
@@ -214,10 +186,8 @@ static struct slap_control *find_ctrl(const char *oid);
  * NOTE: if flags == 1 the control is replaced if already registered;
  * otherwise registering an already registered control is not allowed.
  */
-int register_supported_control2(const char *controloid, slap_mask_t controlmask,
-                                const char *const *controlexops,
-                                SLAP_CTRL_PARSE_FN *controlparsefn,
-                                unsigned flags, int *controlcid) {
+int register_supported_control2(const char *controloid, slap_mask_t controlmask, const char *const *controlexops,
+                                SLAP_CTRL_PARSE_FN *controlparsefn, unsigned flags, int *controlcid) {
   struct slap_control *sc = NULL;
   int i;
   BerVarray extendedopsbv = NULL;
@@ -238,8 +208,7 @@ int register_supported_control2(const char *controloid, slap_mask_t controlmask,
   for (i = 0; slap_known_controls[i]; i++) {
     if (strcmp(controloid, slap_known_controls[i]) == 0) {
       if (flags == 1) {
-        Debug(LDAP_DEBUG_TRACE, "Control %s already registered; replacing.\n",
-              controloid);
+        Debug(LDAP_DEBUG_TRACE, "Control %s already registered; replacing.\n", controloid);
         /* (find and) replace existing handler */
         sc = find_ctrl(controloid);
         assert(sc != NULL);
@@ -358,15 +327,13 @@ int register_control_exop(const char *controloid, char *exopoid) {
     return LDAP_PARAM_ERROR;
   }
 
-  for (i = 0; sc->sc_extendedopsbv && !BER_BVISNULL(&sc->sc_extendedopsbv[i]);
-       i++) {
+  for (i = 0; sc->sc_extendedopsbv && !BER_BVISNULL(&sc->sc_extendedopsbv[i]); i++) {
     if (strcmp(exopoid, sc->sc_extendedopsbv[i].bv_val) == 0) {
       return LDAP_SUCCESS;
     }
   }
 
-  extendedopsbv =
-      ber_memrealloc(sc->sc_extendedopsbv, (i + 2) * sizeof(struct berval));
+  extendedopsbv = ber_memrealloc(sc->sc_extendedopsbv, (i + 2) * sizeof(struct berval));
   if (extendedopsbv == NULL) {
     return LDAP_NO_MEMORY;
   }
@@ -388,9 +355,8 @@ int slap_controls_init(void) {
 
   for (i = 0; control_defs[i].sc_oid != NULL; i++) {
     int *cid = (int *)(((char *)&slap_cids) + control_defs[i].sc_cid);
-    rc = register_supported_control(
-        control_defs[i].sc_oid, control_defs[i].sc_mask,
-        control_defs[i].sc_extendedops, control_defs[i].sc_parse, cid);
+    rc = register_supported_control(control_defs[i].sc_oid, control_defs[i].sc_mask, control_defs[i].sc_extendedops,
+                                    control_defs[i].sc_parse, cid);
     if (rc != LDAP_SUCCESS)
       break;
   }
@@ -422,8 +388,7 @@ void controls_destroy(void) {
  * server.
  */
 int controls_root_dse_info(Entry *e) {
-  AttributeDescription *ad_supportedControl =
-      slap_schema.si_ad_supportedControl;
+  AttributeDescription *ad_supportedControl = slap_schema.si_ad_supportedControl;
   struct berval vals[2];
   struct slap_control *sc;
 
@@ -521,8 +486,7 @@ int slap_global_control(Operation *op, const char *oid, int *cid) {
 
   if (ctrl == NULL) {
     /* should not be reachable */
-    Debug(LDAP_DEBUG_ANY, "slap_global_control: unrecognized control: %s\n",
-          oid);
+    Debug(LDAP_DEBUG_ANY, "slap_global_control: unrecognized control: %s\n", oid);
     return LDAP_CONTROL_NOT_FOUND;
   }
 
@@ -530,8 +494,7 @@ int slap_global_control(Operation *op, const char *oid, int *cid) {
     *cid = ctrl->sc_cid;
 
   if ((ctrl->sc_mask & SLAP_CTRL_GLOBAL) ||
-      ((op->o_tag & LDAP_REQ_SEARCH) &&
-       (ctrl->sc_mask & SLAP_CTRL_GLOBAL_SEARCH))) {
+      ((op->o_tag & LDAP_REQ_SEARCH) && (ctrl->sc_mask & SLAP_CTRL_GLOBAL_SEARCH))) {
     return LDAP_COMPARE_TRUE;
   }
 
@@ -605,8 +568,7 @@ int slap_add_ctrls(Operation *op, SlapReply *rs, LDAPControl **ctrls) {
   return i;
 }
 
-int slap_parse_ctrl(Operation *op, SlapReply *rs, LDAPControl *control,
-                    const char **text) {
+int slap_parse_ctrl(Operation *op, SlapReply *rs, LDAPControl *control, const char **text) {
   struct slap_control *sc;
   int rc = LDAP_SUCCESS;
 
@@ -686,9 +648,7 @@ int slap_parse_ctrl(Operation *op, SlapReply *rs, LDAPControl *control,
   return rc;
 }
 
-int get_ctrls(Operation *op, SlapReply *rs, int sendres) {
-  return get_ctrls2(op, rs, sendres, LDAP_TAG_CONTROLS);
-}
+int get_ctrls(Operation *op, SlapReply *rs, int sendres) { return get_ctrls2(op, rs, sendres, LDAP_TAG_CONTROLS); }
 
 int get_ctrls2(Operation *op, SlapReply *rs, int sendres, ber_tag_t ctag) {
   int nctrls = 0;
@@ -746,8 +706,7 @@ int get_ctrls2(Operation *op, SlapReply *rs, int sendres, ber_tag_t ctag) {
   op->o_ctrls[nctrls] = NULL;
 
   /* step through each element */
-  for (tag = ber_first_element(ber, &len, &opaque); tag != LBER_ERROR;
-       tag = ber_next_element(ber, &len, opaque)) {
+  for (tag = ber_first_element(ber, &len, &opaque); tag != LBER_ERROR; tag = ber_next_element(ber, &len, opaque)) {
     LDAPControl *c;
     LDAPControl **tctrls;
 
@@ -757,8 +716,7 @@ int get_ctrls2(Operation *op, SlapReply *rs, int sendres, ber_tag_t ctag) {
     /* allocate pointer space for current controls (nctrls)
      * + this control + extra NULL
      */
-    tctrls = op->o_tmprealloc(op->o_ctrls, (nctrls + 2) * sizeof(LDAPControl *),
-                              op->o_tmpmemctx);
+    tctrls = op->o_tmprealloc(op->o_ctrls, (nctrls + 2) * sizeof(LDAPControl *), op->o_tmpmemctx);
 
 #if 0
 		if( tctrls == NULL ) {
@@ -789,8 +747,7 @@ int get_ctrls2(Operation *op, SlapReply *rs, int sendres, ber_tag_t ctag) {
       goto return_results;
 
     } else if (c->ldctl_oid == NULL) {
-      Debug(LDAP_DEBUG_TRACE, "get_ctrls: conn %lu got empty OID.\n",
-            op->o_connid);
+      Debug(LDAP_DEBUG_TRACE, "get_ctrls: conn %lu got empty OID.\n", op->o_connid);
 
       slap_free_ctrls(op, op->o_ctrls);
       op->o_ctrls = NULL;
@@ -834,8 +791,7 @@ int get_ctrls2(Operation *op, SlapReply *rs, int sendres, ber_tag_t ctag) {
       }
     }
 
-    Debug(LDAP_DEBUG_TRACE, "=> get_ctrls: oid=\"%s\" (%scritical)\n",
-          c->ldctl_oid, c->ldctl_iscritical ? "" : "non");
+    Debug(LDAP_DEBUG_TRACE, "=> get_ctrls: oid=\"%s\" (%scritical)\n", c->ldctl_oid, c->ldctl_iscritical ? "" : "non");
 
     rs->sr_err = slap_parse_ctrl(op, rs, c, &rs->sr_text);
     if (rs->sr_err != LDAP_SUCCESS) {
@@ -847,8 +803,7 @@ int get_ctrls2(Operation *op, SlapReply *rs, int sendres, ber_tag_t ctag) {
   }
 
 return_results:
-  Debug(LDAP_DEBUG_TRACE, "<= get_ctrls: n=%d rc=%d err=\"%s\"\n", nctrls,
-        rs->sr_err, rs->sr_text ? rs->sr_text : "");
+  Debug(LDAP_DEBUG_TRACE, "<= get_ctrls: n=%d rc=%d err=\"%s\"\n", nctrls, rs->sr_err, rs->sr_text ? rs->sr_text : "");
 
   if (sendres && rs->sr_err != LDAP_SUCCESS) {
     if (rs->sr_err == SLAPD_DISCONNECT) {
@@ -927,15 +882,13 @@ return_results:
   return rs->sr_err;
 }
 
-int slap_remove_control(Operation *op, SlapReply *rs, int ctrl,
-                        BI_chk_controls fnc) {
+int slap_remove_control(Operation *op, SlapReply *rs, int ctrl, BI_chk_controls fnc) {
   int i, j;
 
   switch (op->o_ctrlflag[ctrl]) {
   case SLAP_CONTROL_NONCRITICAL:
     for (i = 0, j = -1; op->o_ctrls[i] != NULL; i++) {
-      if (strcmp(op->o_ctrls[i]->ldctl_oid, slap_known_controls[ctrl - 1]) ==
-          0) {
+      if (strcmp(op->o_ctrls[i]->ldctl_oid, slap_known_controls[ctrl - 1]) == 0) {
         j = i;
       }
     }
@@ -952,8 +905,7 @@ int slap_remove_control(Operation *op, SlapReply *rs, int ctrl,
     op->o_tmpfree(op->o_ctrls[j], op->o_tmpmemctx);
 
     if (i > 1) {
-      memmove(&op->o_ctrls[j], &op->o_ctrls[j + 1],
-              (i - j) * sizeof(LDAPControl *));
+      memmove(&op->o_ctrls[j], &op->o_ctrls[j + 1], (i - j) * sizeof(LDAPControl *));
 
     } else {
       op->o_tmpfree(op->o_ctrls, op->o_tmpmemctx);
@@ -1003,14 +955,12 @@ static int parseDontUseCopy(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
     return LDAP_PROTOCOL_ERROR;
   }
 
-  if ((global_disallows & SLAP_DISALLOW_DONTUSECOPY_N_CRIT) &&
-      !ctrl->ldctl_iscritical) {
+  if ((global_disallows & SLAP_DISALLOW_DONTUSECOPY_N_CRIT) && !ctrl->ldctl_iscritical) {
     rs->sr_text = "dontUseCopy criticality of FALSE not allowed";
     return LDAP_PROTOCOL_ERROR;
   }
 
-  op->o_dontUseCopy =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_dontUseCopy = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   return LDAP_SUCCESS;
 }
@@ -1026,8 +976,7 @@ static int parseRelax(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
     return LDAP_PROTOCOL_ERROR;
   }
 
-  op->o_relax =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_relax = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   return LDAP_SUCCESS;
 }
@@ -1043,8 +992,7 @@ static int parseManageDSAit(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
     return LDAP_PROTOCOL_ERROR;
   }
 
-  op->o_managedsait =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_managedsait = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   return LDAP_SUCCESS;
 }
@@ -1063,28 +1011,23 @@ static int parseProxyAuthz(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
     return LDAP_PROTOCOL_ERROR;
   }
 
-  if ((global_disallows & SLAP_DISALLOW_PROXY_AUTHZ_N_CRIT) &&
-      !ctrl->ldctl_iscritical) {
+  if ((global_disallows & SLAP_DISALLOW_PROXY_AUTHZ_N_CRIT) && !ctrl->ldctl_iscritical) {
     rs->sr_text = "proxied authorization criticality of FALSE not allowed";
     return LDAP_PROTOCOL_ERROR;
   }
 
-  if (!(global_allows & SLAP_ALLOW_PROXY_AUTHZ_ANON) &&
-      BER_BVISEMPTY(&op->o_ndn)) {
+  if (!(global_allows & SLAP_ALLOW_PROXY_AUTHZ_ANON) && BER_BVISEMPTY(&op->o_ndn)) {
     rs->sr_text = "anonymous proxied authorization not allowed";
     return LDAP_PROXIED_AUTHORIZATION_DENIED;
   }
 
-  op->o_proxy_authz =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_proxy_authz = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
-  Debug(LDAP_DEBUG_ARGS, "parseProxyAuthz: conn %lu authzid=\"%s\"\n",
-        op->o_connid,
+  Debug(LDAP_DEBUG_ARGS, "parseProxyAuthz: conn %lu authzid=\"%s\"\n", op->o_connid,
         ctrl->ldctl_value.bv_len ? ctrl->ldctl_value.bv_val : "anonymous");
 
   if (BER_BVISEMPTY(&ctrl->ldctl_value)) {
-    Debug(LDAP_DEBUG_TRACE, "parseProxyAuthz: conn=%lu anonymous\n",
-          op->o_connid);
+    Debug(LDAP_DEBUG_TRACE, "parseProxyAuthz: conn=%lu anonymous\n", op->o_connid);
 
     /* anonymous */
     if (!BER_BVISNULL(&op->o_ndn)) {
@@ -1100,8 +1043,7 @@ static int parseProxyAuthz(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
     return LDAP_SUCCESS;
   }
 
-  rc = slap_sasl_getdn(op->o_conn, op, &ctrl->ldctl_value, NULL, &dn,
-                       SLAP_GETDN_AUTHZID);
+  rc = slap_sasl_getdn(op->o_conn, op, &ctrl->ldctl_value, NULL, &dn, SLAP_GETDN_AUTHZID);
 
   /* FIXME: empty DN in proxyAuthz control should be legal... */
   if (rc != LDAP_SUCCESS /* || !dn.bv_len */) {
@@ -1112,8 +1054,7 @@ static int parseProxyAuthz(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
     return LDAP_PROXIED_AUTHORIZATION_DENIED;
   }
 
-  Debug(LDAP_DEBUG_TRACE, "parseProxyAuthz: conn=%lu \"%s\"\n", op->o_connid,
-        dn.bv_len ? dn.bv_val : "(NULL)");
+  Debug(LDAP_DEBUG_TRACE, "parseProxyAuthz: conn=%lu \"%s\"\n", op->o_connid, dn.bv_len ? dn.bv_val : "(NULL)");
 
   rc = slap_sasl_authorized(op, &op->o_ndn, &dn);
 
@@ -1132,8 +1073,7 @@ static int parseProxyAuthz(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   op->o_ndn = dn;
   ber_bvreplace(&op->o_dn, &dn);
 
-  Statslog(LDAP_DEBUG_STATS, "%s PROXYAUTHZ dn=\"%s\"\n", op->o_log_prefix,
-           dn.bv_val);
+  Statslog(LDAP_DEBUG_STATS, "%s PROXYAUTHZ dn=\"%s\"\n", op->o_log_prefix, dn.bv_val);
 
   return LDAP_SUCCESS;
 }
@@ -1149,8 +1089,7 @@ static int parseNoOp(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
     return LDAP_PROTOCOL_ERROR;
   }
 
-  op->o_noop =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_noop = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   return LDAP_SUCCESS;
 }
@@ -1260,8 +1199,7 @@ static int parseSortedResults(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
 
   /* blow off parsing the value */
 
-  op->o_sortedresults =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_sortedresults = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   return rc;
 }
@@ -1311,29 +1249,24 @@ static int parseAssert(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   if (DebugTest(LDAP_DEBUG_ARGS)) {
     struct berval fstr = BER_BVNULL;
     filter2bv_x(op, op->o_assertion, &fstr);
-    Debug(LDAP_DEBUG_ARGS, "parseAssert: conn %ld assert: %s\n", op->o_connid,
-          fstr.bv_len ? fstr.bv_val : "empty");
+    Debug(LDAP_DEBUG_ARGS, "parseAssert: conn %ld assert: %s\n", op->o_connid, fstr.bv_len ? fstr.bv_val : "empty");
     op->o_tmpfree(fstr.bv_val, op->o_tmpmemctx);
   }
 
-  op->o_assert =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_assert = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   rs->sr_err = LDAP_SUCCESS;
   return LDAP_SUCCESS;
 }
 
-#define READMSG(post, msg)                                                     \
-  (post ? "postread control: " msg : "preread control: " msg)
+#define READMSG(post, msg) (post ? "postread control: " msg : "preread control: " msg)
 
-static int parseReadAttrs(Operation *op, SlapReply *rs, LDAPControl *ctrl,
-                          int post) {
+static int parseReadAttrs(Operation *op, SlapReply *rs, LDAPControl *ctrl, int post) {
   ber_len_t siz, off, i;
   BerElement *ber;
   AttributeName *an = NULL;
 
-  if ((post && op->o_postread != SLAP_CONTROL_NONE) ||
-      (!post && op->o_preread != SLAP_CONTROL_NONE)) {
+  if ((post && op->o_postread != SLAP_CONTROL_NONE) || (!post && op->o_preread != SLAP_CONTROL_NONE)) {
     rs->sr_text = READMSG(post, "specified multiple times");
     return LDAP_PROTOCOL_ERROR;
   }
@@ -1383,9 +1316,8 @@ static int parseReadAttrs(Operation *op, SlapReply *rs, LDAPControl *ctrl,
 
     } else {
       int j;
-      static struct berval special_attrs[] = {
-          BER_BVC(LDAP_NO_ATTRS), BER_BVC(LDAP_ALL_USER_ATTRIBUTES),
-          BER_BVC(LDAP_ALL_OPERATIONAL_ATTRIBUTES), BER_BVNULL};
+      static struct berval special_attrs[] = {BER_BVC(LDAP_NO_ATTRS), BER_BVC(LDAP_ALL_USER_ATTRIBUTES),
+                                              BER_BVC(LDAP_ALL_OPERATIONAL_ATTRIBUTES), BER_BVNULL};
 
       /* deal with special attribute types */
       for (j = 0; !BER_BVISNULL(&special_attrs[j]); j++) {
@@ -1405,12 +1337,10 @@ static int parseReadAttrs(Operation *op, SlapReply *rs, LDAPControl *ctrl,
 
   if (post) {
     op->o_postread_attrs = an;
-    op->o_postread = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL
-                                            : SLAP_CONTROL_NONCRITICAL;
+    op->o_postread = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
   } else {
     op->o_preread_attrs = an;
-    op->o_preread = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL
-                                           : SLAP_CONTROL_NONCRITICAL;
+    op->o_preread = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
   }
 
 done:
@@ -1418,16 +1348,11 @@ done:
   return rs->sr_err;
 }
 
-static int parsePreRead(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
-  return parseReadAttrs(op, rs, ctrl, 0);
-}
+static int parsePreRead(Operation *op, SlapReply *rs, LDAPControl *ctrl) { return parseReadAttrs(op, rs, ctrl, 0); }
 
-static int parsePostRead(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
-  return parseReadAttrs(op, rs, ctrl, 1);
-}
+static int parsePostRead(Operation *op, SlapReply *rs, LDAPControl *ctrl) { return parseReadAttrs(op, rs, ctrl, 1); }
 
-static int parseValuesReturnFilter(Operation *op, SlapReply *rs,
-                                   LDAPControl *ctrl) {
+static int parseValuesReturnFilter(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   BerElement *ber;
 
   if (op->o_valuesreturnfilter != SLAP_CONTROL_NONE) {
@@ -1451,8 +1376,7 @@ static int parseValuesReturnFilter(Operation *op, SlapReply *rs,
     return LDAP_OTHER;
   }
 
-  rs->sr_err = get_vrFilter(op, ber, (ValuesReturnFilter **)&(op->o_vrFilter),
-                            &rs->sr_text);
+  rs->sr_err = get_vrFilter(op, ber, (ValuesReturnFilter **)&(op->o_vrFilter), &rs->sr_text);
 
   (void)ber_free(ber, 1);
 
@@ -1470,13 +1394,11 @@ static int parseValuesReturnFilter(Operation *op, SlapReply *rs,
     struct berval fstr = BER_BVNULL;
 
     vrFilter2bv(op, op->o_vrFilter, &fstr);
-    Debug(LDAP_DEBUG_ARGS, "	vrFilter: %s\n",
-          fstr.bv_len ? fstr.bv_val : "empty");
+    Debug(LDAP_DEBUG_ARGS, "	vrFilter: %s\n", fstr.bv_len ? fstr.bv_val : "empty");
     op->o_tmpfree(fstr.bv_val, op->o_tmpmemctx);
   }
 
-  op->o_valuesreturnfilter =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_valuesreturnfilter = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   rs->sr_err = LDAP_SUCCESS;
   return LDAP_SUCCESS;
@@ -1489,15 +1411,13 @@ static int parseSubentries(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   }
 
   /* FIXME: should use BER library */
-  if ((ctrl->ldctl_value.bv_len != 3) ||
-      (ctrl->ldctl_value.bv_val[0] != 0x01) ||
+  if ((ctrl->ldctl_value.bv_len != 3) || (ctrl->ldctl_value.bv_val[0] != 0x01) ||
       (ctrl->ldctl_value.bv_val[1] != 0x01)) {
     rs->sr_text = "subentries control value encoding is bogus";
     return LDAP_PROTOCOL_ERROR;
   }
 
-  op->o_subentries =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_subentries = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   if (ctrl->ldctl_value.bv_val[2]) {
     set_subentries_visibility(op);
@@ -1506,8 +1426,7 @@ static int parseSubentries(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   return LDAP_SUCCESS;
 }
 
-static int parsePermissiveModify(Operation *op, SlapReply *rs,
-                                 LDAPControl *ctrl) {
+static int parsePermissiveModify(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   if (op->o_permissive_modify != SLAP_CONTROL_NONE) {
     rs->sr_text = "permissiveModify control specified multiple times";
     return LDAP_PROTOCOL_ERROR;
@@ -1518,8 +1437,7 @@ static int parsePermissiveModify(Operation *op, SlapReply *rs,
     return LDAP_PROTOCOL_ERROR;
   }
 
-  op->o_permissive_modify =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_permissive_modify = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   return LDAP_SUCCESS;
 }
@@ -1535,8 +1453,7 @@ static int parseDomainScope(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
     return LDAP_PROTOCOL_ERROR;
   }
 
-  op->o_domain_scope =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_domain_scope = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   return LDAP_SUCCESS;
 }
@@ -1553,8 +1470,7 @@ static int parseTreeDelete(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
     return LDAP_PROTOCOL_ERROR;
   }
 
-  op->o_tree_delete =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_tree_delete = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   return LDAP_SUCCESS;
 }
@@ -1600,9 +1516,8 @@ static int parseSearchOptions(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
     }
 
     /* Ignore */
-    Debug(LDAP_DEBUG_TRACE,
-          "searchOptions: conn=%lu unrecognized flag(s) 0x%x (non-critical)\n",
-          op->o_connid, (unsigned)search_flags);
+    Debug(LDAP_DEBUG_TRACE, "searchOptions: conn=%lu unrecognized flag(s) 0x%x (non-critical)\n", op->o_connid,
+          (unsigned)search_flags);
 
     return LDAP_SUCCESS;
   }
@@ -1614,33 +1529,30 @@ static int parseSearchOptions(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
       return LDAP_PROTOCOL_ERROR;
     }
 
-    op->o_domain_scope = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL
-                                                : SLAP_CONTROL_NONCRITICAL;
+    op->o_domain_scope = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
   }
 
   return LDAP_SUCCESS;
 }
 
 #ifdef SLAP_CONTROL_X_SESSION_TRACKING
-struct berval session_tracking_formats[] = {
-    BER_BVC(LDAP_CONTROL_X_SESSION_TRACKING_RADIUS_ACCT_SESSION_ID),
-    BER_BVC("RADIUS-Acct-Session-Id"),
-    BER_BVC(LDAP_CONTROL_X_SESSION_TRACKING_RADIUS_ACCT_MULTI_SESSION_ID),
-    BER_BVC("RADIUS-Acct-Multi-Session-Id"),
-    BER_BVC(LDAP_CONTROL_X_SESSION_TRACKING_USERNAME),
-    BER_BVC("USERNAME"),
+struct berval session_tracking_formats[] = {BER_BVC(LDAP_CONTROL_X_SESSION_TRACKING_RADIUS_ACCT_SESSION_ID),
+                                            BER_BVC("RADIUS-Acct-Session-Id"),
+                                            BER_BVC(LDAP_CONTROL_X_SESSION_TRACKING_RADIUS_ACCT_MULTI_SESSION_ID),
+                                            BER_BVC("RADIUS-Acct-Multi-Session-Id"),
+                                            BER_BVC(LDAP_CONTROL_X_SESSION_TRACKING_USERNAME),
+                                            BER_BVC("USERNAME"),
 
-    BER_BVNULL};
+                                            BER_BVNULL};
 
-static int parseSessionTracking(Operation *op, SlapReply *rs,
-                                LDAPControl *ctrl) {
+static int parseSessionTracking(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   BerElement *ber;
   ber_tag_t tag;
   ber_len_t len;
   int i, rc;
 
-  struct berval sessionSourceIp = BER_BVNULL, sessionSourceName = BER_BVNULL,
-                formatOID = BER_BVNULL, sessionTrackingIdentifier = BER_BVNULL;
+  struct berval sessionSourceIp = BER_BVNULL, sessionSourceName = BER_BVNULL, formatOID = BER_BVNULL,
+                sessionTrackingIdentifier = BER_BVNULL;
 
   size_t st_len, st_pos;
 
@@ -1716,8 +1628,7 @@ static int parseSessionTracking(Operation *op, SlapReply *rs,
     tag = ber_scanf(ber, "m", &sessionSourceName);
   }
 
-  if (ldif_is_not_printable(sessionSourceName.bv_val,
-                            sessionSourceName.bv_len)) {
+  if (ldif_is_not_printable(sessionSourceName.bv_val, sessionSourceName.bv_len)) {
     BER_BVZERO(&sessionSourceName);
   }
 
@@ -1768,8 +1679,7 @@ static int parseSessionTracking(Operation *op, SlapReply *rs,
   } else {
     /* note: should not be more than 65536... */
     tag = ber_scanf(ber, "m", &sessionTrackingIdentifier);
-    if (ldif_is_not_printable(sessionTrackingIdentifier.bv_val,
-                              sessionTrackingIdentifier.bv_len)) {
+    if (ldif_is_not_printable(sessionTrackingIdentifier.bv_val, sessionTrackingIdentifier.bv_len)) {
       /* we want the OID printed, at least */
       BER_BVSTR(&sessionTrackingIdentifier, "");
     }
@@ -1795,8 +1705,7 @@ static int parseSessionTracking(Operation *op, SlapReply *rs,
   if (!BER_BVISNULL(&sessionTrackingIdentifier)) {
     if (st_len)
       st_len++;
-    st_len +=
-        formatOID.bv_len + STRLENOF("=") + sessionTrackingIdentifier.bv_len;
+    st_len += formatOID.bv_len + STRLENOF("=") + sessionTrackingIdentifier.bv_len;
   }
 
   if (st_len == 0) {
@@ -1849,8 +1758,7 @@ error:;
   return rs->sr_err;
 }
 
-int slap_ctrl_session_tracking_add(Operation *op, SlapReply *rs,
-                                   struct berval *ip, struct berval *name,
+int slap_ctrl_session_tracking_add(Operation *op, SlapReply *rs, struct berval *ip, struct berval *name,
                                    struct berval *id, LDAPControl *ctrl) {
   BerElementBuffer berbuf;
   BerElement *ber = (BerElement *)&berbuf;
@@ -1877,13 +1785,11 @@ done:;
   return rs->sr_err;
 }
 
-int slap_ctrl_session_tracking_request_add(Operation *op, SlapReply *rs,
-                                           LDAPControl *ctrl) {
+int slap_ctrl_session_tracking_request_add(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   static struct berval bv_unknown = BER_BVC(SLAP_STRING_UNKNOWN);
   struct berval ip = BER_BVNULL, name = BER_BVNULL, id = BER_BVNULL;
 
-  if (!BER_BVISNULL(&op->o_conn->c_peer_name) &&
-      memcmp(op->o_conn->c_peer_name.bv_val, "IP=", STRLENOF("IP=")) == 0) {
+  if (!BER_BVISNULL(&op->o_conn->c_peer_name) && memcmp(op->o_conn->c_peer_name.bv_val, "IP=", STRLENOF("IP=")) == 0) {
     char *ptr;
 
     ip.bv_val = op->o_conn->c_peer_name.bv_val + STRLENOF("IP=");
@@ -1895,8 +1801,7 @@ int slap_ctrl_session_tracking_request_add(Operation *op, SlapReply *rs,
     }
   }
 
-  if (!BER_BVISNULL(&op->o_conn->c_peer_domain) &&
-      !bvmatch(&op->o_conn->c_peer_domain, &bv_unknown)) {
+  if (!BER_BVISNULL(&op->o_conn->c_peer_domain) && !bvmatch(&op->o_conn->c_peer_domain, &bv_unknown)) {
     name = op->o_conn->c_peer_domain;
   }
 
@@ -1920,8 +1825,7 @@ static int parseWhatFailed(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
     return LDAP_PROTOCOL_ERROR;
   }
 
-  op->o_whatFailed =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_whatFailed = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   return LDAP_SUCCESS;
 }
@@ -1956,9 +1860,7 @@ int slap_ctrl_whatFailed_add(Operation *op, SlapReply *rs, char **oids) {
     }
   }
 
-  ctrls = op->o_tmprealloc(rs->sr_ctrls,
-                           sizeof(LDAPControl *) * (i + 2) +
-                               sizeof(LDAPControl) + ctrlval.bv_len + 1,
+  ctrls = op->o_tmprealloc(rs->sr_ctrls, sizeof(LDAPControl *) * (i + 2) + sizeof(LDAPControl) + ctrlval.bv_len + 1,
                            op->o_tmpmemctx);
   if (ctrls == NULL) {
     rc = LDAP_OTHER;
@@ -1993,8 +1895,7 @@ static int parseLazyCommit(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
     return LDAP_PROTOCOL_ERROR;
   }
 
-  op->o_lazyCommit =
-      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+  op->o_lazyCommit = ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
 
   return LDAP_SUCCESS;
 }

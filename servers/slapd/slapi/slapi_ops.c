@@ -33,8 +33,7 @@
 
 #ifdef LDAP_SLAPI
 
-static struct Listener slapi_listener = {BER_BVC("slapi://"),
-                                         BER_BVC("slapi://")};
+static struct Listener slapi_listener = {BER_BVC("slapi://"), BER_BVC("slapi://")};
 
 static LDAPControl **slapi_int_dup_controls(LDAPControl **controls) {
   LDAPControl **c;
@@ -353,8 +352,7 @@ void slapi_int_connection_done_pb(Slapi_PBlock *pb) {
   slapi_ch_free((void **)&pb->pb_rs);
 }
 
-static int slapi_int_func_internal_pb(Slapi_PBlock *pb,
-                                      slap_operation_t which) {
+static int slapi_int_func_internal_pb(Slapi_PBlock *pb, slap_operation_t which) {
   SlapReply *rs = pb->pb_rs;
   int rc;
 
@@ -404,8 +402,7 @@ int slapi_add_internal_pb(Slapi_PBlock *pb) {
    * of modifications, but not both.
    */
   if (entry_orig != NULL) {
-    if (pb->pb_op->ora_modlist != NULL ||
-        !BER_BVISNULL(&pb->pb_op->o_req_ndn)) {
+    if (pb->pb_op->ora_modlist != NULL || !BER_BVISNULL(&pb->pb_op->o_req_ndn)) {
       rs->sr_err = LDAP_PARAM_ERROR;
       goto cleanup;
     }
@@ -413,8 +410,7 @@ int slapi_add_internal_pb(Slapi_PBlock *pb) {
     assert(BER_BVISNULL(&pb->pb_op->o_req_dn)); /* shouldn't get set */
     ber_dupbv(&pb->pb_op->o_req_dn, &entry_orig->e_name);
     ber_dupbv(&pb->pb_op->o_req_ndn, &entry_orig->e_nname);
-  } else if (pb->pb_op->ora_modlist == NULL ||
-             BER_BVISNULL(&pb->pb_op->o_req_ndn)) {
+  } else if (pb->pb_op->ora_modlist == NULL || BER_BVISNULL(&pb->pb_op->o_req_ndn)) {
     rs->sr_err = LDAP_PARAM_ERROR;
     goto cleanup;
   }
@@ -427,8 +423,7 @@ int slapi_add_internal_pb(Slapi_PBlock *pb) {
     assert(pb->pb_op->ora_modlist == NULL);
 
     rs->sr_err =
-        slap_entry2mods(entry_orig, &pb->pb_op->ora_modlist, &rs->sr_text,
-                        pb->pb_textbuf, sizeof(pb->pb_textbuf));
+        slap_entry2mods(entry_orig, &pb->pb_op->ora_modlist, &rs->sr_text, pb->pb_textbuf, sizeof(pb->pb_textbuf));
     if (rs->sr_err != LDAP_SUCCESS) {
       goto cleanup;
     }
@@ -436,16 +431,15 @@ int slapi_add_internal_pb(Slapi_PBlock *pb) {
     assert(pb->pb_op->ora_modlist != NULL);
   }
 
-  rs->sr_err = slap_mods_check(pb->pb_op, pb->pb_op->ora_modlist, &rs->sr_text,
-                               pb->pb_textbuf, sizeof(pb->pb_textbuf), NULL);
+  rs->sr_err =
+      slap_mods_check(pb->pb_op, pb->pb_op->ora_modlist, &rs->sr_text, pb->pb_textbuf, sizeof(pb->pb_textbuf), NULL);
   if (rs->sr_err != LDAP_SUCCESS) {
     goto cleanup;
   }
 
   /* Duplicate the values, because we may call slapi_entry_free() */
-  rs->sr_err =
-      slap_mods2entry(pb->pb_op->ora_modlist, &pb->pb_op->ora_e, 1, 0,
-                      &rs->sr_text, pb->pb_textbuf, sizeof(pb->pb_textbuf));
+  rs->sr_err = slap_mods2entry(pb->pb_op->ora_modlist, &pb->pb_op->ora_e, 1, 0, &rs->sr_text, pb->pb_textbuf,
+                               sizeof(pb->pb_textbuf));
   if (rs->sr_err != LDAP_SUCCESS) {
     goto cleanup;
   }
@@ -522,8 +516,8 @@ int slapi_modify_internal_pb(Slapi_PBlock *pb) {
     goto cleanup;
   }
 
-  rs->sr_err = slap_mods_check(pb->pb_op, pb->pb_op->orm_modlist, &rs->sr_text,
-                               pb->pb_textbuf, sizeof(pb->pb_textbuf), NULL);
+  rs->sr_err =
+      slap_mods_check(pb->pb_op, pb->pb_op->orm_modlist, &rs->sr_text, pb->pb_textbuf, sizeof(pb->pb_textbuf), NULL);
   if (rs->sr_err != LDAP_SUCCESS) {
     goto cleanup;
   }
@@ -535,8 +529,7 @@ cleanup:
   return 0;
 }
 
-static int slapi_int_search_entry_callback(Slapi_Entry *entry,
-                                           void *callback_data) {
+static int slapi_int_search_entry_callback(Slapi_Entry *entry, void *callback_data) {
   int nentries = 0, i = 0;
   Slapi_Entry **head = NULL, **tp;
   Slapi_PBlock *pb = (Slapi_PBlock *)callback_data;
@@ -561,8 +554,7 @@ static int slapi_int_search_entry_callback(Slapi_Entry *entry,
 
     tp[0] = entry;
   } else {
-    tp = (Slapi_Entry **)slapi_ch_realloc((char *)head,
-                                          sizeof(Slapi_Entry *) * (i + 1));
+    tp = (Slapi_Entry **)slapi_ch_realloc((char *)head, sizeof(Slapi_Entry *) * (i + 1));
     if (tp == NULL) {
       slapi_entry_free(entry);
       return LDAP_NO_MEMORY;
@@ -578,14 +570,11 @@ static int slapi_int_search_entry_callback(Slapi_Entry *entry,
 }
 
 int slapi_search_internal_pb(Slapi_PBlock *pb) {
-  return slapi_search_internal_callback_pb(
-      pb, (void *)pb, NULL, slapi_int_search_entry_callback, NULL);
+  return slapi_search_internal_callback_pb(pb, (void *)pb, NULL, slapi_int_search_entry_callback, NULL);
 }
 
-int slapi_search_internal_callback_pb(Slapi_PBlock *pb, void *callback_data,
-                                      plugin_result_callback prc,
-                                      plugin_search_entry_callback psec,
-                                      plugin_referral_entry_callback prec) {
+int slapi_search_internal_callback_pb(Slapi_PBlock *pb, void *callback_data, plugin_result_callback prc,
+                                      plugin_search_entry_callback psec, plugin_referral_entry_callback prec) {
   int free_filter = 0;
   SlapReply *rs;
 
@@ -636,12 +625,9 @@ cleanup:
 
 /* Wrappers for old API */
 
-void slapi_search_internal_set_pb(Slapi_PBlock *pb, const char *base, int scope,
-                                  const char *filter, char **attrs,
-                                  int attrsonly, LDAPControl **controls,
-                                  const char *uniqueid,
-                                  Slapi_ComponentId *plugin_identity,
-                                  int operation_flags) {
+void slapi_search_internal_set_pb(Slapi_PBlock *pb, const char *base, int scope, const char *filter, char **attrs,
+                                  int attrsonly, LDAPControl **controls, const char *uniqueid,
+                                  Slapi_ComponentId *plugin_identity, int operation_flags) {
   int no_limit = SLAP_NO_LIMIT;
   int deref = LDAP_DEREF_NEVER;
 
@@ -663,26 +649,21 @@ void slapi_search_internal_set_pb(Slapi_PBlock *pb, const char *base, int scope,
   slapi_int_set_operation_dn(pb);
 }
 
-Slapi_PBlock *slapi_search_internal(char *ldn, int scope, char *filStr,
-                                    LDAPControl **controls, char **attrs,
+Slapi_PBlock *slapi_search_internal(char *ldn, int scope, char *filStr, LDAPControl **controls, char **attrs,
                                     int attrsonly) {
   Slapi_PBlock *pb;
 
   pb = slapi_pblock_new();
 
-  slapi_search_internal_set_pb(pb, ldn, scope, filStr, attrs, attrsonly,
-                               controls, NULL, NULL, 0);
+  slapi_search_internal_set_pb(pb, ldn, scope, filStr, attrs, attrsonly, controls, NULL, NULL, 0);
 
   slapi_search_internal_pb(pb);
 
   return pb;
 }
 
-void slapi_modify_internal_set_pb(Slapi_PBlock *pb, const char *dn,
-                                  LDAPMod **mods, LDAPControl **controls,
-                                  const char *uniqueid,
-                                  Slapi_ComponentId *plugin_identity,
-                                  int operation_flags) {
+void slapi_modify_internal_set_pb(Slapi_PBlock *pb, const char *dn, LDAPMod **mods, LDAPControl **controls,
+                                  const char *uniqueid, Slapi_ComponentId *plugin_identity, int operation_flags) {
   slapi_int_connection_init_pb(pb, LDAP_REQ_MODIFY);
   slapi_pblock_set(pb, SLAPI_MODIFY_TARGET, (void *)dn);
   slapi_pblock_set(pb, SLAPI_MODIFY_MODS, (void *)mods);
@@ -703,8 +684,7 @@ void slapi_modify_internal_set_pb(Slapi_PBlock *pb, const char *dn,
  *                 LDAP_OTHER
  *                 LDAP_UNWILLING_TO_PERFORM
  */
-Slapi_PBlock *slapi_modify_internal(char *ldn, LDAPMod **mods,
-                                    LDAPControl **controls, int log_change) {
+Slapi_PBlock *slapi_modify_internal(char *ldn, LDAPMod **mods, LDAPControl **controls, int log_change) {
   Slapi_PBlock *pb;
 
   pb = slapi_pblock_new();
@@ -716,10 +696,8 @@ Slapi_PBlock *slapi_modify_internal(char *ldn, LDAPMod **mods,
   return pb;
 }
 
-int slapi_add_internal_set_pb(Slapi_PBlock *pb, const char *dn, LDAPMod **attrs,
-                              LDAPControl **controls,
-                              Slapi_ComponentId *plugin_identity,
-                              int operation_flags) {
+int slapi_add_internal_set_pb(Slapi_PBlock *pb, const char *dn, LDAPMod **attrs, LDAPControl **controls,
+                              Slapi_ComponentId *plugin_identity, int operation_flags) {
   slapi_int_connection_init_pb(pb, LDAP_REQ_ADD);
   slapi_pblock_set(pb, SLAPI_ADD_TARGET, (void *)dn);
   slapi_pblock_set(pb, SLAPI_MODIFY_MODS, (void *)attrs);
@@ -731,8 +709,7 @@ int slapi_add_internal_set_pb(Slapi_PBlock *pb, const char *dn, LDAPMod **attrs,
   return 0;
 }
 
-Slapi_PBlock *slapi_add_internal(char *dn, LDAPMod **attrs,
-                                 LDAPControl **controls, int log_change) {
+Slapi_PBlock *slapi_add_internal(char *dn, LDAPMod **attrs, LDAPControl **controls, int log_change) {
   Slapi_PBlock *pb;
 
   pb = slapi_pblock_new();
@@ -744,10 +721,8 @@ Slapi_PBlock *slapi_add_internal(char *dn, LDAPMod **attrs,
   return pb;
 }
 
-void slapi_add_entry_internal_set_pb(Slapi_PBlock *pb, Slapi_Entry *e,
-                                     LDAPControl **controls,
-                                     Slapi_ComponentId *plugin_identity,
-                                     int operation_flags) {
+void slapi_add_entry_internal_set_pb(Slapi_PBlock *pb, Slapi_Entry *e, LDAPControl **controls,
+                                     Slapi_ComponentId *plugin_identity, int operation_flags) {
   slapi_int_connection_init_pb(pb, LDAP_REQ_ADD);
   slapi_pblock_set(pb, SLAPI_ADD_ENTRY, (void *)e);
   slapi_pblock_set(pb, SLAPI_REQCONTROLS, (void *)controls);
@@ -756,8 +731,7 @@ void slapi_add_entry_internal_set_pb(Slapi_PBlock *pb, Slapi_Entry *e,
   slapi_int_set_operation_dn(pb);
 }
 
-Slapi_PBlock *slapi_add_entry_internal(Slapi_Entry *e, LDAPControl **controls,
-                                       int log_change) {
+Slapi_PBlock *slapi_add_entry_internal(Slapi_Entry *e, LDAPControl **controls, int log_change) {
   Slapi_PBlock *pb;
 
   pb = slapi_pblock_new();
@@ -769,12 +743,9 @@ Slapi_PBlock *slapi_add_entry_internal(Slapi_Entry *e, LDAPControl **controls,
   return pb;
 }
 
-void slapi_rename_internal_set_pb(Slapi_PBlock *pb, const char *olddn,
-                                  const char *newrdn, const char *newsuperior,
-                                  int deloldrdn, LDAPControl **controls,
-                                  const char *uniqueid,
-                                  Slapi_ComponentId *plugin_identity,
-                                  int operation_flags) {
+void slapi_rename_internal_set_pb(Slapi_PBlock *pb, const char *olddn, const char *newrdn, const char *newsuperior,
+                                  int deloldrdn, LDAPControl **controls, const char *uniqueid,
+                                  Slapi_ComponentId *plugin_identity, int operation_flags) {
   slapi_int_connection_init_pb(pb, LDAP_REQ_MODRDN);
   slapi_pblock_set(pb, SLAPI_MODRDN_TARGET, (void *)olddn);
   slapi_pblock_set(pb, SLAPI_MODRDN_NEWRDN, (void *)newrdn);
@@ -800,24 +771,20 @@ void slapi_rename_internal_set_pb(Slapi_PBlock *pb, const char *olddn,
  *
  * NOTE: This function does not support the "newSuperior" option from LDAP V3.
  */
-Slapi_PBlock *slapi_modrdn_internal(char *olddn, char *lnewrdn, int deloldrdn,
-                                    LDAPControl **controls, int log_change) {
+Slapi_PBlock *slapi_modrdn_internal(char *olddn, char *lnewrdn, int deloldrdn, LDAPControl **controls, int log_change) {
   Slapi_PBlock *pb;
 
   pb = slapi_pblock_new();
 
-  slapi_rename_internal_set_pb(pb, olddn, lnewrdn, NULL, deloldrdn, controls,
-                               NULL, NULL, 0);
+  slapi_rename_internal_set_pb(pb, olddn, lnewrdn, NULL, deloldrdn, controls, NULL, NULL, 0);
   slapi_pblock_set(pb, SLAPI_LOG_OPERATION, (void *)&log_change);
   slapi_modrdn_internal_pb(pb);
 
   return pb;
 }
 
-void slapi_delete_internal_set_pb(Slapi_PBlock *pb, const char *dn,
-                                  LDAPControl **controls, const char *uniqueid,
-                                  Slapi_ComponentId *plugin_identity,
-                                  int operation_flags) {
+void slapi_delete_internal_set_pb(Slapi_PBlock *pb, const char *dn, LDAPControl **controls, const char *uniqueid,
+                                  Slapi_ComponentId *plugin_identity, int operation_flags) {
   slapi_int_connection_init_pb(pb, LDAP_REQ_DELETE);
   slapi_pblock_set(pb, SLAPI_TARGET_DN, (void *)dn);
   slapi_pblock_set(pb, SLAPI_REQCONTROLS, (void *)controls);
@@ -837,8 +804,7 @@ void slapi_delete_internal_set_pb(Slapi_PBlock *pb, const char *dn,
  *                 LDAP_OTHER
  *                 LDAP_UNWILLING_TO_PERFORM
  */
-Slapi_PBlock *slapi_delete_internal(char *ldn, LDAPControl **controls,
-                                    int log_change) {
+Slapi_PBlock *slapi_delete_internal(char *ldn, LDAPControl **controls, int log_change) {
   Slapi_PBlock *pb;
 
   pb = slapi_pblock_new();

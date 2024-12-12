@@ -85,8 +85,7 @@ ber_slen_t ber_write(BerElement *ber, const char *buf, ber_len_t len,
   assert(LBER_VALID(ber));
 
   if (zero != 0) {
-    ber_log_printf(LDAP_DEBUG_ANY, ber->ber_debug, "%s",
-                   "ber_write: nonzero 4th argument not supported\n");
+    ber_log_printf(LDAP_DEBUG_ANY, ber->ber_debug, "%s", "ber_write: nonzero 4th argument not supported\n");
     return (-1);
   }
 
@@ -192,9 +191,7 @@ int ber_flush2(Sockbuf *sb, BerElement *ber, int freeit) {
   towrite = ber->ber_ptr - ber->ber_rwptr;
 
   if (sb->sb_debug) {
-    ber_log_printf(LDAP_DEBUG_TRACE, sb->sb_debug,
-                   "ber_flush2: %ld bytes to sd %ld%s\n", towrite,
-                   (long)sb->sb_fd,
+    ber_log_printf(LDAP_DEBUG_TRACE, sb->sb_debug, "ber_flush2: %ld bytes to sd %ld%s\n", towrite, (long)sb->sb_fd,
                    ber->ber_rwptr != ber->ber_buf ? " (re-flush)" : "");
     ber_log_bprint(LDAP_DEBUG_BER, sb->sb_debug, ber->ber_rwptr, towrite);
   }
@@ -435,8 +432,7 @@ ber_tag_t ber_get_next(Sockbuf *sb, ber_len_t *len, BerElement *ber) {
     ber->ber_tag = 0;
   }
 
-  while (ber->ber_rwptr > (char *)&ber->ber_tag &&
-         ber->ber_rwptr < (char *)&ber->ber_len + LENSIZE * 2) {
+  while (ber->ber_rwptr > (char *)&ber->ber_tag && ber->ber_rwptr < (char *)&ber->ber_len + LENSIZE * 2) {
     ber_slen_t sblen;
     char buf[sizeof(ber->ber_len) - 1];
     ber_len_t tlen = 0;
@@ -595,9 +591,8 @@ ber_tag_t ber_get_next(Sockbuf *sb, ber_len_t *len, BerElement *ber) {
     ber->ber_rwptr = NULL;
     *len = ber->ber_len;
     if (ber->ber_debug) {
-      ber_log_printf(LDAP_DEBUG_TRACE, ber->ber_debug,
-                     "ber_get_next: tag 0x%lx len %ld contents:\n",
-                     ber->ber_tag, ber->ber_len);
+      ber_log_printf(LDAP_DEBUG_TRACE, ber->ber_debug, "ber_get_next: tag 0x%lx len %ld contents:\n", ber->ber_tag,
+                     ber->ber_len);
       ber_log_dump(LDAP_DEBUG_BER, ber->ber_debug, ber, 1);
     }
     return (ber->ber_tag);

@@ -41,13 +41,11 @@
 
 #include "slapd-common.h"
 
-static int do_bind(struct tester_conn_args *config, char *dn, int maxloop,
-                   int force, int noinit, LDAP **ldp, struct berval *pass,
-                   int action_type, void *action);
+static int do_bind(struct tester_conn_args *config, char *dn, int maxloop, int force, int noinit, LDAP **ldp,
+                   struct berval *pass, int action_type, void *action);
 
-static int do_base(struct tester_conn_args *config, char *dn, char *base,
-                   char *filter, char *pwattr, int force, int noinit,
-                   int action_type, void *action);
+static int do_base(struct tester_conn_args *config, char *dn, char *base, char *filter, char *pwattr, int force,
+                   int noinit, int action_type, void *action);
 
 /* This program can be invoked two ways: if -D is used to specify a Bind DN,
  * that DN will be used repeatedly for all of the Binds. If instead -b is used
@@ -62,8 +60,7 @@ static void usage(char *name, char opt) {
   }
 
   fprintf(stderr,
-          "usage: %s " TESTER_COMMON_HELP
-          "[-b <baseDN> [-f <searchfilter>] [-a pwattr]] "
+          "usage: %s " TESTER_COMMON_HELP "[-b <baseDN> [-f <searchfilter>] [-a pwattr]] "
           "[-B <extra>[,...]] "
           "[-F] "
           "[-I]\n",
@@ -81,10 +78,8 @@ int main(int argc, char **argv) {
   struct tester_conn_args *config;
 
   /* extra action to do after bind... */
-  struct berval type[] = {BER_BVC("tester="), BER_BVC("add="),
-                          BER_BVC("bind="),   BER_BVC("modify="),
-                          BER_BVC("modrdn="), BER_BVC("read="),
-                          BER_BVC("search="), BER_BVNULL};
+  struct berval type[] = {BER_BVC("tester="), BER_BVC("add="),  BER_BVC("bind="),   BER_BVC("modify="),
+                          BER_BVC("modrdn="), BER_BVC("read="), BER_BVC("search="), BER_BVNULL};
 
   LDAPURLDesc *extra_ludp = NULL;
 
@@ -123,8 +118,7 @@ int main(int argc, char **argv) {
         usage(argv[0], 'B');
 
       case TESTER_SEARCH: {
-        if (ldap_url_parse(&optarg[type[c].bv_len], &extra_ludp) !=
-            LDAP_URL_SUCCESS) {
+        if (ldap_url_parse(&optarg[type[c].bv_len], &extra_ludp) != LDAP_URL_SUCCESS) {
           usage(argv[0], 'B');
         }
       } break;
@@ -170,11 +164,9 @@ int main(int argc, char **argv) {
     int rc;
 
     if (base != NULL) {
-      rc = do_base(config, config->binddn, base, filter, pwattr, force, noinit,
-                   -1, NULL);
+      rc = do_base(config, config->binddn, base, filter, pwattr, force, noinit, -1, NULL);
     } else {
-      rc = do_bind(config, config->binddn, config->loops, force, noinit, NULL,
-                   &config->pass, -1, NULL);
+      rc = do_bind(config, config->binddn, config->loops, force, noinit, NULL, &config->pass, -1, NULL);
     }
     if (rc == LDAP_SERVER_DOWN)
       break;
@@ -183,9 +175,8 @@ int main(int argc, char **argv) {
   exit(EXIT_SUCCESS);
 }
 
-static int do_bind(struct tester_conn_args *config, char *dn, int maxloop,
-                   int force, int noinit, LDAP **ldp, struct berval *pass,
-                   int action_type, void *action) {
+static int do_bind(struct tester_conn_args *config, char *dn, int maxloop, int force, int noinit, LDAP **ldp,
+                   struct berval *pass, int action_type, void *action) {
   LDAP *ld = ldp ? *ldp : NULL;
   char *bindfunc = "ldap_sasl_bind_s";
   int i, rc = -1;
@@ -218,8 +209,7 @@ static int do_bind(struct tester_conn_args *config, char *dn, int maxloop,
             tester_error("unable to parse critical extension x-timelimit");
           }
 
-        } else if (strncasecmp(ext, "x-sizelimit=", STRLENOF("x-sizelimit=")) ==
-                   0) {
+        } else if (strncasecmp(ext, "x-sizelimit=", STRLENOF("x-sizelimit=")) == 0) {
           if (lutil_atoi(&sizelimit, &ext[STRLENOF("x-sizelimit=")]) && crit) {
             tester_error("unable to parse critical extension x-sizelimit");
           }
@@ -259,8 +249,7 @@ static int do_bind(struct tester_conn_args *config, char *dn, int maxloop,
     if (config->authmethod == LDAP_AUTH_SASL) {
 #ifdef HAVE_CYRUS_SASL
       bindfunc = "ldap_sasl_interactive_bind_s";
-      rc = ldap_sasl_interactive_bind_s(ld, dn, config->mech, NULL, NULL,
-                                        LDAP_SASL_QUIET, lutil_sasl_interact,
+      rc = ldap_sasl_interactive_bind_s(ld, dn, config->mech, NULL, NULL, LDAP_SASL_QUIET, lutil_sasl_interact,
                                         config->defaults);
 #else /* HAVE_CYRUS_SASL */
       /* caller shouldn't have allowed this */
@@ -303,9 +292,8 @@ static int do_bind(struct tester_conn_args *config, char *dn, int maxloop,
 
       assert(action != NULL);
 
-      rc = ldap_search_ext_s(ld, ludp->lud_dn, ludp->lud_scope,
-                             ludp->lud_filter, ludp->lud_attrs, 0, NULL, NULL,
-                             tvp, sizelimit, &res);
+      rc = ldap_search_ext_s(ld, ludp->lud_dn, ludp->lud_scope, ludp->lud_filter, ludp->lud_attrs, 0, NULL, NULL, tvp,
+                             sizelimit, &res);
       ldap_msgfree(res);
     } break;
 
@@ -338,9 +326,8 @@ static int do_bind(struct tester_conn_args *config, char *dn, int maxloop,
   return rc;
 }
 
-static int do_base(struct tester_conn_args *config, char *dn, char *base,
-                   char *filter, char *pwattr, int force, int noinit,
-                   int action_type, void *action) {
+static int do_base(struct tester_conn_args *config, char *dn, char *base, char *filter, char *pwattr, int force,
+                   int noinit, int action_type, void *action) {
   LDAP *ld = NULL;
   int i = 0;
   int rc = LDAP_SUCCESS;
@@ -354,15 +341,13 @@ static int do_base(struct tester_conn_args *config, char *dn, char *base,
 
   tester_init_ld(&ld, config, 0);
 
-  fprintf(stderr,
-          "PID=%ld - Bind(%d): base=\"%s\", filter=\"%s\" attr=\"%s\".\n",
-          (long)pid, config->loops, base, filter, pwattr);
+  fprintf(stderr, "PID=%ld - Bind(%d): base=\"%s\", filter=\"%s\" attr=\"%s\".\n", (long)pid, config->loops, base,
+          filter, pwattr);
 
   if (pwattr != NULL) {
     attrs[0] = pwattr;
   }
-  rc = ldap_search_ext(ld, base, LDAP_SCOPE_SUBTREE, filter, attrs, 0, NULL,
-                       NULL, 0, 0, &msgid);
+  rc = ldap_search_ext(ld, base, LDAP_SCOPE_SUBTREE, filter, attrs, 0, NULL, NULL, 0, 0, &msgid);
   if (rc != LDAP_SUCCESS) {
     tester_ldap_error(ld, "ldap_search_ext", NULL);
     exit(EXIT_FAILURE);
@@ -373,8 +358,7 @@ static int do_base(struct tester_conn_args *config, char *dn, char *base,
     struct berval bv;
     int done = 0;
 
-    for (msg = ldap_first_message(ld, res); msg;
-         msg = ldap_next_message(ld, msg)) {
+    for (msg = ldap_first_message(ld, res); msg; msg = ldap_next_message(ld, msg)) {
       switch (ldap_msgtype(msg)) {
       case LDAP_RES_SEARCH_ENTRY:
         rc = ldap_get_dn_ber(ld, msg, &ber, &bv);
@@ -434,8 +418,7 @@ static int do_base(struct tester_conn_args *config, char *dn, char *base,
     return 1;
   }
 
-  fprintf(stderr, "  PID=%ld - Bind base=\"%s\" filter=\"%s\" got %d values.\n",
-          (long)pid, base, filter, ndns);
+  fprintf(stderr, "  PID=%ld - Bind base=\"%s\" filter=\"%s\" got %d values.\n", (long)pid, base, filter, ndns);
 
   /* Ok, got list of DNs, now start binding to each */
   struct berval save_pass = config->pass;
@@ -449,9 +432,7 @@ static int do_base(struct tester_conn_args *config, char *dn, char *base,
       pass = &creds[j];
     }
 
-    if (do_bind(config, dns[j], 1, force, noinit, &ld, pass, action_type,
-                action) &&
-        !force) {
+    if (do_bind(config, dns[j], 1, force, noinit, &ld, pass, action_type, action) && !force) {
       break;
     }
   }
@@ -462,8 +443,7 @@ static int do_base(struct tester_conn_args *config, char *dn, char *base,
   }
 
   uint64_t end_ns = ldap_now_steady_ns();
-  fprintf(stderr, "  PID=%ld - Bind done %d in %.06f seconds.\n", (long)pid, i,
-          (end_ns - beg_ns) * 1e-9);
+  fprintf(stderr, "  PID=%ld - Bind done %d in %.06f seconds.\n", (long)pid, i, (end_ns - beg_ns) * 1e-9);
 
   if (dns) {
     for (i = 0; i < ndns; i++) {

@@ -185,8 +185,7 @@ char **ldap_str2charray(const char *str_in, const char *brkstr) {
 
   i = 0;
 
-  for (s = ldap_utf8_strtok(str, brkstr, &lasts); s != NULL;
-       s = ldap_utf8_strtok(NULL, brkstr, &lasts)) {
+  for (s = ldap_utf8_strtok(str, brkstr, &lasts); s != NULL; s = ldap_utf8_strtok(NULL, brkstr, &lasts)) {
     res[i] = LDAP_STRDUP(s);
 
     if (res[i] == NULL) {

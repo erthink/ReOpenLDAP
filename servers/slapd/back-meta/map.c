@@ -69,16 +69,14 @@ void ldap_back_map_init(struct ldapmap *lm, struct ldapmapping **m) {
   *m = mapping;
 }
 
-int ldap_back_mapping(struct ldapmap *map, struct berval *s,
-                      struct ldapmapping **m, int remap) {
+int ldap_back_mapping(struct ldapmap *map, struct berval *s, struct ldapmapping **m, int remap) {
   Avlnode *tree;
   struct ldapmapping fmapping;
 
   assert(m != NULL);
 
   /* let special attrnames slip through (ITS#5760) */
-  if (bvmatch(s, slap_bv_no_attrs) || bvmatch(s, slap_bv_all_user_attrs) ||
-      bvmatch(s, slap_bv_all_operational_attrs)) {
+  if (bvmatch(s, slap_bv_no_attrs) || bvmatch(s, slap_bv_all_user_attrs) || bvmatch(s, slap_bv_all_operational_attrs)) {
     *m = NULL;
     return 0;
   }
@@ -99,8 +97,7 @@ int ldap_back_mapping(struct ldapmap *map, struct berval *s,
   return 0;
 }
 
-void ldap_back_map(struct ldapmap *map, struct berval *s, struct berval *bv,
-                   int remap) {
+void ldap_back_map(struct ldapmap *map, struct berval *s, struct berval *bv, int remap) {
   struct ldapmapping *mapping;
   int drop_missing;
 
@@ -125,8 +122,7 @@ void ldap_back_map(struct ldapmap *map, struct berval *s, struct berval *bv,
   }
 }
 
-int ldap_back_map_attrs(Operation *op, struct ldapmap *at_map,
-                        AttributeName *an, int remap, char ***mapped_attrs) {
+int ldap_back_map_attrs(Operation *op, struct ldapmap *at_map, AttributeName *an, int remap, char ***mapped_attrs) {
   int i, x, j;
   char **na;
   struct berval mapped;
@@ -168,13 +164,11 @@ int ldap_back_map_attrs(Operation *op, struct ldapmap *at_map,
 
   if (x > 0) {
     for (x = 0; !BER_BVISNULL(&op->o_bd->be_extra_anlist[x].an_name); x++) {
-      if (op->o_bd->be_extra_anlist[x].an_desc &&
-          ad_inlist(op->o_bd->be_extra_anlist[x].an_desc, an)) {
+      if (op->o_bd->be_extra_anlist[x].an_desc && ad_inlist(op->o_bd->be_extra_anlist[x].an_desc, an)) {
         continue;
       }
 
-      ldap_back_map(at_map, &op->o_bd->be_extra_anlist[x].an_name, &mapped,
-                    remap);
+      ldap_back_map(at_map, &op->o_bd->be_extra_anlist[x].an_name, &mapped, remap);
       if (!BER_BVISNULL(&mapped) && !BER_BVISEMPTY(&mapped)) {
         na[j++] = mapped.bv_val;
       }
@@ -191,15 +185,12 @@ int ldap_back_map_attrs(Operation *op, struct ldapmap *at_map,
   return LDAP_SUCCESS;
 }
 
-static int map_attr_value(dncookie *dc, AttributeDescription *ad,
-                          struct berval *mapped_attr, struct berval *value,
-                          struct berval *mapped_value, int remap,
-                          void *memctx) {
+static int map_attr_value(dncookie *dc, AttributeDescription *ad, struct berval *mapped_attr, struct berval *value,
+                          struct berval *mapped_value, int remap, void *memctx) {
   struct berval vtmp;
   int freeval = 0;
 
-  ldap_back_map(&dc->target->mt_rwmap.rwm_at, &ad->ad_cname, mapped_attr,
-                remap);
+  ldap_back_map(&dc->target->mt_rwmap.rwm_at, &ad->ad_cname, mapped_attr, remap);
   if (BER_BVISNULL(mapped_attr) || BER_BVISEMPTY(mapped_attr)) {
 #if 0
 		/*
@@ -242,17 +233,14 @@ static int map_attr_value(dncookie *dc, AttributeDescription *ad,
       return -1;
     }
 
-  } else if (ad->ad_type->sat_equality && ad->ad_type->sat_equality->smr_usage &
-                                              SLAP_MR_MUTATION_NORMALIZER) {
-    if (ad->ad_type->sat_equality->smr_normalize(
-            (SLAP_MR_DENORMALIZE | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX), NULL,
-            NULL, value, &vtmp, memctx)) {
+  } else if (ad->ad_type->sat_equality && ad->ad_type->sat_equality->smr_usage & SLAP_MR_MUTATION_NORMALIZER) {
+    if (ad->ad_type->sat_equality->smr_normalize((SLAP_MR_DENORMALIZE | SLAP_MR_VALUE_OF_ASSERTION_SYNTAX), NULL, NULL,
+                                                 value, &vtmp, memctx)) {
       return -1;
     }
     freeval = 2;
 
-  } else if (ad == slap_schema.si_ad_objectClass ||
-             ad == slap_schema.si_ad_structuralObjectClass) {
+  } else if (ad == slap_schema.si_ad_objectClass || ad == slap_schema.si_ad_structuralObjectClass) {
     ldap_back_map(&dc->target->mt_rwmap.rwm_oc, value, &vtmp, remap);
     if (BER_BVISNULL(&vtmp) || BER_BVISEMPTY(&vtmp)) {
       vtmp = *value;
@@ -276,9 +264,7 @@ static int map_attr_value(dncookie *dc, AttributeDescription *ad,
   return 0;
 }
 
-static int ldap_back_int_filter_map_rewrite(dncookie *dc, Filter *f,
-                                            struct berval *fstr, int remap,
-                                            void *memctx) {
+static int ldap_back_int_filter_map_rewrite(dncookie *dc, Filter *f, struct berval *fstr, int remap, void *memctx) {
   int i;
   Filter *p;
   struct berval atmp, vtmp, *tmp;
@@ -292,8 +278,7 @@ static int ldap_back_int_filter_map_rewrite(dncookie *dc, Filter *f,
 			/* no longer needed; preserved for completeness */
 			ber_bvundefined = BER_BVC( "(?=undefined)" ),
 #endif
-      ber_bverror = BER_BVC("(?=error)"),
-      ber_bvunknown = BER_BVC("(?=unknown)"), ber_bvnone = BER_BVC("(?=none)");
+      ber_bverror = BER_BVC("(?=error)"), ber_bvunknown = BER_BVC("(?=unknown)"), ber_bvnone = BER_BVC("(?=none)");
   ber_len_t len;
 
   assert(fstr != NULL);
@@ -306,61 +291,53 @@ static int ldap_back_int_filter_map_rewrite(dncookie *dc, Filter *f,
 
   switch ((f->f_choice & SLAPD_FILTER_MASK)) {
   case LDAP_FILTER_EQUALITY:
-    if (map_attr_value(dc, f->f_av_desc, &atmp, &f->f_av_value, &vtmp, remap,
-                       memctx)) {
+    if (map_attr_value(dc, f->f_av_desc, &atmp, &f->f_av_value, &vtmp, remap, memctx)) {
       goto computed;
     }
 
     fstr->bv_len = atmp.bv_len + vtmp.bv_len + (sizeof("(=)") - 1);
     fstr->bv_val = ber_memalloc_x(fstr->bv_len + 1, memctx);
 
-    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s=%s)", atmp.bv_val,
-             vtmp.bv_len ? vtmp.bv_val : "");
+    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s=%s)", atmp.bv_val, vtmp.bv_len ? vtmp.bv_val : "");
 
     ber_memfree_x(vtmp.bv_val, memctx);
     break;
 
   case LDAP_FILTER_GE:
-    if (map_attr_value(dc, f->f_av_desc, &atmp, &f->f_av_value, &vtmp, remap,
-                       memctx)) {
+    if (map_attr_value(dc, f->f_av_desc, &atmp, &f->f_av_value, &vtmp, remap, memctx)) {
       goto computed;
     }
 
     fstr->bv_len = atmp.bv_len + vtmp.bv_len + (sizeof("(>=)") - 1);
     fstr->bv_val = ber_memalloc_x(fstr->bv_len + 1, memctx);
 
-    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s>=%s)", atmp.bv_val,
-             vtmp.bv_len ? vtmp.bv_val : "");
+    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s>=%s)", atmp.bv_val, vtmp.bv_len ? vtmp.bv_val : "");
 
     ber_memfree_x(vtmp.bv_val, memctx);
     break;
 
   case LDAP_FILTER_LE:
-    if (map_attr_value(dc, f->f_av_desc, &atmp, &f->f_av_value, &vtmp, remap,
-                       memctx)) {
+    if (map_attr_value(dc, f->f_av_desc, &atmp, &f->f_av_value, &vtmp, remap, memctx)) {
       goto computed;
     }
 
     fstr->bv_len = atmp.bv_len + vtmp.bv_len + (sizeof("(<=)") - 1);
     fstr->bv_val = ber_memalloc_x(fstr->bv_len + 1, memctx);
 
-    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s<=%s)", atmp.bv_val,
-             vtmp.bv_len ? vtmp.bv_val : "");
+    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s<=%s)", atmp.bv_val, vtmp.bv_len ? vtmp.bv_val : "");
 
     ber_memfree_x(vtmp.bv_val, memctx);
     break;
 
   case LDAP_FILTER_APPROX:
-    if (map_attr_value(dc, f->f_av_desc, &atmp, &f->f_av_value, &vtmp, remap,
-                       memctx)) {
+    if (map_attr_value(dc, f->f_av_desc, &atmp, &f->f_av_value, &vtmp, remap, memctx)) {
       goto computed;
     }
 
     fstr->bv_len = atmp.bv_len + vtmp.bv_len + (sizeof("(~=)") - 1);
     fstr->bv_val = ber_memalloc_x(fstr->bv_len + 1, memctx);
 
-    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s~=%s)", atmp.bv_val,
-             vtmp.bv_len ? vtmp.bv_val : "");
+    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s~=%s)", atmp.bv_val, vtmp.bv_len ? vtmp.bv_val : "");
 
     ber_memfree_x(vtmp.bv_val, memctx);
     break;
@@ -373,8 +350,7 @@ static int ldap_back_int_filter_map_rewrite(dncookie *dc, Filter *f,
     /* cannot be a DN ... */
 
     fstr->bv_len = atmp.bv_len + (STRLENOF("(=*)"));
-    fstr->bv_val =
-        ber_memalloc_x(fstr->bv_len + 128, memctx); /* FIXME: why 128 ? */
+    fstr->bv_val = ber_memalloc_x(fstr->bv_len + 128, memctx); /* FIXME: why 128 ? */
 
     snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s=*)", atmp.bv_val);
 
@@ -401,8 +377,7 @@ static int ldap_back_int_filter_map_rewrite(dncookie *dc, Filter *f,
         fstr->bv_val = ber_memrealloc_x(fstr->bv_val, fstr->bv_len + 1, memctx);
 
         snprintf(&fstr->bv_val[len - 1], vtmp.bv_len + 3,
-                 /* "(attr=[init]*[any*]" */ "%s*)",
-                 vtmp.bv_len ? vtmp.bv_val : "");
+                 /* "(attr=[init]*[any*]" */ "%s*)", vtmp.bv_len ? vtmp.bv_val : "");
         ber_memfree_x(vtmp.bv_val, memctx);
       }
     }
@@ -416,8 +391,7 @@ static int ldap_back_int_filter_map_rewrite(dncookie *dc, Filter *f,
       fstr->bv_val = ber_memrealloc_x(fstr->bv_val, fstr->bv_len + 1, memctx);
 
       snprintf(&fstr->bv_val[len - 1], vtmp.bv_len + 3,
-               /* "(attr=[init*][any*]" */ "%s)",
-               vtmp.bv_len ? vtmp.bv_val : "");
+               /* "(attr=[init*][any*]" */ "%s)", vtmp.bv_len ? vtmp.bv_val : "");
 
       ber_memfree_x(vtmp.bv_val, memctx);
     }
@@ -439,8 +413,7 @@ static int ldap_back_int_filter_map_rewrite(dncookie *dc, Filter *f,
   case LDAP_FILTER_OR:
   case LDAP_FILTER_NOT:
     fstr->bv_len = STRLENOF("(%)");
-    fstr->bv_val =
-        ber_memalloc_x(fstr->bv_len + 128, memctx); /* FIXME: why 128? */
+    fstr->bv_val = ber_memalloc_x(fstr->bv_len + 128, memctx); /* FIXME: why 128? */
 
     snprintf(fstr->bv_val, fstr->bv_len + 1, "(%c)",
              f->f_choice == LDAP_FILTER_AND  ? '&'
@@ -470,8 +443,7 @@ static int ldap_back_int_filter_map_rewrite(dncookie *dc, Filter *f,
 
   case LDAP_FILTER_EXT:
     if (f->f_mr_desc) {
-      if (map_attr_value(dc, f->f_mr_desc, &atmp, &f->f_mr_value, &vtmp, remap,
-                         memctx)) {
+      if (map_attr_value(dc, f->f_mr_desc, &atmp, &f->f_mr_value, &vtmp, remap, memctx)) {
         goto computed;
       }
 
@@ -481,18 +453,14 @@ static int ldap_back_int_filter_map_rewrite(dncookie *dc, Filter *f,
     }
 
     /* FIXME: cleanup (less ?: operators...) */
-    fstr->bv_len =
-        atmp.bv_len + (f->f_mr_dnattrs ? STRLENOF(":dn") : 0) +
-        (!BER_BVISEMPTY(&f->f_mr_rule_text) ? f->f_mr_rule_text.bv_len + 1
-                                            : 0) +
-        vtmp.bv_len + (STRLENOF("(:=)"));
+    fstr->bv_len = atmp.bv_len + (f->f_mr_dnattrs ? STRLENOF(":dn") : 0) +
+                   (!BER_BVISEMPTY(&f->f_mr_rule_text) ? f->f_mr_rule_text.bv_len + 1 : 0) + vtmp.bv_len +
+                   (STRLENOF("(:=)"));
     fstr->bv_val = ber_memalloc_x(fstr->bv_len + 1, memctx);
 
-    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s%s%s%s:=%s)", atmp.bv_val,
-             f->f_mr_dnattrs ? ":dn" : "",
+    snprintf(fstr->bv_val, fstr->bv_len + 1, "(%s%s%s%s:=%s)", atmp.bv_val, f->f_mr_dnattrs ? ":dn" : "",
              !BER_BVISEMPTY(&f->f_mr_rule_text) ? ":" : "",
-             !BER_BVISEMPTY(&f->f_mr_rule_text) ? f->f_mr_rule_text.bv_val : "",
-             vtmp.bv_len ? vtmp.bv_val : "");
+             !BER_BVISEMPTY(&f->f_mr_rule_text) ? f->f_mr_rule_text.bv_val : "", vtmp.bv_len ? vtmp.bv_val : "");
     ber_memfree_x(vtmp.bv_val, memctx);
     break;
 
@@ -539,8 +507,7 @@ static int ldap_back_int_filter_map_rewrite(dncookie *dc, Filter *f,
   return 0;
 }
 
-int ldap_back_filter_map_rewrite(dncookie *dc, Filter *f, struct berval *fstr,
-                                 int remap, void *memctx) {
+int ldap_back_filter_map_rewrite(dncookie *dc, Filter *f, struct berval *fstr, int remap, void *memctx) {
   int rc;
   dncookie fdc;
   struct berval ftmp;
@@ -558,8 +525,7 @@ int ldap_back_filter_map_rewrite(dncookie *dc, Filter *f, struct berval *fstr,
 
   fdc.ctx = "searchFilter";
 
-  switch (rewrite_session(fdc.target->mt_rwmap.rwm_rw, fdc.ctx,
-                          (!BER_BVISEMPTY(&ftmp) ? ftmp.bv_val : dmy), fdc.conn,
+  switch (rewrite_session(fdc.target->mt_rwmap.rwm_rw, fdc.ctx, (!BER_BVISEMPTY(&ftmp) ? ftmp.bv_val : dmy), fdc.conn,
                           &fstr->bv_val)) {
   case REWRITE_REGEXEC_OK:
     if (!BER_BVISNULL(fstr)) {
@@ -568,8 +534,7 @@ int ldap_back_filter_map_rewrite(dncookie *dc, Filter *f, struct berval *fstr,
     } else {
       *fstr = ftmp;
     }
-    Debug(LDAP_DEBUG_ARGS, "[rw] %s: \"%s\" -> \"%s\"\n", fdc.ctx,
-          BER_BVISNULL(&ftmp) ? "" : ftmp.bv_val,
+    Debug(LDAP_DEBUG_ARGS, "[rw] %s: \"%s\" -> \"%s\"\n", fdc.ctx, BER_BVISNULL(&ftmp) ? "" : ftmp.bv_val,
           BER_BVISNULL(fstr) ? "" : fstr->bv_val);
     rc = LDAP_SUCCESS;
     break;
@@ -608,8 +573,7 @@ int ldap_back_filter_map_rewrite(dncookie *dc, Filter *f, struct berval *fstr,
   return rc;
 }
 
-int ldap_back_referral_result_rewrite(dncookie *dc, BerVarray a_vals,
-                                      void *memctx) {
+int ldap_back_referral_result_rewrite(dncookie *dc, BerVarray a_vals, void *memctx) {
   int i, last;
 
   assert(dc != NULL);

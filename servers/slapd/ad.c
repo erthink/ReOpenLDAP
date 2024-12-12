@@ -32,26 +32,21 @@ static struct berval bv_no_attrs = BER_BVC(LDAP_NO_ATTRS);
 static struct berval bv_all_user_attrs = BER_BVC("*");
 static struct berval bv_all_operational_attrs = BER_BVC("+");
 
-static AttributeName anlist_no_attrs[] = {
-    {BER_BVC(LDAP_NO_ATTRS), NULL, 0, NULL}, {BER_BVNULL, NULL, 0, NULL}};
+static AttributeName anlist_no_attrs[] = {{BER_BVC(LDAP_NO_ATTRS), NULL, 0, NULL}, {BER_BVNULL, NULL, 0, NULL}};
 
-static AttributeName anlist_all_user_attributes[] = {
-    {BER_BVC(LDAP_ALL_USER_ATTRIBUTES), NULL, 0, NULL},
-    {BER_BVNULL, NULL, 0, NULL}};
+static AttributeName anlist_all_user_attributes[] = {{BER_BVC(LDAP_ALL_USER_ATTRIBUTES), NULL, 0, NULL},
+                                                     {BER_BVNULL, NULL, 0, NULL}};
 
-static AttributeName anlist_all_operational_attributes[] = {
-    {BER_BVC(LDAP_ALL_OPERATIONAL_ATTRIBUTES), NULL, 0, NULL},
-    {BER_BVNULL, NULL, 0, NULL}};
+static AttributeName anlist_all_operational_attributes[] = {{BER_BVC(LDAP_ALL_OPERATIONAL_ATTRIBUTES), NULL, 0, NULL},
+                                                            {BER_BVNULL, NULL, 0, NULL}};
 
-static AttributeName anlist_all_attributes[] = {
-    {BER_BVC(LDAP_ALL_USER_ATTRIBUTES), NULL, 0, NULL},
-    {BER_BVC(LDAP_ALL_OPERATIONAL_ATTRIBUTES), NULL, 0, NULL},
-    {BER_BVNULL, NULL, 0, NULL}};
+static AttributeName anlist_all_attributes[] = {{BER_BVC(LDAP_ALL_USER_ATTRIBUTES), NULL, 0, NULL},
+                                                {BER_BVC(LDAP_ALL_OPERATIONAL_ATTRIBUTES), NULL, 0, NULL},
+                                                {BER_BVNULL, NULL, 0, NULL}};
 
 AttributeName *slap_anlist_no_attrs = anlist_no_attrs;
 AttributeName *slap_anlist_all_user_attributes = anlist_all_user_attributes;
-AttributeName *slap_anlist_all_operational_attributes =
-    anlist_all_operational_attributes;
+AttributeName *slap_anlist_all_operational_attributes = anlist_all_operational_attributes;
 AttributeName *slap_anlist_all_attributes = anlist_all_attributes;
 
 struct berval *slap_bv_no_attrs = &bv_no_attrs;
@@ -107,8 +102,7 @@ AttributeDescription *ad_find_tags(AttributeType *type, struct berval *tags) {
 
   ldap_pvt_thread_mutex_lock(&type->sat_ad_mutex);
   for (ad = type->sat_ad; ad; ad = ad->ad_next) {
-    if (ad->ad_tags.bv_len == tags->bv_len &&
-        !strcasecmp(ad->ad_tags.bv_val, tags->bv_val))
+    if (ad->ad_tags.bv_len == tags->bv_len && !strcasecmp(ad->ad_tags.bv_val, tags->bv_val))
       break;
   }
   ldap_pvt_thread_mutex_unlock(&type->sat_ad_mutex);
@@ -123,8 +117,7 @@ int slap_str2ad(const char *str, AttributeDescription **ad, const char **text) {
   return slap_bv2ad(&bv, ad, text);
 }
 
-static char *strchrlen(const char *beg, const char *end, const char ch,
-                       int *len) {
+static char *strchrlen(const char *beg, const char *end, const char ch, int *len) {
   const char *p;
 
   for (p = beg; *p && p < end; p++) {
@@ -138,8 +131,7 @@ static char *strchrlen(const char *beg, const char *end, const char ch,
   return NULL;
 }
 
-int slap_bv2ad(struct berval *bv, AttributeDescription **ad,
-               const char **text) {
+int slap_bv2ad(struct berval *bv, AttributeDescription **ad, const char **text) {
   AttributeDescription desc, *d2;
   char *name, *options, *optn;
   char *opt, *next;
@@ -206,8 +198,7 @@ int slap_bv2ad(struct berval *bv, AttributeDescription **ad,
       *text = "zero length option is invalid";
       return LDAP_INVALID_SYNTAX;
 
-    } else if (optlen == STRLENOF("binary") &&
-               strncasecmp(opt, "binary", STRLENOF("binary")) == 0) {
+    } else if (optlen == STRLENOF("binary") && strncasecmp(opt, "binary", STRLENOF("binary")) == 0) {
       /* binary option */
       if (slap_ad_is_binary(&desc)) {
         *text = "option \"binary\" specified multiple times";
@@ -226,9 +217,7 @@ int slap_bv2ad(struct berval *bv, AttributeDescription **ad,
     } else if ((aopt = ad_find_option_definition(opt, optlen))) {
       int i;
 
-      if (opt[optlen - 1] == '-' ||
-          (aopt->name.bv_val[aopt->name.bv_len - 1] == '=' &&
-           msad_range_hack)) {
+      if (opt[optlen - 1] == '-' || (aopt->name.bv_val[aopt->name.bv_len - 1] == '=' && msad_range_hack)) {
         desc.ad_flags |= SLAP_DESC_TAG_RANGE;
       }
 
@@ -244,9 +233,7 @@ int slap_bv2ad(struct berval *bv, AttributeDescription **ad,
       for (i = ntags - 1; i >= 0; i--) {
         int rc;
 
-        rc = strncasecmp(opt, tags[i].bv_val,
-                         (unsigned)optlen < tags[i].bv_len ? (unsigned)optlen
-                                                           : tags[i].bv_len);
+        rc = strncasecmp(opt, tags[i].bv_val, (unsigned)optlen < tags[i].bv_len ? (unsigned)optlen : tags[i].bv_len);
 
         if (rc == 0 && (unsigned)optlen == tags[i].bv_len) {
           /* duplicate (ignore) */
@@ -254,8 +241,7 @@ int slap_bv2ad(struct berval *bv, AttributeDescription **ad,
           goto done;
 
         } else if (rc > 0 || (rc == 0 && (unsigned)optlen > tags[i].bv_len)) {
-          memmove(&tags[i + 2], &tags[i + 1],
-                  (ntags - i - 1) * sizeof(struct berval));
+          memmove(&tags[i + 2], &tags[i + 1], (ntags - i - 1) * sizeof(struct berval));
           tags[i + 1].bv_val = opt;
           tags[i + 1].bv_len = optlen;
           goto done;
@@ -301,8 +287,7 @@ int slap_bv2ad(struct berval *bv, AttributeDescription **ad,
   }
 
   /* see if a matching description is already cached */
-  for (d2 = slap_tsan__read_ptr(&desc.ad_type->sat_ad); d2 != NULL;
-       d2 = slap_tsan__read_ptr(&d2->ad_next)) {
+  for (d2 = slap_tsan__read_ptr(&desc.ad_type->sat_ad); d2 != NULL; d2 = slap_tsan__read_ptr(&d2->ad_next)) {
 
 #ifdef __SANITIZE_THREAD__
     ldap_pvt_thread_mutex_lock(&desc.ad_type->sat_ad_mutex);
@@ -318,8 +303,7 @@ int slap_bv2ad(struct berval *bv, AttributeDescription **ad,
     if (d2->ad_tags.bv_len == 0) {
       break;
     }
-    if (strncasecmp(d2->ad_tags.bv_val, desc.ad_tags.bv_val,
-                    desc.ad_tags.bv_len) == 0) {
+    if (strncasecmp(d2->ad_tags.bv_val, desc.ad_tags.bv_val, desc.ad_tags.bv_len) == 0) {
       break;
     }
   }
@@ -336,8 +320,7 @@ int slap_bv2ad(struct berval *bv, AttributeDescription **ad,
         continue;
       if (d2->ad_tags.bv_len == 0)
         break;
-      if (strncasecmp(d2->ad_tags.bv_val, desc.ad_tags.bv_val,
-                      desc.ad_tags.bv_len) == 0)
+      if (strncasecmp(d2->ad_tags.bv_val, desc.ad_tags.bv_val, desc.ad_tags.bv_len) == 0)
         break;
     }
     if (d2) {
@@ -384,13 +367,11 @@ int slap_bv2ad(struct berval *bv, AttributeDescription **ad,
         lp = NULL;
         if (desc.ad_tags.bv_len) {
           lp = desc.ad_tags.bv_val;
-          while (strncasecmp(lp, "binary", STRLENOF("binary")) < 0 &&
-                 (lp = strchr(lp, ';')) != NULL)
+          while (strncasecmp(lp, "binary", STRLENOF("binary")) < 0 && (lp = strchr(lp, ';')) != NULL)
             ++lp;
           if (lp != desc.ad_tags.bv_val) {
             *cp++ = ';';
-            j = (lp ? (unsigned)(lp - desc.ad_tags.bv_val - 1)
-                    : strlen(desc.ad_tags.bv_val));
+            j = (lp ? (unsigned)(lp - desc.ad_tags.bv_val - 1) : strlen(desc.ad_tags.bv_val));
             cp = lutil_strncopy(cp, desc.ad_tags.bv_val, j);
           }
         }
@@ -462,10 +443,8 @@ static int is_ad_subtags(struct berval *subtagsbv, struct berval *suptagsbv) {
       if (subdelimp)
         subdelimp++;
 
-      if (suplen > sublen ? (suplen - 1 == sublen && supp[suplen - 1] == '-' &&
-                             strncmp(supp, subp, sublen) == 0)
-                          : ((suplen == sublen || supp[suplen - 1] == '-') &&
-                             strncmp(supp, subp, suplen) == 0)) {
+      if (suplen > sublen ? (suplen - 1 == sublen && supp[suplen - 1] == '-' && strncmp(supp, subp, sublen) == 0)
+                          : ((suplen == sublen || supp[suplen - 1] == '-') && strncmp(supp, subp, suplen) == 0)) {
         goto match;
       }
     }
@@ -540,8 +519,7 @@ int ad_inlist(AttributeDescription *desc, AttributeName *attrs) {
       }
       /* Does desc support all the requested flags? */
       lr = desc->ad_tags.bv_len ? SLAP_DESC_TAG_RANGE : 0;
-      if ((attrs->an_desc->ad_flags & (desc->ad_flags | lr)) !=
-          attrs->an_desc->ad_flags) {
+      if ((attrs->an_desc->ad_flags & (desc->ad_flags | lr)) != attrs->an_desc->ad_flags) {
         continue;
       }
       /* Do the descs have compatible tags? */
@@ -679,16 +657,14 @@ int ad_inlist(AttributeDescription *desc, AttributeName *attrs) {
       const char *text;
 
       /* give it a chance of being retrieved by a proxy... */
-      (void)slap_bv2undef_ad(&attrs->an_name, &attrs->an_desc, &text,
-                             SLAP_AD_PROXIED | SLAP_AD_NOINSERT);
+      (void)slap_bv2undef_ad(&attrs->an_name, &attrs->an_desc, &text, SLAP_AD_PROXIED | SLAP_AD_NOINSERT);
     }
   }
 
   return 0;
 }
 
-int slap_str2undef_ad(const char *str, AttributeDescription **ad,
-                      const char **text, unsigned flags) {
+int slap_str2undef_ad(const char *str, AttributeDescription **ad, const char **text, unsigned flags) {
   struct berval bv;
   bv.bv_val = (char *)str;
   bv.bv_len = strlen(str);
@@ -696,8 +672,7 @@ int slap_str2undef_ad(const char *str, AttributeDescription **ad,
   return slap_bv2undef_ad(&bv, ad, text, flags);
 }
 
-int slap_bv2undef_ad(struct berval *bv, AttributeDescription **ad,
-                     const char **text, unsigned flags) {
+int slap_bv2undef_ad(struct berval *bv, AttributeDescription **ad, const char **text, unsigned flags) {
   AttributeDescription *desc;
   AttributeType *at;
 
@@ -723,8 +698,7 @@ int slap_bv2undef_ad(struct berval *bv, AttributeDescription **ad,
   }
 
   for (desc = at->sat_ad; desc; desc = desc->ad_next) {
-    if (desc->ad_cname.bv_len == bv->bv_len &&
-        !strcasecmp(desc->ad_cname.bv_val, bv->bv_val)) {
+    if (desc->ad_cname.bv_len == bv->bv_len && !strcasecmp(desc->ad_cname.bv_val, bv->bv_val)) {
       break;
     }
   }
@@ -757,8 +731,7 @@ int slap_bv2undef_ad(struct berval *bv, AttributeDescription **ad,
     ldap_pvt_thread_mutex_unlock(&ad_undef_mutex);
 
     Debug(LDAP_DEBUG_ANY, "%s attributeDescription \"%s\" inserted.\n",
-          (flags & SLAP_AD_PROXIED) ? "PROXIED" : "UNKNOWN",
-          desc->ad_cname.bv_val);
+          (flags & SLAP_AD_PROXIED) ? "PROXIED" : "UNKNOWN", desc->ad_cname.bv_val);
   }
 
   if (!*ad) {
@@ -771,8 +744,7 @@ int slap_bv2undef_ad(struct berval *bv, AttributeDescription **ad,
 }
 
 AttributeDescription *slap_bv2tmp_ad(struct berval *bv, void *memctx) {
-  AttributeDescription *ad = slap_sl_mfuncs.bmf_malloc(
-      sizeof(AttributeDescription) + bv->bv_len + 1, memctx);
+  AttributeDescription *ad = slap_sl_mfuncs.bmf_malloc(sizeof(AttributeDescription) + bv->bv_len + 1, memctx);
 
   ad->ad_cname.bv_val = (char *)(ad + 1);
   strncpy(ad->ad_cname.bv_val, bv->bv_val, bv->bv_len + 1);
@@ -796,10 +768,8 @@ static int undef_promote(AttributeType *at, char *name, AttributeType *nat) {
     ber_str2bv(name, 0, 0, &bv);
 
     /* remove iff undef == name or undef == name;tag */
-    if ((*u_ad)->ad_cname.bv_len >= bv.bv_len &&
-        strncasecmp((*u_ad)->ad_cname.bv_val, bv.bv_val, bv.bv_len) == 0 &&
-        ((*u_ad)->ad_cname.bv_val[bv.bv_len] == '\0' ||
-         (*u_ad)->ad_cname.bv_val[bv.bv_len] == ';')) {
+    if ((*u_ad)->ad_cname.bv_len >= bv.bv_len && strncasecmp((*u_ad)->ad_cname.bv_val, bv.bv_val, bv.bv_len) == 0 &&
+        ((*u_ad)->ad_cname.bv_val[bv.bv_len] == '\0' || (*u_ad)->ad_cname.bv_val[bv.bv_len] == ';')) {
       AttributeDescription *tmp = *u_ad;
 
       *u_ad = (*u_ad)->ad_next;
@@ -891,8 +861,7 @@ AttributeName *str2anlist(AttributeName *an, char *in, const char *brkstr) {
 
   an = ch_realloc(an, (i + j + 1) * sizeof(AttributeName));
   anew = an + i;
-  for (s = ldap_pvt_strtok(str, brkstr, &lasts); s != NULL;
-       s = ldap_pvt_strtok(NULL, brkstr, &lasts)) {
+  for (s = ldap_pvt_strtok(str, brkstr, &lasts); s != NULL; s = ldap_pvt_strtok(NULL, brkstr, &lasts)) {
     /* put a stop mark */
     BER_BVZERO(&anew[1].an_name);
 
@@ -995,9 +964,7 @@ char **anlist2charray_x(AttributeName *an, int dup, void *ctx) {
   return attrs;
 }
 
-char **anlist2charray(AttributeName *an, int dup) {
-  return anlist2charray_x(an, dup, NULL);
-}
+char **anlist2charray(AttributeName *an, int dup) { return anlist2charray_x(an, dup, NULL); }
 
 char **anlist2attrs(AttributeName *anlist) {
   int i, j, k = 0;
@@ -1076,8 +1043,7 @@ char **anlist2attrs(AttributeName *anlist) {
 }
 
 #define LBUFSIZ 80
-AttributeName *file2anlist(AttributeName *an, const char *fname,
-                           const char *brkstr) {
+AttributeName *file2anlist(AttributeName *an, const char *fname, const char *brkstr) {
   FILE *fp;
   char *line = NULL;
   char *lcur = NULL;
@@ -1113,8 +1079,7 @@ AttributeName *file2anlist(AttributeName *an, const char *fname,
       lmax += LBUFSIZ;
       line = (char *)ch_realloc(line, lmax);
       if (!line) {
-        Debug(LDAP_DEBUG_ANY,
-              "get_attrs_from_file: could not allocate memory\n");
+        Debug(LDAP_DEBUG_ANY, "get_attrs_from_file: could not allocate memory\n");
         fclose(fp);
         return NULL;
       }
@@ -1152,18 +1117,15 @@ int ad_define_option(const char *name, const char *fname, int lineno) {
         msad_range_hack = 1;
         continue;
       }
-      Debug(LDAP_DEBUG_ANY, "%s: line %d: illegal option name \"%s\"\n", fname,
-            lineno, name);
+      Debug(LDAP_DEBUG_ANY, "%s: line %d: illegal option name \"%s\"\n", fname, lineno, name);
       return 1;
     }
   } while (name[++optlen]);
 
   options = ch_realloc(options, (option_count + 1) * sizeof(Attr_option));
 
-  if (strcasecmp(name, "binary") == 0 ||
-      ad_find_option_definition(name, optlen)) {
-    Debug(LDAP_DEBUG_ANY, "%s: line %d: option \"%s\" is already defined\n",
-          fname, lineno, name);
+  if (strcasecmp(name, "binary") == 0 || ad_find_option_definition(name, optlen)) {
+    Debug(LDAP_DEBUG_ANY, "%s: line %d: option \"%s\" is already defined\n", fname, lineno, name);
     return 1;
   }
 
@@ -1177,12 +1139,9 @@ int ad_define_option(const char *name, const char *fname, int lineno) {
   options[i].name.bv_len = optlen;
   options[i].prefix = (name[optlen - 1] == '-') || (name[optlen - 1] == '=');
 
-  if (i != option_count && options[i].prefix &&
-      optlen < options[i + 1].name.bv_len &&
+  if (i != option_count && options[i].prefix && optlen < options[i + 1].name.bv_len &&
       strncasecmp(name, options[i + 1].name.bv_val, optlen) == 0) {
-    Debug(LDAP_DEBUG_ANY,
-          "%s: line %d: option \"%s\" overrides previous option\n", fname,
-          lineno, name);
+    Debug(LDAP_DEBUG_ANY, "%s: line %d: option \"%s\" overrides previous option\n", fname, lineno, name);
     return 1;
   }
 

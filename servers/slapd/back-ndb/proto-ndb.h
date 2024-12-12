@@ -53,8 +53,7 @@ extern BI_tool_entry_get ndb_tool_entry_get;
 extern BI_tool_entry_put ndb_tool_entry_put;
 extern BI_tool_dn2id_get ndb_tool_dn2id_get;
 
-extern int ndb_modify_internal(Operation *op, NdbArgs *NA, const char **text,
-                               char *textbuf, size_t textlen);
+extern int ndb_modify_internal(Operation *op, NdbArgs *NA, const char **text, char *textbuf, size_t textlen);
 
 extern int ndb_entry_get_data(Operation *op, NdbArgs *args, int update);
 
@@ -64,8 +63,7 @@ extern int ndb_entry_del_data(BackendDB *be, NdbArgs *args);
 
 extern int ndb_entry_put_info(BackendDB *be, NdbArgs *args, int update);
 
-extern int ndb_entry_get_info(Operation *op, NdbArgs *args, int update,
-                              struct berval *matched);
+extern int ndb_entry_get_info(Operation *op, NdbArgs *args, int update, struct berval *matched);
 
 extern "C" int ndb_entry_del_info(BackendDB *be, NdbArgs *args);
 
@@ -75,23 +73,18 @@ extern NdbAttrInfo *ndb_ai_find(struct ndb_info *ni, AttributeType *at);
 
 extern NdbAttrInfo *ndb_ai_get(struct ndb_info *ni, struct berval *at);
 
-extern int ndb_aset_get(struct ndb_info *ni, struct berval *sname,
-                        struct berval *attrs, NdbOcInfo **ret);
+extern int ndb_aset_get(struct ndb_info *ni, struct berval *sname, struct berval *attrs, NdbOcInfo **ret);
 
 extern int ndb_aset_create(struct ndb_info *ni, NdbOcInfo *oci);
 
-extern int ndb_oc_read(struct ndb_info *ni,
-                       const NdbDictionary::Dictionary *dict);
+extern int ndb_oc_read(struct ndb_info *ni, const NdbDictionary::Dictionary *dict);
 
-extern int ndb_oc_attrs(NdbTransaction *txn,
-                        const NdbDictionary::Table *myTable, Entry *e,
-                        NdbOcInfo *no, NdbAttrInfo **attrs, int nattrs,
-                        Attribute *old);
+extern int ndb_oc_attrs(NdbTransaction *txn, const NdbDictionary::Table *myTable, Entry *e, NdbOcInfo *no,
+                        NdbAttrInfo **attrs, int nattrs, Attribute *old);
 
 extern int ndb_has_children(NdbArgs *NA, int *hasChildren);
 
-extern struct berval *ndb_str2bvarray(char *str, int len, char delim,
-                                      void *ctx);
+extern struct berval *ndb_str2bvarray(char *str, int len, char delim, void *ctx);
 
 extern struct berval *ndb_ref2oclist(const char *ref, void *ctx);
 

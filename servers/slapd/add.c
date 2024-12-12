@@ -62,8 +62,7 @@ int do_add(Operation *op, SlapReply *rs) {
   Debug(LDAP_DEBUG_ARGS, "%s do_add: dn (%s)\n", op->o_log_prefix, dn.bv_val);
 
   /* get the attrs */
-  for (tag = ber_first_element(ber, &len, &last); tag != LBER_DEFAULT;
-       tag = ber_next_element(ber, &len, last)) {
+  for (tag = ber_first_element(ber, &len, &last); tag != LBER_DEFAULT; tag = ber_next_element(ber, &len, last)) {
     Modifications *mod;
     ber_tag_t rtag;
 
@@ -79,10 +78,8 @@ int do_add(Operation *op, SlapReply *rs) {
     }
 
     if (tmp.sml_values == NULL) {
-      Debug(LDAP_DEBUG_ANY, "%s do_add: no values for type %s\n",
-            op->o_log_prefix, tmp.sml_type.bv_val);
-      send_ldap_error(op, rs, LDAP_PROTOCOL_ERROR,
-                      "no values for attribute type");
+      Debug(LDAP_DEBUG_ANY, "%s do_add: no values for type %s\n", op->o_log_prefix, tmp.sml_type.bv_val);
+      send_ldap_error(op, rs, LDAP_PROTOCOL_ERROR, "no values for attribute type");
       goto done;
     }
 
@@ -111,12 +108,10 @@ int do_add(Operation *op, SlapReply *rs) {
     goto done;
   }
 
-  rs->sr_err =
-      dnPrettyNormal(NULL, &dn, &op->o_req_dn, &op->o_req_ndn, op->o_tmpmemctx);
+  rs->sr_err = dnPrettyNormal(NULL, &dn, &op->o_req_dn, &op->o_req_ndn, op->o_tmpmemctx);
 
   if (rs->sr_err != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_ANY, "%s do_add: invalid dn (%s)\n", op->o_log_prefix,
-          dn.bv_val);
+    Debug(LDAP_DEBUG_ANY, "%s do_add: invalid dn (%s)\n", op->o_log_prefix, dn.bv_val);
     send_ldap_error(op, rs, LDAP_INVALID_DN_SYNTAX, "invalid DN");
     goto done;
   }
@@ -125,8 +120,7 @@ int do_add(Operation *op, SlapReply *rs) {
   ber_dupbv(&op->ora_e->e_name, &op->o_req_dn);
   ber_dupbv(&op->ora_e->e_nname, &op->o_req_ndn);
 
-  Statslog(LDAP_DEBUG_STATS, "%s ADD dn=\"%s\"\n", op->o_log_prefix,
-           op->o_req_dn.bv_val);
+  Statslog(LDAP_DEBUG_STATS, "%s ADD dn=\"%s\"\n", op->o_log_prefix, op->o_req_dn.bv_val);
 
   if (modlist == NULL) {
     send_ldap_error(op, rs, LDAP_PROTOCOL_ERROR, "no attributes provided");
@@ -139,13 +133,11 @@ int do_add(Operation *op, SlapReply *rs) {
     goto done;
 
   } else if (dn_match(&op->ora_e->e_nname, &frontendDB->be_schemandn)) {
-    send_ldap_error(op, rs, LDAP_ALREADY_EXISTS,
-                    "subschema subentry already exists");
+    send_ldap_error(op, rs, LDAP_ALREADY_EXISTS, "subschema subentry already exists");
     goto done;
   }
 
-  rs->sr_err =
-      slap_mods_check(op, modlist, &rs->sr_text, textbuf, textlen, NULL);
+  rs->sr_err = slap_mods_check(op, modlist, &rs->sr_text, textbuf, textlen, NULL);
 
   if (rs->sr_err != LDAP_SUCCESS) {
     send_ldap_result(op, rs);
@@ -156,8 +148,7 @@ int do_add(Operation *op, SlapReply *rs) {
   op->ora_modlist = modlist;
 
   /* call this so global overlays/SLAPI have access to ora_e */
-  rs->sr_err = slap_mods2entry(op->ora_modlist, &op->ora_e, 1, 0, &rs->sr_text,
-                               textbuf, textlen);
+  rs->sr_err = slap_mods2entry(op->ora_modlist, &op->ora_e, 1, 0, &rs->sr_text, textbuf, textlen);
   if (rs->sr_err != LDAP_SUCCESS) {
     send_ldap_result(op, rs);
     goto done;
@@ -228,8 +219,7 @@ int fe_op_add(Operation *op, SlapReply *rs) {
   op->o_bd = select_backend(&op->ora_e->e_nname, 1);
   if (op->o_bd == NULL) {
     op->o_bd = bd;
-    rs->sr_ref = referral_rewrite(default_referral, NULL, &op->ora_e->e_name,
-                                  LDAP_SCOPE_DEFAULT);
+    rs->sr_ref = referral_rewrite(default_referral, NULL, &op->ora_e->e_name, LDAP_SCOPE_DEFAULT);
     if (!rs->sr_ref)
       rs->sr_ref = default_referral;
     else
@@ -238,8 +228,7 @@ int fe_op_add(Operation *op, SlapReply *rs) {
       rs->sr_err = LDAP_REFERRAL;
       send_ldap_result(op, rs);
     } else {
-      send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                      "no global superior knowledge");
+      send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "no global superior knowledge");
     }
     rs_send_cleanup(rs);
     goto done;
@@ -262,8 +251,7 @@ int fe_op_add(Operation *op, SlapReply *rs) {
     goto done;
   }
 
-  rs->sr_err = slap_mods_obsolete_check(op, op->ora_modlist, &rs->sr_text,
-                                        textbuf, textlen);
+  rs->sr_err = slap_mods_obsolete_check(op, op->ora_modlist, &rs->sr_text, textbuf, textlen);
 
   if (rs->sr_err != LDAP_SUCCESS) {
     send_ldap_result(op, rs);
@@ -285,8 +273,7 @@ int fe_op_add(Operation *op, SlapReply *rs) {
       op->o_bd = op_be;
 
       if (!update) {
-        rs->sr_err = slap_mods_no_user_mod_check(
-            op, op->ora_modlist, &rs->sr_text, textbuf, textlen);
+        rs->sr_err = slap_mods_no_user_mod_check(op, op->ora_modlist, &rs->sr_text, textbuf, textlen);
 
         if (rs->sr_err != LDAP_SUCCESS) {
           send_ldap_result(op, rs);
@@ -296,15 +283,13 @@ int fe_op_add(Operation *op, SlapReply *rs) {
 
       if (!repl_user) {
         /* go to the last mod */
-        for (modtail = &op->ora_modlist; *modtail != NULL;
-             modtail = &(*modtail)->sml_next) {
+        for (modtail = &op->ora_modlist; *modtail != NULL; modtail = &(*modtail)->sml_next) {
           assert((*modtail)->sml_op == LDAP_MOD_ADD);
           assert((*modtail)->sml_desc != NULL);
         }
 
         /* check for unmodifiable attributes */
-        rs->sr_err = slap_mods_no_repl_user_mod_check(
-            op, op->ora_modlist, &rs->sr_text, textbuf, textlen);
+        rs->sr_err = slap_mods_no_repl_user_mod_check(op, op->ora_modlist, &rs->sr_text, textbuf, textlen);
         if (rs->sr_err != LDAP_SUCCESS) {
           send_ldap_result(op, rs);
           goto done;
@@ -329,27 +314,23 @@ int fe_op_add(Operation *op, SlapReply *rs) {
     } else {
       BerVarray defref = NULL;
 
-      defref = op->o_bd->be_update_refs ? op->o_bd->be_update_refs
-                                        : default_referral;
+      defref = op->o_bd->be_update_refs ? op->o_bd->be_update_refs : default_referral;
 
       if (defref != NULL) {
-        rs->sr_ref = referral_rewrite(defref, NULL, &op->ora_e->e_name,
-                                      LDAP_SCOPE_DEFAULT);
+        rs->sr_ref = referral_rewrite(defref, NULL, &op->ora_e->e_name, LDAP_SCOPE_DEFAULT);
         if (!rs->sr_ref)
           ber_bvarray_dup_x(&rs->sr_ref, defref, NULL);
         rs->sr_err = LDAP_REFERRAL;
         rs->sr_flags |= REP_REF_MUSTBEFREED;
         send_ldap_result(op, rs);
       } else {
-        send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                        "shadow context; no update referral");
+        send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "shadow context; no update referral");
       }
       rs_send_cleanup(rs);
     }
   } else {
     Debug(LDAP_DEBUG_ARGS, "do_add: no backend support\n");
-    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                    "operation not supported within namingContext");
+    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "operation not supported within namingContext");
   }
 
 done:;
@@ -357,8 +338,8 @@ done:;
   return rc;
 }
 
-int slap_mods2entry(Modifications *mods, Entry **e, int initial, int dup,
-                    const char **text, char *textbuf, size_t textlen) {
+int slap_mods2entry(Modifications *mods, Entry **e, int initial, int dup, const char **text, char *textbuf,
+                    size_t textlen) {
   Attribute **tail;
   int i;
 
@@ -414,16 +395,14 @@ int slap_mods2entry(Modifications *mods, Entry **e, int initial, int dup,
       }
 
       if (mods->sml_nvalues) {
-        attr->a_nvals =
-            ch_realloc(attr->a_nvals, sizeof(struct berval) * (i + j));
+        attr->a_nvals = ch_realloc(attr->a_nvals, sizeof(struct berval) * (i + j));
         if (dup) {
           for (j = 0; mods->sml_nvalues[j].bv_val; j++) {
             ber_dupbv(&attr->a_nvals[i + j], &mods->sml_nvalues[j]);
           }
           BER_BVZERO(&attr->a_nvals[i + j]);
         } else {
-          memcpy(&attr->a_nvals[i], mods->sml_nvalues,
-                 sizeof(struct berval) * j);
+          memcpy(&attr->a_nvals[i], mods->sml_nvalues, sizeof(struct berval) * j);
         }
       } else {
         attr->a_nvals = attr->a_vals;
@@ -431,8 +410,7 @@ int slap_mods2entry(Modifications *mods, Entry **e, int initial, int dup,
 
       continue;
 #else
-      snprintf(textbuf, textlen, "attribute '%s' provided more than once",
-               mods->sml_desc->ad_cname.bv_val);
+      snprintf(textbuf, textlen, "attribute '%s' provided more than once", mods->sml_desc->ad_cname.bv_val);
       *text = textbuf;
       return LDAP_TYPE_OR_VALUE_EXISTS;
 #endif
@@ -477,8 +455,7 @@ int slap_mods2entry(Modifications *mods, Entry **e, int initial, int dup,
   return LDAP_SUCCESS;
 }
 
-int slap_entry2mods(Entry *e, Modifications **mods, const char **text,
-                    char *textbuf, size_t textlen) {
+int slap_entry2mods(Entry *e, Modifications **mods, const char **text, char *textbuf, size_t textlen) {
   Modifications *modhead = NULL;
   Modifications *mod;
   Modifications **modtail = &modhead;
@@ -500,16 +477,14 @@ int slap_entry2mods(Entry *e, Modifications **mods, const char **text,
     count = a_new->a_numvals;
     mod->sml_numvals = a_new->a_numvals;
 
-    mod->sml_values =
-        (struct berval *)ch_malloc((count + 1) * sizeof(struct berval));
+    mod->sml_values = (struct berval *)ch_malloc((count + 1) * sizeof(struct berval));
 
     /* see slap_mods_check() comments...
      * if a_vals == a_nvals, there is no normalizer.
      * in this case, mod->sml_nvalues must be left NULL.
      */
     if (a_new->a_vals != a_new->a_nvals) {
-      mod->sml_nvalues =
-          (struct berval *)ch_malloc((count + 1) * sizeof(struct berval));
+      mod->sml_nvalues = (struct berval *)ch_malloc((count + 1) * sizeof(struct berval));
     } else {
       mod->sml_nvalues = NULL;
     }
@@ -541,8 +516,7 @@ int slap_entry2mods(Entry *e, Modifications **mods, const char **text,
   return LDAP_SUCCESS;
 }
 
-int slap_add_opattrs(Operation *op, const char **text, char *textbuf,
-                     size_t textlen, int manage_ctxcsn) {
+int slap_add_opattrs(Operation *op, const char **text, char *textbuf, size_t textlen, int manage_ctxcsn) {
   struct berval name, timestamp, csn = BER_BVNULL;
   struct berval nname, tmp;
   char timebuf[LDAP_LUTIL_GENTIME_BUFSIZE];
@@ -561,9 +535,7 @@ int slap_add_opattrs(Operation *op, const char **text, char *textbuf,
     }
     if (BER_BVISEMPTY(&op->o_csn)) {
       if (!gotcsn) {
-        if (slap_serverID ||
-            (slapMode & (SLAP_SERVER_MODE | SLAP_SERVER_RUNNING)) !=
-                SLAP_SERVER_MODE) {
+        if (slap_serverID || (slapMode & (SLAP_SERVER_MODE | SLAP_SERVER_RUNNING)) != SLAP_SERVER_MODE) {
           csn.bv_val = csnbuf;
           csn.bv_len = sizeof(csnbuf);
           slap_get_csn(manage_ctxcsn ? op : NULL, &csn);
@@ -603,8 +575,7 @@ int slap_add_opattrs(Operation *op, const char **text, char *textbuf,
       tmp.bv_len = lutil_uuidstr(uuidbuf, sizeof(uuidbuf));
       tmp.bv_val = uuidbuf;
 
-      attr_merge_normalize_one(op->ora_e, slap_schema.si_ad_entryUUID, &tmp,
-                               op->o_tmpmemctx);
+      attr_merge_normalize_one(op->ora_e, slap_schema.si_ad_entryUUID, &tmp, op->o_tmpmemctx);
     }
 
     a = attr_find(op->ora_e->e_attrs, slap_schema.si_ad_creatorsName);
@@ -614,8 +585,7 @@ int slap_add_opattrs(Operation *op, const char **text, char *textbuf,
 
     a = attr_find(op->ora_e->e_attrs, slap_schema.si_ad_createTimestamp);
     if (!a) {
-      attr_merge_one(op->ora_e, slap_schema.si_ad_createTimestamp, &timestamp,
-                     NULL);
+      attr_merge_one(op->ora_e, slap_schema.si_ad_createTimestamp, &timestamp, NULL);
     }
 
     if (!gotcsn && !BER_BVISEMPTY(&csn)) {
@@ -629,8 +599,7 @@ int slap_add_opattrs(Operation *op, const char **text, char *textbuf,
 
     a = attr_find(op->ora_e->e_attrs, slap_schema.si_ad_modifyTimestamp);
     if (!a) {
-      attr_merge_one(op->ora_e, slap_schema.si_ad_modifyTimestamp, &timestamp,
-                     NULL);
+      attr_merge_one(op->ora_e, slap_schema.si_ad_modifyTimestamp, &timestamp, NULL);
     }
   }
 

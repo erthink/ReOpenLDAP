@@ -47,15 +47,13 @@ typedef struct dds_info_t {
   time_t di_max_ttl;
   time_t di_min_ttl;
   time_t di_default_ttl;
-#define DDS_DEFAULT_TTL(di)                                                    \
-  ((di)->di_default_ttl ? (di)->di_default_ttl : (di)->di_max_ttl)
+#define DDS_DEFAULT_TTL(di) ((di)->di_default_ttl ? (di)->di_default_ttl : (di)->di_max_ttl)
 
   time_t di_tolerance;
 
   /* expire check interval and task */
   time_t di_interval;
-#define DDS_INTERVAL(di)                                                       \
-  ((di)->di_interval ? (di)->di_interval : DDS_DEFAULT_INTERVAL)
+#define DDS_INTERVAL(di) ((di)->di_interval ? (di)->di_interval : DDS_DEFAULT_INTERVAL)
   struct re_s *di_expire_task;
 
   /* allows to limit the maximum number of dynamic objects */
@@ -89,16 +87,14 @@ static int dds_expire_cb(Operation *op, SlapReply *rs) {
   switch (rs->sr_type) {
   case REP_SEARCH:
     /* alloc list and buffer for berval all in one */
-    de = op->o_tmpalloc(sizeof(dds_expire_t) + rs->sr_entry->e_nname.bv_len + 1,
-                        op->o_tmpmemctx);
+    de = op->o_tmpalloc(sizeof(dds_expire_t) + rs->sr_entry->e_nname.bv_len + 1, op->o_tmpmemctx);
 
     de->de_next = dc->dc_ndnlist;
     dc->dc_ndnlist = de;
 
     de->de_ndn.bv_len = rs->sr_entry->e_nname.bv_len;
     de->de_ndn.bv_val = (char *)&de[1];
-    memcpy(de->de_ndn.bv_val, rs->sr_entry->e_nname.bv_val,
-           rs->sr_entry->e_nname.bv_len + 1);
+    memcpy(de->de_ndn.bv_val, rs->sr_entry->e_nname.bv_val, rs->sr_entry->e_nname.bv_len + 1);
     return LDAP_SUCCESS;
 
   case REP_SEARCHREF:
@@ -158,14 +154,10 @@ static int dds_expire(void *ctx, dds_info_t *di) {
                                       "<="
                                       "))") +
                              slap_schema.si_oc_dynamicObject->soc_cname.bv_len +
-                             ad_entryExpireTimestamp->ad_cname.bv_len +
-                             ts.bv_len;
-  op->ors_filterstr.bv_val =
-      op->o_tmpalloc(op->ors_filterstr.bv_len + 1, op->o_tmpmemctx);
-  snprintf(op->ors_filterstr.bv_val, op->ors_filterstr.bv_len + 1,
-           "(&(objectClass=%s)(%s<=%s))",
-           slap_schema.si_oc_dynamicObject->soc_cname.bv_val,
-           ad_entryExpireTimestamp->ad_cname.bv_val, ts.bv_val);
+                             ad_entryExpireTimestamp->ad_cname.bv_len + ts.bv_len;
+  op->ors_filterstr.bv_val = op->o_tmpalloc(op->ors_filterstr.bv_len + 1, op->o_tmpmemctx);
+  snprintf(op->ors_filterstr.bv_val, op->ors_filterstr.bv_len + 1, "(&(objectClass=%s)(%s<=%s))",
+           slap_schema.si_oc_dynamicObject->soc_cname.bv_val, ad_entryExpireTimestamp->ad_cname.bv_val, ts.bv_val);
 
   op->ors_filter = str2filter_x(op, op->ors_filterstr.bv_val);
   if (op->ors_filter == NULL) {
@@ -195,8 +187,7 @@ done_search:;
     /* fallthru */
 
   default:
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
-        "DDS expired objects lookup failed err=%d%s\n", rc, extra);
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "DDS expired objects lookup failed err=%d%s\n", rc, extra);
     goto done;
   }
 
@@ -218,8 +209,7 @@ done_search:;
       (void)op->o_bd->bd_info->bi_op_delete(op, &rs);
       switch (rs.sr_err) {
       case LDAP_SUCCESS:
-        Log(LDAP_DEBUG_STATS, LDAP_LEVEL_INFO, "DDS dn=\"%s\" expired.\n",
-            de->de_ndn.bv_val);
+        Log(LDAP_DEBUG_STATS, LDAP_LEVEL_INFO, "DDS dn=\"%s\" expired.\n", de->de_ndn.bv_val);
         ndeletes++;
         break;
 
@@ -352,22 +342,18 @@ static int dds_op_add(Operation *op, SlapReply *rs) {
 
     dnParent(&op->o_req_ndn, &p_ndn);
     op->o_bd->bd_info = (BackendInfo *)on->on_info;
-    rc = be_entry_get_rw(op, &p_ndn, slap_schema.si_oc_dynamicObject, NULL, 0,
-                         &e);
+    rc = be_entry_get_rw(op, &p_ndn, slap_schema.si_oc_dynamicObject, NULL, 0, &e);
     if (rc == LDAP_SUCCESS && e != NULL) {
       if (!is_dynamicObject) {
         /* return referral only if "disclose"
          * is granted on the object */
-        if (!access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE,
-                            NULL)) {
+        if (!access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL)) {
           rc = rs->sr_err = LDAP_NO_SUCH_OBJECT;
           send_ldap_result(op, rs);
 
         } else {
           rc = rs->sr_err = LDAP_CONSTRAINT_VIOLATION;
-          send_ldap_error(
-              op, rs, rc,
-              "no static subordinate entries allowed for dynamicObject");
+          send_ldap_error(op, rs, rc, "no static subordinate entries allowed for dynamicObject");
         }
       }
 
@@ -388,13 +374,11 @@ static int dds_op_add(Operation *op, SlapReply *rs) {
 
     if (!be_isroot_dn(op->o_bd, &op->o_req_ndn)) {
       ldap_pvt_thread_mutex_lock(&di->di_mutex);
-      rs->sr_err = (di->di_max_dynamicObjects &&
-                    di->di_num_dynamicObjects >= di->di_max_dynamicObjects);
+      rs->sr_err = (di->di_max_dynamicObjects && di->di_num_dynamicObjects >= di->di_max_dynamicObjects);
       ldap_pvt_thread_mutex_unlock(&di->di_mutex);
       if (rs->sr_err) {
         op->o_bd->bd_info = (BackendInfo *)on->on_info;
-        send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
-                        "too many dynamicObjects in context");
+        send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM, "too many dynamicObjects in context");
         return rs->sr_err;
       }
     }
@@ -448,8 +432,7 @@ static int dds_op_delete(Operation *op, SlapReply *rs) {
     BackendInfo *bi = op->o_bd->bd_info;
 
     op->o_bd->bd_info = (BackendInfo *)on->on_info;
-    rs->sr_err = be_entry_get_rw(op, &op->o_req_ndn,
-                                 slap_schema.si_oc_dynamicObject, NULL, 0, &e);
+    rs->sr_err = be_entry_get_rw(op, &op->o_req_ndn, slap_schema.si_oc_dynamicObject, NULL, 0, &e);
 
     /* FIXME: couldn't the entry be added before deletion? */
     if (rs->sr_err == LDAP_SUCCESS && e != NULL) {
@@ -498,9 +481,7 @@ static int dds_op_modify(Operation *op, SlapReply *rs) {
   bv_entryTtl.bv_val = textbuf;
 
   op->o_bd->bd_info = (BackendInfo *)on->on_info;
-  rs->sr_err =
-      be_entry_get_rw(op, &op->o_req_ndn, slap_schema.si_oc_dynamicObject,
-                      slap_schema.si_ad_entryTtl, 0, &e);
+  rs->sr_err = be_entry_get_rw(op, &op->o_req_ndn, slap_schema.si_oc_dynamicObject, slap_schema.si_ad_entryTtl, 0, &e);
   if (rs->sr_err == LDAP_SUCCESS && e != NULL) {
     Attribute *a = attr_find(e->e_attrs, slap_schema.si_ad_entryTtl);
 
@@ -573,11 +554,8 @@ static int dds_op_modify(Operation *op, SlapReply *rs) {
       case LDAP_MOD_DELETE:
       case SLAP_MOD_SOFTDEL: /* FIXME? */
         if (mod->sml_values != NULL) {
-          if (BER_BVISEMPTY(&bv_entryTtl) ||
-              !bvmatch(&bv_entryTtl, &mod->sml_values[0])) {
-            rs->sr_err =
-                backend_attribute(op, NULL, &op->o_req_ndn,
-                                  slap_schema.si_ad_entry, NULL, ACL_DISCLOSE);
+          if (BER_BVISEMPTY(&bv_entryTtl) || !bvmatch(&bv_entryTtl, &mod->sml_values[0])) {
+            rs->sr_err = backend_attribute(op, NULL, &op->o_req_ndn, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE);
             if (rs->sr_err == LDAP_INSUFFICIENT_ACCESS) {
               rs->sr_err = LDAP_NO_SUCH_OBJECT;
 
@@ -603,9 +581,7 @@ static int dds_op_modify(Operation *op, SlapReply *rs) {
         assert(BER_BVISNULL(&mod->sml_values[1]));
 
         if (!BER_BVISEMPTY(&bv_entryTtl)) {
-          rs->sr_err =
-              backend_attribute(op, NULL, &op->o_req_ndn,
-                                slap_schema.si_ad_entry, NULL, ACL_DISCLOSE);
+          rs->sr_err = backend_attribute(op, NULL, &op->o_req_ndn, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE);
           if (rs->sr_err == LDAP_INSUFFICIENT_ACCESS) {
             rs->sr_err = LDAP_NO_SUCH_OBJECT;
 
@@ -630,23 +606,19 @@ static int dds_op_modify(Operation *op, SlapReply *rs) {
            * or an indication that the requested Ttl has been
            * shortened to di->di_max_ttl >= 1 day */
           rs->sr_err = LDAP_SIZELIMIT_EXCEEDED;
-          rs->sr_text =
-              "time-to-live for dynamicObject exceeds administrative limit";
+          rs->sr_text = "time-to-live for dynamicObject exceeds administrative limit";
           goto done;
         }
 
         entryTtl = ttl;
         bv_entryTtl.bv_len = mod->sml_values[0].bv_len;
-        memcpy(bv_entryTtl.bv_val, mod->sml_values[0].bv_val,
-               bv_entryTtl.bv_len);
+        memcpy(bv_entryTtl.bv_val, mod->sml_values[0].bv_val, bv_entryTtl.bv_len);
         bv_entryTtl.bv_val[bv_entryTtl.bv_len] = '\0';
         break;
 
       case LDAP_MOD_INCREMENT:
         if (BER_BVISEMPTY(&bv_entryTtl)) {
-          rs->sr_err =
-              backend_attribute(op, NULL, &op->o_req_ndn,
-                                slap_schema.si_ad_entry, NULL, ACL_DISCLOSE);
+          rs->sr_err = backend_attribute(op, NULL, &op->o_req_ndn, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE);
           if (rs->sr_err == LDAP_INSUFFICIENT_ACCESS) {
             rs->sr_err = LDAP_NO_SUCH_OBJECT;
 
@@ -667,13 +639,11 @@ static int dds_op_modify(Operation *op, SlapReply *rs) {
            * or an indication that the requested Ttl has been
            * shortened to di->di_max_ttl >= 1 day */
           rs->sr_err = LDAP_SIZELIMIT_EXCEEDED;
-          rs->sr_text =
-              "time-to-live for dynamicObject exceeds administrative limit";
+          rs->sr_text = "time-to-live for dynamicObject exceeds administrative limit";
         }
 
         if (rs->sr_err != LDAP_SUCCESS) {
-          rc = backend_attribute(op, NULL, &op->o_req_ndn,
-                                 slap_schema.si_ad_entry, NULL, ACL_DISCLOSE);
+          rc = backend_attribute(op, NULL, &op->o_req_ndn, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE);
           if (rc == LDAP_INSUFFICIENT_ACCESS) {
             rs->sr_text = NULL;
             rs->sr_err = LDAP_NO_SUCH_OBJECT;
@@ -681,8 +651,7 @@ static int dds_op_modify(Operation *op, SlapReply *rs) {
           goto done;
         }
 
-        bv_entryTtl.bv_len =
-            snprintf(textbuf, sizeof(textbuf), "%ld", entryTtl);
+        bv_entryTtl.bv_len = snprintf(textbuf, sizeof(textbuf), "%ld", entryTtl);
         break;
 
       default:
@@ -756,8 +725,7 @@ done:;
       }
 
       if (rc != LDAP_SUCCESS) {
-        rc = backend_attribute(op, NULL, &op->o_req_ndn,
-                               slap_schema.si_ad_entry, NULL, ACL_DISCLOSE);
+        rc = backend_attribute(op, NULL, &op->o_req_ndn, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE);
         if (rc == LDAP_INSUFFICIENT_ACCESS) {
           rs->sr_text = NULL;
           rs->sr_err = LDAP_NO_SUCH_OBJECT;
@@ -828,29 +796,24 @@ static int dds_op_rename(Operation *op, SlapReply *rs) {
     rs->sr_err = LDAP_SUCCESS;
 
     op->o_bd->bd_info = (BackendInfo *)on->on_info;
-    rc = be_entry_get_rw(op, &op->o_req_ndn, slap_schema.si_oc_dynamicObject,
-                         NULL, 0, &e);
+    rc = be_entry_get_rw(op, &op->o_req_ndn, slap_schema.si_oc_dynamicObject, NULL, 0, &e);
     if (rc == LDAP_SUCCESS && e != NULL) {
       be_entry_release_r(op, e);
       e = NULL;
       is_dynamicObject = 1;
     }
 
-    rc = be_entry_get_rw(op, op->orr_nnewSup, slap_schema.si_oc_dynamicObject,
-                         NULL, 0, &e);
+    rc = be_entry_get_rw(op, op->orr_nnewSup, slap_schema.si_oc_dynamicObject, NULL, 0, &e);
     if (rc == LDAP_SUCCESS && e != NULL) {
       if (!is_dynamicObject) {
         /* return referral only if "disclose"
          * is granted on the object */
-        if (!access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE,
-                            NULL)) {
+        if (!access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL)) {
           rs->sr_err = LDAP_NO_SUCH_OBJECT;
           send_ldap_result(op, rs);
 
         } else {
-          send_ldap_error(
-              op, rs, LDAP_CONSTRAINT_VIOLATION,
-              "static entry cannot have dynamicObject as newSuperior");
+          send_ldap_error(op, rs, LDAP_CONSTRAINT_VIOLATION, "static entry cannot have dynamicObject as newSuperior");
         }
       }
       be_entry_release_r(op, e);
@@ -870,8 +833,7 @@ static int dds_response(Operation *op, SlapReply *rs) {
   dds_info_t *di = on->on_bi.bi_private;
   int rc;
 
-  if (!DDS_OFF(di) && rs->sr_type == REP_SEARCH &&
-      attr_find(rs->sr_entry->e_attrs, slap_schema.si_ad_entryTtl)) {
+  if (!DDS_OFF(di) && rs->sr_type == REP_SEARCH && attr_find(rs->sr_entry->e_attrs, slap_schema.si_ad_entryTtl)) {
     BerVarray vals = NULL;
     struct lutil_tm tm;
     struct lutil_timet tt;
@@ -882,8 +844,7 @@ static int dds_response(Operation *op, SlapReply *rs) {
 
     /* User already has access to entryTtl, skip ACL checks on
      * entryExpireTimestamp */
-    rc = backend_attribute(op, NULL, &rs->sr_entry->e_nname,
-                           ad_entryExpireTimestamp, &vals, ACL_NONE);
+    rc = backend_attribute(op, NULL, &rs->sr_entry->e_nname, ad_entryExpireTimestamp, &vals, ACL_NONE);
     if (rc != LDAP_SUCCESS) {
       return rc;
     }
@@ -910,8 +871,7 @@ static int dds_response(Operation *op, SlapReply *rs) {
     if (attr_delete(&rs->sr_entry->e_attrs, slap_schema.si_ad_entryTtl)) {
       goto done;
     }
-    if (attr_merge_normalize_one(rs->sr_entry, slap_schema.si_ad_entryTtl,
-                                 &ttlvalue, op->o_tmpmemctx)) {
+    if (attr_merge_normalize_one(rs->sr_entry, slap_schema.si_ad_entryTtl, &ttlvalue, op->o_tmpmemctx)) {
       goto done;
     }
 
@@ -921,8 +881,7 @@ static int dds_response(Operation *op, SlapReply *rs) {
   return SLAP_CB_CONTINUE;
 }
 
-static int slap_parse_refresh(struct berval *in, struct berval *ndn,
-                              time_t *ttl, const char **text, void *ctx) {
+static int slap_parse_refresh(struct berval *in, struct berval *ndn, time_t *ttl, const char **text, void *ctx) {
   int rc = LDAP_SUCCESS;
   ber_tag_t tag;
   ber_len_t len = -1;
@@ -950,15 +909,13 @@ static int slap_parse_refresh(struct berval *in, struct berval *ndn,
   tag = ber_scanf(ber, "{" /*}*/);
 
   if (tag == LBER_ERROR) {
-    Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_ERR,
-        "slap_parse_refresh: decoding error.\n");
+    Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_ERR, "slap_parse_refresh: decoding error.\n");
     goto decoding_error;
   }
 
   tag = ber_peek_tag(ber, &len);
   if (tag != LDAP_TAG_EXOP_REFRESH_REQ_DN) {
-    Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_ERR,
-        "slap_parse_refresh: decoding error.\n");
+    Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_ERR, "slap_parse_refresh: decoding error.\n");
     goto decoding_error;
   }
 
@@ -967,8 +924,7 @@ static int slap_parse_refresh(struct berval *in, struct berval *ndn,
 
     tag = ber_scanf(ber, "m", &dn);
     if (tag == LBER_ERROR) {
-      Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_ERR,
-          "slap_parse_refresh: DN parse failed.\n");
+      Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_ERR, "slap_parse_refresh: DN parse failed.\n");
       goto decoding_error;
     }
 
@@ -988,15 +944,13 @@ static int slap_parse_refresh(struct berval *in, struct berval *ndn,
   tag = ber_peek_tag(ber, &len);
 
   if (tag != LDAP_TAG_EXOP_REFRESH_REQ_TTL) {
-    Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_ERR,
-        "slap_parse_refresh: decoding error.\n");
+    Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_ERR, "slap_parse_refresh: decoding error.\n");
     goto decoding_error;
   }
 
   tag = ber_scanf(ber, "i", &tmp);
   if (tag == LBER_ERROR) {
-    Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_ERR,
-        "slap_parse_refresh: TTL parse failed.\n");
+    Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_ERR, "slap_parse_refresh: TTL parse failed.\n");
     goto decoding_error;
   }
 
@@ -1008,8 +962,7 @@ static int slap_parse_refresh(struct berval *in, struct berval *ndn,
 
   if (tag != LBER_DEFAULT || len != 0) {
   decoding_error:;
-    Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_ERR,
-        "slap_parse_refresh: decoding error, len=%ld\n", (long)len);
+    Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_ERR, "slap_parse_refresh: decoding error, len=%ld\n", (long)len);
     rc = LDAP_PROTOCOL_ERROR;
     *text = "data decoding error";
 
@@ -1046,8 +999,7 @@ static int dds_op_extended(Operation *op, SlapReply *rs) {
     struct berval ttlvalues[2];
     char ttlbuf[STRLENOF("31557600") + 1];
 
-    rs->sr_err =
-        slap_parse_refresh(op->ore_reqdata, NULL, &ttl, &rs->sr_text, NULL);
+    rs->sr_err = slap_parse_refresh(op->ore_reqdata, NULL, &ttl, &rs->sr_text, NULL);
     assert(rs->sr_err == LDAP_SUCCESS);
 
     if (ttl <= 0 || ttl > DDS_RF2589_MAX_TTL) {
@@ -1072,8 +1024,7 @@ static int dds_op_extended(Operation *op, SlapReply *rs) {
     /* This does not apply to multi-master case */
     if (!(!SLAP_SINGLE_SHADOW(op->o_bd) || be_isupdate(op))) {
       /* we SHOULD return a referral in this case */
-      BerVarray defref = op->o_bd->be_update_refs ? op->o_bd->be_update_refs
-                                                  : default_referral;
+      BerVarray defref = op->o_bd->be_update_refs ? op->o_bd->be_update_refs : default_referral;
 
       if (defref != NULL) {
         rs->sr_ref = referral_rewrite(defref, NULL, NULL, LDAP_SCOPE_DEFAULT);
@@ -1093,15 +1044,13 @@ static int dds_op_extended(Operation *op, SlapReply *rs) {
 
     /* check if exists but not dynamicObject */
     op->o_bd->bd_info = (BackendInfo *)on->on_info;
-    rs->sr_err = be_entry_get_rw(op, &op->o_req_ndn,
-                                 slap_schema.si_oc_dynamicObject, NULL, 0, &e);
+    rs->sr_err = be_entry_get_rw(op, &op->o_req_ndn, slap_schema.si_oc_dynamicObject, NULL, 0, &e);
     if (rs->sr_err != LDAP_SUCCESS) {
       rs->sr_err = be_entry_get_rw(op, &op->o_req_ndn, NULL, NULL, 0, &e);
       if (rs->sr_err == LDAP_SUCCESS && e != NULL) {
         /* return referral only if "disclose"
          * is granted on the object */
-        if (!access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE,
-                            NULL)) {
+        if (!access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE, NULL)) {
           rs->sr_err = LDAP_NO_SUCH_OBJECT;
 
         } else {
@@ -1162,8 +1111,8 @@ static int dds_op_extended(Operation *op, SlapReply *rs) {
         (void)ber_flatten(ber, &rs->sr_rspdata);
         rs->sr_rspoid = slap_EXOP_REFRESH.bv_val;
 
-        Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_INFO, "%s REFRESH dn=\"%s\" TTL=%ld\n",
-            op->o_log_prefix, op->o_req_ndn.bv_val, ttl);
+        Log(LDAP_DEBUG_TRACE, LDAP_LEVEL_INFO, "%s REFRESH dn=\"%s\" TTL=%ld\n", op->o_log_prefix, op->o_req_ndn.bv_val,
+            ttl);
       }
 
       ber_free_buf(ber);
@@ -1193,79 +1142,76 @@ static ConfigLDAPadd dds_ldadd;
 static ConfigCfAdd dds_cfadd;
 #endif
 
-static ConfigTable dds_cfg[] = {
-    {"dds-state", "on|off", 2, 2, 0, ARG_MAGIC | ARG_ON_OFF | DDS_STATE,
-     dds_cfgen,
-     "( OLcfgOvAt:9.1 NAME 'olcDDSstate' "
-     "DESC 'RFC2589 Dynamic directory services state' "
-     "EQUALITY booleanMatch "
-     "SYNTAX OMsBoolean "
-     "SINGLE-VALUE )",
-     NULL, NULL},
-    {"dds-max-ttl", "ttl", 2, 2, 0, ARG_MAGIC | DDS_MAXTTL, dds_cfgen,
-     "( OLcfgOvAt:9.2 NAME 'olcDDSmaxTtl' "
-     "DESC 'RFC2589 Dynamic directory services max TTL' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString "
-     "SINGLE-VALUE )",
-     NULL, NULL},
-    {"dds-min-ttl", "ttl", 2, 2, 0, ARG_MAGIC | DDS_MINTTL, dds_cfgen,
-     "( OLcfgOvAt:9.3 NAME 'olcDDSminTtl' "
-     "DESC 'RFC2589 Dynamic directory services min TTL' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString "
-     "SINGLE-VALUE )",
-     NULL, NULL},
-    {"dds-default-ttl", "ttl", 2, 2, 0, ARG_MAGIC | DDS_DEFAULTTTL, dds_cfgen,
-     "( OLcfgOvAt:9.4 NAME 'olcDDSdefaultTtl' "
-     "DESC 'RFC2589 Dynamic directory services default TTL' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString "
-     "SINGLE-VALUE )",
-     NULL, NULL},
-    {"dds-interval", "interval", 2, 2, 0, ARG_MAGIC | DDS_INTERVAL, dds_cfgen,
-     "( OLcfgOvAt:9.5 NAME 'olcDDSinterval' "
-     "DESC 'RFC2589 Dynamic directory services expiration "
-     "task run interval' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString "
-     "SINGLE-VALUE )",
-     NULL, NULL},
-    {"dds-tolerance", "ttl", 2, 2, 0, ARG_MAGIC | DDS_TOLERANCE, dds_cfgen,
-     "( OLcfgOvAt:9.6 NAME 'olcDDStolerance' "
-     "DESC 'RFC2589 Dynamic directory services additional "
-     "TTL in expiration scheduling' "
-     "EQUALITY caseIgnoreMatch "
-     "SYNTAX OMsDirectoryString "
-     "SINGLE-VALUE )",
-     NULL, NULL},
-    {"dds-max-dynamicObjects", "num", 2, 2, 0,
-     ARG_MAGIC | ARG_INT | DDS_MAXDYNAMICOBJS, dds_cfgen,
-     "( OLcfgOvAt:9.7 NAME 'olcDDSmaxDynamicObjects' "
-     "DESC 'RFC2589 Dynamic directory services max number of dynamic objects' "
-     "EQUALITY integerMatch "
-     "SYNTAX OMsInteger "
-     "SINGLE-VALUE )",
-     NULL, NULL},
-    {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
+static ConfigTable dds_cfg[] = {{"dds-state", "on|off", 2, 2, 0, ARG_MAGIC | ARG_ON_OFF | DDS_STATE, dds_cfgen,
+                                 "( OLcfgOvAt:9.1 NAME 'olcDDSstate' "
+                                 "DESC 'RFC2589 Dynamic directory services state' "
+                                 "EQUALITY booleanMatch "
+                                 "SYNTAX OMsBoolean "
+                                 "SINGLE-VALUE )",
+                                 NULL, NULL},
+                                {"dds-max-ttl", "ttl", 2, 2, 0, ARG_MAGIC | DDS_MAXTTL, dds_cfgen,
+                                 "( OLcfgOvAt:9.2 NAME 'olcDDSmaxTtl' "
+                                 "DESC 'RFC2589 Dynamic directory services max TTL' "
+                                 "EQUALITY caseIgnoreMatch "
+                                 "SYNTAX OMsDirectoryString "
+                                 "SINGLE-VALUE )",
+                                 NULL, NULL},
+                                {"dds-min-ttl", "ttl", 2, 2, 0, ARG_MAGIC | DDS_MINTTL, dds_cfgen,
+                                 "( OLcfgOvAt:9.3 NAME 'olcDDSminTtl' "
+                                 "DESC 'RFC2589 Dynamic directory services min TTL' "
+                                 "EQUALITY caseIgnoreMatch "
+                                 "SYNTAX OMsDirectoryString "
+                                 "SINGLE-VALUE )",
+                                 NULL, NULL},
+                                {"dds-default-ttl", "ttl", 2, 2, 0, ARG_MAGIC | DDS_DEFAULTTTL, dds_cfgen,
+                                 "( OLcfgOvAt:9.4 NAME 'olcDDSdefaultTtl' "
+                                 "DESC 'RFC2589 Dynamic directory services default TTL' "
+                                 "EQUALITY caseIgnoreMatch "
+                                 "SYNTAX OMsDirectoryString "
+                                 "SINGLE-VALUE )",
+                                 NULL, NULL},
+                                {"dds-interval", "interval", 2, 2, 0, ARG_MAGIC | DDS_INTERVAL, dds_cfgen,
+                                 "( OLcfgOvAt:9.5 NAME 'olcDDSinterval' "
+                                 "DESC 'RFC2589 Dynamic directory services expiration "
+                                 "task run interval' "
+                                 "EQUALITY caseIgnoreMatch "
+                                 "SYNTAX OMsDirectoryString "
+                                 "SINGLE-VALUE )",
+                                 NULL, NULL},
+                                {"dds-tolerance", "ttl", 2, 2, 0, ARG_MAGIC | DDS_TOLERANCE, dds_cfgen,
+                                 "( OLcfgOvAt:9.6 NAME 'olcDDStolerance' "
+                                 "DESC 'RFC2589 Dynamic directory services additional "
+                                 "TTL in expiration scheduling' "
+                                 "EQUALITY caseIgnoreMatch "
+                                 "SYNTAX OMsDirectoryString "
+                                 "SINGLE-VALUE )",
+                                 NULL, NULL},
+                                {"dds-max-dynamicObjects", "num", 2, 2, 0, ARG_MAGIC | ARG_INT | DDS_MAXDYNAMICOBJS,
+                                 dds_cfgen,
+                                 "( OLcfgOvAt:9.7 NAME 'olcDDSmaxDynamicObjects' "
+                                 "DESC 'RFC2589 Dynamic directory services max number of dynamic objects' "
+                                 "EQUALITY integerMatch "
+                                 "SYNTAX OMsInteger "
+                                 "SINGLE-VALUE )",
+                                 NULL, NULL},
+                                {NULL, NULL, 0, 0, 0, ARG_IGNORED}};
 
-static ConfigOCs dds_ocs[] = {
-    {"( OLcfgOvOc:9.1 "
-     "NAME 'olcDDSConfig' "
-     "DESC 'RFC2589 Dynamic directory services configuration' "
-     "SUP olcOverlayConfig "
-     "MAY ( "
-     "olcDDSstate "
-     "$ olcDDSmaxTtl "
-     "$ olcDDSminTtl "
-     "$ olcDDSdefaultTtl "
-     "$ olcDDSinterval "
-     "$ olcDDStolerance "
-     "$ olcDDSmaxDynamicObjects "
-     " ) "
-     ")",
-     Cft_Overlay, dds_cfg, NULL, NULL /* dds_cfadd */},
-    {NULL, 0, NULL}};
+static ConfigOCs dds_ocs[] = {{"( OLcfgOvOc:9.1 "
+                               "NAME 'olcDDSConfig' "
+                               "DESC 'RFC2589 Dynamic directory services configuration' "
+                               "SUP olcOverlayConfig "
+                               "MAY ( "
+                               "olcDDSstate "
+                               "$ olcDDSmaxTtl "
+                               "$ olcDDSminTtl "
+                               "$ olcDDSdefaultTtl "
+                               "$ olcDDSinterval "
+                               "$ olcDDStolerance "
+                               "$ olcDDSmaxDynamicObjects "
+                               " ) "
+                               ")",
+                               Cft_Overlay, dds_cfg, NULL, NULL /* dds_cfadd */},
+                              {NULL, 0, NULL}};
 
 #if 0
 static int
@@ -1412,15 +1358,13 @@ static int dds_cfgen(ConfigArgs *c) {
 
   case DDS_MAXTTL:
     if (lutil_parse_time(c->argv[1], &t) != 0) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "DDS unable to parse dds-max-ttl \"%s\"", c->argv[1]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "DDS unable to parse dds-max-ttl \"%s\"", c->argv[1]);
       Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "%s: %s.\n", c->log, c->cr_msg);
       return 1;
     }
 
     if (t < DDS_RF2589_DEFAULT_TTL || t > DDS_RF2589_MAX_TTL) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "DDS invalid dds-max-ttl=%lu; must be between %d and %d", t,
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "DDS invalid dds-max-ttl=%lu; must be between %d and %d", t,
                DDS_RF2589_DEFAULT_TTL, DDS_RF2589_MAX_TTL);
       Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "%s: %s.\n", c->log, c->cr_msg);
       return 1;
@@ -1431,8 +1375,7 @@ static int dds_cfgen(ConfigArgs *c) {
 
   case DDS_MINTTL:
     if (lutil_parse_time(c->argv[1], &t) != 0) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "DDS unable to parse dds-min-ttl \"%s\"", c->argv[1]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "DDS unable to parse dds-min-ttl \"%s\"", c->argv[1]);
       Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "%s: %s.\n", c->log, c->cr_msg);
       return 1;
     }
@@ -1453,15 +1396,13 @@ static int dds_cfgen(ConfigArgs *c) {
 
   case DDS_DEFAULTTTL:
     if (lutil_parse_time(c->argv[1], &t) != 0) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "DDS unable to parse dds-default-ttl \"%s\"", c->argv[1]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "DDS unable to parse dds-default-ttl \"%s\"", c->argv[1]);
       Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "%s: %s.\n", c->log, c->cr_msg);
       return 1;
     }
 
     if (t > DDS_RF2589_MAX_TTL) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg), "DDS invalid dds-default-ttl=%lu",
-               t);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "DDS invalid dds-default-ttl=%lu", t);
       Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "%s: %s.\n", c->log, c->cr_msg);
       return 1;
     }
@@ -1476,8 +1417,7 @@ static int dds_cfgen(ConfigArgs *c) {
 
   case DDS_INTERVAL:
     if (lutil_parse_time(c->argv[1], &t) != 0) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "DDS unable to parse dds-interval \"%s\"", c->argv[1]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "DDS unable to parse dds-interval \"%s\"", c->argv[1]);
       Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "%s: %s.\n", c->log, c->cr_msg);
       return 1;
     }
@@ -1489,8 +1429,7 @@ static int dds_cfgen(ConfigArgs *c) {
     }
 
     if (t < 60) {
-      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE,
-          "%s: dds-interval=%lu may be too small.\n", c->log, t);
+      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE, "%s: dds-interval=%lu may be too small.\n", c->log, t);
     }
 
     di->di_interval = (time_t)t;
@@ -1507,15 +1446,13 @@ static int dds_cfgen(ConfigArgs *c) {
 
   case DDS_TOLERANCE:
     if (lutil_parse_time(c->argv[1], &t) != 0) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "DDS unable to parse dds-tolerance \"%s\"", c->argv[1]);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "DDS unable to parse dds-tolerance \"%s\"", c->argv[1]);
       Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "%s: %s.\n", c->log, c->cr_msg);
       return 1;
     }
 
     if (t > DDS_RF2589_MAX_TTL) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg), "DDS invalid dds-tolerance=%lu",
-               t);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "DDS invalid dds-tolerance=%lu", t);
       Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "%s: %s.\n", c->log, c->cr_msg);
       return 1;
     }
@@ -1525,8 +1462,7 @@ static int dds_cfgen(ConfigArgs *c) {
 
   case DDS_MAXDYNAMICOBJS:
     if (c->value_int < 0) {
-      snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "DDS invalid dds-max-dynamicObjects=%d", c->value_int);
+      snprintf(c->cr_msg, sizeof(c->cr_msg), "DDS invalid dds-max-dynamicObjects=%d", c->value_int);
       Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "%s: %s.\n", c->log, c->cr_msg);
       return 1;
     }
@@ -1547,8 +1483,7 @@ static int dds_db_init(BackendDB *be, ConfigReply *cr) {
   BackendInfo *bi = on->on_info->oi_orig;
 
   if (SLAP_ISGLOBALOVERLAY(be)) {
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
-        "DDS cannot be used as global overlay.\n");
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "DDS cannot be used as global overlay.\n");
     return 1;
   }
 
@@ -1584,8 +1519,7 @@ static int dds_db_init(BackendDB *be, ConfigReply *cr) {
 static int dds_entry_info(void *arg, Entry *e) {
   dds_info_t *di = (dds_info_t *)arg;
 
-  attr_merge(e, slap_schema.si_ad_dynamicSubtrees, di->di_suffix,
-             di->di_nsuffix);
+  attr_merge(e, slap_schema.si_ad_dynamicSubtrees, di->di_suffix, di->di_nsuffix);
 
   return 0;
 }
@@ -1638,10 +1572,8 @@ static int dds_count(void *ctx, BackendDB *be) {
   op->ors_filterstr.bv_len = STRLENOF("(objectClass="
                                       ")") +
                              slap_schema.si_oc_dynamicObject->soc_cname.bv_len;
-  op->ors_filterstr.bv_val =
-      op->o_tmpalloc(op->ors_filterstr.bv_len + 1, op->o_tmpmemctx);
-  snprintf(op->ors_filterstr.bv_val, op->ors_filterstr.bv_len + 1,
-           "(objectClass=%s)",
+  op->ors_filterstr.bv_val = op->o_tmpalloc(op->ors_filterstr.bv_len + 1, op->o_tmpmemctx);
+  snprintf(op->ors_filterstr.bv_val, op->ors_filterstr.bv_len + 1, "(objectClass=%s)",
            slap_schema.si_oc_dynamicObject->soc_cname.bv_val);
 
   op->ors_filter = str2filter_x(op, op->ors_filterstr.bv_val);
@@ -1666,8 +1598,7 @@ done_search:;
   rc = rs.sr_err;
   switch (rs.sr_err) {
   case LDAP_SUCCESS:
-    Log(LDAP_DEBUG_STATS, LDAP_LEVEL_INFO, "DDS non-expired=%d\n",
-        di->di_num_dynamicObjects);
+    Log(LDAP_DEBUG_STATS, LDAP_LEVEL_INFO, "DDS non-expired=%d\n", di->di_num_dynamicObjects);
     break;
 
   case LDAP_NO_SUCH_OBJECT:
@@ -1677,8 +1608,7 @@ done_search:;
     /* fallthru */
 
   default:
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
-        "DDS non-expired objects lookup failed err=%d%s\n", rc, extra);
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "DDS non-expired objects lookup failed err=%d%s\n", rc, extra);
     break;
   }
 
@@ -1699,9 +1629,7 @@ static int dds_db_open(BackendDB *be, ConfigReply *cr) {
   }
 
   if (SLAP_SINGLE_SHADOW(be)) {
-    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
-        "DDS incompatible with shadow database \"%s\".\n",
-        be->be_suffix[0].bv_val);
+    Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "DDS incompatible with shadow database \"%s\".\n", be->be_suffix[0].bv_val);
     return 1;
   }
 
@@ -1725,9 +1653,8 @@ static int dds_db_open(BackendDB *be, ConfigReply *cr) {
 
   /* start expire task */
   ldap_pvt_thread_mutex_lock(&slapd_rq.rq_mutex);
-  di->di_expire_task =
-      ldap_pvt_runqueue_insert(&slapd_rq, DDS_INTERVAL(di), dds_expire_fn, di,
-                               "dds_expire_fn", be->be_suffix[0].bv_val);
+  di->di_expire_task = ldap_pvt_runqueue_insert(&slapd_rq, DDS_INTERVAL(di), dds_expire_fn, di, "dds_expire_fn",
+                                                be->be_suffix[0].bv_val);
   ldap_pvt_thread_mutex_unlock(&slapd_rq.rq_mutex);
 
   /* register dinamicSubtrees root DSE info support */
@@ -1774,38 +1701,32 @@ static int dds_db_destroy(BackendDB *be, ConfigReply *cr) {
 static int slap_exop_refresh(Operation *op, SlapReply *rs) {
   BackendDB *bd = op->o_bd;
 
-  rs->sr_err = slap_parse_refresh(op->ore_reqdata, &op->o_req_ndn, NULL,
-                                  &rs->sr_text, op->o_tmpmemctx);
+  rs->sr_err = slap_parse_refresh(op->ore_reqdata, &op->o_req_ndn, NULL, &rs->sr_text, op->o_tmpmemctx);
   if (rs->sr_err != LDAP_SUCCESS) {
     return rs->sr_err;
   }
 
-  Log(LDAP_DEBUG_STATS, LDAP_LEVEL_INFO, "%s REFRESH dn=\"%s\"\n",
-      op->o_log_prefix, op->o_req_ndn.bv_val);
+  Log(LDAP_DEBUG_STATS, LDAP_LEVEL_INFO, "%s REFRESH dn=\"%s\"\n", op->o_log_prefix, op->o_req_ndn.bv_val);
   op->o_req_dn = op->o_req_ndn;
 
   op->o_bd = select_backend(&op->o_req_ndn, 0);
   if (op->o_bd == NULL) {
-    send_ldap_error(op, rs, LDAP_NO_SUCH_OBJECT,
-                    "no global superior knowledge");
+    send_ldap_error(op, rs, LDAP_NO_SUCH_OBJECT, "no global superior knowledge");
     goto done;
   }
 
   if (!SLAP_DYNAMIC(op->o_bd)) {
-    send_ldap_error(op, rs, LDAP_UNAVAILABLE_CRITICAL_EXTENSION,
-                    "backend does not support dynamic directory services");
+    send_ldap_error(op, rs, LDAP_UNAVAILABLE_CRITICAL_EXTENSION, "backend does not support dynamic directory services");
     goto done;
   }
 
-  rs->sr_err =
-      backend_check_restrictions(op, rs, (struct berval *)&slap_EXOP_REFRESH);
+  rs->sr_err = backend_check_restrictions(op, rs, (struct berval *)&slap_EXOP_REFRESH);
   if (rs->sr_err != LDAP_SUCCESS) {
     goto done;
   }
 
   if (op->o_bd->be_extended == NULL) {
-    send_ldap_error(op, rs, LDAP_UNAVAILABLE_CRITICAL_EXTENSION,
-                    "backend does not support extended operations");
+    send_ldap_error(op, rs, LDAP_UNAVAILABLE_CRITICAL_EXTENSION, "backend does not support extended operations");
     goto done;
   }
 
@@ -1840,19 +1761,18 @@ int dds_over_initialize() {
       char *desc;
       slap_mask_t flags;
       AttributeDescription **ad;
-    } s_at[] = {
-        {"( 1.3.6.1.4.1.4203.666.1.57 "
-         "NAME ( 'entryExpireTimestamp' ) "
-         "DESC 'RFC2589 OpenLDAP extension: expire time of a dynamic object, "
-         "computed as now + entryTtl' "
-         "EQUALITY generalizedTimeMatch "
-         "ORDERING generalizedTimeOrderingMatch "
-         "SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 "
-         "SINGLE-VALUE "
-         "NO-USER-MODIFICATION "
-         "USAGE dSAOperation )",
-         SLAP_AT_HIDE, &ad_entryExpireTimestamp},
-        {NULL}};
+    } s_at[] = {{"( 1.3.6.1.4.1.4203.666.1.57 "
+                 "NAME ( 'entryExpireTimestamp' ) "
+                 "DESC 'RFC2589 OpenLDAP extension: expire time of a dynamic object, "
+                 "computed as now + entryTtl' "
+                 "EQUALITY generalizedTimeMatch "
+                 "ORDERING generalizedTimeOrderingMatch "
+                 "SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 "
+                 "SINGLE-VALUE "
+                 "NO-USER-MODIFICATION "
+                 "USAGE dSAOperation )",
+                 SLAP_AT_HIDE, &ad_entryExpireTimestamp},
+                {NULL}};
 
     for (i = 0; s_at[i].desc != NULL; i++) {
       code = register_at(s_at[i].desc, s_at[i].ad, 0);
@@ -1865,12 +1785,10 @@ int dds_over_initialize() {
   }
 
   if (!do_not_load_exop) {
-    rc = extop_register_ex((struct berval *)&slap_EXOP_REFRESH,
-                           SLAP_EXOP_WRITES | SLAP_EXOP_HIDE, slap_exop_refresh,
+    rc = extop_register_ex((struct berval *)&slap_EXOP_REFRESH, SLAP_EXOP_WRITES | SLAP_EXOP_HIDE, slap_exop_refresh,
                            !do_not_replace_exop);
     if (rc != LDAP_SUCCESS) {
-      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
-          "DDS unable to register refresh exop: %d.\n", rc);
+      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "DDS unable to register refresh exop: %d.\n", rc);
       return rc;
     }
   }
@@ -1922,15 +1840,13 @@ SLAP_MODULE_ENTRY(dds, modinit)(int argc, char *argv[]) {
       do_not_load_schema = no;
 
     } else {
-      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
-          "DDS unknown module arg[#%d]=\"%s\".\n", i, argv[i]);
+      Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERR, "DDS unknown module arg[#%d]=\"%s\".\n", i, argv[i]);
       return 1;
     }
   }
 
   rc = dds_over_initialize();
-  Debug(rc ? LDAP_DEBUG_ANY : LDAP_DEBUG_TRACE, "module %s: %s() rc = %d\n",
-        "dds", __FUNCTION__, rc);
+  Debug(rc ? LDAP_DEBUG_ANY : LDAP_DEBUG_TRACE, "module %s: %s() rc = %d\n", "dds", __FUNCTION__, rc);
   return rc;
 }
 #endif /* SLAPD_OVER_DDS == SLAPD_MOD_DYNAMIC */

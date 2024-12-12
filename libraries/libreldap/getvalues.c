@@ -26,8 +26,7 @@
 
 #include "ldap-int.h"
 
-struct berval **ldap_get_values_len(LDAP *ld, LDAPMessage *entry,
-                                    const char *target) {
+struct berval **ldap_get_values_len(LDAP *ld, LDAPMessage *entry, const char *target) {
   BerElement ber;
   char *attr;
   int found = 0;
@@ -135,9 +134,7 @@ char **ldap_get_values(LDAP *ld, LDAPMessage *entry, const char *target) {
   return (vals);
 }
 
-int ldap_count_values(char **vals) {
-  return (ldap_count_values_len((struct berval **)vals));
-}
+int ldap_count_values(char **vals) { return (ldap_count_values_len((struct berval **)vals)); }
 
 void ldap_value_free(char **vals) { LDAP_VFREE(vals); }
 

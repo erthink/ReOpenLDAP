@@ -31,8 +31,7 @@ struct cindexrec {
 };
 
 static Avlnode *cr_index = NULL;
-static LDAP_STAILQ_HEAD(CRList, ContentRule) cr_list =
-    LDAP_STAILQ_HEAD_INITIALIZER(cr_list);
+static LDAP_STAILQ_HEAD(CRList, ContentRule) cr_list = LDAP_STAILQ_HEAD_INITIALIZER(cr_list);
 
 static int cr_index_cmp(const void *v_cir1, const void *v_cir2) {
   const struct cindexrec *cir1 = v_cir1;
@@ -162,15 +161,13 @@ static int cr_add_auxiliaries(ContentRule *scr, int *op, const char **err) {
   scr->scr_auxiliaries = ch_calloc(naux + 1, sizeof(ObjectClass *));
 
   for (naux = 0; scr->scr_oc_oids_aux[naux]; naux++) {
-    ObjectClass *soc = scr->scr_auxiliaries[naux] =
-        oc_find(scr->scr_oc_oids_aux[naux]);
+    ObjectClass *soc = scr->scr_auxiliaries[naux] = oc_find(scr->scr_oc_oids_aux[naux]);
     if (!soc) {
       *err = scr->scr_oc_oids_aux[naux];
       return SLAP_SCHERR_CLASS_NOT_FOUND;
     }
 
-    if (soc->soc_flags & SLAP_OC_OPERATIONAL &&
-        soc != slap_schema.si_oc_extensibleObject) {
+    if (soc->soc_flags & SLAP_OC_OPERATIONAL && soc != slap_schema.si_oc_extensibleObject) {
       (*op)++;
     }
 
@@ -233,8 +230,7 @@ static int cr_create_allowed(ContentRule *scr, int *op, const char **err) {
       if (is_at_operational(sat))
         (*op)++;
 
-      if (at_find_in_list(sat, scr->scr_required) < 0 &&
-          at_find_in_list(sat, scr->scr_allowed) < 0) {
+      if (at_find_in_list(sat, scr->scr_required) < 0 && at_find_in_list(sat, scr->scr_allowed) < 0) {
         if (at_append_to_list(sat, &scr->scr_allowed)) {
           *err = *attrs1;
           return SLAP_SCHERR_OUTOFMEM;
@@ -269,8 +265,7 @@ static int cr_create_precluded(ContentRule *scr, int *op, const char **err) {
       /* FIXME: should also make sure attribute type is not
               a required attribute of the structural class or
               any auxiliary class */
-      if (at_find_in_list(sat, scr->scr_required) < 0 &&
-          at_find_in_list(sat, scr->scr_allowed) < 0 &&
+      if (at_find_in_list(sat, scr->scr_required) < 0 && at_find_in_list(sat, scr->scr_allowed) < 0 &&
           at_find_in_list(sat, scr->scr_precluded) < 0) {
         if (at_append_to_list(sat, &scr->scr_precluded)) {
           *err = *attrs1;
@@ -286,8 +281,7 @@ static int cr_create_precluded(ContentRule *scr, int *op, const char **err) {
   return 0;
 }
 
-int cr_add(LDAPContentRule *cr, int user, ContentRule **rscr,
-           const char **err) {
+int cr_add(LDAPContentRule *cr, int user, ContentRule **rscr, const char **err) {
   ContentRule *scr;
   int code;
   int op = 0;

@@ -48,8 +48,7 @@ int ldap_back_modify(Operation *op, SlapReply *rs) {
   for (i = 0, ml = op->orm_modlist; ml; i++, ml = ml->sml_next)
     /* just count mods */;
 
-  modv =
-      (LDAPMod **)ch_malloc((i + 1) * sizeof(LDAPMod *) + i * sizeof(LDAPMod));
+  modv = (LDAPMod **)ch_malloc((i + 1) * sizeof(LDAPMod *) + i * sizeof(LDAPMod));
   if (modv == NULL) {
     rc = LDAP_NO_MEMORY;
     goto cleanup;
@@ -69,8 +68,7 @@ int ldap_back_modify(Operation *op, SlapReply *rs) {
     if (ml->sml_values != NULL) {
       for (j = 0; !BER_BVISNULL(&ml->sml_values[j]); j++)
         /* just count mods */;
-      mods[i].mod_bvalues =
-          (struct berval **)ch_malloc((j + 1) * sizeof(struct berval *));
+      mods[i].mod_bvalues = (struct berval **)ch_malloc((j + 1) * sizeof(struct berval *));
       for (j = 0; !BER_BVISNULL(&ml->sml_values[j]); j++) {
         mods[i].mod_bvalues[j] = &ml->sml_values[j];
       }
@@ -92,10 +90,8 @@ retry:;
     goto cleanup;
   }
 
-  rs->sr_err = ldap_modify_ext(lc->lc_ld, op->o_req_dn.bv_val, modv, ctrls,
-                               NULL, &msgid);
-  rc = ldap_back_op_result(lc, op, rs, msgid, li->li_timeout[SLAP_OP_MODIFY],
-                           (LDAP_BACK_SENDRESULT | retrying));
+  rs->sr_err = ldap_modify_ext(lc->lc_ld, op->o_req_dn.bv_val, modv, ctrls, NULL, &msgid);
+  rc = ldap_back_op_result(lc, op, rs, msgid, li->li_timeout[SLAP_OP_MODIFY], (LDAP_BACK_SENDRESULT | retrying));
   if (rs->sr_err == LDAP_UNAVAILABLE && retrying) {
     retrying &= ~LDAP_BACK_RETRYING;
     if (ldap_back_retry(&lc, op, rs, LDAP_BACK_SENDERR)) {

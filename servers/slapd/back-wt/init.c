@@ -62,8 +62,8 @@ static int wt_db_open(BackendDB *be, ConfigReply *cr) {
     return -1;
   }
 
-  Debug(LDAP_DEBUG_ARGS, "wt_db_open: \"%s\", home=%s, config=%s\n",
-        be->be_suffix[0].bv_val, wi->wi_home, wi->wi_config);
+  Debug(LDAP_DEBUG_ARGS, "wt_db_open: \"%s\", home=%s, config=%s\n", be->be_suffix[0].bv_val, wi->wi_home,
+        wi->wi_config);
 
   /* Check existence of home. Any error means trouble */
   rc = stat(wi->wi_home, &st);
@@ -164,8 +164,7 @@ static int wt_db_open(BackendDB *be, ConfigReply *cr) {
   }
 
   /* open in-memory database for idlcache */
-  rc = wiredtiger_open(be->be_suffix[0].bv_val, NULL, "in_memory=true",
-                       &wi->wi_cache);
+  rc = wiredtiger_open(be->be_suffix[0].bv_val, NULL, "in_memory=true", &wi->wi_cache);
   if (rc) {
     Debug(LDAP_DEBUG_ANY,
           "wt_db_open: database \"%s\": "
@@ -272,17 +271,14 @@ int wt_back_initialize(BackendInfo *bi) {
                                    NULL};
 
   /* initialize the database system */
-  Debug(LDAP_DEBUG_TRACE,
-        "wt_back_initialize: initialize WiredTiger backend\n");
+  Debug(LDAP_DEBUG_TRACE, "wt_back_initialize: initialize WiredTiger backend\n");
 
-  bi->bi_flags |= SLAP_BFLAG_INCREMENT | SLAP_BFLAG_SUBENTRIES |
-                  SLAP_BFLAG_ALIASES | SLAP_BFLAG_REFERRALS;
+  bi->bi_flags |= SLAP_BFLAG_INCREMENT | SLAP_BFLAG_SUBENTRIES | SLAP_BFLAG_ALIASES | SLAP_BFLAG_REFERRALS;
 
   bi->bi_controls = controls;
 
   { /* version check */
-    Debug(LDAP_DEBUG_TRACE, "wt_back_initialize: %s\n",
-          wiredtiger_version(NULL, NULL, NULL));
+    Debug(LDAP_DEBUG_TRACE, "wt_back_initialize: %s\n", wiredtiger_version(NULL, NULL, NULL));
   }
 
   bi->bi_open = 0;

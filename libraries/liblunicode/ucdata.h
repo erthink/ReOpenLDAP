@@ -124,23 +124,20 @@ ucisprop(uint32_t code, uint32_t mask1, uint32_t mask2);
 
 #define ucisalpha(cc) ucisprop(cc, UC_LU | UC_LL | UC_LM | UC_LO | UC_LT, 0)
 #define ucisdigit(cc) ucisprop(cc, UC_ND, 0)
-#define ucisalnum(cc)                                                          \
-  ucisprop(cc, UC_LU | UC_LL | UC_LM | UC_LO | UC_LT | UC_ND, 0)
+#define ucisalnum(cc) ucisprop(cc, UC_LU | UC_LL | UC_LM | UC_LO | UC_LT | UC_ND, 0)
 #define uciscntrl(cc) ucisprop(cc, UC_CC | UC_CF, 0)
 #define ucisspace(cc) ucisprop(cc, UC_ZS | UC_SS, 0)
 #define ucisblank(cc) ucisprop(cc, UC_ZS, 0)
 #define ucispunct(cc) ucisprop(cc, UC_PD | UC_PS | UC_PE | UC_PO, UC_PI | UC_PF)
-#define ucisgraph(cc)                                                          \
-  ucisprop(cc,                                                                 \
-           UC_MN | UC_MC | UC_ME | UC_ND | UC_NL | UC_NO | UC_LU | UC_LL |     \
-               UC_LT | UC_LM | UC_LO | UC_PC | UC_PD | UC_PS | UC_PE | UC_PO | \
-               UC_SM | UC_SM | UC_SC | UC_SK | UC_SO,                          \
+#define ucisgraph(cc)                                                                                                  \
+  ucisprop(cc,                                                                                                         \
+           UC_MN | UC_MC | UC_ME | UC_ND | UC_NL | UC_NO | UC_LU | UC_LL | UC_LT | UC_LM | UC_LO | UC_PC | UC_PD |     \
+               UC_PS | UC_PE | UC_PO | UC_SM | UC_SM | UC_SC | UC_SK | UC_SO,                                          \
            UC_PI | UC_PF)
-#define ucisprint(cc)                                                          \
-  ucisprop(cc,                                                                 \
-           UC_MN | UC_MC | UC_ME | UC_ND | UC_NL | UC_NO | UC_LU | UC_LL |     \
-               UC_LT | UC_LM | UC_LO | UC_PC | UC_PD | UC_PS | UC_PE | UC_PO | \
-               UC_SM | UC_SM | UC_SC | UC_SK | UC_SO | UC_ZS,                  \
+#define ucisprint(cc)                                                                                                  \
+  ucisprop(cc,                                                                                                         \
+           UC_MN | UC_MC | UC_ME | UC_ND | UC_NL | UC_NO | UC_LU | UC_LL | UC_LT | UC_LM | UC_LO | UC_PC | UC_PD |     \
+               UC_PS | UC_PE | UC_PO | UC_SM | UC_SM | UC_SC | UC_SK | UC_SO | UC_ZS,                                  \
            UC_PI | UC_PF)
 #define ucisupper(cc) ucisprop(cc, UC_LU, 0)
 #define ucislower(cc) ucisprop(cc, UC_LL, 0)
@@ -194,13 +191,8 @@ ucisprop(uint32_t code, uint32_t mask1, uint32_t mask2);
 #define ucislsep(cc) ucisprop(cc, UC_ZL, 0)
 #define ucispsep(cc) ucisprop(cc, UC_ZP, 0)
 
-#define ucisidentstart(cc)                                                     \
-  ucisprop(cc, UC_LU | UC_LL | UC_LT | UC_LO | UC_NL, 0)
-#define ucisidentpart(cc)                                                      \
-  ucisprop(cc,                                                                 \
-           UC_LU | UC_LL | UC_LT | UC_LO | UC_NL | UC_MN | UC_MC | UC_ND |     \
-               UC_PC | UC_CF,                                                  \
-           0)
+#define ucisidentstart(cc) ucisprop(cc, UC_LU | UC_LL | UC_LT | UC_LO | UC_NL, 0)
+#define ucisidentpart(cc) ucisprop(cc, UC_LU | UC_LL | UC_LT | UC_LO | UC_NL | UC_MN | UC_MC | UC_ND | UC_PC | UC_CF, 0)
 
 #define ucisdefined(cc) ucisprop(cc, 0, UC_CP)
 #define ucisundefined(cc) !ucisprop(cc, 0, UC_CP)
@@ -208,8 +200,7 @@ ucisprop(uint32_t code, uint32_t mask1, uint32_t mask2);
 /*
  * Other miscellaneous character property macros.
  */
-#define ucishan(cc)                                                            \
-  (((cc) >= 0x4e00 && (cc) <= 0x9fff) || ((cc) >= 0xf900 && (cc) <= 0xfaff))
+#define ucishan(cc) (((cc) >= 0x4e00 && (cc) <= 0x9fff) || ((cc) >= 0xf900 && (cc) <= 0xfaff))
 #define ucishangul(cc) ((cc) >= 0xac00 && (cc) <= 0xd7ff)
 
 /**************************************************************************
@@ -282,16 +273,14 @@ ucdecomp_hangul(uint32_t code, uint32_t *num, uint32_t decomp[]);
  * of the decomposed string if okay, and -1 on error.
  */
 LDAP_LUNICODE_F(int)
-uccanondecomp(const uint32_t *in, int inlen, uint32_t **out, int *outlen,
-              void *ctx);
+uccanondecomp(const uint32_t *in, int inlen, uint32_t **out, int *outlen, void *ctx);
 
 /*
  * Equivalent to uccanondecomp() except that it includes compatibility
  * decompositions.
  */
 LDAP_LUNICODE_F(int)
-uccompatdecomp(const uint32_t *in, int inlen, uint32_t **out, int *outlen,
-               void *ctx);
+uccompatdecomp(const uint32_t *in, int inlen, uint32_t **out, int *outlen, void *ctx);
 
 /**************************************************************************
  *
@@ -346,9 +335,8 @@ LDAP_LUNICODE_F(int) ucgetdigit(uint32_t code);
 #define UCDATA_COMP 0x20
 #define UCDATA_KDECOMP 0x40
 
-#define UCDATA_ALL                                                             \
-  (UCDATA_CASE | UCDATA_CTYPE | UCDATA_DECOMP | UCDATA_CMBCL | UCDATA_NUM |    \
-   UCDATA_COMP | UCDATA_KDECOMP)
+#define UCDATA_ALL                                                                                                     \
+  (UCDATA_CASE | UCDATA_CTYPE | UCDATA_DECOMP | UCDATA_CMBCL | UCDATA_NUM | UCDATA_COMP | UCDATA_KDECOMP)
 
 /*
  * Functions to load, unload, and reload specific data files.

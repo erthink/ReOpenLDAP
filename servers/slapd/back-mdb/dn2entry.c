@@ -26,16 +26,14 @@
  * for the closest ancestor of the DN. Otherwise e is NULL.
  */
 
-int mdb_dn2entry(Operation *op, MDBX_txn *tid, MDBX_cursor *m2,
-                 struct berval *dn, Entry **e, ID *nsubs, int matched) {
+int mdb_dn2entry(Operation *op, MDBX_txn *tid, MDBX_cursor *m2, struct berval *dn, Entry **e, ID *nsubs, int matched) {
   struct mdb_info *mdb = (struct mdb_info *)op->o_bd->be_private;
   int rc, rc2;
   ID id = NOID;
   struct berval mbv, nmbv;
   MDBX_cursor *mc;
 
-  Debug(LDAP_DEBUG_TRACE, "mdb_dn2entry(\"%s\")\n",
-        dn->bv_val ? dn->bv_val : "");
+  Debug(LDAP_DEBUG_TRACE, "mdb_dn2entry(\"%s\")\n", dn->bv_val ? dn->bv_val : "");
 
   *e = NULL;
 

@@ -27,8 +27,7 @@
 #include "lutil.h"
 
 int schema_info(Entry **entry, const char **text) {
-  AttributeDescription *ad_structuralObjectClass =
-      slap_schema.si_ad_structuralObjectClass;
+  AttributeDescription *ad_structuralObjectClass = slap_schema.si_ad_structuralObjectClass;
   AttributeDescription *ad_objectClass = slap_schema.si_ad_objectClass;
   AttributeDescription *ad_createTimestamp = slap_schema.si_ad_createTimestamp;
   AttributeDescription *ad_modifyTimestamp = slap_schema.si_ad_modifyTimestamp;
@@ -99,8 +98,7 @@ int schema_info(Entry **entry, const char **text) {
     nvals[0].bv_val = ber_bvchr(&frontendDB->be_schemandn, '=');
     assert(nvals[0].bv_val != NULL);
     nvals[0].bv_val++;
-    nvals[0].bv_len = frontendDB->be_schemandn.bv_len -
-                      (nvals[0].bv_val - frontendDB->be_schemandn.bv_val);
+    nvals[0].bv_len = frontendDB->be_schemandn.bv_len - (nvals[0].bv_val - frontendDB->be_schemandn.bv_val);
 
     if (attr_merge_one(e, desc, vals, nvals)) {
       /* Out of memory, do something about it */
@@ -142,8 +140,8 @@ the DIT.
     }
   }
 
-  if (syn_schema_info(e) || mr_schema_info(e) || mru_schema_info(e) ||
-      at_schema_info(e) || oc_schema_info(e) || cr_schema_info(e)) {
+  if (syn_schema_info(e) || mr_schema_info(e) || mru_schema_info(e) || at_schema_info(e) || oc_schema_info(e) ||
+      cr_schema_info(e)) {
     /* Out of memory, do something about it */
     entry_free(e);
     *text = "out of memory";

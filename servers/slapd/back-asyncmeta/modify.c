@@ -30,9 +30,8 @@
 #include "../../../libraries/libreldap/lber-int.h"
 #include "../../../libraries/libreldap/ldap-int.h"
 
-meta_search_candidate_t
-asyncmeta_back_modify_start(Operation *op, SlapReply *rs, a_metaconn_t *mc,
-                            bm_context_t *bc, int candidate) {
+meta_search_candidate_t asyncmeta_back_modify_start(Operation *op, SlapReply *rs, a_metaconn_t *mc, bm_context_t *bc,
+                                                    int candidate) {
   int i, isupdate, rc = 0, nretries = 1;
   a_dncookie dc;
   a_metainfo_t *mi = mc->mc_info;
@@ -96,14 +95,12 @@ asyncmeta_back_modify_start(Operation *op, SlapReply *rs, a_metaconn_t *mc,
       continue;
     }
 
-    if (ml->sml_desc == slap_schema.si_ad_objectClass ||
-        ml->sml_desc == slap_schema.si_ad_structuralObjectClass) {
+    if (ml->sml_desc == slap_schema.si_ad_objectClass || ml->sml_desc == slap_schema.si_ad_structuralObjectClass) {
       is_oc = 1;
       mapped = ml->sml_desc->ad_cname;
 
     } else {
-      asyncmeta_map(&mt->mt_rwmap.rwm_at, &ml->sml_desc->ad_cname, &mapped,
-                    BACKLDAP_MAP);
+      asyncmeta_map(&mt->mt_rwmap.rwm_at, &ml->sml_desc->ad_cname, &mapped, BACKLDAP_MAP);
       if (BER_BVISNULL(&mapped) || BER_BVISEMPTY(&mapped)) {
         continue;
       }
@@ -122,13 +119,11 @@ asyncmeta_back_modify_start(Operation *op, SlapReply *rs, a_metaconn_t *mc,
       if (is_oc) {
         for (j = 0; !BER_BVISNULL(&ml->sml_values[j]); j++)
           ;
-        mods[i].mod_bvalues =
-            (struct berval **)ch_malloc((j + 1) * sizeof(struct berval *));
+        mods[i].mod_bvalues = (struct berval **)ch_malloc((j + 1) * sizeof(struct berval *));
         for (j = 0; !BER_BVISNULL(&ml->sml_values[j]);) {
           struct ldapmapping *mapping;
 
-          asyncmeta_mapping(&mt->mt_rwmap.rwm_oc, &ml->sml_values[j], &mapping,
-                            BACKLDAP_MAP);
+          asyncmeta_mapping(&mt->mt_rwmap.rwm_oc, &ml->sml_values[j], &mapping, BACKLDAP_MAP);
 
           if (mapping == NULL) {
             if (mt->mt_rwmap.rwm_oc.drop_missing) {
@@ -144,8 +139,7 @@ asyncmeta_back_modify_start(Operation *op, SlapReply *rs, a_metaconn_t *mc,
         mods[i].mod_bvalues[j] = NULL;
 
       } else {
-        if (ml->sml_desc->ad_type->sat_syntax ==
-            slap_schema.si_syn_distinguishedName) {
+        if (ml->sml_desc->ad_type->sat_syntax == slap_schema.si_syn_distinguishedName) {
           (void)asyncmeta_dnattr_rewrite(&dc, ml->sml_values);
           if (ml->sml_values == NULL) {
             continue;
@@ -154,8 +148,7 @@ asyncmeta_back_modify_start(Operation *op, SlapReply *rs, a_metaconn_t *mc,
 
         for (j = 0; !BER_BVISNULL(&ml->sml_values[j]); j++)
           ;
-        mods[i].mod_bvalues =
-            (struct berval **)ch_malloc((j + 1) * sizeof(struct berval *));
+        mods[i].mod_bvalues = (struct berval **)ch_malloc((j + 1) * sizeof(struct berval *));
         for (j = 0; !BER_BVISNULL(&ml->sml_values[j]); j++) {
           mods[i].mod_bvalues[j] = &ml->sml_values[j];
         }
@@ -178,12 +171,10 @@ retry:;
     goto done;
   }
 
-  ber =
-      ldap_build_modify_req(msc->msc_ld, mdn.bv_val, modv, ctrls, NULL, &msgid);
+  ber = ldap_build_modify_req(msc->msc_ld, mdn.bv_val, modv, ctrls, NULL, &msgid);
   if (ber) {
     candidates[candidate].sr_msgid = msgid;
-    rc = ldap_send_initial_request(msc->msc_ld, LDAP_REQ_MODIFY, mdn.bv_val,
-                                   ber, msgid);
+    rc = ldap_send_initial_request(msc->msc_ld, LDAP_REQ_MODIFY, mdn.bv_val, ber, msgid);
     if (rc == msgid)
       rc = LDAP_SUCCESS;
     else
@@ -199,8 +190,7 @@ retry:;
       ldap_pvt_thread_mutex_lock(&mc->mc_om_mutex);
       asyncmeta_clear_one_msc(NULL, mc, candidate);
       ldap_pvt_thread_mutex_unlock(&mc->mc_om_mutex);
-      if (nretries &&
-          asyncmeta_retry(op, rs, &mc, candidate, LDAP_BACK_DONTSEND)) {
+      if (nretries && asyncmeta_retry(op, rs, &mc, candidate, LDAP_BACK_DONTSEND)) {
         nretries = 0;
         /* if the identity changed, there might be need to re-authz */
         (void)mi->mi_ldap_extra->controls_free(op, rs, &ctrls);
@@ -229,8 +219,8 @@ done:
   free(modv);
 
 doreturn:;
-  Debug(LDAP_DEBUG_TRACE, "%s <<< asyncmeta_back_modify_start[%p]=%d\n",
-        op->o_log_prefix, msc, candidates[candidate].sr_msgid);
+  Debug(LDAP_DEBUG_TRACE, "%s <<< asyncmeta_back_modify_start[%p]=%d\n", op->o_log_prefix, msc,
+        candidates[candidate].sr_msgid);
   return retcode;
 }
 
@@ -243,8 +233,7 @@ int asyncmeta_back_modify(Operation *op, SlapReply *rs) {
   SlapReply *candidates;
   slap_callback *cb = op->o_callback;
 
-  Debug(LDAP_DEBUG_ARGS, "==> asyncmeta_back_modify: %s\n",
-        op->o_req_dn.bv_val);
+  Debug(LDAP_DEBUG_ARGS, "==> asyncmeta_back_modify: %s\n", op->o_req_dn.bv_val);
 
   asyncmeta_new_bm_context(op, rs, &bc, mi->mi_ntargets);
   if (bc == NULL) {

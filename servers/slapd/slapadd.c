@@ -113,8 +113,7 @@ again:
       lutil_meter_update(&meter, ftello(ldiffp->fp), 0);
 
     if (e == NULL) {
-      fprintf(stderr, "%s: could not parse entry (line=%lu)\n", progname,
-              erec->lineno);
+      fprintf(stderr, "%s: could not parse entry (line=%lu)\n", progname, erec->lineno);
       return -2;
     }
 
@@ -136,8 +135,7 @@ again:
 
         assert(bdtmp != NULL);
 
-        fprintf(stderr, "; did you mean to use database #%d (%s)?", dbidx,
-                bd->be_suffix[0].bv_val);
+        fprintf(stderr, "; did you mean to use database #%d (%s)?", dbidx, bd->be_suffix[0].bv_val);
       }
       fprintf(stderr, "\n");
       entry_free(e);
@@ -162,8 +160,7 @@ again:
 
         assert(bdtmp != NULL);
 
-        fprintf(stderr, "; did you mean to use database #%d (%s)?", dbidx,
-                bd->be_suffix[0].bv_val);
+        fprintf(stderr, "; did you mean to use database #%d (%s)?", dbidx, bd->be_suffix[0].bv_val);
 
       } else {
         fprintf(stderr, "; no database configured for that naming context");
@@ -173,8 +170,7 @@ again:
       return -2;
     }
 
-    if (slap_tool_entry_check(progname, op, e, erec->lineno, &text, textbuf,
-                              textlen) != LDAP_SUCCESS) {
+    if (slap_tool_entry_check(progname, op, e, erec->lineno, &text, textbuf, textlen) != LDAP_SUCCESS) {
       entry_free(e);
       return -2;
     }
@@ -190,12 +186,7 @@ again:
       struct berval nname;
       char timebuf[LDAP_LUTIL_GENTIME_BUFSIZE];
 
-      enum {
-        GOT_NONE = 0x0,
-        GOT_CSN = 0x1,
-        GOT_UUID = 0x2,
-        GOT_ALL = (GOT_CSN | GOT_UUID)
-      } got = GOT_ALL;
+      enum { GOT_NONE = 0x0, GOT_CSN = 0x1, GOT_UUID = 0x2, GOT_ALL = (GOT_CSN | GOT_UUID) } got = GOT_ALL;
 
       vals[1].bv_len = 0;
       vals[1].bv_val = NULL;
@@ -256,17 +247,10 @@ again:
       if (SLAP_SINGLE_SHADOW(be) && got != GOT_ALL) {
         char buf[SLAP_TEXT_BUFLEN];
 
-        snprintf(buf, sizeof(buf), "%s%s%s",
-                 (!(got & GOT_UUID)
-                      ? slap_schema.si_ad_entryUUID->ad_cname.bv_val
-                      : ""),
-                 (!(got & GOT_CSN) ? "," : ""),
-                 (!(got & GOT_CSN) ? slap_schema.si_ad_entryCSN->ad_cname.bv_val
-                                   : ""));
+        snprintf(buf, sizeof(buf), "%s%s%s", (!(got & GOT_UUID) ? slap_schema.si_ad_entryUUID->ad_cname.bv_val : ""),
+                 (!(got & GOT_CSN) ? "," : ""), (!(got & GOT_CSN) ? slap_schema.si_ad_entryCSN->ad_cname.bv_val : ""));
 
-        Debug(LDAP_DEBUG_ANY,
-              "%s: warning, missing attrs %s from entry dn=\"%s\"\n", progname,
-              buf, e->e_name.bv_val);
+        Debug(LDAP_DEBUG_ANY, "%s: warning, missing attrs %s from entry dn=\"%s\"\n", progname, buf, e->e_name.bv_val);
       }
 
       sid = slap_tool_update_ctxcsn_check(progname, e);
@@ -337,10 +321,8 @@ int slapadd(int argc, char **argv) {
   slap_tool_init(progname, SLAPADD, argc, argv);
 
   if (!be->be_entry_open || !be->be_entry_close || !be->be_entry_put ||
-      (update_ctxcsn &&
-       (!be->be_dn2id_get || !be->be_entry_get || !be->be_entry_modify))) {
-    fprintf(stderr, "%s: database doesn't support necessary operations.\n",
-            progname);
+      (update_ctxcsn && (!be->be_dn2id_get || !be->be_entry_get || !be->be_entry_modify))) {
+    fprintf(stderr, "%s: database doesn't support necessary operations.\n", progname);
     if (dryrun) {
       fprintf(stderr, "\t(dry) continuing...\n");
 
@@ -354,9 +336,7 @@ int slapadd(int argc, char **argv) {
   /* do not check values in quick mode */
   if (slapMode & SLAP_TOOL_QUICK) {
     if (slapMode & SLAP_TOOL_VALUE_CHECK) {
-      fprintf(stderr,
-              "%s: value-check incompatible with quick mode; disabled.\n",
-              progname);
+      fprintf(stderr, "%s: value-check incompatible with quick mode; disabled.\n", progname);
       slapMode &= ~SLAP_TOOL_VALUE_CHECK;
     }
   }
@@ -373,11 +353,10 @@ int slapadd(int argc, char **argv) {
 
   (void)slap_tool_update_ctxcsn_init();
 
-  if (enable_meter && (slap_debug_mask & LDAP_DEBUG_NONE) &&
-      !fstat(fileno(ldiffp->fp), &stat_buf) && S_ISREG(stat_buf.st_mode)) {
+  if (enable_meter && (slap_debug_mask & LDAP_DEBUG_NONE) && !fstat(fileno(ldiffp->fp), &stat_buf) &&
+      S_ISREG(stat_buf.st_mode)) {
     enable_meter =
-        !lutil_meter_open(&meter, &lutil_meter_text_display,
-                          &lutil_meter_linear_estimator, stat_buf.st_size);
+        !lutil_meter_open(&meter, &lutil_meter_text_display, &lutil_meter_linear_estimator, stat_buf.st_size);
   } else {
     enable_meter = 0;
   }

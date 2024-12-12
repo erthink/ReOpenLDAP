@@ -87,14 +87,12 @@ int meta_back_add(Operation *op, SlapReply *rs) {
       continue;
     }
 
-    if (a->a_desc == slap_schema.si_ad_objectClass ||
-        a->a_desc == slap_schema.si_ad_structuralObjectClass) {
+    if (a->a_desc == slap_schema.si_ad_objectClass || a->a_desc == slap_schema.si_ad_structuralObjectClass) {
       is_oc = 1;
       mapped = a->a_desc->ad_cname;
 
     } else {
-      ldap_back_map(&mt->mt_rwmap.rwm_at, &a->a_desc->ad_cname, &mapped,
-                    BACKLDAP_MAP);
+      ldap_back_map(&mt->mt_rwmap.rwm_at, &a->a_desc->ad_cname, &mapped, BACKLDAP_MAP);
       if (BER_BVISNULL(&mapped) || BER_BVISEMPTY(&mapped)) {
         continue;
       }
@@ -111,14 +109,12 @@ int meta_back_add(Operation *op, SlapReply *rs) {
       for (j = 0; !BER_BVISNULL(&a->a_vals[j]); j++)
         ;
 
-      attrs[i]->mod_bvalues =
-          (struct berval **)ch_malloc((j + 1) * sizeof(struct berval *));
+      attrs[i]->mod_bvalues = (struct berval **)ch_malloc((j + 1) * sizeof(struct berval *));
 
       for (j = 0; !BER_BVISNULL(&a->a_vals[j]);) {
         struct ldapmapping *mapping;
 
-        ldap_back_mapping(&mt->mt_rwmap.rwm_oc, &a->a_vals[j], &mapping,
-                          BACKLDAP_MAP);
+        ldap_back_mapping(&mt->mt_rwmap.rwm_oc, &a->a_vals[j], &mapping, BACKLDAP_MAP);
 
         if (mapping == NULL) {
           if (mt->mt_rwmap.rwm_oc.drop_missing) {
@@ -139,8 +135,7 @@ int meta_back_add(Operation *op, SlapReply *rs) {
        * to allow their use in ACLs at the back-ldap
        * level.
        */
-      if (a->a_desc->ad_type->sat_syntax ==
-          slap_schema.si_syn_distinguishedName) {
+      if (a->a_desc->ad_type->sat_syntax == slap_schema.si_syn_distinguishedName) {
         (void)ldap_dnattr_rewrite(&dc, a->a_vals);
         if (a->a_vals == NULL) {
           continue;
@@ -167,11 +162,9 @@ retry:;
     goto cleanup;
   }
 
-  rs->sr_err = ldap_add_ext(mc->mc_conns[candidate].msc_ld, mdn.bv_val, attrs,
-                            ctrls, NULL, &msgid);
-  rs->sr_err = meta_back_op_result(mc, op, rs, candidate, msgid,
-                                   mt->mt_timeout[SLAP_OP_ADD],
-                                   (LDAP_BACK_SENDRESULT | retrying));
+  rs->sr_err = ldap_add_ext(mc->mc_conns[candidate].msc_ld, mdn.bv_val, attrs, ctrls, NULL, &msgid);
+  rs->sr_err =
+      meta_back_op_result(mc, op, rs, candidate, msgid, mt->mt_timeout[SLAP_OP_ADD], (LDAP_BACK_SENDRESULT | retrying));
   if (rs->sr_err == LDAP_UNAVAILABLE && retrying) {
     retrying &= ~LDAP_BACK_RETRYING;
     if (meta_back_retry(op, rs, &mc, candidate, LDAP_BACK_SENDERR)) {

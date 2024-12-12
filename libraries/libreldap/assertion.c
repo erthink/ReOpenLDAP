@@ -22,8 +22,7 @@
 
 #include "ldap-int.h"
 
-int ldap_create_assertion_control_value(LDAP *ld, char *assertion,
-                                        struct berval *value) {
+int ldap_create_assertion_control_value(LDAP *ld, char *assertion, struct berval *value) {
   BerElement *ber = NULL;
   int err;
 
@@ -65,8 +64,7 @@ done:;
   return ld->ld_errno;
 }
 
-int ldap_create_assertion_control(LDAP *ld, char *assertion, int iscritical,
-                                  LDAPControl **ctrlp) {
+int ldap_create_assertion_control(LDAP *ld, char *assertion, int iscritical, LDAPControl **ctrlp) {
   struct berval value;
 
   if (ctrlp == NULL) {
@@ -76,8 +74,7 @@ int ldap_create_assertion_control(LDAP *ld, char *assertion, int iscritical,
 
   ld->ld_errno = ldap_create_assertion_control_value(ld, assertion, &value);
   if (ld->ld_errno == LDAP_SUCCESS) {
-    ld->ld_errno =
-        ldap_control_create(LDAP_CONTROL_ASSERT, iscritical, &value, 0, ctrlp);
+    ld->ld_errno = ldap_control_create(LDAP_CONTROL_ASSERT, iscritical, &value, 0, ctrlp);
     if (ld->ld_errno != LDAP_SUCCESS) {
       LDAP_FREE(value.bv_val);
     }

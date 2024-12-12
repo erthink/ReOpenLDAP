@@ -28,8 +28,7 @@
 static char presence_keyval[] = {0, 0};
 static struct berval presence_key = BER_BVC(presence_keyval);
 
-AttrInfo *wt_index_mask(Backend *be, AttributeDescription *desc,
-                        struct berval *atname) {
+AttrInfo *wt_index_mask(Backend *be, AttributeDescription *desc, struct berval *atname) {
   AttributeType *at;
   AttrInfo *ai = wt_attr_mask(be->be_private, desc);
 
@@ -69,8 +68,7 @@ AttrInfo *wt_index_mask(Backend *be, AttributeDescription *desc,
 }
 
 /* This function is only called when evaluating search filters. */
-int wt_index_param(Backend *be, AttributeDescription *desc, int ftype,
-                   slap_mask_t *maskp, struct berval *prefixp) {
+int wt_index_param(Backend *be, AttributeDescription *desc, int ftype, slap_mask_t *maskp, struct berval *prefixp) {
   AttrInfo *ai;
   slap_mask_t mask;
 
@@ -125,9 +123,8 @@ int wt_index_param(Backend *be, AttributeDescription *desc, int ftype,
   return LDAP_INAPPROPRIATE_MATCHING;
 }
 
-static int indexer(Operation *op, wt_ctx *wc, AttributeDescription *ad,
-                   struct berval *atname, BerVarray vals, ID id, int opid,
-                   slap_mask_t mask) {
+static int indexer(Operation *op, wt_ctx *wc, AttributeDescription *ad, struct berval *atname, BerVarray vals, ID id,
+                   int opid, slap_mask_t mask) {
   int rc = LDAP_SUCCESS, i;
   struct berval *keys;
   WT_CURSOR *cursor = NULL;
@@ -135,9 +132,7 @@ static int indexer(Operation *op, wt_ctx *wc, AttributeDescription *ad,
 
   cursor = wt_ctx_open_index(wc, atname, 1);
   if (!cursor) {
-    Debug(LDAP_DEBUG_ANY,
-          LDAP_XSTRING(indexer) ": open index cursor failed: %s\n",
-          atname->bv_val);
+    Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(indexer) ": open index cursor failed: %s\n", atname->bv_val);
     goto done;
   }
 
@@ -149,9 +144,8 @@ static int indexer(Operation *op, wt_ctx *wc, AttributeDescription *ad,
   }
 
   if (IS_SLAP_INDEX(mask, SLAP_INDEX_EQUALITY)) {
-    rc = ad->ad_type->sat_equality->smr_indexer(
-        LDAP_FILTER_EQUALITY, mask, ad->ad_type->sat_syntax,
-        ad->ad_type->sat_equality, atname, vals, &keys, op->o_tmpmemctx);
+    rc = ad->ad_type->sat_equality->smr_indexer(LDAP_FILTER_EQUALITY, mask, ad->ad_type->sat_syntax,
+                                                ad->ad_type->sat_equality, atname, vals, &keys, op->o_tmpmemctx);
 
     if (rc == LDAP_SUCCESS && keys != NULL) {
       for (i = 0; keys[i].bv_val != NULL; i++) {
@@ -167,9 +161,8 @@ static int indexer(Operation *op, wt_ctx *wc, AttributeDescription *ad,
   }
 
   if (IS_SLAP_INDEX(mask, SLAP_INDEX_APPROX)) {
-    rc = ad->ad_type->sat_approx->smr_indexer(
-        LDAP_FILTER_APPROX, mask, ad->ad_type->sat_syntax,
-        ad->ad_type->sat_approx, atname, vals, &keys, op->o_tmpmemctx);
+    rc = ad->ad_type->sat_approx->smr_indexer(LDAP_FILTER_APPROX, mask, ad->ad_type->sat_syntax,
+                                              ad->ad_type->sat_approx, atname, vals, &keys, op->o_tmpmemctx);
 
     if (rc == LDAP_SUCCESS && keys != NULL) {
       for (i = 0; keys[i].bv_val != NULL; i++) {
@@ -186,9 +179,8 @@ static int indexer(Operation *op, wt_ctx *wc, AttributeDescription *ad,
   }
 
   if (IS_SLAP_INDEX(mask, SLAP_INDEX_SUBSTR)) {
-    rc = ad->ad_type->sat_substr->smr_indexer(
-        LDAP_FILTER_SUBSTRINGS, mask, ad->ad_type->sat_syntax,
-        ad->ad_type->sat_substr, atname, vals, &keys, op->o_tmpmemctx);
+    rc = ad->ad_type->sat_substr->smr_indexer(LDAP_FILTER_SUBSTRINGS, mask, ad->ad_type->sat_syntax,
+                                              ad->ad_type->sat_substr, atname, vals, &keys, op->o_tmpmemctx);
 
     if (rc == LDAP_SUCCESS && keys != NULL) {
       for (i = 0; keys[i].bv_val != NULL; i++) {
@@ -211,9 +203,8 @@ done:
   return rc;
 }
 
-static int index_at_values(Operation *op, wt_ctx *wc, AttributeDescription *ad,
-                           AttributeType *type, struct berval *tags,
-                           BerVarray vals, ID id, int opid) {
+static int index_at_values(Operation *op, wt_ctx *wc, AttributeDescription *ad, AttributeType *type,
+                           struct berval *tags, BerVarray vals, ID id, int opid) {
   int rc = LDAP_SUCCESS;
   slap_mask_t mask = 0;
   int ixop = opid;
@@ -239,8 +230,7 @@ static int index_at_values(Operation *op, wt_ctx *wc, AttributeDescription *ad,
       if (ai->ai_cr) {
         ComponentReference *cr;
         for (cr = ai->ai_cr; cr; cr = cr->cr_next) {
-          rc = indexer(op, wc, cr->cr_ad, &type->sat_cname, cr->cr_nvals, id,
-                       ixop, cr->cr_indexmask);
+          rc = indexer(op, wc, cr->cr_ad, &type->sat_cname, cr->cr_nvals, id, ixop, cr->cr_indexmask);
         }
       }
 #endif
@@ -289,16 +279,14 @@ static int index_at_values(Operation *op, wt_ctx *wc, AttributeDescription *ad,
   return LDAP_SUCCESS;
 }
 
-int wt_index_values(Operation *op, wt_ctx *wc, AttributeDescription *desc,
-                    BerVarray vals, ID id, int opid) {
+int wt_index_values(Operation *op, wt_ctx *wc, AttributeDescription *desc, BerVarray vals, ID id, int opid) {
   int rc;
 
   /* Never index ID 0 */
   if (id == 0)
     return 0;
 
-  rc = index_at_values(op, wc, desc, desc->ad_type, &desc->ad_tags, vals, id,
-                       opid);
+  rc = index_at_values(op, wc, desc, desc->ad_type, &desc->ad_tags, vals, id, opid);
 
   return rc;
 }
@@ -310,22 +298,20 @@ int wt_index_entry(Operation *op, wt_ctx *wc, int opid, Entry *e) {
   if (e->e_id == 0)
     return 0;
 
-  Debug(LDAP_DEBUG_TRACE, "=> index_entry_%s( %ld, \"%s\" )\n",
-        opid == SLAP_INDEX_DELETE_OP ? "del" : "add", (long)e->e_id,
-        e->e_dn ? e->e_dn : "");
+  Debug(LDAP_DEBUG_TRACE, "=> index_entry_%s( %ld, \"%s\" )\n", opid == SLAP_INDEX_DELETE_OP ? "del" : "add",
+        (long)e->e_id, e->e_dn ? e->e_dn : "");
 
   for (; ap != NULL; ap = ap->a_next) {
     rc = wt_index_values(op, wc, ap->a_desc, ap->a_nvals, e->e_id, opid);
     if (rc != LDAP_SUCCESS) {
-      Debug(LDAP_DEBUG_TRACE, "<= index_entry_%s( %ld, \"%s\" ) failure\n",
-            opid == SLAP_INDEX_ADD_OP ? "add" : "del", (long)e->e_id, e->e_dn);
+      Debug(LDAP_DEBUG_TRACE, "<= index_entry_%s( %ld, \"%s\" ) failure\n", opid == SLAP_INDEX_ADD_OP ? "add" : "del",
+            (long)e->e_id, e->e_dn);
       return rc;
     }
   }
 
-  Debug(LDAP_DEBUG_TRACE, "<= index_entry_%s( %ld, \"%s\" ) success\n",
-        opid == SLAP_INDEX_DELETE_OP ? "del" : "add", (long)e->e_id,
-        e->e_dn ? e->e_dn : "");
+  Debug(LDAP_DEBUG_TRACE, "<= index_entry_%s( %ld, \"%s\" ) success\n", opid == SLAP_INDEX_DELETE_OP ? "del" : "add",
+        (long)e->e_id, e->e_dn ? e->e_dn : "");
   return 0;
 }
 

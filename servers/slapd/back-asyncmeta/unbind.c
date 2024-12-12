@@ -33,9 +33,8 @@ int asyncmeta_back_conn_destroy(Backend *be, Connection *conn) {
   a_metainfo_t *mi = (a_metainfo_t *)be->be_private;
   int i;
 
-  Debug(LDAP_DEBUG_TRACE,
-        "=>asyncmeta_back_conn_destroy: fetching conn=%ld DN=\"%s\"\n",
-        conn->c_connid, BER_BVISNULL(&conn->c_ndn) ? "" : conn->c_ndn.bv_val);
+  Debug(LDAP_DEBUG_TRACE, "=>asyncmeta_back_conn_destroy: fetching conn=%ld DN=\"%s\"\n", conn->c_connid,
+        BER_BVISNULL(&conn->c_ndn) ? "" : conn->c_ndn.bv_val);
   /*
    * Cleanup rewrite session
    */

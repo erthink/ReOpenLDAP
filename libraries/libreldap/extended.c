@@ -25,10 +25,8 @@
 #include "ldap-int.h"
 #include "ldap_log.h"
 
-BerElement *ldap_build_extended_req(LDAP *ld, const char *reqoid,
-                                    struct berval *reqdata,
-                                    LDAPControl **sctrls, LDAPControl **cctrls,
-                                    ber_int_t *msgidp) {
+BerElement *ldap_build_extended_req(LDAP *ld, const char *reqoid, struct berval *reqdata, LDAPControl **sctrls,
+                                    LDAPControl **cctrls, ber_int_t *msgidp) {
   BerElement *ber;
   int rc;
 
@@ -40,8 +38,7 @@ BerElement *ldap_build_extended_req(LDAP *ld, const char *reqoid,
   LDAP_NEXT_MSGID(ld, *msgidp);
   if (reqdata != NULL) {
     rc = ber_printf(ber, "{it{tstON}", /* '}' */
-                    *msgidp, LDAP_REQ_EXTENDED, LDAP_TAG_EXOP_REQ_OID, reqoid,
-                    LDAP_TAG_EXOP_REQ_VALUE, reqdata);
+                    *msgidp, LDAP_REQ_EXTENDED, LDAP_TAG_EXOP_REQ_OID, reqoid, LDAP_TAG_EXOP_REQ_VALUE, reqdata);
 
   } else {
     rc = ber_printf(ber, "{it{tsN}", /* '}' */
@@ -86,8 +83,7 @@ BerElement *ldap_build_extended_req(LDAP *ld, const char *reqoid,
  * (Source RFC 4511)
  */
 
-int ldap_extended_operation(LDAP *ld, const char *reqoid,
-                            struct berval *reqdata, LDAPControl **sctrls,
+int ldap_extended_operation(LDAP *ld, const char *reqoid, struct berval *reqdata, LDAPControl **sctrls,
                             LDAPControl **cctrls, int *msgidp) {
   BerElement *ber;
   ber_int_t id;
@@ -115,10 +111,8 @@ int ldap_extended_operation(LDAP *ld, const char *reqoid,
   return (*msgidp < 0 ? ld->ld_errno : LDAP_SUCCESS);
 }
 
-int ldap_extended_operation_s(LDAP *ld, const char *reqoid,
-                              struct berval *reqdata, LDAPControl **sctrls,
-                              LDAPControl **cctrls, char **retoidp,
-                              struct berval **retdatap) {
+int ldap_extended_operation_s(LDAP *ld, const char *reqoid, struct berval *reqdata, LDAPControl **sctrls,
+                              LDAPControl **cctrls, char **retoidp, struct berval **retdatap) {
   int rc;
   int msgid = 0;
   LDAPMessage *res;
@@ -135,9 +129,7 @@ int ldap_extended_operation_s(LDAP *ld, const char *reqoid,
     return (rc);
   }
 
-  if (ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res) ==
-          -1 ||
-      !res) {
+  if (ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res) == -1 || !res) {
     return (ld->ld_errno);
   }
 
@@ -157,8 +149,7 @@ int ldap_extended_operation_s(LDAP *ld, const char *reqoid,
 }
 
 /* Parse an extended result */
-int ldap_parse_extended_result(LDAP *ld, LDAPMessage *res, char **retoidp,
-                               struct berval **retdatap, int freeit) {
+int ldap_parse_extended_result(LDAP *ld, LDAPMessage *res, char **retoidp, struct berval **retdatap, int freeit) {
   BerElement *ber;
   ber_tag_t rc;
   ber_tag_t tag;
@@ -277,8 +268,7 @@ int ldap_parse_extended_result(LDAP *ld, LDAPMessage *res, char **retoidp,
 }
 
 /* Parse an extended partial */
-int ldap_parse_intermediate(LDAP *ld, LDAPMessage *res, char **retoidp,
-                            struct berval **retdatap,
+int ldap_parse_intermediate(LDAP *ld, LDAPMessage *res, char **retoidp, struct berval **retdatap,
                             LDAPControl ***serverctrls, int freeit) {
   BerElement *ber;
   ber_tag_t tag;

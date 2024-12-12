@@ -74,8 +74,7 @@ int meta_back_compare(Operation *op, SlapReply *rs) {
    * if attr is objectClass, try to remap the value
    */
   if (op->orc_ava->aa_desc == slap_schema.si_ad_objectClass) {
-    ldap_back_map(&mt->mt_rwmap.rwm_oc, &op->orc_ava->aa_value, &mapped_value,
-                  BACKLDAP_MAP);
+    ldap_back_map(&mt->mt_rwmap.rwm_oc, &op->orc_ava->aa_value, &mapped_value, BACKLDAP_MAP);
 
     if (BER_BVISNULL(&mapped_value) || BER_BVISEMPTY(&mapped_value)) {
       goto cleanup;
@@ -85,18 +84,15 @@ int meta_back_compare(Operation *op, SlapReply *rs) {
      * else try to remap the attribute
      */
   } else {
-    ldap_back_map(&mt->mt_rwmap.rwm_at, &op->orc_ava->aa_desc->ad_cname,
-                  &mapped_attr, BACKLDAP_MAP);
+    ldap_back_map(&mt->mt_rwmap.rwm_at, &op->orc_ava->aa_desc->ad_cname, &mapped_attr, BACKLDAP_MAP);
     if (BER_BVISNULL(&mapped_attr) || BER_BVISEMPTY(&mapped_attr)) {
       goto cleanup;
     }
 
-    if (op->orc_ava->aa_desc->ad_type->sat_syntax ==
-        slap_schema.si_syn_distinguishedName) {
+    if (op->orc_ava->aa_desc->ad_type->sat_syntax == slap_schema.si_syn_distinguishedName) {
       dc.ctx = "compareAttrDN";
 
-      switch (
-          ldap_back_dn_massage(&dc, &op->orc_ava->aa_value, &mapped_value)) {
+      switch (ldap_back_dn_massage(&dc, &op->orc_ava->aa_value, &mapped_value)) {
       case LDAP_UNWILLING_TO_PERFORM:
         rc = 1;
         goto cleanup;
@@ -115,12 +111,10 @@ retry:;
     goto cleanup;
   }
 
-  rs->sr_err =
-      ldap_compare_ext(mc->mc_conns[candidate].msc_ld, mdn.bv_val,
-                       mapped_attr.bv_val, &mapped_value, ctrls, NULL, &msgid);
+  rs->sr_err = ldap_compare_ext(mc->mc_conns[candidate].msc_ld, mdn.bv_val, mapped_attr.bv_val, &mapped_value, ctrls,
+                                NULL, &msgid);
 
-  rs->sr_err = meta_back_op_result(mc, op, rs, candidate, msgid,
-                                   mt->mt_timeout[SLAP_OP_COMPARE],
+  rs->sr_err = meta_back_op_result(mc, op, rs, candidate, msgid, mt->mt_timeout[SLAP_OP_COMPARE],
                                    (LDAP_BACK_SENDRESULT | retrying));
   if (rs->sr_err == LDAP_UNAVAILABLE && retrying) {
     retrying &= ~LDAP_BACK_RETRYING;

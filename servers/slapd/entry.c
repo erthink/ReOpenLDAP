@@ -236,25 +236,21 @@ Entry *str2entry2(char *s, int checkvals, int *rc) {
         *rc = slap_bv2ad(type + i, &ad, &text);
 
         if (*rc != LDAP_SUCCESS) {
-          int wtool = (slapMode & (SLAP_TOOL_MODE | SLAP_TOOL_READONLY)) ==
-                      SLAP_TOOL_MODE;
-          Debug(wtool ? LDAP_DEBUG_ANY : LDAP_DEBUG_TRACE,
-                "<= str2entry: str2ad(%s): %s\n", type[i].bv_val, text);
+          int wtool = (slapMode & (SLAP_TOOL_MODE | SLAP_TOOL_READONLY)) == SLAP_TOOL_MODE;
+          Debug(wtool ? LDAP_DEBUG_ANY : LDAP_DEBUG_TRACE, "<= str2entry: str2ad(%s): %s\n", type[i].bv_val, text);
           if (wtool) {
             goto fail;
           }
 
           *rc = slap_bv2undef_ad(type + i, &ad, &text, 0);
           if (*rc != LDAP_SUCCESS) {
-            Debug(LDAP_DEBUG_ANY, "<= str2entry: slap_str2undef_ad(%s): %s\n",
-                  type[i].bv_val, text);
+            Debug(LDAP_DEBUG_ANY, "<= str2entry: slap_str2undef_ad(%s): %s\n", type[i].bv_val, text);
             goto fail;
           }
         }
 
         /* require ';binary' when appropriate (ITS#5071) */
-        if (slap_syntax_is_binary(ad->ad_type->sat_syntax) &&
-            !slap_ad_is_binary(ad)) {
+        if (slap_syntax_is_binary(ad->ad_type->sat_syntax) && !slap_ad_is_binary(ad)) {
           Debug(LDAP_DEBUG_ANY,
                 "str2entry: attributeType %s #%d: "
                 "needs ';binary' transfer as per syntax %s\n",
@@ -272,8 +268,7 @@ Entry *str2entry2(char *s, int checkvals, int *rc) {
         atail->a_numvals = attr_cnt;
         atail->a_desc = ad_prev;
         atail->a_vals = ch_malloc((attr_cnt + 1) * sizeof(struct berval));
-        if (ad_prev->ad_type->sat_equality &&
-            ad_prev->ad_type->sat_equality->smr_normalize)
+        if (ad_prev->ad_type->sat_equality && ad_prev->ad_type->sat_equality->smr_normalize)
           atail->a_nvals = ch_malloc((attr_cnt + 1) * sizeof(struct berval));
         else
           atail->a_nvals = NULL;
@@ -323,16 +318,13 @@ Entry *str2entry2(char *s, int checkvals, int *rc) {
         goto fail;
       }
 
-      if (ad->ad_type->sat_equality &&
-          ad->ad_type->sat_equality->smr_normalize) {
-        *rc = ordered_value_normalize(SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, ad,
-                                      ad->ad_type->sat_equality, &vals[i],
+      if (ad->ad_type->sat_equality && ad->ad_type->sat_equality->smr_normalize) {
+        *rc = ordered_value_normalize(SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX, ad, ad->ad_type->sat_equality, &vals[i],
                                       &nvals[i], NULL);
 
         if (*rc) {
-          Debug(LDAP_DEBUG_ANY,
-                "<= str2entry NULL (smr_normalize %s='%s' %d)\n",
-                ad->ad_cname.bv_val, vals[i].bv_val, *rc);
+          Debug(LDAP_DEBUG_ANY, "<= str2entry NULL (smr_normalize %s='%s' %d)\n", ad->ad_cname.bv_val, vals[i].bv_val,
+                *rc);
           goto fail;
         }
       }
@@ -346,8 +338,7 @@ Entry *str2entry2(char *s, int checkvals, int *rc) {
   e->e_attrs = ahead.a_next;
 
   *rc = LDAP_SUCCESS;
-  Debug(LDAP_DEBUG_TRACE, "<= str2entry(%s) -> 0x%lx\n", e->e_dn,
-        (unsigned long)e);
+  Debug(LDAP_DEBUG_TRACE, "<= str2entry(%s) -> 0x%lx\n", e->e_dn, (unsigned long)e);
   return e;
 
 fail:
@@ -363,21 +354,19 @@ fail:
 
 #define GRABSIZE BUFSIZ
 
-#define MAKE_SPACE(n)                                                          \
-  {                                                                            \
-    while (ecur + (n) > ebuf + emaxsize) {                                     \
-      ptrdiff_t offset;                                                        \
-      offset = (int)(ecur - ebuf);                                             \
-      ebuf = ch_realloc(ebuf, emaxsize + GRABSIZE);                            \
-      emaxsize += GRABSIZE;                                                    \
-      ecur = ebuf + offset;                                                    \
-    }                                                                          \
+#define MAKE_SPACE(n)                                                                                                  \
+  {                                                                                                                    \
+    while (ecur + (n) > ebuf + emaxsize) {                                                                             \
+      ptrdiff_t offset;                                                                                                \
+      offset = (int)(ecur - ebuf);                                                                                     \
+      ebuf = ch_realloc(ebuf, emaxsize + GRABSIZE);                                                                    \
+      emaxsize += GRABSIZE;                                                                                            \
+      ecur = ebuf + offset;                                                                                            \
+    }                                                                                                                  \
   }
 
 /* NOTE: only preserved for binary compatibility */
-char *entry2str(Entry *e, int *len) {
-  return entry2str_wrap(e, len, LDIF_LINE_WIDTH);
-}
+char *entry2str(Entry *e, int *len) { return entry2str_wrap(e, len, LDIF_LINE_WIDTH); }
 
 char *entry2str_wrap(Entry *e, int *len, ber_len_t wrap) {
   Attribute *a;
@@ -410,8 +399,7 @@ char *entry2str_wrap(Entry *e, int *len, ber_len_t wrap) {
       bv = &a->a_vals[i];
       tmplen = a->a_desc->ad_cname.bv_len;
       MAKE_SPACE(LDIF_SIZE_NEEDED(tmplen, bv->bv_len));
-      ldif_sput_wrap(&ecur, LDIF_PUT_VALUE, a->a_desc->ad_cname.bv_val,
-                     bv->bv_val, bv->bv_len, wrap);
+      ldif_sput_wrap(&ecur, LDIF_PUT_VALUE, a->a_desc->ad_cname.bv_val, bv->bv_val, bv->bv_len, wrap);
     }
   }
   MAKE_SPACE(1);
@@ -550,12 +538,7 @@ int entry_id_cmp(const void *v_e1, const void *v_e2) {
 }
 
 /* This is like a ber_len */
-#define entry_lenlen(l)                                                        \
-  (((l) < 0x80)        ? 1                                                     \
-   : ((l) < 0x100)     ? 2                                                     \
-   : ((l) < 0x10000)   ? 3                                                     \
-   : ((l) < 0x1000000) ? 4                                                     \
-                       : 5)
+#define entry_lenlen(l) (((l) < 0x80) ? 1 : ((l) < 0x100) ? 2 : ((l) < 0x10000) ? 3 : ((l) < 0x1000000) ? 4 : 5)
 
 static void entry_putlen(unsigned char **buf, ber_len_t len) {
   ber_len_t lenlen = entry_lenlen(len);
@@ -590,8 +573,7 @@ static ber_len_t entry_getlen(unsigned char **buf) {
 }
 
 /* Count up the sizes of the components of an entry */
-void entry_partsize(Entry *e, ber_len_t *plen, int *pnattrs, int *pnvals,
-                    int norm) {
+void entry_partsize(Entry *e, ber_len_t *plen, int *pnattrs, int *pnvals, int norm) {
   ber_len_t len, dnlen, ndnlen;
   int i, nat = 0, nval = 0;
   Attribute *a;
@@ -641,8 +623,7 @@ ber_len_t entry_flatsize(Entry *e, int norm) {
   int nattrs, nvals;
 
   entry_partsize(e, &len, &nattrs, &nvals, norm);
-  len += sizeof(Entry) + (nattrs * sizeof(Attribute)) +
-         (nvals * sizeof(struct berval));
+  len += sizeof(Entry) + (nattrs * sizeof(Attribute)) + (nvals * sizeof(struct berval));
   return len;
 }
 
@@ -659,8 +640,7 @@ int entry_encode(Entry *e, struct berval *bv) {
   Attribute *a;
   unsigned char *ptr;
 
-  Debug(LDAP_DEBUG_TRACE, "=> entry_encode(0x%08lx): %s\n", (long)e->e_id,
-        e->e_dn);
+  Debug(LDAP_DEBUG_TRACE, "=> entry_encode(0x%08lx): %s\n", (long)e->e_id, e->e_dn);
 
   dnlen = e->e_name.bv_len;
   ndnlen = e->e_nname.bv_len;
@@ -711,8 +691,7 @@ int entry_encode(Entry *e, struct berval *bv) {
     }
   }
 
-  Debug(LDAP_DEBUG_TRACE, "<= entry_encode(0x%08lx): %s\n", (long)e->e_id,
-        e->e_dn);
+  Debug(LDAP_DEBUG_TRACE, "<= entry_encode(0x%08lx): %s\n", (long)e->e_id, e->e_dn);
 
   return 0;
 }
@@ -759,8 +738,7 @@ int entry_decode_dn(EntryHeader *eh, struct berval *dn, struct berval *ndn) {
     ndn->bv_len = i;
   }
 
-  Debug(LDAP_DEBUG_TRACE, "entry_decode_dn: \"%s\", ndn: \"%s\"\n",
-        dn ? dn->bv_val : NULL, ndn ? ndn->bv_val : NULL);
+  Debug(LDAP_DEBUG_TRACE, "entry_decode_dn: \"%s\", ndn: \"%s\"\n", dn ? dn->bv_val : NULL, ndn ? ndn->bv_val : NULL);
 
   return 0;
 }
@@ -806,8 +784,7 @@ int entry_decode(EntryHeader *eh, Entry **e) {
       rc = slap_bv2undef_ad(&bv, &ad, &text, 0);
 
       if (rc != LDAP_SUCCESS) {
-        Debug(LDAP_DEBUG_ANY, "<= entry_decode: slap_str2undef_ad(%s): %s\n",
-              ptr, text);
+        Debug(LDAP_DEBUG_ANY, "<= entry_decode: slap_str2undef_ad(%s): %s\n", ptr, text);
         return rc;
       }
     }

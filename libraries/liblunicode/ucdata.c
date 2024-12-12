@@ -72,18 +72,14 @@ typedef struct {
  * A simple array of 32-bit masks for lookup.
  */
 static uint32_t masks32[32] = {
-    0x00000001UL, 0x00000002UL, 0x00000004UL, 0x00000008UL, 0x00000010UL,
-    0x00000020UL, 0x00000040UL, 0x00000080UL, 0x00000100UL, 0x00000200UL,
-    0x00000400UL, 0x00000800UL, 0x00001000UL, 0x00002000UL, 0x00004000UL,
-    0x00008000UL, 0x00010000UL, 0x00020000UL, 0x00040000UL, 0x00080000UL,
-    0x00100000UL, 0x00200000UL, 0x00400000UL, 0x00800000UL, 0x01000000UL,
-    0x02000000UL, 0x04000000UL, 0x08000000UL, 0x10000000UL, 0x20000000UL,
-    0x40000000UL, 0x80000000UL};
+    0x00000001UL, 0x00000002UL, 0x00000004UL, 0x00000008UL, 0x00000010UL, 0x00000020UL, 0x00000040UL, 0x00000080UL,
+    0x00000100UL, 0x00000200UL, 0x00000400UL, 0x00000800UL, 0x00001000UL, 0x00002000UL, 0x00004000UL, 0x00008000UL,
+    0x00010000UL, 0x00020000UL, 0x00040000UL, 0x00080000UL, 0x00100000UL, 0x00200000UL, 0x00400000UL, 0x00800000UL,
+    0x01000000UL, 0x02000000UL, 0x04000000UL, 0x08000000UL, 0x10000000UL, 0x20000000UL, 0x40000000UL, 0x80000000UL};
 
 #define endian_short(cc) (((cc) >> 8) | (((cc) & 0xff) << 8))
-#define endian_long(cc)                                                        \
-  ((((cc) & 0xff) << 24) | ((((cc) >> 8) & 0xff) << 16) |                      \
-   ((((cc) >> 16) & 0xff) << 8) | ((cc) >> 24))
+#define endian_long(cc)                                                                                                \
+  ((((cc) & 0xff) << 24) | ((((cc) >> 8) & 0xff) << 16) | ((((cc) >> 16) & 0xff) << 8) | ((cc) >> 24))
 
 #if !HARDCODE_DATA
 static FILE *_ucopenfile(char *paths, char *filename, char *mode) {
@@ -205,8 +201,7 @@ static int _ucprop_load(char *paths, int reload) {
    * Load the ranges.  The number of elements is in the last array position
    * of the offsets.
    */
-  fread((char *)_ucprop_ranges, sizeof(uint32_t), _ucprop_offsets[_ucprop_size],
-        in);
+  fread((char *)_ucprop_ranges, sizeof(uint32_t), _ucprop_offsets[_ucprop_size], in);
 
   fclose(in);
 
@@ -586,8 +581,7 @@ int uccomp(uint32_t node1, uint32_t node2, uint32_t *comp) {
 }
 
 int uccomp_hangul(uint32_t *str, int len) {
-  const int SBase = 0xAC00, LBase = 0x1100, VBase = 0x1161, TBase = 0x11A7,
-            LCount = 19, VCount = 21, TCount = 28,
+  const int SBase = 0xAC00, LBase = 0x1100, VBase = 0x1161, TBase = 0x11A7, LCount = 19, VCount = 21, TCount = 28,
             NCount = VCount * TCount, /* 588 */
       SCount = LCount * NCount;       /* 11172 */
 
@@ -879,8 +873,7 @@ int ucdecomp_hangul(uint32_t code, uint32_t *num, uint32_t decomp[]) {
 }
 
 /* mode == 0 for canonical, mode == 1 for compatibility */
-static int uccanoncompatdecomp(const uint32_t *in, int inlen, uint32_t **out,
-                               int *outlen, short mode, void *ctx) {
+static int uccanoncompatdecomp(const uint32_t *in, int inlen, uint32_t **out, int *outlen, short mode, void *ctx) {
   int l, size;
   unsigned i, j, k;
   uint32_t num, class, *decomp, hangdecomp[3];
@@ -892,8 +885,7 @@ static int uccanoncompatdecomp(const uint32_t *in, int inlen, uint32_t **out,
 
   i = 0;
   for (j = 0; j < (unsigned)inlen; j++) {
-    if (mode ? uckdecomp(in[j], &num, &decomp)
-             : ucdecomp(in[j], &num, &decomp)) {
+    if (mode ? uckdecomp(in[j], &num, &decomp) : ucdecomp(in[j], &num, &decomp)) {
       if (size - i < num) {
         size = inlen + i - j + num - 1;
         *out = (uint32_t *)ber_memrealloc_x(*out, size * sizeof(**out), ctx);
@@ -947,13 +939,11 @@ static int uccanoncompatdecomp(const uint32_t *in, int inlen, uint32_t **out,
   return *outlen = i;
 }
 
-int uccanondecomp(const uint32_t *in, int inlen, uint32_t **out, int *outlen,
-                  void *ctx) {
+int uccanondecomp(const uint32_t *in, int inlen, uint32_t **out, int *outlen, void *ctx) {
   return uccanoncompatdecomp(in, inlen, out, outlen, 0, ctx);
 }
 
-int uccompatdecomp(const uint32_t *in, int inlen, uint32_t **out, int *outlen,
-                   void *ctx) {
+int uccompatdecomp(const uint32_t *in, int inlen, uint32_t **out, int *outlen, void *ctx) {
   return uccanoncompatdecomp(in, inlen, out, outlen, 1, ctx);
 }
 
@@ -1108,8 +1098,7 @@ static int _ucnumb_load(char *paths, int reload) {
     /*
      * Determine the number of values that have to be adjusted.
      */
-    size = (hdr.size.bytes - (_ucnum_size * (sizeof(uint32_t) << 1))) /
-           sizeof(short);
+    size = (hdr.size.bytes - (_ucnum_size * (sizeof(uint32_t) << 1))) / sizeof(short);
 
     for (i = 0; i < size; i++)
       _ucnum_vals[i] = endian_short(_ucnum_vals[i]);
