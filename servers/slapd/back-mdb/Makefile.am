@@ -33,16 +33,19 @@ banner.c: Makefile
 	$(MKBANNER) --name backend_mdbx --global 'backend-mdbx' > $@ || $(RM) $@
 endif
 
-libmdbx_la_CFLAGS = -DSLAPD_LMDB_LEGACY=1
+MDBX_BUILD_FLAGS = $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
+MDBX_BUILD_FLAGS_CONFIG = -DSLAPD_LMDB_LEGACY=1 $(AM_CFLAGS)
 if SLAPD_DEBUG
 if SLAPD_DEBUG_EXTRA
-libmdbx_la_CFLAGS += -UNDEBUG -DMDBX_DEBUG=2 $(AM_CFLAGS)
+MDBX_BUILD_FLAGS_CONFIG += -UNDEBUG -DMDBX_DEBUG=2
 else
-libmdbx_la_CFLAGS += -UNDEBUG -DMDBX_DEBUG=1 $(AM_CFLAGS)
+MDBX_BUILD_FLAGS_CONFIG += -UNDEBUG -DMDBX_DEBUG=1
 endif
 else
-libmdbx_la_CFLAGS += -DNDEBUG=1 -DMDBX_DEBUG=0 $(AM_CFLAGS)
+MDBX_BUILD_FLAGS_CONFIG += -DNDEBUG=1 -DMDBX_DEBUG=0
 endif
+
+libmdbx_la_CFLAGS = $(MDBX_BUILD_FLAGS_CONFIG) -DMDBX_BUILD_FLAGS_CONFIG="\"$(MDBX_BUILD_FLAGS_CONFIG)\"" -DMDBX_BUILD_FLAGS="\"$(MDBX_BUILD_FLAGS)\""
 libmdbx_la_LIBADD = $(LTHREAD_LIBS)
 libmdbx_srcdir = ../../../libraries/libmdbx
 libmdbx_la_SOURCES = ../../../libraries/libmdbx/mdbx.c
