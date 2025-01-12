@@ -89,6 +89,20 @@ List of changes emerged from OpenLDAP project could be seen in the [CHANGES.Open
  * ready for LTO (Link-Time Optimization) by GCC and clang.
 
 
+Support
+-------
+
+ReOpenLDAP is intended for use in scenarios of heavy industrial operation using synchronization/replication in multi-master mode and full-mesh topology.
+This assumes that the installation and operation will be handled by in-house system administrators or qualified specialists with relevant experience.
+
+Thus, you should rely on your own strength, and seek my support only to fix a bugs you have discovered.
+With this you can count on free support under the generally accepted terms of use of open source code.
+If you need more then I think it's wise considering paid support.
+
+Nonetheless, please note and understand that I do not have the ability to provide a full-fledged support for documentation,
+including assembly and/or installation manuals, etc.
+
+
 Installation
 ------------
 
@@ -96,7 +110,7 @@ Traditional triade `./configure --prefix=YOUR_INSTALLATION_PREFIX YOUR_OPTIONS` 
 However the `configure` will absent, in case you use development or a snapshot versions,
 so you need run the `./bootstrap` to build them.
 
-For more information please see [INSTALL](INSTALL).
+For more information please see the local `INSTALL` file after the `./bootstrap` was done.
 
 
 `configure`'s options
