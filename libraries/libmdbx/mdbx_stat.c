@@ -1,7 +1,7 @@
 /// \copyright SPDX-License-Identifier: Apache-2.0
 /// \note Please refer to the COPYRIGHT file for explanations license change,
 /// credits and acknowledgments.
-/// \author Леонид Юрьев aka Leonid Yuriev <leo@yuriev.ru> \date 2015-2024
+/// \author Леонид Юрьев aka Leonid Yuriev <leo@yuriev.ru> \date 2015-2025
 ///
 /// mdbx_stat.c - memory-mapped database status tool
 ///
@@ -16,9 +16,9 @@
 
 #define xMDBX_TOOLS /* Avoid using internal eASSERT() */
 /// \copyright SPDX-License-Identifier: Apache-2.0
-/// \author Леонид Юрьев aka Leonid Yuriev <leo@yuriev.ru> \date 2015-2024
+/// \author Леонид Юрьев aka Leonid Yuriev <leo@yuriev.ru> \date 2015-2025
 
-#define MDBX_BUILD_SOURCERY 0cd72850bbfd06f6d4ecd54fe5f08dc4311b3a4b987b9544625bddc2c7744055_v0_13_2_3_gea3f99f5
+#define MDBX_BUILD_SOURCERY eb380341904a968f3bf89ae26b795aa09e97ce35e958a9ff1493cc2ef7131185_v0_13_4_3_gd2707385
 
 #define LIBMDBX_INTERNALS
 #define MDBX_DEPRECATED
@@ -1166,12 +1166,12 @@ typedef pthread_mutex_t osal_fastmutex_t;
 #endif /* Platform */
 
 #if __GLIBC_PREREQ(2, 12) || defined(__FreeBSD__) || defined(malloc_usable_size)
-/* malloc_usable_size() already provided */
+#define osal_malloc_usable_size(ptr) malloc_usable_size(ptr)
 #elif defined(__APPLE__)
-#define malloc_usable_size(ptr) malloc_size(ptr)
+#define osal_malloc_usable_size(ptr) malloc_size(ptr)
 #elif defined(_MSC_VER) && !MDBX_WITHOUT_MSVC_CRT
-#define malloc_usable_size(ptr) _msize(ptr)
-#endif /* malloc_usable_size */
+#define osal_malloc_usable_size(ptr) _msize(ptr)
+#endif /* osal_malloc_usable_size */
 
 /*----------------------------------------------------------------------------*/
 /* OS abstraction layer stuff */
@@ -2262,7 +2262,7 @@ typedef struct tree {
   uint16_t height;      /* height of this tree */
   uint32_t dupfix_size; /* key-size for MDBX_DUPFIXED (DUPFIX pages) */
   pgno_t root;          /* the root page of this tree */
-  pgno_t branch_pages;  /* number of internal pages */
+  pgno_t branch_pages;  /* number of branch pages */
   pgno_t leaf_pages;    /* number of leaf pages */
   pgno_t large_pages;   /* number of large pages */
   uint64_t sequence;    /* table sequence counter */
@@ -2530,6 +2530,12 @@ typedef struct gc_prof_stat {
   uint32_t spe_counter;
   /* page faults (hard page faults) */
   uint32_t majflt;
+  /* Для разборок с pnl_merge() */
+  struct {
+    uint64_t time;
+    uint64_t volume;
+    uint32_t calls;
+  } pnl_merge;
 } gc_prof_stat_t;
 
 /* Statistics of pages operations for all transactions,
@@ -2959,27 +2965,12 @@ MDBX_INTERNAL const char *pagetype_caption(const uint8_t type, char buf4unknown[
 #define DVAL_DEBUG(x) ("-")
 #endif
 
-MDBX_INTERNAL int log_error(const int err, const char *func, unsigned line);
+MDBX_INTERNAL void log_error(const int err, const char *func, unsigned line);
 
 MDBX_MAYBE_UNUSED static inline int log_if_error(const int err, const char *func, unsigned line) {
-  if (likely(err == MDBX_SUCCESS))
-    return err;
-  int rc = log_error(err, func, line);
-#if __has_c_attribute(assume)
-  [[assume(rc == err && rc != MDBX_SUCCESS)]];
-#endif
-#if defined(__clang__) || __has_builtin(assume)
-  __builtin_assume(rc == err && rc != MDBX_SUCCESS);
-#endif
-  if (rc != err || rc == MDBX_SUCCESS) {
-#if defined(__GNUC__)
-    __builtin_unreachable();
-#elif defined(_MSC_VER) && !defined(__clang__)
-    __assume(0);
-#endif
-    rc = err;
-  }
-  return rc;
+  if (unlikely(err != MDBX_SUCCESS))
+    log_error(err, func, line);
+  return err;
 }
 
 #define LOG_IFERR(err) log_if_error((err), __func__, __LINE__)
@@ -3384,6 +3375,21 @@ static void error(const char *func, int rc) {
     fprintf(stderr, "%s: %s() error %d %s\n", prog, func, rc, mdbx_strerror(rc));
 }
 
+static void logger(MDBX_log_level_t level, const char *function, int line, const char *fmt, va_list args) {
+  static const char *const prefixes[] = {
+      "!!!fatal: ", // 0 fatal
+      " ! ",        // 1 error
+      " ~ ",        // 2 warning
+      "   ",        // 3 notice
+      "   //",      // 4 verbose
+  };
+  if (level < MDBX_LOG_DEBUG) {
+    if (function && line)
+      fprintf(stderr, "%s", prefixes[level]);
+    vfprintf(stderr, fmt, args);
+  }
+}
+
 int main(int argc, char *argv[]) {
   int opt, rc;
   MDBX_env *env;
@@ -3475,6 +3481,7 @@ int main(int argc, char *argv[]) {
     printf("mdbx_stat %s (%s, T-%s)\nRunning for %s...\n", mdbx_version.git.describe, mdbx_version.git.datetime,
            mdbx_version.git.tree, envname);
     fflush(nullptr);
+    mdbx_setup_debug(MDBX_LOG_NOTICE, MDBX_DBG_DONTCHANGE, logger);
   }
 
   rc = mdbx_env_create(&env);
@@ -3579,7 +3586,7 @@ int main(int argc, char *argv[]) {
       goto txn_abort;
     }
     if (rc == MDBX_RESULT_TRUE)
-      printf("Reader Table is empty\n");
+      printf("Reader Table is absent\n");
     else if (rc == MDBX_SUCCESS && rdrinfo > 1) {
       int dead;
       rc = mdbx_reader_check(env, &dead);

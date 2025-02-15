@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 Леонид Юрьев aka Leonid Yuriev <leo@yuriev.ru> ###############################################
+# Copyright (c) 2020-2025 Леонид Юрьев aka Leonid Yuriev <leo@yuriev.ru> ###############################################
 # SPDX-License-Identifier: Apache-2.0
 #
 # Donations are welcome to ETH `0xD104d8f8B2dC312aaD74899F83EBf3EEBDC1EA3A`. Всё будет хорошо!
@@ -60,12 +60,18 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/README.md"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mdbx.h"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mdbx.h++"
-   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test/CMakeLists.txt"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/alloy.c"
+   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/api-cold.c"
+   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/api-copy.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/api-cursor.c"
+   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/api-dbi.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/api-env.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/api-extra.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/api-key-transform.c"
+   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/api-misc.c"
+   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/api-opts.c"
+   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/api-range-estimate.c"
+   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/api-txn-data.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/api-txn.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/atomics-ops.h"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/atomics-types.h"
@@ -74,9 +80,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/cogs.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/cogs.h"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/coherency.c"
-   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/cold.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in"
-   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/copy.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/cursor.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/cursor.h"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/dbi.c"
@@ -86,7 +90,6 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/dpl.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/dpl.h"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/dxb.c"
-   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/env-opts.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/env.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/essentials.h"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/gc-get.c"
@@ -111,7 +114,6 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/mdbx.c++"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/meta.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/meta.h"
-   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/misc.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/mvcc-readers.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/node.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/node.h"
@@ -124,12 +126,11 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/page-iov.h"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/page-ops.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/page-ops.h"
-   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/page-search.c"
+   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/tree-search.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/pnl.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/pnl.h"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/preface.h"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/proto.h"
-   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/range-estimate.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/refund.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/sort.h"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/spill.c"
@@ -145,7 +146,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/tools/stat.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/tools/wingetopt.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/tools/wingetopt.h"
-   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/tree.c"
+   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/tree-ops.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/txl.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/txl.h"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/txn.c"
@@ -156,7 +157,8 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/walk.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/walk.h"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/windows-import.c"
-   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/windows-import.h")
+   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/windows-import.h"
+   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test/CMakeLists.txt")
   set(MDBX_AMALGAMATED_SOURCE FALSE)
   find_program(GIT git)
   if(NOT GIT)
@@ -211,6 +213,20 @@ if(DEFINED PROJECT_NAME AND NOT MDBX_FORCE_BUILD_AS_MAIN_PROJECT)
 else()
   set(SUBPROJECT OFF)
   set(NOT_SUBPROJECT ON)
+
+  # Setup Apple stuff which should be set prior to the first project() or enable_language()
+  if(APPLE)
+    # Enable universal binaries for macOS (target arm64 and x86_64)
+    if(NOT DEFINED CMAKE_OSX_ARCHITECTURES)
+      set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+    endif()
+
+    # Set the minimum macOS deployment target if not already defined
+    if(NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
+      set(CMAKE_OSX_DEPLOYMENT_TARGET "13.0")
+    endif()
+  endif()
+
   project(libmdbx C)
   if(NOT MDBX_AMALGAMATED_SOURCE AND NOT DEFINED BUILD_TESTING)
     set(BUILD_TESTING ON)
@@ -755,10 +771,17 @@ else()
     list(
       APPEND
       LIBMDBX_SOURCES
+      "${MDBX_SOURCE_DIR}/api-cold.c"
+      "${MDBX_SOURCE_DIR}/api-copy.c"
       "${MDBX_SOURCE_DIR}/api-cursor.c"
+      "${MDBX_SOURCE_DIR}/api-dbi.c"
       "${MDBX_SOURCE_DIR}/api-env.c"
       "${MDBX_SOURCE_DIR}/api-extra.c"
       "${MDBX_SOURCE_DIR}/api-key-transform.c"
+      "${MDBX_SOURCE_DIR}/api-misc.c"
+      "${MDBX_SOURCE_DIR}/api-opts.c"
+      "${MDBX_SOURCE_DIR}/api-range-estimate.c"
+      "${MDBX_SOURCE_DIR}/api-txn-data.c"
       "${MDBX_SOURCE_DIR}/api-txn.c"
       "${MDBX_SOURCE_DIR}/atomics-ops.h"
       "${MDBX_SOURCE_DIR}/atomics-types.h"
@@ -767,8 +790,6 @@ else()
       "${MDBX_SOURCE_DIR}/cogs.c"
       "${MDBX_SOURCE_DIR}/cogs.h"
       "${MDBX_SOURCE_DIR}/coherency.c"
-      "${MDBX_SOURCE_DIR}/cold.c"
-      "${MDBX_SOURCE_DIR}/copy.c"
       "${MDBX_SOURCE_DIR}/cursor.c"
       "${MDBX_SOURCE_DIR}/cursor.h"
       "${MDBX_SOURCE_DIR}/dbi.c"
@@ -776,7 +797,6 @@ else()
       "${MDBX_SOURCE_DIR}/dpl.c"
       "${MDBX_SOURCE_DIR}/dpl.h"
       "${MDBX_SOURCE_DIR}/dxb.c"
-      "${MDBX_SOURCE_DIR}/env-opts.c"
       "${MDBX_SOURCE_DIR}/env.c"
       "${MDBX_SOURCE_DIR}/essentials.h"
       "${MDBX_SOURCE_DIR}/gc-get.c"
@@ -792,7 +812,6 @@ else()
       "${MDBX_SOURCE_DIR}/logging_and_debug.h"
       "${MDBX_SOURCE_DIR}/meta.c"
       "${MDBX_SOURCE_DIR}/meta.h"
-      "${MDBX_SOURCE_DIR}/misc.c"
       "${MDBX_SOURCE_DIR}/mvcc-readers.c"
       "${MDBX_SOURCE_DIR}/node.c"
       "${MDBX_SOURCE_DIR}/node.h"
@@ -804,12 +823,11 @@ else()
       "${MDBX_SOURCE_DIR}/page-iov.h"
       "${MDBX_SOURCE_DIR}/page-ops.c"
       "${MDBX_SOURCE_DIR}/page-ops.h"
-      "${MDBX_SOURCE_DIR}/page-search.c"
+      "${MDBX_SOURCE_DIR}/tree-search.c"
       "${MDBX_SOURCE_DIR}/pnl.c"
       "${MDBX_SOURCE_DIR}/pnl.h"
       "${MDBX_SOURCE_DIR}/preface.h"
       "${MDBX_SOURCE_DIR}/proto.h"
-      "${MDBX_SOURCE_DIR}/range-estimate.c"
       "${MDBX_SOURCE_DIR}/refund.c"
       "${MDBX_SOURCE_DIR}/sort.h"
       "${MDBX_SOURCE_DIR}/spill.c"
@@ -817,7 +835,7 @@ else()
       "${MDBX_SOURCE_DIR}/table.c"
       "${MDBX_SOURCE_DIR}/tls.c"
       "${MDBX_SOURCE_DIR}/tls.h"
-      "${MDBX_SOURCE_DIR}/tree.c"
+      "${MDBX_SOURCE_DIR}/tree-ops.c"
       "${MDBX_SOURCE_DIR}/txl.c"
       "${MDBX_SOURCE_DIR}/txl.h"
       "${MDBX_SOURCE_DIR}/txn.c"

@@ -4,7 +4,9 @@
 > with [`C` API description](https://libmdbx.dqdkfa.ru/group__c__api.html)
 > and pay attention to the [`C++` API](https://gitflic.ru/project/erthink/libmdbx/blob?file=mdbx.h%2B%2B#line-num-1).
 
-> Questions, feedback and suggestions are welcome to the [Telegram' group](https://t.me/libmdbx).
+> Questions, feedback and suggestions are welcome to the [Telegram' group](https://t.me/libmdbx) (archive [1](https://libmdbx.dqdkfa.ru/tg-archive/messages1.html),
+> [2](https://libmdbx.dqdkfa.ru/tg-archive/messages2.html), [3](https://libmdbx.dqdkfa.ru/tg-archive/messages3.html), [4](https://libmdbx.dqdkfa.ru/tg-archive/messages4.html),
+> [5](https://libmdbx.dqdkfa.ru/tg-archive/messages5.html), [6](https://libmdbx.dqdkfa.ru/tg-archive/messages6.html), [7](https://libmdbx.dqdkfa.ru/tg-archive/messages7.html)).
 > See the [ChangeLog](https://gitflic.ru/project/erthink/libmdbx/blob?file=ChangeLog.md) for `NEWS` and latest updates.
 
 > Donations are welcome to ETH `0xD104d8f8B2dC312aaD74899F83EBf3EEBDC1EA3A`.
@@ -62,7 +64,51 @@ Historically, _libmdbx_ is a deeply revised and extended descendant of the amazi
 [Lightning Memory-Mapped Database](https://en.wikipedia.org/wiki/Lightning_Memory-Mapped_Database).
 _libmdbx_ inherits all benefits from _LMDB_, but resolves some issues and adds [a set of improvements](#improvements-beyond-lmdb).
 
-### MithrilDB and Future
+## Github
+
+### на Русском (мой родной язык)
+
+Весной 2022, без каких-либо предупреждений или пояснений, администрация
+Github удалила мой аккаунт и все проекты. Через несколько месяцев, без
+какого-либо моего участия или уведомления, проекты были
+восстановлены/открыты в статусе "public read-only archive" из какой-то
+неполноценной резервной копии. Эти действия Github я расцениваю как
+злонамеренный саботаж, а сам сервис Github считаю навсегда утратившим
+какое-либо доверие.
+
+Вследствие произошедшего, никогда и ни при каких условиях, я не буду
+размещать на Github первоисточники (aka origins) моих проектов, либо
+как-либо полагаться на инфраструктуру Github.
+
+Тем не менее, понимая что пользователям моих проектов удобнее получать к
+ним доступ именно на Github, я не хочу ограничивать их свободу или
+создавать неудобство, и поэтому размещаю на Github зеркала (aka mirrors)
+репозиториев моих проектов. При этом ещё раз акцентирую внимание, что
+это только зеркала, которые могут быть заморожены, заблокированы или
+удалены в любой момент, как это уже было в 2022.
+
+### in English
+
+In the spring of 2022, without any warnings or explanations, the Github
+administration deleted my account and all projects. A few months later,
+without any involvement or notification from me, the projects were
+restored/opened in the "public read-only archive" status from some kind
+of incomplete backup. I regard these actions of Github as malicious
+sabotage, and I consider the Github service itself to have lost any
+trust forever.
+
+As a result of what has happened, I will never, under any circumstances,
+post the primary sources (aka origins) of my projects on Github, or rely
+in any way on the Github infrastructure.
+
+Nevertheless, realizing that it is more convenient for users of my
+projects to access them on Github, I do not want to restrict their
+freedom or create inconvenience, and therefore I place mirrors of my
+project repositories on Github. At the same time, I would like to
+emphasize once again that these are only mirrors that can be frozen,
+blocked or deleted at any time, as was the case in 2022.
+
+## MithrilDB and Future
 
 <!-- section-begin mithril -->
 
@@ -190,8 +236,7 @@ and [CoW](https://en.wikipedia.org/wiki/Copy-on-write).
 
 - Append operation for efficient bulk insertion of pre-sorted data.
 
-- No [WAL](https://en.wikipedia.org/wiki/Write-ahead_logging) nor any
-transaction journal. No crash recovery needed. No maintenance is required.
+- No [WAL](https://en.wikipedia.org/wiki/Write-ahead_logging) nor any transaction journal. No crash recovery needed. No maintenance is required.
 
 - No internal cache and/or memory management, all done by basic OS services.
 
@@ -263,7 +308,11 @@ the user's point of view.
    > and up to 30% faster when _libmdbx_ compiled with specific build options
    > which downgrades several runtime checks to be match with LMDB behaviour.
    >
-   > These and other results could be easily reproduced with [ioArena](https://abf.io/erthink/ioarena) just by `make bench-quartet` command,
+   > However, libmdbx may be slower than LMDB on Windows, since uses native file locking API.
+   > These locks are really slow, but they prevent an inconsistent backup from being obtained by copying the DB file during an ongoing write transaction.
+   > So I think this is the right decision, and for speed, it's better to use Linux, or ask Microsoft to fix up file locks.
+   >
+   > Noted above and other results could be easily reproduced with [ioArena](https://abf.io/erthink/ioarena) just by `make bench-quartet` command,
    > including comparisons with [RockDB](https://en.wikipedia.org/wiki/RocksDB)
    > and [WiredTiger](https://en.wikipedia.org/wiki/WiredTiger).
 
@@ -410,7 +459,7 @@ since release the version 1.0.
 
 ## Source code embedding
 
-_libmdbx_ provides two official three for integration in source code form:
+_libmdbx_ provides three official ways for integration in source code form:
 
 1. Using an amalgamated source code which available in the [releases section](https://gitflic.ru/project/erthink/libmdbx/release) on GitFlic.
    > An amalgamated source code includes all files required to build and
@@ -631,19 +680,24 @@ Bindings
 
 | Runtime |  Repo  | Author |
 | ------- | ------ | ------ |
+| Rust    | [libmdbx-rs](https://github.com/vorot93/libmdbx-rs)   | [Artem Vorotnikov](https://github.com/vorot93) |
+| Python  | [PyPi/libmdbx](https://pypi.org/project/libmdbx/)     | [Lazymio](https://github.com/wtdcode) |
+| Java    | [mdbxjni](https://github.com/castortech/mdbxjni)      | [Castor Technologies](https://castortech.com/) |
+| Go      | [mdbx-go](https://github.com/torquem-ch/mdbx-go)      | [Alex Sharov](https://github.com/AskAlexSharov) |
+| Ruby    | [ruby-mdbx](https://rubygems.org/gems/mdbx/)          | [Mahlon E. Smith](https://github.com/mahlonsmith) |
+
+##### Obsolete/Outdated/Unsupported:
+
+| Runtime |  Repo  | Author |
+| ------- | ------ | ------ |
+| .NET    | [mdbx.NET](https://github.com/wangjia184/mdbx.NET) | [Jerry Wang](https://github.com/wangjia184) |
 | Scala   | [mdbx4s](https://github.com/david-bouyssie/mdbx4s) | [David Bouyssié](https://github.com/david-bouyssie) |
+| Rust    | [mdbx](https://crates.io/crates/mdbx)                 | [gcxfd](https://github.com/gcxfd) |
 | Haskell | [libmdbx-hs](https://hackage.haskell.org/package/libmdbx) | [Francisco Vallarino](https://github.com/fjvallarino) |
+| Lua     | [lua-libmdbx](https://github.com/mah0x211/lua-libmdbx) | [Masatoshi Fukunaga](https://github.com/mah0x211) |
 | NodeJS, [Deno](https://deno.land/) | [lmdbx-js](https://github.com/kriszyp/lmdbx-js) | [Kris Zyp](https://github.com/kriszyp/)
 | NodeJS  | [node-mdbx](https://www.npmjs.com/package/node-mdbx/) | [Сергей Федотов](mailto:sergey.fedotov@corp.mail.ru) |
-| Ruby    | [ruby-mdbx](https://rubygems.org/gems/mdbx/)          | [Mahlon E. Smith](https://github.com/mahlonsmith) |
-| Go      | [mdbx-go](https://github.com/torquem-ch/mdbx-go)      | [Alex Sharov](https://github.com/AskAlexSharov) |
-| [Nim](https://en.wikipedia.org/wiki/Nim_(programming_language)) | [NimDBX](https://github.com/snej/nimdbx) | [Jens Alfke](https://github.com/snej)
-| Lua     | [lua-libmdbx](https://github.com/mah0x211/lua-libmdbx) | [Masatoshi Fukunaga](https://github.com/mah0x211) |
-| Rust    | [libmdbx-rs](https://github.com/vorot93/libmdbx-rs)   | [Artem Vorotnikov](https://github.com/vorot93) |
-| Rust    | [mdbx](https://crates.io/crates/mdbx)                 | [gcxfd](https://github.com/gcxfd) |
-| Java    | [mdbxjni](https://github.com/castortech/mdbxjni)      | [Castor Technologies](https://castortech.com/) |
-| Python (draft)  | [python-bindings](https://libmdbx.dqdkfa.ru/dead-github/commits/python-bindings) branch | [Noel Kuntze](https://github.com/Thermi)
-| .NET (obsolete) | [mdbx.NET](https://github.com/wangjia184/mdbx.NET) | [Jerry Wang](https://github.com/wangjia184) |
+| Nim     | [NimDBX](https://github.com/snej/nimdbx) | [Jens Alfke](https://github.com/snej)
 
 <!-- section-end -->
 

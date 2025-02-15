@@ -54,6 +54,8 @@ CFLAGS_EXTRA ?=
 LD      ?= ld
 CMAKE	?= cmake
 CMAKE_OPT ?=
+CTEST	?= ctest
+CTEST_OPT ?=
 # target directory for `make dist`
 DIST_DIR ?= dist
 
@@ -262,8 +264,12 @@ lib-shared libmdbx.$(SO_SUFFIX): mdbx-dylib.o $(call select_by,MDBX_BUILD_CXX,md
 
 ninja: cmake-build
 cmake-build:
-	@echo "-G Ninja . && cmake --build ."
-	$(QUIET)mkdir @cmake-ninja-build && $(CMAKE) $(CMAKE_OPT) -G Ninja -S . -B @cmake-ninja-build && $(CMAKE) --build @cmake-ninja-build
+	@echo "  RUN: cmake -G Ninja && cmake --build"
+	$(QUIET)mkdir -p @cmake-ninja-build && $(CMAKE) $(CMAKE_OPT) -G Ninja -S . -B @cmake-ninja-build && $(CMAKE) --build @cmake-ninja-build
+
+ctest: cmake-build
+	@echo "  RUN: ctest .."
+	$(QUIET)$(CTEST) --test-dir @cmake-ninja-build --parallel `(nproc | sysctl -n hw.ncpu | echo 2) 2>/dev/null` --schedule-random $(CTEST_OPT)
 
 ################################################################################
 # Amalgamated source code, i.e. distributed after `make dist`
