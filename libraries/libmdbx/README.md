@@ -9,7 +9,7 @@
 > [5](https://libmdbx.dqdkfa.ru/tg-archive/messages5.html), [6](https://libmdbx.dqdkfa.ru/tg-archive/messages6.html), [7](https://libmdbx.dqdkfa.ru/tg-archive/messages7.html)).
 > See the [ChangeLog](https://gitflic.ru/project/erthink/libmdbx/blob?file=ChangeLog.md) for `NEWS` and latest updates.
 
-> Donations are welcome to ETH `0xD104d8f8B2dC312aaD74899F83EBf3EEBDC1EA3A`.
+> Donations are welcome to the Ethereum/ERC-20 `0xD104d8f8B2dC312aaD74899F83EBf3EEBDC1EA3A`.
 > Всё будет хорошо!
 
 libmdbx
@@ -278,7 +278,7 @@ which is also (mostly) applicable to _libmdbx_ with minor clarification:
  - a database could shared by multiple processes, i.e. no multi-process issues;
  - no issues with moving a cursor(s) after the deletion;
  - _libmdbx_ provides zero-overhead database compactification, so a database file could be shrinked/truncated in particular cases;
- - excluding dist I/O time _libmdbx_ could be -3 times faster than BoltDB and up to 10-100K times faster than both BoltDB and LMDB in particular extreme cases;
+ - excluding disk I/O time _libmdbx_ could be ≈3 times faster than BoltDB and up to 10-100K times faster than both BoltDB and LMDB in particular extreme cases;
  - _libmdbx_ provides more features compared to BoltDB and/or LMDB.
 
 <!-- section-end -->
@@ -646,16 +646,19 @@ error when opening the database in a _WSL1_ environment.
 ### MacOS
 Current [native build tools](https://en.wikipedia.org/wiki/Xcode) for
 MacOS include GNU Make, CLANG and an outdated version of Bash.
-Therefore, to build the library, it is enough to run `make all` in the
+However, the build script uses GNU-kind of `sed` and `tar`.
+So the easiest way to install all prerequirements is to use [Homebrew](https://brew.sh/),
+just by `brew install bash make cmake ninja gnu-sed gnu-tar --with-default-names`.
+
+Next, to build the library, it is enough to run `make all` in the
 directory with source code, and run `make check` to execute the base
 tests. If something goes wrong, it is recommended to install
 [Homebrew](https://brew.sh/) and try again.
 
 To run the [long stochastic test scenario](test/stochastic.sh), you
 will need to install the current (not outdated) version of
-[Bash](https://en.wikipedia.org/wiki/Bash_(Unix_shell)). To do this, I
-recommend that you install [Homebrew](https://brew.sh/) and then execute
-`brew install bash`.
+[Bash](https://en.wikipedia.org/wiki/Bash_(Unix_shell)).
+Just install it as noted above.
 
 ### Android
 I recommend using CMake to build _libmdbx_ for Android.
@@ -685,6 +688,7 @@ Bindings
 | Java    | [mdbxjni](https://github.com/castortech/mdbxjni)      | [Castor Technologies](https://castortech.com/) |
 | Go      | [mdbx-go](https://github.com/torquem-ch/mdbx-go)      | [Alex Sharov](https://github.com/AskAlexSharov) |
 | Ruby    | [ruby-mdbx](https://rubygems.org/gems/mdbx/)          | [Mahlon E. Smith](https://github.com/mahlonsmith) |
+| Zig     | [mdbx-zig](https://github.com/theseyan/lmdbx-zig)     | [Sayan J. Das](https://github.com/theseyan) |
 
 ##### Obsolete/Outdated/Unsupported:
 

@@ -164,6 +164,10 @@ else
   $(info $(TIP) Use `make V=1` for verbose.)
 endif
 
+ifeq ($(UNAME),Darwin)
+  $(info $(TIP) Use `brew install gnu-sed gnu-tar` and add ones to the beginning of the PATH.)
+endif
+
 all: show-options $(LIBRARIES) $(MDBX_TOOLS)
 
 help:
@@ -262,6 +266,10 @@ lib-shared libmdbx.$(SO_SUFFIX): mdbx-dylib.o $(call select_by,MDBX_BUILD_CXX,md
 	@echo '  LD $@'
 	$(QUIET)$(call select_by,MDBX_BUILD_CXX,$(CXX) $(CXXFLAGS),$(CC) $(CFLAGS)) $^ -pthread -shared $(LDFLAGS) $(call select_by,MDBX_BUILD_CXX,$(LIB_STDCXXFS)) $(LIBS) -o $@
 
+ninja-assertions: CMAKE_OPT += -DMDBX_FORCE_ASSERTIONS=ON
+ninja-assertions: cmake-build
+ninja-debug: CMAKE_OPT += -DCMAKE_BUILD_TYPE=Debug
+ninja-debug: cmake-build
 ninja: cmake-build
 cmake-build:
 	@echo "  RUN: cmake -G Ninja && cmake --build"
@@ -375,13 +383,13 @@ bench-$(1)_$(2).txt: $(3) $(IOARENA) $(lastword $(MAKEFILE_LIST))
 	$(QUIET)(export LD_LIBRARY_PATH="./:$$$${LD_LIBRARY_PATH}"; \
 		ldd $(IOARENA) | grep -i $(1) && \
 		$(IOARENA) -D $(1) -B batch -m $(BENCH_CRUD_MODE) -n $(2) \
-			| tee $$@ | grep throughput | sed 's/throughput/batch×N/' && \
+			| tee $$@ | grep throughput | $(SED) 's/throughput/batch×N/' && \
 		$(IOARENA) -D $(1) -B crud -m $(BENCH_CRUD_MODE) -n $(2) \
-			| tee -a $$@ | grep throughput | sed 's/throughput/   crud/' && \
+			| tee -a $$@ | grep throughput | $(SED) 's/throughput/   crud/' && \
 		$(IOARENA) -D $(1) -B iterate,get,iterate,get,iterate -m $(BENCH_CRUD_MODE) -r 4 -n $(2) \
-			| tee -a $$@ | grep throughput | sed '0,/throughput/{s/throughput/iterate/};s/throughput/    get/' && \
+			| tee -a $$@ | grep throughput | $(SED) '0,/throughput/{s/throughput/iterate/};s/throughput/    get/' && \
 		$(IOARENA) -D $(1) -B delete -m $(BENCH_CRUD_MODE) -n $(2) \
-			| tee -a $$@ | grep throughput | sed 's/throughput/ delete/' && \
+			| tee -a $$@ | grep throughput | $(SED) 's/throughput/ delete/' && \
 	true) || mv -f $$@ $$@.error
 
 endef

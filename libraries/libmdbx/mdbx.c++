@@ -2,7 +2,7 @@
 /// \author Леонид Юрьев aka Leonid Yuriev <leo@yuriev.ru> \date 2015-2025
 /* clang-format off */
 
-#define MDBX_BUILD_SOURCERY eb380341904a968f3bf89ae26b795aa09e97ce35e958a9ff1493cc2ef7131185_v0_13_4_3_gd2707385
+#define MDBX_BUILD_SOURCERY 6131f8c8ca4c3020ef021e0208358043c637823dbceef29846691cc6a7c76344_v0_13_6_2_g5c44dd20
 
 #define LIBMDBX_INTERNALS
 #define MDBX_DEPRECATED
@@ -1461,7 +1461,8 @@ MDBX_INTERNAL int osal_lockfile(mdbx_filehandle_t fd, bool wait);
 
 #define MMAP_OPTION_TRUNCATE 1
 #define MMAP_OPTION_SEMAPHORE 2
-MDBX_INTERNAL int osal_mmap(const int flags, osal_mmap_t *map, size_t size, const size_t limit, const unsigned options);
+MDBX_INTERNAL int osal_mmap(const int flags, osal_mmap_t *map, size_t size, const size_t limit, const unsigned options,
+                            const pathchar_t *pathname4logging);
 MDBX_INTERNAL int osal_munmap(osal_mmap_t *map);
 #define MDBX_MRESIZE_MAY_MOVE 0x00000100
 #define MDBX_MRESIZE_MAY_UNMAP 0x00000200
@@ -1477,6 +1478,7 @@ MDBX_INTERNAL int osal_resume_threads_after_remap(mdbx_handle_array_t *array);
 MDBX_INTERNAL int osal_msync(const osal_mmap_t *map, size_t offset, size_t length, enum osal_syncmode_bits mode_bits);
 MDBX_INTERNAL int osal_check_fs_rdonly(mdbx_filehandle_t handle, const pathchar_t *pathname, int err);
 MDBX_INTERNAL int osal_check_fs_incore(mdbx_filehandle_t handle);
+MDBX_INTERNAL int osal_check_fs_local(mdbx_filehandle_t handle, int flags);
 
 MDBX_MAYBE_UNUSED static inline uint32_t osal_getpid(void) {
   STATIC_ASSERT(sizeof(mdbx_pid_t) <= sizeof(uint32_t));
@@ -1831,6 +1833,14 @@ MDBX_MAYBE_UNUSED MDBX_NOTHROW_PURE_FUNCTION static inline uint32_t osal_bswap32
 #elif !(MDBX_HAVE_BUILTIN_CPU_SUPPORTS == 0 || MDBX_HAVE_BUILTIN_CPU_SUPPORTS == 1)
 #error MDBX_HAVE_BUILTIN_CPU_SUPPORTS must be defined as 0 or 1
 #endif /* MDBX_HAVE_BUILTIN_CPU_SUPPORTS */
+
+/** if enabled then instead of the returned error `MDBX_REMOTE`, only a warning is issued, when
+ * the database being opened in non-read-only mode is located in a file system exported via NFS. */
+#ifndef MDBX_ENABLE_NON_READONLY_EXPORT
+#define MDBX_ENABLE_NON_READONLY_EXPORT 0
+#elif !(MDBX_ENABLE_NON_READONLY_EXPORT == 0 || MDBX_ENABLE_NON_READONLY_EXPORT == 1)
+#error MDBX_ENABLE_NON_READONLY_EXPORT must be defined as 0 or 1
+#endif /* MDBX_ENABLE_NON_READONLY_EXPORT */
 
 //------------------------------------------------------------------------------
 
@@ -3258,8 +3268,8 @@ class trouble_location {
 #endif
 
 public:
-  MDBX_CXX11_CONSTEXPR trouble_location(unsigned line, const char *condition,
-                                   const char *function, const char *filename)
+  MDBX_CXX11_CONSTEXPR trouble_location(unsigned line, const char *condition, const char *function,
+                                        const char *filename)
       :
 #if TROUBLE_PROVIDE_LINENO
         line_(line)
@@ -3328,7 +3338,7 @@ public:
 
 //------------------------------------------------------------------------------
 
-__cold  std::string format_va(const char *fmt, va_list ap) {
+__cold std::string format_va(const char *fmt, va_list ap) {
   va_list ones;
   va_copy(ones, ap);
 #ifdef _MSC_VER
@@ -3341,15 +3351,14 @@ __cold  std::string format_va(const char *fmt, va_list ap) {
   result.reserve(size_t(needed + 1));
   result.resize(size_t(needed), '\0');
   assert(int(result.capacity()) > needed);
-  int actual = vsnprintf(const_cast<char *>(result.data()), result.capacity(),
-                         fmt, ones);
+  int actual = vsnprintf(const_cast<char *>(result.data()), result.capacity(), fmt, ones);
   assert(actual == needed);
   (void)actual;
   va_end(ones);
   return result;
 }
 
-__cold  std::string format(const char *fmt, ...) {
+__cold std::string format(const char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
   std::string result = format_va(fmt, ap);
@@ -3370,17 +3379,14 @@ public:
   virtual ~bug() noexcept;
 };
 
-__cold  bug::bug(const trouble_location &location) noexcept
-    : std::runtime_error(format("mdbx.bug: %s.%s at %s:%u", location.function(),
-                                location.condition(), location.filename(),
-                                location.line())),
+__cold bug::bug(const trouble_location &location) noexcept
+    : std::runtime_error(format("mdbx.bug: %s.%s at %s:%u", location.function(), location.condition(),
+                                location.filename(), location.line())),
       location_(location) {}
 
-__cold  bug::~bug() noexcept {}
+__cold bug::~bug() noexcept {}
 
-[[noreturn]] __cold  void raise_bug(const trouble_location &what_and_where) {
-  throw bug(what_and_where);
-}
+[[maybe_unused, noreturn]] __cold void raise_bug(const trouble_location &what_and_where) { throw bug(what_and_where); }
 
 #define RAISE_BUG(line, condition, function, file)                                                                     \
   do {                                                                                                                 \
@@ -3388,6 +3394,7 @@ __cold  bug::~bug() noexcept {}
     raise_bug(bug);                                                                                                    \
   } while (0)
 
+#undef ENSURE
 #define ENSURE(condition)                                                                                              \
   do                                                                                                                   \
     if (MDBX_UNLIKELY(!(condition)))                                                                                   \
@@ -3571,7 +3578,7 @@ __cold std::string error::message() const {
 __cold void error::throw_exception() const {
   switch (code()) {
   case MDBX_EINVAL:
-    throw std::invalid_argument("mdbx");
+    throw std::invalid_argument("MDBX_EINVAL");
   case MDBX_ENOMEM:
     throw std::bad_alloc();
   case MDBX_SUCCESS:
@@ -4360,11 +4367,31 @@ bool from_base64::is_erroneous() const noexcept {
 
 //------------------------------------------------------------------------------
 
-template class LIBMDBX_API_TYPE buffer<legacy_allocator>;
+#if defined(_MSC_VER)
+#pragma warning(push)
+/* warning C4251: 'mdbx::buffer<...>::silo_':
+ *   struct 'mdbx::buffer<..>::silo' needs to have dll-interface to be used by clients of class 'mdbx::buffer<...>'
+ *
+ * Microsoft не хочет признавать ошибки и пересматривать приятные решения, поэтому MSVC продолжает кошмарить
+ * и стращать разработчиков предупреждениями, тем самым перекладывая ответственность на их плечи.
+ *
+ * В данном случае предупреждение выдаётся из-за инстанцирования std::string::allocator_type::pointer и
+ * std::pmr::string::allocator_type::pointer внутри mdbx::buffer<..>::silo. А так как эти типы являются частью
+ * стандартной библиотеки C++ они всегда будут доступны и без необходимости их инстанцирования и экспорта из libmdbx.
+ *
+ * Поэтому нет других вариантов как заглушить это предупреждение и еще раз плюнуть в сторону microsoft. */
+#pragma warning(disable : 4251)
+#endif /* MSVC */
+
+MDBX_INSTALL_API_TEMPLATE(LIBMDBX_API_TYPE, buffer<legacy_allocator>);
 
 #if defined(__cpp_lib_memory_resource) && __cpp_lib_memory_resource >= 201603L && _GLIBCXX_USE_CXX11_ABI
-template class LIBMDBX_API_TYPE buffer<polymorphic_allocator>;
+MDBX_INSTALL_API_TEMPLATE(LIBMDBX_API_TYPE, buffer<polymorphic_allocator>);
 #endif /* __cpp_lib_memory_resource >= 201603L */
+
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif /* MSVC */
 
 //------------------------------------------------------------------------------
 
@@ -4781,15 +4808,6 @@ __cold bool txn::rename_map(const ::mdbx::slice &old_name, const ::mdbx::slice &
 
 __cold bool txn::rename_map(const ::std::string &old_name, const ::std::string &new_name, bool throw_if_absent) {
   return rename_map(::mdbx::slice(old_name), ::mdbx::slice(new_name), throw_if_absent);
-}
-
-//------------------------------------------------------------------------------
-
-void cursor_managed::close() {
-  if (MDBX_UNLIKELY(!handle_))
-    MDBX_CXX20_UNLIKELY error::throw_exception(MDBX_EINVAL);
-  ::mdbx_cursor_close(handle_);
-  handle_ = nullptr;
 }
 
 //------------------------------------------------------------------------------

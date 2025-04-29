@@ -18,7 +18,7 @@
 /// \copyright SPDX-License-Identifier: Apache-2.0
 /// \author Леонид Юрьев aka Leonid Yuriev <leo@yuriev.ru> \date 2015-2025
 
-#define MDBX_BUILD_SOURCERY eb380341904a968f3bf89ae26b795aa09e97ce35e958a9ff1493cc2ef7131185_v0_13_4_3_gd2707385
+#define MDBX_BUILD_SOURCERY 6131f8c8ca4c3020ef021e0208358043c637823dbceef29846691cc6a7c76344_v0_13_6_2_g5c44dd20
 
 #define LIBMDBX_INTERNALS
 #define MDBX_DEPRECATED
@@ -1477,7 +1477,8 @@ MDBX_INTERNAL int osal_lockfile(mdbx_filehandle_t fd, bool wait);
 
 #define MMAP_OPTION_TRUNCATE 1
 #define MMAP_OPTION_SEMAPHORE 2
-MDBX_INTERNAL int osal_mmap(const int flags, osal_mmap_t *map, size_t size, const size_t limit, const unsigned options);
+MDBX_INTERNAL int osal_mmap(const int flags, osal_mmap_t *map, size_t size, const size_t limit, const unsigned options,
+                            const pathchar_t *pathname4logging);
 MDBX_INTERNAL int osal_munmap(osal_mmap_t *map);
 #define MDBX_MRESIZE_MAY_MOVE 0x00000100
 #define MDBX_MRESIZE_MAY_UNMAP 0x00000200
@@ -1493,6 +1494,7 @@ MDBX_INTERNAL int osal_resume_threads_after_remap(mdbx_handle_array_t *array);
 MDBX_INTERNAL int osal_msync(const osal_mmap_t *map, size_t offset, size_t length, enum osal_syncmode_bits mode_bits);
 MDBX_INTERNAL int osal_check_fs_rdonly(mdbx_filehandle_t handle, const pathchar_t *pathname, int err);
 MDBX_INTERNAL int osal_check_fs_incore(mdbx_filehandle_t handle);
+MDBX_INTERNAL int osal_check_fs_local(mdbx_filehandle_t handle, int flags);
 
 MDBX_MAYBE_UNUSED static inline uint32_t osal_getpid(void) {
   STATIC_ASSERT(sizeof(mdbx_pid_t) <= sizeof(uint32_t));
@@ -1847,6 +1849,14 @@ MDBX_MAYBE_UNUSED MDBX_NOTHROW_PURE_FUNCTION static inline uint32_t osal_bswap32
 #elif !(MDBX_HAVE_BUILTIN_CPU_SUPPORTS == 0 || MDBX_HAVE_BUILTIN_CPU_SUPPORTS == 1)
 #error MDBX_HAVE_BUILTIN_CPU_SUPPORTS must be defined as 0 or 1
 #endif /* MDBX_HAVE_BUILTIN_CPU_SUPPORTS */
+
+/** if enabled then instead of the returned error `MDBX_REMOTE`, only a warning is issued, when
+ * the database being opened in non-read-only mode is located in a file system exported via NFS. */
+#ifndef MDBX_ENABLE_NON_READONLY_EXPORT
+#define MDBX_ENABLE_NON_READONLY_EXPORT 0
+#elif !(MDBX_ENABLE_NON_READONLY_EXPORT == 0 || MDBX_ENABLE_NON_READONLY_EXPORT == 1)
+#error MDBX_ENABLE_NON_READONLY_EXPORT must be defined as 0 or 1
+#endif /* MDBX_ENABLE_NON_READONLY_EXPORT */
 
 //------------------------------------------------------------------------------
 
