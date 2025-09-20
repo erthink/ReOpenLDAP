@@ -1,6 +1,6 @@
 <!-- Required extensions: pymdownx.betterem, pymdownx.tilde, pymdownx.emoji, pymdownx.tasklist, pymdownx.superfences -->
 
-> Please refer to the online [documentation](https://libmdbx.dqdkfa.ru)
+> Please refer to the online [official libmdbx documentation site](https://libmdbx.dqdkfa.ru)
 > with [`C` API description](https://libmdbx.dqdkfa.ru/group__c__api.html)
 > and pay attention to the [`C++` API](https://gitflic.ru/project/erthink/libmdbx/blob?file=mdbx.h%2B%2B#line-num-1).
 
