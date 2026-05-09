@@ -3,13 +3,13 @@ ChangeLog
 
 English version [by liar Google](https://libmdbx-dqdkfa-ru.translate.goog/md__change_log.html?_x_tr_sl=ru&_x_tr_tl=en) and [by Yandex](https://translated.turbopages.org/proxy_u/ru-en.en/https/libmdbx.dqdkfa.ru/md__change_log.html).
 
-The source code is availale on [SourceCraft](https://sourcecraft.dev/dqdkfa/libmdbx) and mirrors on [abf.io](https://abf.io/erthink/libmdbx) and [GitFlic](https://gitflic.ru/project/erthink/libmdbx).
-Please use the `stable` branch or the latest release for production environment through stagging, but the `master` branch for development a derivative projects.
+The source code is available on [SourceCraft](https://sourcecraft.dev/dqdkfa/libmdbx) and mirrors on [abf.io](https://abf.io/erthink/libmdbx) and [GitFlic](https://gitflic.ru/project/erthink/libmdbx).
+Please use the `stable` branch or the latest release for production environment through staging, but the `master` branch for development a derivative projects.
 Donations are welcome to ETH `0xD104d8f8B2dC312aaD74899F83EBf3EEBDC1EA3A`,
 BTC `bc1qzvl9uegf2ea6cwlytnanrscyv8snwsvrc0xfsu`, SOL `FTCTgbHajoLVZGr8aEFWMzx3NDMyS5wXJgfeMTmJznRi`.
 Всё будет хорошо!
 
-## v0.14.2 в разработке без конкретизации даты выпуска
+## v0.14.2 "Буревестник" (stormy petrel, aka Bourevestnik) запланирован на 2026-05-14
 
 Продолжение развития нового куста/линейки версий с добавлением функционала, расширением API и внутренними переработками.
 
@@ -19,9 +19,14 @@ BTC `bc1qzvl9uegf2ea6cwlytnanrscyv8snwsvrc0xfsu`, SOL `FTCTgbHajoLVZGr8aEFWMzx3N
 Благодарности:
 
  - [Erigon](https://erigon.tech/) за спонсорство.
+ - Проект "AntiPublic" за спонсорство.
  - [Артёму Воротникову](https://github.com/vorot93) за сообщение об ошибках и тестировании [призязок для Rust](https://github.com/vorot93/libmdbx-rs).
  - [Stefan de Konink](https://github.com/skinkie) for fixing [Python bindings](https://github.com/wtdcode/mdbx-py) and documentation improvement.
  - [Cosmin Apreutesei](https://github.com/capr) за сообщение об ошибках и тестирование.
+ - [Chloe Cano](https://github.com/Segwaz) for fuzzing, bug reporing and fixes.
+ - [Weixie Cui](https://github.com/cuiweixie) for bug fixing through many pull-requests.
+ - [Александру Кельчину](https://serebrium.ru/) (Компания Серебриум) за сообщения об ошибках и прототипы эксплоитов.
+ - [Anton Maisak](https://public.git.amsoft.spb.ru/libmdbx/libmdbx-dotnet) for new .NET bindings.
 
 Новое:
 
@@ -31,19 +36,26 @@ BTC `bc1qzvl9uegf2ea6cwlytnanrscyv8snwsvrc0xfsu`, SOL `FTCTgbHajoLVZGr8aEFWMzx3N
 
    Объём накладных расходов теперь более пропорционален объему совершаемых операций. Поэтому, в большинстве сценариев накладные расходы чуть меньше, но наоборот чуть больше при отмене вложенных транзакций.
 
+ - Реализована поддержка дефрагментации/уплотнения БД и добавлена утилита `mdbx_defrag` с набором опций командной строки позволяющих определять ключевые параметры и лимиты дефрагментации.
+
  - Расширение API:
 
     - в функции копирования БД добавлена опция `MDBX_CP_OVERWRITE` (перезапись целевого файла), а в утилиту `mdbx_copy` аналогичная по смыслу опция командной строки `-f` .
-
-    - добавлена простая реализация функции `mdbx_cursor_bunch_delete()`, которая выполняет массивное удаление соседствующих элементов значительно быстрее, за счёт исключения из дерева целиком страниц и ветвей с удаляемыми элементами.
-
+    - добавлены функции `mdbx_cursor_bunch_delete()` и `mdbx_cursor_delete_range()`, выполняющие массивное удаление соседствующих элементов значительно быстрее, за счёт исключения из дерева целиком страниц и ветвей с удаляемыми элементами.
     - добавлены функции получения/поиска данных с "кэшированием" `mdbx_cache_get()` и `mdbx_cache_get_SingleThreaded()`.
-
-    - добавлена функция `mdbx_txn_refresh()` для быстрого обновления читающей транзакции, и `mdbx_txn_checkpoint()` для фиксации пишущих транзакций без освобождения блокировок.
-
+    - добавлена функция `mdbx_txn_refresh()` для быстрого обновления читающей транзакции.
+    - добавлена функция `mdbx_txn_checkpoint()` для фиксации пишущих транзакций без освобождения блокировок.
+    - добавлена функция `mdbx_txn_commit_embark_read()` для фиксации пишущей транзакции и запуска читающей без вклинивания других изменений.
+    - добавлена функция `mdbx_txn_amend()` для изменения данных начиная со снимка данных используемого в заданной транзакции чтения.
+    - добавлена функция `mdbx_txn_rollback()` для прерывания и перезапуска транзакции с отменой всех изменений, но без освобождения блокировок.
+    - добавлена поддержка клонирования читающих транзакций посредством `mdbx_txn_clone()`.
     - добавлена поддержка вложенных транзакций только для чтения.
+    - добавлена функция `mdbx_gc_info()` для получения информации о GC, использовании страниц, с возможностью итерирования содержимого GC.
+    - добавлена функция `mdbx_env_defrag()` для явной дефрагментации БД, а также утилита `mdbx_defrag`.
+    - добавлена опция `MDBX_opt_split_reserve` для управления заполненностью страниц дерева при их расщеплении.
+    - добавлены функции `mdbx_cursor_distance()`, `mdbx_cursor_scroll()` и `mdbx_cursor_distribute()` для упрощения многопоточного параллельного сканирования.
 
- - Поддержка Harmony OS (OHOS).
+ - Поддержка Harmony OS (OHOS) и Haiku OS.
 
  - Операции с плавающей точкой больше не используются как внутри библиотеки, так и в утилитах, а из сценариев сборки удалено связывание c `libm`.
 
@@ -51,11 +63,26 @@ BTC `bc1qzvl9uegf2ea6cwlytnanrscyv8snwsvrc0xfsu`, SOL `FTCTgbHajoLVZGr8aEFWMzx3N
 
  - Расширен и переработан состав информации формируемой функцией `mdbx_chk_env()` и выводимой утилитой `mdbx_chk`.
 
- - Основной репозиторий libmdbx перенесен с Gitflic на SourceCraft.
+ - Основной репозиторий libmdbx перенесен с GitFlic на SourceCraft.
 
    Со своей стороны, я удручен необходимостью совершать такие манипуляции, ибо они создают существенные неудобства пользователям, но (к сожалению) для того есть достаточные причины:
-    - Вместо обещанной интернационализации на Gitflic осталась только русскоязычная локализация с массой технический особенностей, затрудняющих использование систем машинного перевода. Это сделало невозможным использование сервиса многими пользователями и породило ряд справедливых жалоб/упреков, в том числе от разработчиков из Китая, Бразилии, Кореи, Ирана и т.д.
-    - За три года, прошедшие с миграции на Gitflic, не исправлено несколько возмутительных ошибок в редакторе markdown, что превращало оформление релизов в раздражающую борьбу. Кроме этого из публичного пространства пропал roadmap развития. Суммарно это заставило меня отказаться от Gitflic.
+    - Вместо обещанной интернационализации на GitFlic осталась только русскоязычная локализация с массой технический особенностей, затрудняющих использование систем машинного перевода. Это сделало невозможным использование сервиса многими пользователями и породило ряд справедливых жалоб/упреков, в том числе от разработчиков из Китая, Бразилии, Кореи, Ирана и т.д.
+    - За три года, прошедшие с миграции на GitFlic, не исправлено несколько возмутительных ошибок в редакторе markdown, что превращало оформление релизов в раздражающую борьбу. Кроме этого из публичного пространства пропал roadmap развития. Суммарно это заставило меня отказаться от GitFlic.
+
+ - В статистику транзакции добавлено количество операций получения/загрузки страниц, что позволяет количественно оценивать объем работы с курсорами и эффективность различных подходов индексирования и поиска данных.
+   Сбор соответствующей статистики контролируется дополнительной опцией сборки `MDBX_ENABLE_PGET_STAT`.
+
+ - В утилиту `mdbx_load` добавлены опции командной строки `-b number`, `-L megabytes`, `-d percent` и `-G geometry` позволяющие задавать размер пакетных вставок, ограничивать объем транзакций, задавать желаемую плотность заполнения страниц и переопределять геометрию БД при загрузке данных из дампа.
+
+ - Ускорен поиск за счёт использования без-переходного алгоритма (branchless) и встраивания кода компараторов.
+
+ - Переработаны внутренние проверочные утверждения (assertions) и связанные с ними опции сборки.
+   При этом `NDEBUG` больше не влияет на проверки в основном коде движка, что устраняет причины неожиданного падения производительности из-за отсутствия определения `NDEBUG` в не-отладочных сборках пользователей.
+
+   Проверки разделены на три категории (дешёвые, средние, дорогие), контролируемые посредством опции сборки `MDBX_CHECKING` принимающей значения от `-1` до `3` включительно.
+   Значение `3` соответствует максимальному количеству проверок, а `-1` отключает как все `assert()`, так и `ENSURE()` проверки.
+   По-умолчанию `MDBX_CHECKING` принимается равной опции `MDBX_DEBUG`, которая в свою очередь по умолчанию равна `0`, что соответствует обычной (не-отладочной) сборке библиотеки.
+   Таким образом, сохраняется совместимость с прежним поведением и одновременно обеспечивается точное управление отладочными проверками.
 
 Исправления:
 
@@ -101,6 +128,18 @@ BTC `bc1qzvl9uegf2ea6cwlytnanrscyv8snwsvrc0xfsu`, SOL `FTCTgbHajoLVZGr8aEFWMzx3N
 
  - Устранены лишние операции синхронизации данных с диском при выделении страниц при почти полном заполнении БД.
 
+ - В утилите `mdbx_load` устранены ошибки загрузки значений нулевой длины и обмен параметров shrink/growth в геометрии БД.
+
+ - Исправлено падение по `SIGSEGV` в случае, когда все мета-страницы не полностью пригодны для использования.
+
+ - Исправлена опечатка в условии определения изменении размера БД при откате вложенной транзакции.
+
+ - Исправлен сбор информации посредством `kstat()` для bootid на Solaris и родственных платформах.
+
+ - Исправлена опечатка в пути обработки `ST_EXPORTED` что ломало сборку на платформах где для `fstatvfs()` определён упомянутый флаг.
+
+ - Исправлено падение по `SIGSEGV` из-за попытки очистить/перезаписать повреждённую мета-страницу при открытии БД в режиме только для чтения.
+
 Изменение поведения:
 
  - Вновь включена/разрешена на старых ядрах Linux, начиная с версии 3.16, так как сейчас уже нет причин отказываться от работы на 3.16 поддерживая при этом ядра 4.x, и еще есть проекты (Isar, Isar-Community, Hive) которым требуется такая поддержка.
@@ -120,6 +159,12 @@ BTC `bc1qzvl9uegf2ea6cwlytnanrscyv8snwsvrc0xfsu`, SOL `FTCTgbHajoLVZGr8aEFWMzx3N
  - При сборке посредством GNU Make и CMake теперь, вместо одного `config.h`, генерируются разные файлы `config-gnumake.h` и `config-cmake.h`.
 
  - Запрещено открытие существующих таблиц с отличающимися флагами, если только явно не задана опция `MDBX_DB_ACCEDE`.
+
+ - В формируемые утилитой `mdbx_dump` дампы теперь не выводиться текущий размер БД и `maxreaders`, чтобы содержимое дампа зависело только от содержимого БД.
+
+ - Опция сборки `MDBX_FORCE_ASSERTIONS` объявлена устаревшей, вместо неё следует использовать `MDBX_CHECKING` (`-1`..`3`).
+
+ - Общепринятый в `C` макрос `NDEBUG` больше не влияет на assert-проверки внутри библиотеки, но сохраняет традиционное влияние на assert-проверки связанные с контролем аргументов в inline-методах `C++` API.
 
 Прочие доработки:
 
@@ -425,6 +470,58 @@ BTC `bc1qzvl9uegf2ea6cwlytnanrscyv8snwsvrc0xfsu`, SOL `FTCTgbHajoLVZGr8aEFWMzx3N
 
 ********************************************************************************
 
+## v0.13.11 "A7A5" (just as Stable) at 2026-01-30
+
+The supporting release of a stable branch with bug fixes.
+
+Appreciations:
+
+ - [Erigon](https://erigon.tech/) for sponsorship.
+ - [Cosmin Apreutesei](https://github.com/capr) for bug reporting.
+ - [Igor Ikonopistsev](https://github.com/ikonopistsev) for [NodeJS bindings](https://github.com/ikonopistsev/mdbxmou).
+ - Anatoly Zhmur for reporting bugs.
+
+Important:
+
+ - _libmdbx_ project has changed its code development and distribution model.
+   **To get acquainted with important changes and plans, we recommend reading the compact [presentation "libmdbx: successes, obstacles, goals and roadmap"](https://libmdbx.dqdkfa.ru/release/libmdbx-roadmap-HNY2026-english.pdf), which contains important explanations in the form of embedded comments.**
+
+ - At a many requests of users, the change log now is kept in English.
+
+Fixes:
+
+ - Fixed using of the identifier `ERROR_UNHANDLED_ERROR`, which is not defined in new versions of Windows SDK.
+
+ - Fixed non-closing of DBI descriptors for tables created in nested transactions when such transactions are aborted.
+
+ - Fixed MSVC warning C4324 for `buffer::silo::bin`.
+
+ - Added workaround for MinGW build failures of dll-enabled C++ API.
+
+ - Fixed extra msync/fsync operations during GC reclaiming in a full database.
+
+ - Fixed suboptimal reducing/merging of histogram items in an output of the `mdbx_chk` tool.
+
+ - Added backlog-adjustment trick to avoid extra-growth of DB instead of reclaim GC in a rare specific cases.
+   In the 0.14.x version series, this mechanism has been completely updated.
+   However, for version 0.13.11, this inelegant modification done in order to reduce the risk of regression.
+
+ - Minor fixed `iov_callback4dirtypages()` and assertion inside `cursor_put()` to avoid Valgrind/ASAN warnings.
+
+ - Fixed cursor(s) finalization after ones explicitly closed in a nested transactions.
+
+Other:
+
+ - Clarification and addition of documentation.
+
+ - Considering extended ASCII as non-printable if UTF8 enabled in C++ API.
+
+ - Using hex dump of `mdbx::slice` instead of base58 in C++ API.
+
+ - Added link to [`mdbxmou`](https://github.com/ikonopistsev/mdbxmou) bindings for NodeJS.
+
+--------------------------------------------------------------------------------
+
 ## v0.13.10 "Блеск Славы" (Gloss of Glory) от 2025-12-17
 
 Поддерживающий выпуск стабильной ветки с исправлением обнаруженных ошибок и устранением недочётов,
@@ -506,7 +603,7 @@ BTC `bc1qzvl9uegf2ea6cwlytnanrscyv8snwsvrc0xfsu`, SOL `FTCTgbHajoLVZGr8aEFWMzx3N
 
 --------------------------------------------------------------------------------
 
-## v0.13.8 "Всеобуч" (v`seabooch) от 2025-08-31
+## v0.13.8 "Всеобуч" (v'seabooch) от 2025-08-31
 
 Поддерживающий выпуск стабильной ветки с исправлением обнаруженных ошибок и устранением недочётов,
 в день 100 летнего юбилея Постановления Всероссийского центрального исполнительного комитета о всеобщем бесплатном начальном образовании.
@@ -2064,7 +2161,7 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
    где макросы `ATOMIC_*_LOCK_FREE` ошибочно переопределяются через функции.
  - Использование `fcntl64(F_GETLK64/F_SETLK64/F_SETLKW64)` при наличии.
    Это решает проблему срабатывания проверочного утверждения при сборке для
-   платформ где тип `off_t` шире соответствующих полей `структуры flock`,
+   платформ где тип `off_t` шире соответствующих полей структуры `flock`,
    используемой для блокировки файлов.
  - Доработан сбор информации о задержках при фиксации транзакций:
     * Устранено искажение замеров длительности обновления GC

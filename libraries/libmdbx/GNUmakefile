@@ -60,7 +60,7 @@ CTEST_OPT ?=
 DIST_DIR ?= dist
 
 # build options
-MDBX_BUILD_OPTIONS   ?=-DNDEBUG=1
+MDBX_BUILD_OPTIONS   ?=
 MDBX_BUILD_TIMESTAMP ?=$(if $(SOURCE_DATE_EPOCH),$(SOURCE_DATE_EPOCH),$(shell date +%Y-%m-%dT%H:%M:%S%z))
 MDBX_BUILD_CXX       ?=YES
 MDBX_BUILD_METADATA  ?=
@@ -137,7 +137,7 @@ endef
 SO_SUFFIX  := $(shell $(uname2sosuffix))
 HEADERS    := mdbx.h mdbx.h++
 LIBRARIES  := libmdbx.a libmdbx.$(SO_SUFFIX)
-TOOLS      := chk copy drop dump load stat
+TOOLS      := chk copy defrag drop dump load stat
 MDBX_TOOLS := $(addprefix mdbx_,$(TOOLS))
 MANPAGES   := mdbx_stat.1 mdbx_copy.1 mdbx_dump.1 mdbx_load.1 mdbx_chk.1 mdbx_drop.1
 TIP        := // TIP:
@@ -271,7 +271,7 @@ lib-shared libmdbx.$(SO_SUFFIX): mdbx-dylib.o $(call select_by,MDBX_BUILD_CXX,md
 	@echo '  LD $@'
 	$(QUIET)$(call select_by,MDBX_BUILD_CXX,$(CXX) $(CXXFLAGS),$(CC) $(CFLAGS)) $^ -pthread -shared $(LDFLAGS) $(call select_by,MDBX_BUILD_CXX,$(LIB_STDCXXFS)) $(LIBS) -o $@
 
-ninja-assertions: CMAKE_OPT += -DMDBX_FORCE_ASSERTIONS=ON $(MDBX_BUILD_OPTIONS)
+ninja-assertions: CMAKE_OPT += -DMDBX_CHECKING=2 $(MDBX_BUILD_OPTIONS)
 ninja-assertions: cmake-build
 ninja-debug: CMAKE_OPT += -DCMAKE_BUILD_TYPE=Debug $(MDBX_BUILD_OPTIONS)
 ninja-debug: cmake-build
@@ -287,19 +287,21 @@ ctest: cmake-build
 run-ut: mdbx_example
 	$(QUIET)for UT in $^; do echo "  Running $$UT" && ./$${UT} || exit -1; done
 
-TEST_TARGETS := mdbx_legacy_example $(call select_by,MDBX_BUILD_CXX,mdbx_modern_example,)
-TEST_BUILD_TARGETS := build-test
+TEST_TARGETS :=
+TEST_BUILD_TARGETS :=
 ifneq ($(CMAKE),"")
 TEST_TARGETS += ctest
 TEST_BUILD_TARGETS += cmake-build
 endif
+TEST_TARGETS += mdbx_legacy_example $(call select_by,MDBX_BUILD_CXX,mdbx_modern_example,)
+TEST_BUILD_TARGETS += build-test
 
 .PHONY: ninja-assertions ninja-debug ninja $(TEST_TARGETS) $(TEST_BUILD_TARGETS) test-ubsan test-asan test-memcheck test-leak test-assertion test build-test smoke check
 test: $(TEST_TARGETS)
 build-test: $(TEST_BUILD_TARGETS)
 
-test-assertion: MDBX_BUILD_OPTIONS += -DMDBX_FORCE_ASSERTIONS=1 -UNDEBUG -DMDBX_DEBUG=0
-test-assertion: CMAKE_OPT += -DMDBX_FORCE_ASSERTIONS=ON -DMDBX_DEBUG=0
+test-assertion: MDBX_BUILD_OPTIONS += -DMDBX_CHECKING=2
+test-assertion: CMAKE_OPT += -DMDBX_CHECKING=2
 test-assertion: smoke
 
 test-valgrind: test-memcheck
@@ -334,7 +336,7 @@ mdbx_modern_example: mdbx.h ut_and_examples/example-mdbx.c++ libmdbx.$(SO_SUFFIX
 MAN_SRCDIR := man1/
 
 dist:
-	@echo '  Starting 2026 libmdbx is distrubuted in an amalgamated source code form.'
+	@echo '  Starting 2026 libmdbx is distributed in an amalgamated source code form.'
 	@echo '  So amalgamation is no longer required. Please update your build scripts.'
 
 config-gnumake.h: @buildflags.tag mdbx.c $(lastword $(MAKEFILE_LIST)) LICENSE NOTICE COPYRIGHT

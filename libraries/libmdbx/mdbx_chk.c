@@ -1,10 +1,10 @@
-/* This file is part of the libmdbx amalgamated source code (v0.14.1-366-gcb6e5d8d-dirty at 2026-01-30T13:25:56+03:00).
+/* This file is part of the libmdbx amalgamated source code (v0.14.1-610-gcc920267 at 2026-05-09T13:03:22+03:00).
  *
  * libmdbx (aka MDBX) is an extremely fast, compact, powerful, embeddedable, transactional key-value storage engine with
  * open-source code. MDBX has a specific set of properties and capabilities, focused on creating unique lightweight
  * solutions.  Please visit https://libmdbx.dqdkfa.ru for more information, changelog, documentation, C++ API description
  * and links to the original git repo with the source code.  Questions, feedback and suggestions are welcome to the
- * Telegram' group https://t.me/libmdbx.
+ * Telegram' group https://t.me/libmdbx, MAX' chat https://max.ru/join/dKckvyuARxp1vRK-wnPur8zYCEkbR3OUOmpPWkWxp78.
  *
  * The libmdbx code will forever remain open and with high-quality free support, as far as the life circumstances of the
  * project participants allow. Donations are welcome to ETH `0xD104d8f8B2dC312aaD74899F83EBf3EEBDC1EA3A`,
@@ -22,7 +22,7 @@
 
 /* clang-format off */
 
-#define xMDBX_TOOLS /* Avoid using internal eASSERT(), etc */
+#define xMDBX_TOOLS /* Avoid using internal ASSERT(), etc */
 #include "mdbx-internals.h"
 
 #include <ctype.h>
@@ -65,18 +65,17 @@ static void signal_handler(int sig) {
 #define EXIT_FAILURE_CHECK_MAJOR (EXIT_FAILURE + 1)
 #define EXIT_FAILURE_CHECK_MINOR EXIT_FAILURE
 
-MDBX_env_flags_t env_flags = MDBX_RDONLY | MDBX_EXCLUSIVE | MDBX_VALIDATION;
-MDBX_env *env;
-MDBX_txn *txn;
-unsigned verbose = 0;
-bool quiet;
-MDBX_val only_table;
-int stuck_meta = -1;
-MDBX_chk_context_t chk;
-bool turn_meta = false;
-bool force_turn_meta = false;
-MDBX_chk_flags_t chk_flags = MDBX_CHK_DEFAULTS;
-MDBX_chk_stage_t chk_stage = MDBX_chk_none;
+static MDBX_env_flags_t env_flags = MDBX_RDONLY | MDBX_EXCLUSIVE | MDBX_VALIDATION;
+static MDBX_env *env;
+static unsigned verbosity = 0;
+static bool quiet;
+static MDBX_val only_table;
+static int stuck_meta = -1;
+static MDBX_chk_context_t chk;
+static bool turn_meta = false;
+static bool force_turn_meta = false;
+static MDBX_chk_flags_t chk_flags = MDBX_CHK_DEFAULTS;
+static MDBX_chk_stage_t chk_stage = MDBX_chk_none;
 
 static MDBX_chk_line_t line_struct;
 static size_t anchor_cookie;
@@ -107,9 +106,9 @@ static void lf_flush(void) {
 
 static bool silently(enum MDBX_chk_severity severity) {
   int cutoff = chk.scope ? chk.scope->verbosity >> MDBX_chk_severity_prio_shift
-                         : verbose + (MDBX_chk_result >> MDBX_chk_severity_prio_shift);
+                         : verbosity + (MDBX_chk_result >> MDBX_chk_severity_prio_shift);
   int prio = (severity >> MDBX_chk_severity_prio_shift);
-  if (chk.scope && chk.scope->stage == MDBX_chk_tables && verbose < 2)
+  if (chk.scope && chk.scope->stage == MDBX_chk_tables && verbosity < 2)
     prio += 1;
   return quiet || cutoff < ((prio > 0) ? prio : 0);
 }
@@ -222,10 +221,10 @@ static void logger(MDBX_log_level_t level, const char *function, int line, const
   if (level < MDBX_LOG_VERBOSE)
     flush();
   if (level == MDBX_LOG_FATAL) {
-#if !MDBX_DEBUG && !MDBX_FORCE_ASSERTIONS
-    exit(EXIT_FAILURE_MDBX);
+#if MDBX_CHECKING > 0
+    panic("fatal-error");
 #endif
-    abort();
+    exit(EXIT_FAILURE_MDBX);
   }
 }
 
@@ -354,10 +353,10 @@ static const MDBX_chk_callbacks_t cb = {.check_break = check_break,
                                         .print_chars = print_chars,
                                         .print_format = print_format};
 
-static void usage(char *prog) {
+static void usage(const char *progname) {
   fprintf(stderr,
           "usage: %s "
-          "[-V] [-v] [-q] [-c] [-0|1|2] [-w] [-d] [-i] [-s table] [-u|U] dbpath\n"
+          "[-V] [-v] [-q] [-c] [-0|1|2] [-w] [-d] [-i] [-s table] [-u|U] db_pathname\n"
           "  -V\t\tprint version and exit\n"
           "  -v\t\tmore verbose, could be repeated upto 9 times for extra details\n"
           "  -q\t\tbe quiet\n"
@@ -371,7 +370,7 @@ static void usage(char *prog) {
           "  -0|1|2\tforce using specific meta-page 0, or 2 for checking\n"
           "  -t\t\tturn to a specified meta-page on successful check\n"
           "  -T\t\tturn to a specified meta-page EVEN ON UNSUCCESSFUL CHECK!\n",
-          prog);
+          progname);
   exit(EXIT_INTERRUPTED);
 }
 
@@ -420,13 +419,12 @@ static int conclude(MDBX_chk_context_t *ctx) {
 
 int main(int argc, char *argv[]) {
   int rc;
-  char *prog = argv[0];
-  char *envname;
+  const char *const progname = argv[0];
   bool warmup = false;
   MDBX_warmup_flags_t warmup_flags = MDBX_warmup_default;
 
   if (argc < 2)
-    usage(prog);
+    usage(progname);
 
 #if defined(_WIN32) || defined(_WIN64)
   uint64_t timestamp_start, timestamp_finish;
@@ -468,16 +466,8 @@ int main(int argc, char *argv[]) {
              mdbx_build.datetime, mdbx_build.target, mdbx_build.compiler, mdbx_build.flags, mdbx_build.options);
       return EXIT_SUCCESS;
     case 'v':
-      if (verbose >= 9 && 0)
-        usage(prog);
-      else {
-        verbose += 1;
-        if (verbose == 0 && !MDBX_DEBUG)
-          printf("Verbosity level %u exposures only to"
-                 " a debug/extra-logging-enabled builds (with NDEBUG undefined"
-                 " or MDBX_DEBUG > 0)\n",
-                 verbose);
-      }
+      if (++verbosity > 9)
+        usage(progname);
       break;
     case '0':
       stuck_meta = 0;
@@ -517,7 +507,7 @@ int main(int argc, char *argv[]) {
       break;
     case 's':
       if (only_table.iov_base && strcmp(only_table.iov_base, optarg))
-        usage(prog);
+        usage(progname);
       else {
         only_table.iov_base = optarg;
         only_table.iov_len = strlen(optarg);
@@ -534,12 +524,12 @@ int main(int argc, char *argv[]) {
       warmup_flags = MDBX_warmup_force | MDBX_warmup_touchlimit | MDBX_warmup_lock;
       break;
     default:
-      usage(prog);
+      usage(progname);
     }
   }
 
   if (optind != argc - 1)
-    usage(prog);
+    usage(progname);
 
   rc = MDBX_SUCCESS;
   if (stuck_meta >= 0 && (env_flags & MDBX_EXCLUSIVE) == 0) {
@@ -580,18 +570,18 @@ int main(int argc, char *argv[]) {
   signal(SIGTERM, signal_handler);
 #endif /* !WINDOWS */
 
-  envname = argv[optind];
+  const char *const db_pathname = argv[optind];
   print(MDBX_chk_result,
         "mdbx_chk %s (%s, T-%s)\nRunning for %s in 'read-%s' mode with "
         "verbosity level %u (%s)...",
-        mdbx_version.git.describe, mdbx_version.git.datetime, mdbx_version.git.tree, envname,
-        (env_flags & MDBX_RDONLY) ? "only" : "write", verbose,
-        (verbose > 8)
+        mdbx_version.git.describe, mdbx_version.git.datetime, mdbx_version.git.tree, db_pathname,
+        (env_flags & MDBX_RDONLY) ? "only" : "write", verbosity,
+        (verbosity > 8)
             ? (MDBX_DEBUG ? "extra details for debugging" : "same as 8 for non-debug builds with MDBX_DEBUG=0")
             : "of 0..9");
   lf_flush();
   mdbx_setup_debug(
-      (verbose + MDBX_LOG_WARN < MDBX_LOG_TRACE) ? (MDBX_log_level_t)(verbose + MDBX_LOG_WARN) : MDBX_LOG_TRACE,
+      (verbosity + MDBX_LOG_WARN < MDBX_LOG_TRACE) ? (MDBX_log_level_t)(verbosity + MDBX_LOG_WARN) : MDBX_LOG_TRACE,
       MDBX_DBG_DUMP | MDBX_DBG_ASSERT | MDBX_DBG_AUDIT | MDBX_DBG_LEGACY_OVERLAP | MDBX_DBG_DONT_UPGRADE, logger);
 
   rc = mdbx_env_create(&env);
@@ -607,9 +597,9 @@ int main(int argc, char *argv[]) {
   }
 
   if (stuck_meta >= 0) {
-    rc = mdbx_env_open_for_recovery(env, envname, stuck_meta, (env_flags & MDBX_RDONLY) ? false : true);
+    rc = mdbx_env_open_for_recovery(env, db_pathname, stuck_meta, (env_flags & MDBX_RDONLY) ? false : true);
   } else {
-    rc = mdbx_env_open(env, envname, env_flags, 0);
+    rc = mdbx_env_open(env, db_pathname, env_flags, 0);
     if ((env_flags & MDBX_EXCLUSIVE) && (rc == MDBX_BUSY ||
 #if defined(_WIN32) || defined(_WIN64)
                                          rc == ERROR_LOCK_VIOLATION || rc == ERROR_SHARING_VIOLATION
@@ -618,8 +608,8 @@ int main(int argc, char *argv[]) {
 #endif
                                          )) {
       const size_t cookie = print(MDBX_chk_resolution, "Try open in non-exclusive mode...");
-      env_flags &= ~MDBX_EXCLUSIVE;
-      rc = mdbx_env_open(env, envname, env_flags | MDBX_ACCEDE, 0);
+      env_flags = (env_flags & ~MDBX_EXCLUSIVE) | MDBX_ACCEDE;
+      rc = mdbx_env_open(env, db_pathname, env_flags, 0);
       suffix(cookie, rc ? "failed" : "done");
     }
   }
@@ -627,7 +617,7 @@ int main(int argc, char *argv[]) {
   if (rc) {
     error_fn("mdbx_env_open", rc);
     if (rc == MDBX_WANNA_RECOVERY && (env_flags & MDBX_RDONLY))
-      print_ln(MDBX_chk_result, "Please run %s in the read-write mode (with '-w' option).", prog);
+      print_ln(MDBX_chk_result, "Please run %s in the read-write mode (with '-w' option).", progname);
     goto bailout;
   }
   print_ln(MDBX_chk_verbose, "%s mode", (env_flags & MDBX_EXCLUSIVE) ? "monopolistic" : "cooperative");
@@ -643,7 +633,7 @@ int main(int argc, char *argv[]) {
     suffix(anchor_cookie, rc ? "timeout" : "done");
   }
 
-  rc = mdbx_env_chk(env, &cb, &chk, chk_flags, MDBX_chk_result + (verbose << MDBX_chk_severity_prio_shift), 0);
+  rc = mdbx_env_chk(env, &cb, &chk, chk_flags, MDBX_chk_result + (verbosity << MDBX_chk_severity_prio_shift), 0);
   if (rc) {
     if (chk.result.total_problems == 0)
       error_fn("mdbx_env_chk", rc);

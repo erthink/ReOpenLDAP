@@ -314,8 +314,8 @@ static int mdb_db_open(BackendDB *be, ConfigReply *cr) {
         flags |= MDBX_CREATE;
     }
 
-    MDBX_cmp_func *keycmp = NULL;
-    MDBX_cmp_func *datacmp = NULL;
+    MDBX_cmp_func keycmp = NULL;
+    MDBX_cmp_func datacmp = NULL;
     if (i == MDB_ID2ENTRY)
       keycmp = mdb_id_compare;
     else if (i == MDB_ID2VAL) {

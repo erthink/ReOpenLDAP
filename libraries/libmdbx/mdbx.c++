@@ -1,10 +1,10 @@
-/* This file is part of the libmdbx amalgamated source code (v0.14.1-366-gcb6e5d8d-dirty at 2026-01-30T13:25:56+03:00).
+/* This file is part of the libmdbx amalgamated source code (v0.14.1-610-gcc920267 at 2026-05-09T13:03:22+03:00).
  *
  * libmdbx (aka MDBX) is an extremely fast, compact, powerful, embeddedable, transactional key-value storage engine with
  * open-source code. MDBX has a specific set of properties and capabilities, focused on creating unique lightweight
  * solutions.  Please visit https://libmdbx.dqdkfa.ru for more information, changelog, documentation, C++ API description
  * and links to the original git repo with the source code.  Questions, feedback and suggestions are welcome to the
- * Telegram' group https://t.me/libmdbx.
+ * Telegram' group https://t.me/libmdbx, MAX' chat https://max.ru/join/dKckvyuARxp1vRK-wnPur8zYCEkbR3OUOmpPWkWxp78.
  *
  * The libmdbx code will forever remain open and with high-quality free support, as far as the life circumstances of the
  * project participants allow. Donations are welcome to ETH `0xD104d8f8B2dC312aaD74899F83EBf3EEBDC1EA3A`,
@@ -57,11 +57,6 @@ typedef struct page_get_result {
   page_t *page;
   int err;
 } pgr_t;
-
-typedef struct node_search_result {
-  node_t *node;
-  bool exact;
-} nsr_t;
 
 typedef struct bind_reader_slot_result {
   int err;
@@ -155,7 +150,7 @@ MDBX_MAYBE_UNUSED static inline void *bcopy_8(void *const __restrict dst, const 
 
 MDBX_NOTHROW_PURE_FUNCTION MDBX_MAYBE_UNUSED static inline uint16_t unaligned_peek_u16(const size_t expected_alignment,
                                                                                        const void *const ptr) {
-  assert((uintptr_t)ptr % expected_alignment == 0);
+  ASSERT((uintptr_t)ptr % expected_alignment == 0);
   if (MDBX_UNALIGNED_OK >= 2 || (expected_alignment % sizeof(uint16_t)) == 0)
     return *(const uint16_t *)ptr;
   else {
@@ -171,7 +166,7 @@ MDBX_NOTHROW_PURE_FUNCTION MDBX_MAYBE_UNUSED static inline uint16_t unaligned_pe
 
 MDBX_MAYBE_UNUSED static inline void unaligned_poke_u16(const size_t expected_alignment, void *const __restrict ptr,
                                                         const uint16_t v) {
-  assert((uintptr_t)ptr % expected_alignment == 0);
+  ASSERT((uintptr_t)ptr % expected_alignment == 0);
   if (MDBX_UNALIGNED_OK >= 2 || (expected_alignment % sizeof(v)) == 0)
     *(uint16_t *)ptr = v;
   else {
@@ -185,7 +180,7 @@ MDBX_MAYBE_UNUSED static inline void unaligned_poke_u16(const size_t expected_al
 
 MDBX_NOTHROW_PURE_FUNCTION MDBX_MAYBE_UNUSED static inline uint32_t
 unaligned_peek_u32(const size_t expected_alignment, const void *const __restrict ptr) {
-  assert((uintptr_t)ptr % expected_alignment == 0);
+  ASSERT((uintptr_t)ptr % expected_alignment == 0);
   if (MDBX_UNALIGNED_OK >= 4 || (expected_alignment % sizeof(uint32_t)) == 0)
     return *(const uint32_t *)ptr;
   else if ((expected_alignment % sizeof(uint16_t)) == 0) {
@@ -205,7 +200,7 @@ unaligned_peek_u32(const size_t expected_alignment, const void *const __restrict
 
 MDBX_MAYBE_UNUSED static inline void unaligned_poke_u32(const size_t expected_alignment, void *const __restrict ptr,
                                                         const uint32_t v) {
-  assert((uintptr_t)ptr % expected_alignment == 0);
+  ASSERT((uintptr_t)ptr % expected_alignment == 0);
   if (MDBX_UNALIGNED_OK >= 4 || (expected_alignment % sizeof(v)) == 0)
     *(uint32_t *)ptr = v;
   else if ((expected_alignment % sizeof(uint16_t)) == 0) {
@@ -222,7 +217,7 @@ MDBX_MAYBE_UNUSED static inline void unaligned_poke_u32(const size_t expected_al
 
 MDBX_NOTHROW_PURE_FUNCTION MDBX_MAYBE_UNUSED static inline uint64_t
 unaligned_peek_u64(const size_t expected_alignment, const void *const __restrict ptr) {
-  assert((uintptr_t)ptr % expected_alignment == 0);
+  ASSERT((uintptr_t)ptr % expected_alignment == 0);
   if (MDBX_UNALIGNED_OK >= 8 || (expected_alignment % sizeof(uint64_t)) == 0)
     return *(const uint64_t *)ptr;
   else if ((expected_alignment % sizeof(uint32_t)) == 0) {
@@ -242,8 +237,8 @@ unaligned_peek_u64(const size_t expected_alignment, const void *const __restrict
 
 MDBX_MAYBE_UNUSED static inline uint64_t unaligned_peek_u64_volatile(const size_t expected_alignment,
                                                                      const volatile void *const __restrict ptr) {
-  assert((uintptr_t)ptr % expected_alignment == 0);
-  assert(expected_alignment % sizeof(uint32_t) == 0);
+  ASSERT((uintptr_t)ptr % expected_alignment == 0);
+  ASSERT(expected_alignment % sizeof(uint32_t) == 0);
   if (MDBX_UNALIGNED_OK >= 8 || (expected_alignment % sizeof(uint64_t)) == 0)
     return *(const volatile uint64_t *)ptr;
   else {
@@ -259,7 +254,7 @@ MDBX_MAYBE_UNUSED static inline uint64_t unaligned_peek_u64_volatile(const size_
 
 MDBX_MAYBE_UNUSED static inline void unaligned_poke_u64(const size_t expected_alignment, void *const __restrict ptr,
                                                         const uint64_t v) {
-  assert((uintptr_t)ptr % expected_alignment == 0);
+  ASSERT((uintptr_t)ptr % expected_alignment == 0);
   if (MDBX_UNALIGNED_OK >= 8 || (expected_alignment % sizeof(v)) == 0)
     *(uint64_t *)ptr = v;
   else if ((expected_alignment % sizeof(uint32_t)) == 0) {
@@ -449,7 +444,10 @@ enum signatures {
 /* An dirty-page list item is an pgno/pointer pair. */
 struct dp {
   page_t *ptr;
-  pgno_t pgno, npages;
+  pgno_t pgno;
+#if MDBX_DPL_CACHE_NPAGES
+  pgno_t npages;
+#endif /* MDBX_DPL_CACHE_NPAGES */
 };
 
 enum dpl_rules {
@@ -474,10 +472,22 @@ struct dpl {
 /*----------------------------------------------------------------------------*/
 /* Internal structures */
 
+typedef struct search_foliage_result {
+  node_t *node;
+  bool exact;
+} sfr_t;
+
+typedef size_t (*MDBX_search_branch)(const MDBX_cursor *mc, const MDBX_val *key);
+typedef sfr_t (*MDBX_search_foliage)(MDBX_cursor *mc, const MDBX_val *key);
+
 /* Comparing/ordering and length constraints */
 typedef struct clc {
-  MDBX_cmp_func *cmp; /* comparator */
-  size_t lmin, lmax;  /* min/max length constraints */
+  MDBX_cmp_func cmp; /* comparator */
+  size_t lmin, lmax; /* min/max length constraints */
+  MDBX_search_branch search_branch;
+  MDBX_search_foliage search_foliage;
+  void *reserve_node_add;
+  void *reserve_node_del;
 } clc_t;
 
 /* Вспомогательная информация о table.
@@ -504,7 +514,7 @@ typedef struct clc {
  *    а clc[1] для значений, причем компаратор значений для dupsort-курсора
  *    будет попадать на MDBX_val с именем, что приведет к SIGSEGV при попытке
  *    использования такого компаратора.
- *  - размер kvx_t становится равным 8 словам.
+ *  - размер kvx_t становится равным 8 словам (16 словам после добавление функций поиска и т.п).
  *
  * Трюки и прочая экономия на спичках:
  *  - не храним dbi внутри курсора, вместо этого вычисляем его как разницу между
@@ -513,13 +523,13 @@ typedef struct clc {
  *    так как dbi требуется для последующего доступа к массивам в транзакции,
  *    т.е. при вычислении dbi разыменовывается тот-же указатель на txn
  *    и читается та же кэш-линия с указателями. */
-typedef struct clc2 {
+typedef struct clc_couple {
   clc_t k; /* для ключей */
   clc_t v; /* для значений */
-} clc2_t;
+} clc_couple_t;
 
 struct kvx {
-  clc2_t clc;
+  clc_couple_t clc;
   MDBX_val name; /* имя table */
 };
 
@@ -540,7 +550,7 @@ enum txn_flags {
   txn_ro_both = txn_ro_flat | txn_ro_nested,
   txn_ro_begin_flags = MDBX_TXN_RDONLY | MDBX_TXN_RDONLY_PREPARE,
   txn_rw_begin_flags = MDBX_TXN_NOMETASYNC | MDBX_TXN_NOSYNC | MDBX_TXN_TRY,
-  txn_rw_checkpoint = MDBX_TXN_RDONLY_PREPARE & ~MDBX_TXN_RDONLY,
+  txn_rw_already_locked = MDBX_TXN_RDONLY_PREPARE & ~MDBX_TXN_RDONLY,
   txn_shrink_allowed = UINT32_C(0x40000000),
   txn_parked = MDBX_TXN_PARKED,
   txn_gc_drained = 0x100 /* GC was depleted up to oldest reader */,
@@ -591,6 +601,11 @@ struct MDBX_txn {
 
   /* User-settable context */
   void *userctx;
+
+#if MDBX_ENABLE_PGET_STAT
+  /* Counter of page get operations */
+  uint64_t ops_pget;
+#endif /* MDBX_ENABLE_PGET_STAT */
 
   union {
     struct {
@@ -687,13 +702,28 @@ struct MDBX_cursor {
   /* Указывает на tree->dbs[] для DBI этого курсора. */
   tree_t *tree;
   /* Указывает на env->kvs[] для DBI этого курсора. */
-  clc2_t *clc;
+  clc_couple_t *clc;
   subcur_t *__restrict subcur;
   page_t *pg[CURSOR_STACK_SIZE]; /* stack of pushed pages */
   indx_t ki[CURSOR_STACK_SIZE];  /* stack of page indices */
   MDBX_cursor *next;
   /* Состояние на момент старта вложенной транзакции */
   MDBX_cursor *backup;
+#ifndef MDBX_DEBUG_SEARCH_DISPATCHING
+#define MDBX_DEBUG_SEARCH_DISPATCHING MDBX_DEBUG
+#endif /* MDBX_DEBUG_SEARCH_DISPATCHING */
+
+#if MDBX_DEBUG_SEARCH_DISPATCHING
+  unsigned search_step_counter;
+#define MDBX_CURSOR_STC_INC(cursor)                                                                                    \
+  do                                                                                                                   \
+    ((MDBX_cursor *)(cursor))->search_step_counter += 1;                                                               \
+  while (0)
+#define MDBX_CURSOR_STC_GET(cursor) ((cursor)->search_step_counter)
+#else
+#define MDBX_CURSOR_STC_INC(cursor) __noop
+#define MDBX_CURSOR_STC_GET(cursor) (0)
+#endif /* MDBX_DEBUG_SEARCH_DISPATCHING */
 };
 
 struct inner_cursor {
@@ -772,7 +802,7 @@ struct MDBX_env {
   unsigned maxgc_per_branch;
   mdbx_pid_t registered_reader_pid; /* have liveness lock in reader table */
   void *userctx;                    /* User-settable context */
-  MDBX_hsr_func *hsr_callback;      /* Callback for kicking laggard readers */
+  MDBX_hsr_func hsr_callback;       /* Callback for kicking laggard readers */
   size_t madv_threshold;
 
   struct {
@@ -785,7 +815,8 @@ struct MDBX_env {
     uint8_t spill_max_denominator;
     uint8_t spill_min_denominator;
     uint8_t spill_parent4child_denominator;
-    unsigned merge_threshold_16dot16_percent;
+    uint16_t merge_threshold_dot16;
+    uint16_t split_reserve_dot16;
 #if !(defined(_WIN32) || defined(_WIN64))
     unsigned writethrough_threshold;
 #endif /* Windows */
@@ -836,9 +867,6 @@ struct MDBX_env {
 
   /* -------------------------------------------------------------- debugging */
 
-#if MDBX_DEBUG
-  MDBX_assert_func *assert_func; /*  Callback for assertion failures */
-#endif
 #ifdef ENABLE_MEMCHECK
   int valgrind_handle;
 #endif
@@ -939,10 +967,10 @@ MDBX_MAYBE_UNUSED static void static_checks(void) {
   STATIC_ASSERT(NODESIZE == offsetof(node_t, payload));
   STATIC_ASSERT(PAGEHDRSZ == offsetof(page_t, entries));
 #endif /* FLEXIBLE_ARRAY_MEMBERS */
-  STATIC_ASSERT(sizeof(clc_t) == 3 * sizeof(void *));
-  STATIC_ASSERT(sizeof(kvx_t) == 8 * sizeof(void *));
+  STATIC_ASSERT(sizeof(clc_t) == 7 * sizeof(void *));
+  STATIC_ASSERT(sizeof(kvx_t) == 16 * sizeof(void *));
 
-#define KVX_SIZE_LN2 MDBX_WORDBITS_LN2
+#define KVX_SIZE_LN2 (MDBX_WORDBITS_LN2 + 1)
   STATIC_ASSERT(sizeof(kvx_t) == (1u << KVX_SIZE_LN2));
 }
 #endif /* Disabled for MSVC 19.0 (VisualStudio 2015) */
@@ -1088,13 +1116,13 @@ __cold std::string format_va(const char *fmt, va_list ap) {
 #else
   int needed = vsnprintf(nullptr, 0, fmt, ap);
 #endif
-  assert(needed >= 0);
+  ASSERT(needed >= 0);
   std::string result;
   result.reserve(size_t(needed + 1));
   result.resize(size_t(needed), '\0');
-  assert(int(result.capacity()) > needed);
+  ASSERT(int(result.capacity()) > needed);
   int actual = vsnprintf(const_cast<char *>(result.data()), result.capacity(), fmt, ones);
-  assert(actual == needed);
+  ASSERT(actual == needed);
   (void)actual;
   va_end(ones);
   return result;
@@ -1277,6 +1305,7 @@ DEFINE_EXCEPTION(duplicated_lck_file)
 DEFINE_EXCEPTION(dangling_map_id)
 DEFINE_EXCEPTION(transaction_ousted)
 DEFINE_EXCEPTION(mvcc_retarded)
+DEFINE_EXCEPTION(laggard_reader)
 #undef DEFINE_EXCEPTION
 
 __cold const char *error::what() const noexcept {
@@ -1309,12 +1338,6 @@ __cold std::string error::message() const {
   char buf[1024];
   const char *msg = ::mdbx_strerror_r(code(), buf, sizeof(buf));
   return std::string(msg ? msg : "unknown");
-}
-
-[[noreturn]] __cold void error::panic(const char *context, const char *func) const noexcept {
-  assert(code() != MDBX_SUCCESS);
-  ::mdbx_panic("mdbx::%s.%s(): \"%s\" (%d)", context, func, what(), code());
-  std::terminate();
 }
 
 __cold void error::throw_exception() const {
@@ -1367,6 +1390,7 @@ __cold void error::throw_exception() const {
     CASE_EXCEPTION(dangling_map_id, MDBX_DANGLING_DBI);
     CASE_EXCEPTION(transaction_ousted, MDBX_OUSTED);
     CASE_EXCEPTION(mvcc_retarded, MDBX_MVCC_RETARDED);
+    CASE_EXCEPTION(laggard_reader, MDBX_LAGGARD_READER);
 #undef CASE_EXCEPTION
   default:
     if (is_mdbx_error())
@@ -1607,7 +1631,7 @@ char *to_hex::write_bytes(char *__restrict const dest, size_t dest_size) const {
     ptr[0] = char('0' + hi + (((9 - hi) >> 7) & alpha_shift));
     ptr[1] = char('0' + lo + (((9 - lo) >> 7) & alpha_shift));
     ptr += 2;
-    assert(ptr <= dest + dest_size);
+    ASSERT(ptr <= dest + dest_size);
   }
   return ptr;
 }
@@ -1649,7 +1673,7 @@ char *from_hex::write_bytes(char *__restrict const dest, size_t dest_size) const
       continue;
     }
 
-    if (MDBX_UNLIKELY(left < 1 || !isxdigit(src[0]) || !isxdigit(src[1])))
+    if (MDBX_UNLIKELY(left < 2 || !isxdigit(src[0]) || !isxdigit(src[1])))
       MDBX_CXX20_UNLIKELY throw std::domain_error("mdbx::from_hex:: invalid hexadecimal string");
 
     int8_t hi = src[0];
@@ -1663,7 +1687,7 @@ char *from_hex::write_bytes(char *__restrict const dest, size_t dest_size) const
     *ptr++ = hi << 4 | lo;
     src += 2;
     left -= 2;
-    assert(ptr <= dest + dest_size);
+    ASSERT(ptr <= dest + dest_size);
   }
   return ptr;
 }
@@ -1681,7 +1705,7 @@ bool from_hex::is_erroneous() const noexcept {
       continue;
     }
 
-    if (MDBX_UNLIKELY(left < 1 || !isxdigit(src[0]) || !isxdigit(src[1])))
+    if (MDBX_UNLIKELY(left < 2 || !isxdigit(src[0]) || !isxdigit(src[1])))
       MDBX_CXX20_UNLIKELY return true;
 
     got = true;
@@ -1737,7 +1761,7 @@ static slice b58_encode(b58_buffer &buf, const byte *begin, const byte *end) {
     b58_uint carry = *begin++;
     auto ptr = buf.end();
     do {
-      assert(ptr > buf.area);
+      ASSERT(ptr > buf.area);
       carry += *--ptr << CHAR_BIT;
       *ptr = carry % modulo;
       carry /= modulo;
@@ -1750,7 +1774,7 @@ static slice b58_encode(b58_buffer &buf, const byte *begin, const byte *end) {
   for (auto porous = high; porous < buf.end();) {
     auto chunk = *porous++;
     static_assert(sizeof(chunk) == 4 || sizeof(chunk) == 8, "WTF?");
-    assert(chunk < modulo);
+    ASSERT(chunk < modulo);
     if (sizeof(chunk) > 4) {
       ptr[8] = b58_8to11(chunk);
       ptr[7] = b58_8to11(chunk);
@@ -1769,7 +1793,7 @@ static slice b58_encode(b58_buffer &buf, const byte *begin, const byte *end) {
       ptr[0] = b58_8to11(chunk);
       ptr += 4;
     }
-    assert(static_cast<void *>(ptr) < static_cast<void *>(porous));
+    ASSERT(static_cast<void *>(ptr) < static_cast<void *>(porous));
   }
 
   while (output < ptr && *output == '1')
@@ -1786,7 +1810,7 @@ char *to_base58::write_bytes(char *__restrict const dest, size_t dest_size) cons
   line_wrapper wrapper(dest);
   while (MDBX_LIKELY(begin < end) && *begin == 0) {
     wrapper.put('1', wrap_width);
-    assert(wrapper.ptr <= dest + dest_size);
+    ASSERT(wrapper.ptr <= dest + dest_size);
     ++begin;
   }
 
@@ -1856,7 +1880,7 @@ static slice b58_decode(b58_buffer &buf, const byte *begin, const byte *end, boo
       b58_uint carry = c;
       auto ptr = buf.end();
       do {
-        assert(ptr > buf.area);
+        ASSERT(ptr > buf.area);
         carry += *--ptr * 58;
         *ptr = carry & (~b58_uint(0) >> CHAR_BIT);
         carry >>= CHAR_BIT * (sizeof(carry) - 1);
@@ -1872,7 +1896,7 @@ static slice b58_decode(b58_buffer &buf, const byte *begin, const byte *end, boo
   for (auto porous = high; porous < buf.end(); ++porous) {
     auto chunk = *porous;
     static_assert(sizeof(chunk) == 4 || sizeof(chunk) == 8, "WTF?");
-    assert(chunk <= (~b58_uint(0) >> CHAR_BIT));
+    ASSERT(chunk <= (~b58_uint(0) >> CHAR_BIT));
     if (sizeof(chunk) > 4) {
       *ptr++ = byte(uint_fast64_t(chunk) >> CHAR_BIT * 6);
       *ptr++ = byte(uint_fast64_t(chunk) >> CHAR_BIT * 5);
@@ -1954,17 +1978,17 @@ char *to_base64::write_bytes(char *__restrict const dest, size_t dest_size) cons
         *ptr = '\n';
         line = ++ptr;
       }
-      assert(ptr <= dest + dest_size);
+      ASSERT(ptr <= dest + dest_size);
       continue;
     case 2:
       b64_3to4(src[0], src[1], 0, ptr);
       ptr[3] = '=';
-      assert(ptr + 4 <= dest + dest_size);
+      ASSERT(ptr + 4 <= dest + dest_size);
       return ptr + 4;
     case 1:
       b64_3to4(src[0], 0, 0, ptr);
       ptr[2] = ptr[3] = '=';
-      assert(ptr + 4 <= dest + dest_size);
+      ASSERT(ptr + 4 <= dest + dest_size);
       return ptr + 4;
     case 0:
       return ptr;
@@ -2061,11 +2085,11 @@ char *from_base64::write_bytes(char *__restrict const dest, size_t dest_size) co
     if (MDBX_UNLIKELY(b64_4to3(a, b, c, d, ptr) < 0)) {
       if (left == 4 && (a | b) >= 0 && d == EQ) {
         if (c >= 0) {
-          assert(ptr + 2 <= dest + dest_size);
+          ASSERT(ptr + 2 <= dest + dest_size);
           return ptr + 2;
         }
         if (c == d) {
-          assert(ptr + 1 <= dest + dest_size);
+          ASSERT(ptr + 1 <= dest + dest_size);
           return ptr + 1;
         }
       }
@@ -2074,7 +2098,7 @@ char *from_base64::write_bytes(char *__restrict const dest, size_t dest_size) co
     src += 4;
     left -= 4;
     ptr += 3;
-    assert(ptr <= dest + dest_size);
+    ASSERT(ptr <= dest + dest_size);
   }
   return ptr;
 }
@@ -2261,18 +2285,18 @@ __cold env &env::copy(const MDBX_STD_FILESYSTEM_PATH &destination, bool compacti
 }
 #endif /* MDBX_STD_FILESYSTEM_PATH */
 
-__cold path env::get_path() const {
+__cold const mdbx::path_char *env::get_path() const {
 #if defined(_WIN32) || defined(_WIN64)
   const wchar_t *c_wstr = nullptr;
   error::success_or_throw(::mdbx_env_get_pathW(handle_, &c_wstr));
   static_assert(sizeof(path::value_type) == sizeof(wchar_t), "Oops");
-  return path(c_wstr);
+  return c_wstr;
 #else
   const char *c_str = nullptr;
   error::success_or_throw(::mdbx_env_get_path(handle_, &c_str));
   static_assert(sizeof(path::value_type) == sizeof(char), "Oops");
-  return path(c_str);
-#endif
+  return c_str;
+#endif /* Windows */
 }
 
 __cold bool env::remove(const char *pathname, const remove_mode mode) {
@@ -2304,13 +2328,26 @@ __cold bool env::remove(const MDBX_STD_FILESYSTEM_PATH &pathname, const remove_m
 static inline MDBX_env *create_env() {
   MDBX_env *ptr;
   error::success_or_throw(::mdbx_env_create(&ptr));
-  assert(ptr != nullptr);
+  ASSERT(ptr != nullptr);
   return ptr;
 }
 
-__cold env_managed::~env_managed() noexcept {
+env_managed &env_managed::operator=(env_managed &&other) {
+  if (this != &other) {
+    if (MDBX_UNLIKELY(handle_))
+      MDBX_CXX20_UNLIKELY {
+        assert(handle_ != other.handle_);
+        close();
+      }
+    inherited::operator=(std::move(other));
+  }
+  return *this;
+}
+
+__cold env_managed::~env_managed() {
   if (MDBX_UNLIKELY(handle_))
-    MDBX_CXX20_UNLIKELY error::success_or_panic(::mdbx_env_close(handle_), "mdbx::~env()", "mdbx_env_close");
+    /* coverity[UNCAUGHT_EXCEPT] */
+    MDBX_CXX20_UNLIKELY error::success_or_throw(::mdbx_env_close(handle_));
 }
 
 __cold void env_managed::close(bool dont_sync) {
@@ -2402,6 +2439,37 @@ __cold env_managed::env_managed(const MDBX_STD_FILESYSTEM_PATH &pathname, const 
 
 //------------------------------------------------------------------------------
 
+void cursor_managed::close() {
+  error::success_or_throw(::mdbx_cursor_close2(handle_));
+  handle_ = nullptr;
+}
+
+cursor_managed cursor::clone(void *your_context) const {
+  cursor_managed clone(your_context);
+  clone.assign(*this);
+  return clone;
+}
+
+cursor_managed &cursor_managed::operator=(cursor_managed &&other) {
+  if (this != &other) {
+    if (MDBX_UNLIKELY(handle_))
+      MDBX_CXX20_UNLIKELY {
+        assert(handle_ != other.handle_);
+        close();
+      }
+    inherited::operator=(std::move(other));
+  }
+  return *this;
+}
+
+cursor_managed::~cursor_managed() {
+  if (handle_)
+    /* coverity[UNCAUGHT_EXCEPT] */
+    error::success_or_throw(::mdbx_cursor_close2(handle_));
+}
+
+//------------------------------------------------------------------------------
+
 txn_managed txn::start_nested() { return start_nested(false); }
 
 txn_managed txn::start_nested(bool readonly) {
@@ -2409,22 +2477,35 @@ txn_managed txn::start_nested(bool readonly) {
   error::throw_on_nullptr(handle_, MDBX_BAD_TXN);
   error::success_or_throw(
       ::mdbx_txn_begin(mdbx_txn_env(handle_), handle_, readonly ? MDBX_TXN_RDONLY : MDBX_TXN_READWRITE, &nested));
-  assert(nested != nullptr);
+  ASSERT(nested != nullptr);
   return txn_managed(nested);
 }
 
-txn_managed::~txn_managed() noexcept {
+txn_managed &txn_managed::operator=(txn_managed &&other) {
+  if (this != &other) {
+    if (MDBX_UNLIKELY(handle_))
+      MDBX_CXX20_UNLIKELY {
+        assert(handle_ != other.handle_);
+        abort();
+      }
+    inherited::operator=(std::move(other));
+  }
+  return *this;
+}
+
+txn_managed::~txn_managed() {
   if (MDBX_UNLIKELY(handle_))
-    MDBX_CXX20_UNLIKELY error::success_or_panic(::mdbx_txn_abort(handle_), "mdbx::~txn", "mdbx_txn_abort");
+    /* coverity[UNCAUGHT_EXCEPT] */
+    MDBX_CXX20_UNLIKELY error::success_or_throw(::mdbx_txn_abort(handle_));
 }
 
-void txn_managed::abort() {
-  abort(nullptr);
-}
+void txn_managed::abort() { abort(nullptr); }
 
-void txn_managed::commit() {
-  commit(nullptr);
-}
+void txn_managed::commit() { commit(nullptr); }
+
+bool txn_managed::checkpoint() { return checkpoint(nullptr); }
+
+void txn_managed::commit_embark_read() { commit_embark_read(nullptr); }
 
 void txn_managed::abort(finalization_latency *latency) {
   const error err = static_cast<MDBX_error_t>(::mdbx_txn_abort_ex(handle_, latency));
@@ -2454,6 +2535,11 @@ bool txn_managed::checkpoint(finalization_latency *latency) {
 
 void txn_managed::commit_embark_read(finalization_latency *latency) {
   error::success_or_throw(::mdbx_txn_commit_embark_read(&handle_, latency));
+}
+
+bool txn_managed::amend(bool dont_wait) {
+  return !error::boolean_or_throw(::mdbx_txn_amend(
+      handle_, &handle_, dont_wait ? MDBX_TXN_READWRITE | MDBX_TXN_TRY : MDBX_TXN_READWRITE, handle_->userctx));
 }
 
 //------------------------------------------------------------------------------
@@ -2650,7 +2736,7 @@ __cold ::std::ostream &operator<<(::std::ostream &out, const ::mdbx::env::geomet
     if (bytes % i.one == 0)
       return out << bytes / i.one << i.suffix;
 
-  assert(false);
+  ASSERT(false);
   __unreachable();
   return out;
 }

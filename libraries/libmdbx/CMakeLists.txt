@@ -5,7 +5,7 @@
 # open-source code. MDBX has a specific set of properties and capabilities, focused on creating unique lightweight
 # solutions.  Please visit https://libmdbx.dqdkfa.ru for more information, changelog, documentation, C++ API description
 # and links to the original git repo with the source code.  Questions, feedback and suggestions are welcome to the
-# Telegram' group https://t.me/libmdbx.
+# Telegram' group https://t.me/libmdbx, MAX' chat https://max.ru/join/dKckvyuARxp1vRK-wnPur8zYCEkbR3OUOmpPWkWxp78.
 #
 # The libmdbx code will forever remain open and with high-quality free support, as far as the life circumstances of the
 # project participants allow. Donations are welcome to ETH `0xD104d8f8B2dC312aaD74899F83EBf3EEBDC1EA3A`,
@@ -71,6 +71,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION.json"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mdbx_load.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mdbx_stat.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mdbx_drop.c"
+   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mdbx_defrag.c"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ntdll.def"
    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/config.h.in")
   set(MDBX_AMALGAMATED_SOURCE TRUE)
@@ -447,7 +448,7 @@ endif()
 # ~~~
 # ######################################################################################################################
 
-set(MDBX_BUILD_OPTIONS ENABLE_UBSAN ENABLE_ASAN ENABLE_MEMCHECK ENABLE_GPROF ENABLE_GCOV)
+set(MDBX_BUILD_OPTIONS ENABLE_UBSAN ENABLE_ASAN ENABLE_MEMCHECK ENABLE_GPROF ENABLE_GCOV MDBX_DEBUG MDBX_CHECKING)
 
 if(IOS)
   set(MDBX_BUILD_TOOLS_DEFAULT OFF)
@@ -461,8 +462,8 @@ endif()
 
 add_option(MDBX INSTALL_STATIC "Build and install libmdbx for static linking" OFF)
 add_option(MDBX BUILD_SHARED_LIBRARY "Build libmdbx as shared library (DLL)" ${BUILD_SHARED_LIBS})
-add_option(MDBX BUILD_TOOLS "Build MDBX tools (mdbx_chk/stat/dump/load/copy/drop)" ${MDBX_BUILD_TOOLS_DEFAULT})
-cmake_dependent_option(MDBX_INSTALL_MANPAGES "Install man-pages for MDBX tools (mdbx_chk/stat/dump/load/copy)" ON
+add_option(MDBX BUILD_TOOLS "Build MDBX tools (mdbx_chk/stat/dump/load/copy/defrag/drop)" ${MDBX_BUILD_TOOLS_DEFAULT})
+cmake_dependent_option(MDBX_INSTALL_MANPAGES "Install man-pages for MDBX tools (mdbx_chk/stat/dump/load/copy/defrag/drop)" ON
                        MDBX_BUILD_TOOLS OFF)
 add_option(MDBX TXN_CHECKOWNER "Checking transaction matches the calling thread inside libmdbx's API" ON)
 add_option(MDBX ENV_CHECKPID "Checking PID inside libmdbx's API against reuse DB environment after the fork()" AUTO)
@@ -497,7 +498,6 @@ add_option(MDBX LOCKING "Locking method (Windows=-1, SystemV=5, POSIX=1988, POSI
 mark_as_advanced(MDBX_LOCKING)
 add_option(MDBX TRUST_RTC "Does a system have battery-backed Real-Time Clock or just a fake" AUTO)
 mark_as_advanced(MDBX_TRUST_RTC)
-add_option(MDBX FORCE_ASSERTIONS "Force enable assertion checking" OFF)
 add_option(
   MDBX DISABLE_VALIDATION
   "Disable some checks to reduce an overhead and detection probability of database corruption to a values closer to the LMDB"
@@ -506,9 +506,9 @@ mark_as_advanced(MDBX_DISABLE_VALIDATION)
 add_option(MDBX ENABLE_REFUND "Zerocost auto-compactification during write-transactions" ON)
 add_option(MDBX ENABLE_BIGFOOT
            "Chunking long list of retired pages during huge transactions commit to avoid use sequences of pages" ON)
-add_option(MDBX ENABLE_PGOP_STAT "Gathering statistics for page operations" ON)
+add_option(MDBX ENABLE_PGOP_STAT "Gathering statistics on pages modification operations" ON)
 add_option(MDBX ENABLE_PROFGC "Profiling of GC search and updates" OFF)
-mark_as_advanced(MDBX_ENABLE_PROFGC)
+add_option(MDBX ENABLE_PGET_STAT "Gathering the number of page get operations for each transaction" ON)
 add_option(MDBX ENABLE_DBI_SPARSE
            "Support for sparse sets of DBI handles to reduce overhead when starting and processing transactions" ON)
 add_option(MDBX ENABLE_DBI_LOCKFREE "Support for deferred releasing and a lockfree path to quickly open DBI handles" ON)
@@ -516,6 +516,50 @@ add_option(MDBX USE_FALLOCATE "Using posix_fallocate() or fcntl(F_PREALLOCATE) o
 mark_as_advanced(MDBX_USE_FALLOCATE)
 add_option(MDBX ENABLE_FAKE_NESTED_READONLY_TRANSACTIONS "Enables fake nested read-only transactions, which are much cheaper but do not restore the state of cursors in case of transaction abortion." OFF)
 mark_as_advanced(MDBX_ENABLE_FAKE_NESTED_READONLY_TRANSACTIONS)
+
+if(DEFINED MDBX_FORCE_ASSERTIONS)
+  message(WARNING "The `MDBX_FORCE_ASSERTIONS` is obsolete, please use `MDBX_CHECKING=2` instead")
+  if(DEFINED MDBX_CHECKING)
+    message(
+      WARNING
+        "The `MDBX_FORCE_ASSERTIONS=${MDBX_FORCE_ASSERTIONS}` option was ignored in favour of `MDBX_CHECKING=${MDBX_CHECKING}`"
+    )
+  elseif(MDBX_FORCE_ASSERTIONS)
+    set(MDBX_CHECKING 2)
+  endif()
+endif()
+
+if(NOT DEFINED MDBX_CHECKING)
+  if(CMAKE_BUILD_TYPE_UPPERCASE STREQUAL "DEBUG")
+    set(MDBX_CHECKING 2)
+  else()
+    set(MDBX_CHECKING 0)
+  endif()
+elseif(MDBX_CHECKING STREQUAL "OFF")
+  set(MDBX_CHECKING 0)
+elseif(MDBX_CHECKING STREQUAL "ON")
+  set(MDBX_CHECKING 2)
+elseif(NOT MDBX_CHECKING MATCHES "^(-1|0|1|2|3)$")
+  message(
+    FATAL_ERROR
+      "The `MDBX_CHECKING` should defined as an integer number in range -1..3, the given value `MDBX_CHECKING=${MDBX_CHECKING}` is invalid."
+  )
+endif()
+
+if(NOT DEFINED MDBX_DEBUG OR MDBX_DEBUG STREQUAL "OFF")
+  if(CMAKE_BUILD_TYPE_UPPERCASE STREQUAL "DEBUG")
+    set(MDBX_DEBUG 1)
+  else()
+    set(MDBX_DEBUG 0)
+  endif()
+elseif(MDBX_DEBUG STREQUAL "ON")
+  set(MDBX_DEBUG 2)
+elseif(NOT MDBX_DEBUG MATCHES "^(-1|0|1|2|3)$")
+  message(
+    FATAL_ERROR
+      "The `MDBX_DEBUG` should defined as an integer number in range -1..3, the given value `MDBX_DEBUG=${MDBX_DEBUG}` is invalid."
+  )
+endif()
 
 if((MDBX_BUILD_TOOLS OR MDBX_ENABLE_TESTS) AND MDBX_BUILD_SHARED_LIBRARY)
   add_option(MDBX LINK_TOOLS_NONSTATIC "Link MDBX tools with non-static libmdbx" OFF)
@@ -771,7 +815,7 @@ if(MDBX_BUILD_TOOLS)
     set(WINGETOPT_SRC "")
   endif()
 
-  foreach(TOOL chk copy stat dump load drop)
+  foreach(TOOL chk copy stat dump load drop defrag)
     if(MDBX_AMALGAMATED_SOURCE)
       add_executable(mdbx_${TOOL} mdbx.h ${MDBX_SOURCE_DIR}/mdbx_${TOOL}.c ${WINGETOPT_SRC})
     else()
@@ -827,7 +871,7 @@ if(MDBX_BUILD_TOOLS)
   if(NOT DEFINED MDBX_TOOLS_INSTALL_DESTINATION)
     set(MDBX_TOOLS_INSTALL_DESTINATION ${CMAKE_INSTALL_BINDIR})
   endif()
-  install(TARGETS mdbx_chk mdbx_stat mdbx_copy mdbx_dump mdbx_load mdbx_drop
+  install(TARGETS mdbx_chk mdbx_stat mdbx_copy mdbx_dump mdbx_load mdbx_drop mdbx_defrag
           RUNTIME DESTINATION ${MDBX_TOOLS_INSTALL_DESTINATION} COMPONENT runtime)
   if(MDBX_INSTALL_MANPAGES)
     if(NOT DEFINED MDBX_MAN_INSTALL_DESTINATION)

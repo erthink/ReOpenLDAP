@@ -97,7 +97,7 @@ int mdb_dn2id_walk(Operation *op, struct IdScopes *isc);
 
 void mdb_dn2id_wrestore(Operation *op, struct IdScopes *isc);
 
-MDBX_cmp_func mdb_dup_compare;
+int mdb_dup_compare(const struct iovec *, const struct iovec *);
 
 /*
  * filterentry.c
@@ -109,8 +109,8 @@ int mdb_filter_candidates(Operation *op, MDBX_txn *txn, Filter *f, ID *ids, ID *
  * id2entry.c
  */
 
-MDBX_cmp_func mdb_id2v_compare;
-MDBX_cmp_func mdb_id2v_dupsort;
+int mdb_id2v_compare(const struct iovec *, const struct iovec *);
+int mdb_id2v_dupsort(const struct iovec *, const struct iovec *);
 
 int mdb_id2entry_add(Operation *op, MDBX_txn *tid, MDBX_cursor *mc, Entry *e);
 

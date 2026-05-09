@@ -1,10 +1,10 @@
-/* This file is part of the libmdbx amalgamated source code (v0.14.1-366-gcb6e5d8d-dirty at 2026-01-30T13:25:56+03:00).
+/* This file is part of the libmdbx amalgamated source code (v0.14.1-610-gcc920267 at 2026-05-09T13:03:22+03:00).
  *
  * libmdbx (aka MDBX) is an extremely fast, compact, powerful, embeddedable, transactional key-value storage engine with
  * open-source code. MDBX has a specific set of properties and capabilities, focused on creating unique lightweight
  * solutions.  Please visit https://libmdbx.dqdkfa.ru for more information, changelog, documentation, C++ API description
  * and links to the original git repo with the source code.  Questions, feedback and suggestions are welcome to the
- * Telegram' group https://t.me/libmdbx.
+ * Telegram' group https://t.me/libmdbx, MAX' chat https://max.ru/join/dKckvyuARxp1vRK-wnPur8zYCEkbR3OUOmpPWkWxp78.
  *
  * The libmdbx code will forever remain open and with high-quality free support, as far as the life circumstances of the
  * project participants allow. Donations are welcome to ETH `0xD104d8f8B2dC312aaD74899F83EBf3EEBDC1EA3A`,
@@ -22,7 +22,7 @@
 
 /* clang-format off */
 
-#define xMDBX_TOOLS /* Avoid using internal eASSERT(), etc */
+#define xMDBX_TOOLS /* Avoid using internal ASSERT(), etc */
 #include "mdbx-internals.h"
 
 #include <ctype.h>
@@ -62,13 +62,13 @@ typedef struct flagbit {
   char *name;
 } flagbit;
 
-flagbit dbflags[] = {{MDBX_REVERSEKEY, "reversekey"},
-                     {MDBX_DUPSORT, "dupsort"},
-                     {MDBX_INTEGERKEY, "integerkey"},
-                     {MDBX_DUPFIXED, "dupfix"},
-                     {MDBX_INTEGERDUP, "integerdup"},
-                     {MDBX_REVERSEDUP, "reversedup"},
-                     {0, nullptr}};
+static const flagbit dbflags[] = {{MDBX_REVERSEKEY, "reversekey"},
+                                  {MDBX_DUPSORT, "dupsort"},
+                                  {MDBX_INTEGERKEY, "integerkey"},
+                                  {MDBX_DUPFIXED, "dupfix"},
+                                  {MDBX_INTEGERDUP, "integerdup"},
+                                  {MDBX_REVERSEDUP, "reversedup"},
+                                  {0, nullptr}};
 
 static void dumpval(const MDBX_val *v) {
   static const char digits[] = "0123456789abcdef";
@@ -87,8 +87,8 @@ static void dumpval(const MDBX_val *v) {
   putchar('\n');
 }
 
-bool quiet = false, rescue = false;
-const char *prog;
+static bool quiet = false, rescue = false;
+static const char *prog;
 static void error(const char *func, int rc) {
   if (!quiet)
     fprintf(stderr, "%s: %s() error %d %s\n", prog, func, rc, mdbx_strerror(rc));
@@ -121,10 +121,10 @@ static int dump_tbl(MDBX_txn *txn, MDBX_dbi dbi, char *name) {
   if (mode & GLOBAL) {
     mode -= GLOBAL;
     if (info.mi_geo.upper != info.mi_geo.lower)
-      printf("geometry=l%" PRIu64 ",c%" PRIu64 ",u%" PRIu64 ",s%" PRIu64 ",g%" PRIu64 "\n", info.mi_geo.lower,
-             info.mi_geo.current, info.mi_geo.upper, info.mi_geo.shrink, info.mi_geo.grow);
+      printf("geometry=l%" PRIu64 ",u%" PRIu64 ",s%" PRIu64 ",g%" PRIu64 "\n", info.mi_geo.lower, info.mi_geo.upper,
+             info.mi_geo.shrink, info.mi_geo.grow);
     printf("mapsize=%" PRIu64 "\n", info.mi_geo.upper);
-    printf("maxreaders=%u\n", info.mi_maxreaders);
+    /* printf("maxreaders=%u\n", info.mi_maxreaders); */
 
     MDBX_canary canary;
     rc = mdbx_canary_get(txn, &canary);
@@ -399,7 +399,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (alldbs) {
-    assert(dbi == MAIN_DBI);
+    ASSERT(dbi == MAIN_DBI);
 
     MDBX_cursor *cursor;
     err = mdbx_cursor_open(txn, MAIN_DBI, &cursor);

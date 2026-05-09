@@ -17,13 +17,13 @@ _libmdbx_ is an extremely fast, compact, powerful, embedded, transactional [key-
 
 6. Supports Linux, Windows, MacOS, Harmony, Android, iOS, FreeBSD, DragonFly, Solaris, OpenSolaris, OpenIndiana, NetBSD, OpenBSD and other systems compliant with **POSIX.1-2008**.
 
-7. **Compact and friendly for fully embedding**. Only ≈25KLOC of `C11`, ≈64K x86 binary code of core, no internal threads neither server process(es), but implements a simplified variant of the [Berkeley DB](https://en.wikipedia.org/wiki/Berkeley_DB) and [dbm](https://en.wikipedia.org/wiki/DBM_(computing)) API.
+7. **Compact and friendly for fully embedding**. Just a few flat source code files. Here no internal threads nor server process(es), but implements core part of the [Berkeley DB](https://en.wikipedia.org/wiki/Berkeley_DB) API with many powerful extensions.
 
 <!-- section-end -->
 
-Historically, _libmdbx_ is a deeply revised and extended descendant of the legendary [Lightning Memory-Mapped Database](https://en.wikipedia.org/wiki/Lightning_Memory-Mapped_Database). _libmdbx_ inherits all benefits from _LMDB_, but resolves some issues and adds [a set of improvements](#improvements-beyond-lmdb).
+Historically, _libmdbx_ is a deeply revised and extended descendant of the legendary [Lightning Memory-Mapped Database](https://en.wikipedia.org/wiki/Lightning_Memory-Mapped_Database). _libmdbx_ inherits all benefits from _LMDB_, but resolves some issues and adds [a large set of improvements](#improvements-beyond-lmdb).
 
-[![Telergam: Support | Discussions | News](https://img.shields.io/endpoint?color=scarlet&logo=telegram&label=Support%20%7C%20Discussions%20%7C%20News&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Flibmdbx)](https://t.me/libmdbx)
+[![Чат в МАКС](https://libmdbx.dqdkfa.ru/img/MAX-24x24.png)](https://max.ru/join/dKckvyuARxp1vRK-wnPur8zYCEkbR3OUOmpPWkWxp78)|[![Telegram: Support | Discussions | News](https://img.shields.io/endpoint?color=scarlet&logo=telegram&label=Support%20%7C%20Discussions%20%7C%20News&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Flibmdbx)](https://t.me/libmdbx)
 
 > Please refer to the online [official libmdbx documentation site](https://libmdbx.dqdkfa.ru) with [`C` API description](https://libmdbx.dqdkfa.ru/group__c__api.html) and pay attention to the [`C++` API](https://sourcecraft.dev/dqdkfa/libmdbx/blob?file=mdbx.h%2B%2B#line-num-1). Donations are welcome to ETH `0xD104d8f8B2dC312aaD74899F83EBf3EEBDC1EA3A`,
 BTC `bc1qzvl9uegf2ea6cwlytnanrscyv8snwsvrc0xfsu`, SOL `FTCTgbHajoLVZGr8aEFWMzx3NDMyS5wXJgfeMTmJznRi`.
@@ -128,25 +128,23 @@ $ cc --version
 
 - Ultra-efficient support for [multimaps](https://en.wikipedia.org/wiki/Multimap). Multi-values sorted, searchable and iterable. Keys stored without duplication.
 
-- Data is [memory-mapped](https://en.wikipedia.org/wiki/Memory-mapped_file) and accessible directly/zero-copy. Traversal of database records is extremely-fast.
+- Data is [memory-mapped](https://en.wikipedia.org/wiki/Memory-mapped_file) and accessible directly/zero-copy. In-memory fullscan of database records is extremely-fast.
 
 - Transactions for readers and writers, ones do not block others.
 
-- Writes are strongly serialized. No transaction conflicts nor deadlocks.
+- No transaction conflicts nor deadlocks since writes are strongly serialized.
 
 - Readers are [non-blocking](https://en.wikipedia.org/wiki/Non-blocking_algorithm), notwithstanding [snapshot isolation](https://en.wikipedia.org/wiki/Snapshot_isolation).
 
-- Nested write transactions.
-
 - Reads scale linearly across CPUs.
 
-- Continuous zero-overhead database compactification.
+- Both explicit defragmentation and continuous zero-overhead database compactification.
 
 - Automatic on-the-fly database size adjustment.
 
-- Customizable database page size.
-
 - `Olog(N)` cost of lookup, insert, update, and delete operations by virtue of [B+ tree characteristics](https://en.wikipedia.org/wiki/B%2B_tree#Characteristics).
+
+- Improbably fast and robust get(key) operations [accelerated by shareable lockfree cache](https://libmdbx.dqdkfa.ru/group__c__crud.html#ga5bfb583bf2c5d5676ffddb466e789353).
 
 - Online hot backup.
 
@@ -154,7 +152,9 @@ $ cc --version
 
 - No [WAL](https://en.wikipedia.org/wiki/Write-ahead_logging) nor any transaction journal. No crash recovery needed. No maintenance is required.
 
-- No internal cache and/or memory management, all done by basic OS services.
+- Flexible transaction API with support for nested transactions.
+
+- Customizable database page size.
 
 ## Limitations
 
@@ -190,7 +190,7 @@ For now please refer to [chapter of "BoltDB comparison with other databases"](ht
  - no issues with moving a cursor(s) after the deletion;
  - _libmdbx_ provides zero-overhead database compactification, so a database file could be shrinked/truncated in particular cases;
  - excluding disk I/O time _libmdbx_ could be ≈3 times faster than BoltDB and up to 10-100K times faster than both BoltDB and LMDB in particular extreme cases;
- - _libmdbx_ provides more features compared to BoltDB and/or LMDB.
+ - _libmdbx_ provides extra more features compared to BoltDB and/or LMDB.
 
 <!-- section-end -->
 <!-- section-begin improvements -->
@@ -284,7 +284,8 @@ Historically, _libmdbx_ is a deeply revised and extended descendant of the [Ligh
 
 Since 2017 _libmdbx_ is used in [Fast Positive Tables](https://gitflic.ru/project/erthink/libfpta), and until 2025 development was funded by [Positive Technologies](https://www.ptsecurity.com). Since 2020 _libmdbx_ is used in Ethereum: [Erigon](https://github.com/erigontech/erigon), [Akula](https://github.com/akula-bft/akula), [Silkworm](https://github.com/erigontech/silkworm), [Reth](https://github.com/paradigmxyz/reth), etc.
 
-On 2022-04-15 the Github administration, without any warning nor explanation, deleted _libmdbx_ along with a lot of other projects, simultaneously blocking access for many developers. Therefore on 2022-04-21 I have migrated to a reliable trusted infrastructure. The origin for now is at [SourceCraft](https://sourcecraft.dev/dqdkfa/libmdbx) with backup at [ABF by ROSA Лаб](https://abf.rosalinux.ru/erthink/libmdbx). For the same reason ~~Github~~ is blacklisted forever.
+On 2022-04-15 the Github administration, without any warning nor explanation, deleted _libmdbx_ along with a lot of other projects, simultaneously blocking access for many developers. Therefore on 2022-04-21 I have migrated to a reliable trusted infrastructure.
+The origin for now is at [SourceCraft](https://sourcecraft.dev/dqdkfa/libmdbx) and ~~Github~~ is blacklisted forever to play this role.
 
 Since May 2024 and version 0.13 _libmdbx_ was re-licensed under Apache-2.0 license. Please refer to the [`COPYRIGHT` file](https://sourcecraft.dev/dqdkfa/libmdbx/blob/raw?file=COPYRIGHT) for license change explanations.
 
@@ -304,7 +305,8 @@ Usage
 
 Since December 2025 _libmdbx_ is available only in an amalgamated source code form like [SQLite](https://www.sqlite.org/amalgamation.html), without additional dependencies and internal resources needed only for development of _libmdbx_ itself. Packages support for common Linux distributions is planned in the future, since release the version `1.0`.
 
-The source code is available on [SourceCraft](https://sourcecraft.dev/dqdkfa/libmdbx) and mirrors on [abf.io](https://abf.io/erthink/libmdbx), [Gitflic](https://gitflic.ru/project/erthink/libmdbx) and [Github](https://github.com/erthink/libmdbx). Please use the `stable` branch or the latest release for production environment through stagging and the `master` branch for development a derivative projects.
+The source code is available on [SourceCraft](https://sourcecraft.dev/dqdkfa/libmdbx) and mirrors on [AltSpace](https://altlinux.space/DQDKFA.RU/libmdbx.git), [Github](https://github.com/erthink/libmdbx), [abf.io](https://abf.io/erthink/libmdbx) and [GitFlic](https://gitflic.ru/project/erthink/libmdbx).
+Please use the `stable` branch or the latest release for production environment through staging and the `master` branch for development a derivative projects.
 
 ## Building and Testing
 
@@ -411,6 +413,7 @@ Bindings
 | Ruby    | [ruby-mdbx](https://rubygems.org/gems/mdbx/)          | [Mahlon E. Smith](https://github.com/mahlonsmith) |
 | Zig     | [mdbx-zig](https://github.com/theseyan/lmdbx-zig)     | [Sayan J. Das](https://github.com/theseyan) |
 | NodeJS  | [mdbxmou](https://github.com/ikonopistsev/mdbxmou)    | [Igor Ikonopistsev](https://github.com/ikonopistsev) |
+| .NET    | [libmdbx-dotnet](https://public.git.amsoft.spb.ru/libmdbx/libmdbx-dotnet) | [Anton Maisak](mailto:anton@maisak.ru) |
 
 ##### Obsolete/Outdated/Unsupported:
 
