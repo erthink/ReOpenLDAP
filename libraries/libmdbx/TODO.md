@@ -22,10 +22,11 @@ TODO
 
 In development
 --------------
- - v0.14.2 milestone
+ - none
 
 Done
 ----
+ - v0.14.2 milestone
  - Ultra-fast deletion of consecutive elements by cutting off b-tree branches.
  - split ASSERT() to CHECK{0,1,2} and basal `assert()`.
  - Refine/simplify assertion-like errors handling.
@@ -48,7 +49,7 @@ Done
  - [Get rid of dirty-pages list in MDBX_WRITEMAP mode](https://libmdbx.dqdkfa.ru/dead-github/issues/193).
 
 Cancelled
---------
+---------
 
  - Внутри `txn_renew()` вынести проверку когерентности mmap за/после изменение размера.
    Потеряло смысл в результате рефакторинга.
