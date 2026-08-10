@@ -148,10 +148,10 @@ static slap_verbmasks mdb_envflags[] = {{BER_BVC("nosync"), MDBX_UTTERLY_NOSYNC}
                                         {BER_BVC("lazysync"), MDBX_SAFE_NOSYNC},
                                         {BER_BVC("nometasync"), MDBX_NOMETASYNC},
                                         {BER_BVC("writemap"), MDBX_WRITEMAP},
-                                        {BER_BVC("mapasync"), MDBX_MAPASYNC},
+                                        {BER_BVC("mapasync"), 0},
                                         {BER_BVC("nordahead"), MDBX_NORDAHEAD},
                                         {BER_BVC("lifo"), MDBX_LIFORECLAIM},
-                                        {BER_BVC("coalesce"), MDBX_COALESCE},
+                                        {BER_BVC("coalesce"), 0},
                                         {BER_BVNULL, 0}};
 
 static slap_verbmasks oom_flags[] = {

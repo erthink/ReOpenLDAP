@@ -1,4 +1,4 @@
-/* This file is part of the libmdbx amalgamated source code (v0.14.1-610-gcc920267 at 2026-05-09T13:03:22+03:00).
+/* This file is part of the libmdbx amalgamated source code (v0.14.3-0-g251562b2 at 2026-08-09T13:18:46+03:00).
  *
  * libmdbx (aka MDBX) is an extremely fast, compact, powerful, embeddedable, transactional key-value storage engine with
  * open-source code. MDBX has a specific set of properties and capabilities, focused on creating unique lightweight
@@ -25,7 +25,9 @@
 #define xMDBX_TOOLS /* Avoid using internal ASSERT(), etc */
 #include "mdbx-internals.h"
 
-#if defined(_WIN32) || defined(_WIN64)
+enum { MDBX_STAT_MAXDBS = 2 };
+
+#if IS_WINDOWS
 
 /* Bit of madness for Windows console */
 #define mdbx_strerror mdbx_strerror_ANSI2OEM
@@ -93,10 +95,12 @@ static int reader_list_func(void *ctx, int num, int slot, mdbx_pid_t pid, mdbx_t
 
   printf(" %3d)\t[%d]\t%10" PRIdSIZE " %*s", num, slot, (size_t)pid, (int)sizeof(size_t) * 2, thread_str);
 
-  if (txnid)
-    printf(" %20" PRIu64 " %10" PRIu64 " %12.1fM %12.1fM\n", txnid, lag, bytes_used / 1048576.0,
-           bytes_retained / 1048576.0);
-  else
+  if (txnid) {
+    char buf_bytes_used[42], buf_bytes_retained[42];
+    printf(" %20" PRIu64 " %10" PRIu64 " %12sM %12sM\n", txnid, lag,
+           mdbx_ratio2digits(bytes_used, 1048576, 1, buf_bytes_used, sizeof(buf_bytes_used)),
+           mdbx_ratio2digits(bytes_retained, 1048576, 1, buf_bytes_retained, sizeof(buf_bytes_retained)));
+  } else
     printf(" %20s %10s %13s %13s\n", "-", "0", "0", "0");
 
   return user_break ? MDBX_RESULT_TRUE : MDBX_RESULT_FALSE;
@@ -139,8 +143,8 @@ static void logger(MDBX_log_level_t level, const char *function, int line, const
       "   ",        // 3 notice
       "   //",      // 4 verbose
   };
-  if (level < MDBX_LOG_DEBUG) {
-    if (function && line)
+  if (level >= 0 && level < MDBX_LOG_DEBUG) {
+    if (function && line && (size_t)level < ARRAY_LENGTH(prefixes))
       fprintf(stderr, "%s", prefixes[level]);
     vfprintf(stderr, fmt, args);
   }
@@ -164,14 +168,14 @@ static void print_pages_percentage(const char *caption, size_t value, size_t bac
 int main(int argc, char *argv[]) {
   int opt, rc;
   MDBX_env *env;
-  MDBX_txn *txn;
+  MDBX_txn *txn = nullptr;
   MDBX_dbi dbi;
   MDBX_envinfo mei;
   prog = argv[0];
   char *envname;
   char *table = nullptr;
-  bool alltbl = false, en = false, op = false;
-  int gc = 0, rd = 0;
+  bool alltbl = false, show_env_info = false, show_page_ops = false;
+  short show_gc = 0, show_readers = 0;
 
   if (argc < 2)
     usage(prog);
@@ -202,7 +206,7 @@ int main(int argc, char *argv[]) {
       quiet = true;
       break;
     case 'p':
-      op = true;
+      show_page_ops = true;
       break;
     case 'a':
       if (table)
@@ -210,15 +214,15 @@ int main(int argc, char *argv[]) {
       alltbl = true;
       break;
     case 'e':
-      en = true;
+      show_env_info = true;
       break;
     case 'f':
-      gc += 1;
+      show_gc += 1;
       break;
     case 'n':
       break;
     case 'r':
-      rd += 1;
+      show_readers += 1;
       break;
     case 's':
       if (alltbl)
@@ -233,7 +237,7 @@ int main(int argc, char *argv[]) {
   if (optind != argc - 1)
     usage(prog);
 
-#if defined(_WIN32) || defined(_WIN64)
+#if IS_WINDOWS
   SetConsoleCtrlHandler(ConsoleBreakHandlerRoutine, true);
 #else
 #ifdef SIGPIPE
@@ -261,7 +265,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (alltbl || table) {
-    rc = mdbx_env_set_maxdbs(env, 2);
+    rc = mdbx_env_set_maxdbs(env, MDBX_STAT_MAXDBS);
     if (unlikely(rc != MDBX_SUCCESS)) {
       error("mdbx_env_set_maxdbs", rc);
       goto env_close;
@@ -277,10 +281,10 @@ int main(int argc, char *argv[]) {
   rc = mdbx_txn_begin(env, nullptr, MDBX_TXN_RDONLY, &txn);
   if (unlikely(rc != MDBX_SUCCESS)) {
     error("mdbx_txn_begin", rc);
-    goto txn_abort;
+    goto env_close;
   }
 
-  if (en || gc || op) {
+  if (show_env_info || show_gc || show_page_ops) {
     rc = mdbx_env_info_ex(env, txn, &mei, sizeof(mei));
     if (unlikely(rc != MDBX_SUCCESS)) {
       error("mdbx_env_info_ex", rc);
@@ -291,7 +295,7 @@ int main(int argc, char *argv[]) {
     memset(&mei, 0, sizeof(mei));
   }
 
-  if (op) {
+  if (show_page_ops) {
     printf("Page Operations (for current session):\n");
     printf("      New: %8" PRIu64 "\t// quantity of a new pages added\n", mei.mi_pgop_stat.newly);
     printf("      CoW: %8" PRIu64 "\t// quantity of pages copied for altering\n", mei.mi_pgop_stat.cow);
@@ -317,7 +321,7 @@ int main(int argc, char *argv[]) {
            mei.mi_pgop_stat.fsync);
   }
 
-  if (en) {
+  if (show_env_info) {
     printf("Environment Info\n");
     printf("  Pagesize: %u\n", mei.mi_dxb_pagesize);
     if (mei.mi_geo.lower != mei.mi_geo.upper) {
@@ -330,12 +334,12 @@ int main(int argc, char *argv[]) {
              mei.mi_mapsize / mei.mi_dxb_pagesize);
       printf("  Current datafile: %" PRIu64 " bytes, %" PRIu64 " pages\n", mei.mi_geo.current,
              mei.mi_geo.current / mei.mi_dxb_pagesize);
-#if defined(_WIN32) || defined(_WIN64)
+#if IS_WINDOWS
       if (mei.mi_geo.shrink && mei.mi_geo.current != mei.mi_geo.upper)
         printf("                    WARNING: Due Windows system limitations a "
                "file couldn't\n                    be truncated while database "
                "is opened. So, the size of\n                    database file "
-               "may by large than the database itself,\n                    "
+               "may be large than the database itself,\n                    "
                "until it will be closed or reopened in read-write mode.\n");
 #endif
     } else {
@@ -346,10 +350,10 @@ int main(int argc, char *argv[]) {
     printf("  Latter reader transaction ID: %" PRIu64 " (%" PRIi64 ")\n", mei.mi_latter_reader_txnid,
            mei.mi_latter_reader_txnid - mei.mi_recent_txnid);
     printf("  Max readers: %u\n", mei.mi_maxreaders);
-    printf("  Number of reader slots uses: %u\n", mei.mi_numreaders);
+    printf("  Number of reader slots in use: %u\n", mei.mi_numreaders);
   }
 
-  if (rd) {
+  if (show_readers) {
     rc = mdbx_reader_list(env, reader_list_func, nullptr);
     if (MDBX_IS_ERROR(rc)) {
       error("mdbx_reader_list", rc);
@@ -357,7 +361,7 @@ int main(int argc, char *argv[]) {
     }
     if (rc == MDBX_RESULT_TRUE)
       printf("Reader Table is absent\n");
-    else if (rc == MDBX_SUCCESS && rd > 1) {
+    else if (rc == MDBX_SUCCESS && show_readers > 1) {
       int dead;
       rc = mdbx_reader_check(env, &dead);
       if (MDBX_IS_ERROR(rc)) {
@@ -372,13 +376,13 @@ int main(int argc, char *argv[]) {
       } else
         printf("  No stale readers.\n");
     }
-    if (!(table || alltbl || gc))
+    if (!(table || alltbl || show_gc))
       goto txn_abort;
   }
 
-  if (gc) {
+  if (show_gc) {
     printf("Page Usage & Garbage Collection%s\n",
-           (gc > 1) ? " (please use `mdbx_chk` tool for detailed GC information instead)" : "");
+           (show_gc > 1) ? " (please use `mdbx_chk` tool for detailed GC information instead)" : "");
     MDBX_gc_info_t info;
     rc = mdbx_gc_info(txn, &info, sizeof(info), gc_list_func, nullptr);
 
@@ -394,8 +398,10 @@ int main(int argc, char *argv[]) {
       goto txn_abort;
     }
 
-    const size_t remained_pages = info.pages_total - info.pages_allocated;
-    const size_t used_pages = info.pages_allocated - info.pages_gc;
+    const size_t remained_pages =
+        info.pages_total - info.pages_allocated; /* the pages_allocated cannot be greater than the pages_total */
+    const size_t used_pages =
+        info.pages_allocated - info.pages_gc; /* the pages_gc cannot be greater than the pages_allocated */
     const size_t gc_retained = info.pages_gc - info.gc_reclaimable.pages;
     const size_t available_pages = info.gc_reclaimable.pages + remained_pages;
     print_pages_percentage("Total", info.pages_total, info.pages_backed, info.pages_total);
@@ -405,7 +411,7 @@ int main(int argc, char *argv[]) {
     print_pages_percentage("Used", used_pages, info.pages_backed, info.pages_total);
     print_pages_percentage("GC|whole", info.pages_gc, info.pages_backed, info.pages_total);
     print_pages_percentage("GC|reclaimable", info.gc_reclaimable.pages, info.pages_backed, info.pages_total);
-    if (gc > 1) {
+    if (show_gc > 1) {
       printf("  %s: ", "GC|reclaimable span-length distribution");
       const char *suffix = "empty";
       if (info.gc_reclaimable.span_histogram.amount) {
@@ -451,15 +457,13 @@ int main(int argc, char *argv[]) {
     rc = mdbx_enumerate_tables(txn, table_enum_func, nullptr);
     switch (rc) {
     case MDBX_SUCCESS:
-    case MDBX_NOTFOUND:
       break;
     case MDBX_EINTR:
       if (!quiet)
         fprintf(stderr, "Interrupted by signal/user\n");
       break;
     default:
-      if (unlikely(rc != MDBX_SUCCESS))
-        error("mdbx_enumerate_tables", rc);
+      error("mdbx_enumerate_tables", rc);
     }
   }
 
